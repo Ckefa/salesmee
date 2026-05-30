@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"threadly/internal/models"
+	"oneflow/internal/models"
 )
 
 // GetProducts for business

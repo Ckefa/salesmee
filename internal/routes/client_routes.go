@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"threadly/internal/handlers"
-	"threadly/internal/handlers/client"
+	"oneflow/internal/handlers"
+	"oneflow/internal/handlers/client"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +14,10 @@ func SetupClientRoutes(r *gin.Engine) {
 	r.POST("/client/send-otp", client.SendClientOTP)
 	r.POST("/client/verify-otp", client.VerifyClientOTP)
 	r.GET("/client/logout", client.ClientLogout)
+
+	// PUBLIC - Client Google Auth
+	r.GET("/client/auth/google", client.InitiateClientGoogleAuth)
+	r.GET("/client/auth/google/callback", client.HandleClientGoogleCallback)
 
 	// PROTECTED client ROUTES
 	clientProtected := r.Group("/client")

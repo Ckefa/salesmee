@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plans - OneFlow</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-3">
+          <a href="/business/subscription" class="btn btn-ghost btn-icon" title="Back to Subscription">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Choose a Plan</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="theme-toggle" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
+          </button>
+          <a href="/business" class="btn btn-secondary btn-sm">
+            <i class="fas fa-comments"></i> Chats
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-4rem)]">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)]">
+      {{template "subscription_plans_content" .}}
+    </main>
+  </div>
+</body>
+</html>
+
+{{define "subscription_plans_content"}}
+<div class="max-w-5xl mx-auto p-6">
+  <div class="text-center mb-8">
+    <h2 class="text-2xl font-bold text-[var(--color-text)]">Pick the right plan for you</h2>
+    <p class="text-[var(--color-text-secondary)] mt-2">All plans include a free trial. Upgrade, downgrade, or cancel anytime.</p>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-6">
+    {{range $i, $plan := .Plans}}
+    <div class="card p-6 relative flex flex-col {{if .Current}}ring-2 ring-[var(--color-primary)]{{end}}">
+      {{if eq $i 1}}
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-xs font-semibold shadow-lg">
+        Most Popular
+      </div>
+      {{end}}
+
+      <div>
+        <div class="w-12 h-12 rounded-xl {{if eq $i 0}}bg-slate-100{{else if eq $i 1}}bg-gradient-to-br from-teal-500 to-cyan-600{{else}}bg-gradient-to-br from-amber-500 to-orange-600{{end}} flex items-center justify-center mb-4">
+          <i class="fas {{if eq $i 0}}fa-gem{{else if eq $i 1}}fa-rocket{{else}}fa-crown{{end}} text-lg {{if gt $i 0}}text-white{{else}}text-slate-600{{end}}"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+        <p class="text-sm text-[var(--color-text-muted)] mt-1">{{.Description}}</p>
+
+        <div class="mt-4">
+          <div class="flex items-baseline gap-1">
+            {{if eq .PriceMonthly 0.0}}
+            <span class="text-3xl font-extrabold text-[var(--color-text)]">Free</span>
+            {{else}}
+            <span class="text-sm text-[var(--color-text-muted)]">from</span>
+            <span class="text-3xl font-extrabold text-[var(--color-text)]">${{printf "%.0f" .PriceMonthly}}</span>
+            <span class="text-[var(--color-text-muted)]">/mo</span>
+            {{end}}
+          </div>
+        </div>
+
+        <ul class="mt-6 space-y-3">
+          {{if eq .MaxConversations 0}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited conversations</li>
+          {{else}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxConversations}} conversations</li>
+          {{end}}
+          {{if eq .MaxProducts 0}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited products</li>
+          {{else}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxProducts}} products</li>
+          {{end}}
+          {{if eq .MaxServices 0}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited services</li>
+          {{else}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxServices}} services</li>
+          {{end}}
+          {{if eq .MaxClients 0}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited clients</li>
+          {{else}}
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxClients}} clients</li>
+          {{end}}
+          {{if .HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Orders & bookings</li>{{end}}
+          {{if .HasAnalytics}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Analytics</li>{{end}}
+          {{if .HasMediaSharing}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Media & file sharing</li>{{end}}
+          {{if .HasPrioritySupport}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Priority support</li>{{end}}
+        </ul>
+      </div>
+
+      <div class="mt-auto pt-6">
+        {{if .Current}}
+        <div class="w-full py-2.5 rounded-xl text-center text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+          <i class="fas fa-check mr-1.5"></i>Current Plan
+        </div>
+        {{else if eq .PriceMonthly 0.0}}
+        <button onclick="switchPlan('{{.Code}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-sm">
+          Downgrade to {{.Name}}
+        </button>
+        {{else}}
+        <button onclick="startCheckout('{{.Code}}')" class="w-full py-2.5 rounded-xl {{if eq $i 1}}bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}} font-medium hover:opacity-90 transition-all text-sm">
+          {{if $.Current}}Upgrade to {{.Name}}{{else}}Start {{.Name}}{{end}}
+        </button>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+<script>
+  function startCheckout(planCode) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/business/subscription/checkout';
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'plan_code';
+    input.value = planCode;
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+  }
+
+  function switchPlan(planCode) {
+    if (!confirm('Are you sure you want to switch to this plan?')) return;
+    fetch('/business/subscription/change', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'plan_code=' + planCode
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) { window.location.href = '/business/subscription'; }
+      else { alert(d.error || 'Failed to switch plan'); }
+    })
+    .catch(() => alert('An error occurred'));
+  }
+</script>
+{{end}}

@@ -6,13 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"threadly/internal/db"
-	"threadly/internal/models"
-	"threadly/internal/routes"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
+	"oneflow/internal/routes"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -39,6 +40,8 @@ func main() {
 		&models.BookingItem{},
 		&models.Payment{},
 		&models.InventoryLog{},
+		&models.SubscriptionPlan{},
+		&models.BusinessSubscription{},
 	)
 	log.Println("✅ Database auto-migration completed successfully")
 
@@ -47,6 +50,9 @@ func main() {
 	db.DB.Exec("UPDATE businesses SET name = first_name WHERE (name IS NULL OR name = '') AND (first_name IS NOT NULL AND first_name != '')")
 	db.DB.Exec("UPDATE businesses SET username = last_name WHERE (username IS NULL OR username = '') AND (last_name IS NOT NULL AND last_name != '')")
 	log.Println("✅ Data migration completed")
+
+	// Seed default subscription plans
+	seedSubscriptionPlans(db.DB)
 
 	r := gin.Default()
 	if err := r.SetTrustedProxies(nil); err != nil {
@@ -112,4 +118,77 @@ func main() {
 
 	log.Println("🚀 Running on :" + os.Getenv("APP_PORT"))
 	r.Run(":" + os.Getenv("APP_PORT"))
+}
+
+func seedSubscriptionPlans(d *gorm.DB) {
+	var count int64
+	d.Model(&models.SubscriptionPlan{}).Count(&count)
+	if count > 0 {
+		return
+	}
+
+	log.Println("🌱 Seeding subscription plans...")
+
+	plans := []models.SubscriptionPlan{
+		{
+			Code:                 "silver",
+			Name:                 "Silver",
+			Description:          "For small businesses getting started",
+			PriceMonthly:         0,
+			PriceYearly:          0,
+			Currency:             "usd",
+			MaxClients:           10,
+			MaxProducts:          10,
+			MaxServices:          10,
+			MaxConversations:     10,
+			HasAnalytics:         false,
+			HasMediaSharing:      false,
+			HasPrioritySupport:   false,
+			HasOrdersAndBookings: false,
+			SortOrder:            0,
+			IsActive:             true,
+		},
+		{
+			Code:                 "gold",
+			Name:                 "Gold",
+			Description:          "For growing businesses",
+			PriceMonthly:         8,
+			PriceYearly:          6.40,
+			Currency:             "usd",
+			MaxClients:           50,
+			MaxProducts:          200,
+			MaxServices:          200,
+			MaxConversations:     50,
+			HasAnalytics:         true,
+			HasMediaSharing:      false,
+			HasPrioritySupport:   false,
+			HasOrdersAndBookings: true,
+			SortOrder:            1,
+			IsActive:             true,
+		},
+		{
+			Code:                 "diamond",
+			Name:                 "Diamond",
+			Description:          "For businesses that need it all",
+			PriceMonthly:         15,
+			PriceYearly:          12,
+			Currency:             "usd",
+			MaxClients:           0,
+			MaxProducts:          0,
+			MaxServices:          0,
+			MaxConversations:     0,
+			HasAnalytics:         true,
+			HasMediaSharing:      true,
+			HasPrioritySupport:   true,
+			HasOrdersAndBookings: true,
+			SortOrder:            2,
+			IsActive:             true,
+		},
+	}
+
+	for _, plan := range plans {
+		d.Create(&plan)
+	}
+
+	log.Println("✅ Subscription plans seeded successfully")
 }

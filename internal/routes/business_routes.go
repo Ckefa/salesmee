@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"threadly/internal/db"
-	"threadly/internal/handlers"
-	"threadly/internal/handlers/business"
-	"threadly/internal/handlers/client"
-	"threadly/internal/middleware"
+	"oneflow/internal/db"
+	"oneflow/internal/handlers"
+	"oneflow/internal/handlers/business"
+	"oneflow/internal/handlers/client"
+	"oneflow/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +27,12 @@ func SetupBusinessRoutes(r *gin.Engine) {
 	r.POST("/business/register/step3", handlers.RegisterStep3)
 	r.POST("/business/login", handlers.Login)
 	r.GET("/business/logout", handlers.Logout)
+
+	// PUBLIC - Business Google Auth
+	r.GET("/business/auth/google", handlers.InitiateBusinessGoogleAuth)
+	r.GET("/business/auth/google/callback", handlers.HandleBusinessGoogleCallback)
+	r.GET("/business/register/google", handlers.ShowRegisterGoogle)
+	r.POST("/business/register/google/complete", handlers.CompleteRegisterGoogle)
 
 	// PROTECTED BUSINESS ROUTES
 	protected := r.Group("/business")
@@ -107,6 +113,17 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		// Conversation progress routes
 		protected.GET("/conversations/:conversation_id/progress", handlers.GetConversationProgress)
 		protected.PUT("/conversations/:conversation_id/stage", handlers.UpdateConversationStage)
+
+		// Subscription & Billing routes
+		protected.GET("/subscription", businessHandler.GetSubscriptionPage)
+		protected.GET("/subscription/plans", businessHandler.GetPlansPage)
+		protected.POST("/subscription/checkout", businessHandler.CreateCheckout)
+		protected.POST("/subscription/change", businessHandler.ChangePlan)
+		protected.POST("/subscription/cancel", businessHandler.CancelSubscription)
+		protected.GET("/subscription/portal", businessHandler.BillingPortal)
 	}
+
+	// Stripe webhook (public)
+	r.POST("/stripe/webhook", business.StripeWebhook(businessHandler))
 
 }

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription - OneFlow</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-3">
+          <a href="/business" class="btn btn-ghost btn-icon" title="Back to Home">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Subscription</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="theme-toggle" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
+          </button>
+          <a href="/business" class="btn btn-secondary btn-sm">
+            <i class="fas fa-comments"></i> Chats
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-4rem)]">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)]">
+      {{template "subscription_content" .}}
+    </main>
+  </div>
+</body>
+</html>
+
+{{define "subscription_content"}}
+<div class="max-w-4xl mx-auto p-6 space-y-8">
+  {{if .UpcomingInvoice}}
+  <div class="card p-6">
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="text-sm text-[var(--color-text-muted)]">Current Plan</p>
+        <h2 class="text-2xl font-bold text-[var(--color-text)] mt-1">{{.Plan.Name}}</h2>
+        <div class="flex items-baseline gap-1.5 mt-2">
+          {{if eq .Plan.PriceMonthly 0.0}}
+          <span class="text-3xl font-extrabold text-[var(--color-text)]">Free</span>
+          {{else}}
+          <span class="text-3xl font-extrabold text-[var(--color-text)]">${{printf "%.0f" .Plan.PriceMonthly}}</span>
+          <span class="text-[var(--color-text-muted)]">/mo</span>
+          {{end}}
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="badge {{if eq .Subscription.Status `active`}}badge-success{{else if eq .Subscription.Status `trialing`}}badge-info{{else}}badge-error{{end}} text-sm px-3 py-1">
+          {{.Subscription.Status}}
+        </span>
+      </div>
+    </div>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <a href="/business/subscription/plans" class="btn btn-primary btn-sm">
+        Change Plan
+      </a>
+      <a href="#" onclick="openBillingPortal()" class="btn btn-secondary btn-sm">
+        <i class="fas fa-credit-card"></i> Billing Details
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-[var(--color-text-muted)] text-sm mb-2">
+        <i class="fas fa-calendar"></i>
+        <span>Next billing date</span>
+      </div>
+      <p class="text-lg font-semibold text-[var(--color-text)]">{{.UpcomingInvoice.Date}}</p>
+      <p class="text-sm text-[var(--color-text-muted)]">${{printf "%.2f" .UpcomingInvoice.Amount}}/{{.UpcomingInvoice.Interval}}</p>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-[var(--color-text-muted)] text-sm mb-2">
+        <i class="fas fa-clock"></i>
+        <span>Trial</span>
+      </div>
+      {{if .Subscription.TrialEndsAt}}
+      <p class="text-lg font-semibold text-[var(--color-text)]">Ends {{.Subscription.TrialEndsAt.Format "Jan 2, 2006"}}</p>
+      {{else}}
+      <p class="text-lg font-semibold text-[var(--color-text)]">No active trial</p>
+      {{end}}
+    </div>
+  </div>
+  {{else}}
+  <div class="card p-8 text-center">
+    <div class="w-16 h-16 rounded-2xl bg-[var(--color-surface-secondary)] flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-crown text-2xl text-[var(--color-text-muted)]"></i>
+    </div>
+    <h2 class="text-xl font-semibold text-[var(--color-text)]">No active subscription</h2>
+    <p class="text-[var(--color-text-muted)] mt-2">Choose a plan to unlock premium features</p>
+    <a href="/business/subscription/plans" class="btn btn-primary mt-6">
+      <i class="fas fa-rocket"></i> View Plans
+    </a>
+  </div>
+  {{end}}
+
+  <div>
+    <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Usage</h3>
+    <div class="space-y-4">
+      {{range $key, $check := .Usage}}
+      <div>
+        <div class="flex justify-between text-sm mb-1.5">
+          <span class="text-[var(--color-text-secondary)] capitalize">{{$key}}</span>
+          {{if eq $check.Max -1}}
+          <span class="text-[var(--color-text)] font-medium">{{$check.Current}} / Unlimited</span>
+          {{else}}
+          <span class="text-[var(--color-text)] font-medium">{{$check.Current}} / {{$check.Max}}</span>
+          {{end}}
+        </div>
+        <div class="h-2 rounded-full bg-[var(--color-surface-tertiary)] overflow-hidden">
+          {{if gt $check.Max 0}}
+          <div class="h-full rounded-full transition-all duration-500 {{if ge $check.Current $check.Max}}bg-[var(--color-error)]{{else}}bg-[var(--color-primary)]{{end}}"
+            style="width: {{if eq $check.Max -1}}0{{else}}{{printf "%.0f" (mul (div (float $check.Current) (float $check.Max)) 100)}}%{{end}}">
+          </div>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</div>
+
+<script>
+  function openBillingPortal() {
+    fetch('/business/subscription/portal')
+      .then(r => r.json())
+      .then(d => { if (d.url) window.location.href = d.url; })
+      .catch(() => alert('Failed to open billing portal'));
+  }
+</script>
+{{end}}

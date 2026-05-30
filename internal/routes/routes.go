@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"threadly/internal/handlers"
-	"threadly/internal/handlers/business"
+	"oneflow/internal/handlers"
+	"oneflow/internal/handlers/business"
 
 	"github.com/gin-gonic/gin"
 )

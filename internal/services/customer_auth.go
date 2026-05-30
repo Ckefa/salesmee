@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"threadly/internal/db"
-	"threadly/internal/models"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
 
 	"github.com/golang-jwt/jwt/v5"
 )

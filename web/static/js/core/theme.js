@@ -1,7 +1,7 @@
 ;(function() {
   'use strict';
 
-  const THEME_KEY = 'threadly-theme';
+  const THEME_KEY = 'oneflow-theme';
   const DARK_CLASS = 'dark';
 
   function getPreferredTheme() {
@@ -62,7 +62,7 @@
     initTheme();
   }
 
-  window.ThreadlyTheme = {
+  window.OneFlowTheme = {
     toggle: toggleTheme,
     get: function() { return document.documentElement.classList.contains(DARK_CLASS) ? 'dark' : 'light'; },
     set: applyTheme,

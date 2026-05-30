@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"threadly/internal/db"
-	"threadly/internal/models"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
 	"time"
 
 	"github.com/gin-gonic/gin"

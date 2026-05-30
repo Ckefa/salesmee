@@ -1,4 +1,4 @@
-module threadly
+module oneflow
 
 go 1.26.2
 
@@ -7,12 +7,14 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.19.0
+	golang.org/x/oauth2 v0.36.0
 	gorm.io/driver/postgres v1.5.6
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gorm v1.25.7
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
@@ -36,6 +38,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/stripe/stripe-go/v76 v76.25.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect

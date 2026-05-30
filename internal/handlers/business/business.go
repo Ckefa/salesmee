@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"threadly/internal/models"
-	"threadly/internal/services"
+	"oneflow/internal/models"
+	"oneflow/internal/services"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -110,7 +110,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 
 	if err := h.db.Raw(query, businessID).Scan(&clientsWithUnread).Error; err != nil {
 		c.HTML(500, "business.html", gin.H{
-			"Title": "Threadly",
+			"Title": "OneFlow",
 			"Error": "Failed to load clients",
 		})
 		return
@@ -145,7 +145,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	h.db.First(&business, businessID)
 
 	c.HTML(200, "business.html", gin.H{
-		"Title":               "Threadly",
+		"Title":               "OneFlow",
 		"Business":            business,
 		"Clients":             clientsWithUnread,
 		"PendingOrderCount":   int(pendingOrderCount),

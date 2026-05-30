@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"threadly/internal/db"
-	"threadly/internal/models"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
 
 	"github.com/gin-gonic/gin"
 )

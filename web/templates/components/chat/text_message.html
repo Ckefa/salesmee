@@ -1,15 +1,15 @@
 {{define "text_message"}}
 <div class="flex {{if eq .Sender "business"}}justify-end{{else}}justify-start{{end}} message-item" data-message-text="{{.Value}}">
   <div class="max-w-xs lg:max-w-md">
-    <div class="{{if eq .Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg
+    <div class="{{if eq .Sender "business"}}bg-[var(--color-primary)] text-white{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text)]{{end}} rounded-lg
       px-4 py-2">
       <p class="text-sm">{{.Value}}</p>
     </div>
     <div class="flex items-center justify-end gap-1 mt-1">
-      <p class="text-xs text-gray-500">{{.CreatedAt.Format "3:04 PM"}}</p>
+      <p class="text-xs text-[var(--color-text-secondary)]">{{.CreatedAt.Format "3:04 PM"}}</p>
       {{if eq .Sender "business"}}
       <span class="message-status text-[10px]">
-        <i class="fas fa-check text-gray-400"></i>
+        <i class="fas fa-check text-[var(--color-text-muted)]"></i>
       </span>
       {{end}}
     </div>

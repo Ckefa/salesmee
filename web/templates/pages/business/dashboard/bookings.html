@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Bookings - OneFlow</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="/static/js/core/theme.js?v=1"></script>
   <script>
     function showBusinessProfile() {
       var el = document.getElementById('businessProfileModal');
@@ -21,18 +21,22 @@
   </script>
 </head>
 
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body class="bg-[var(--color-bg)] h-screen overflow-hidden">
   <!-- Header -->
-  <header class="bg-teal-600 text-white p-4 flex items-center justify-between">
+  <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
     <div class="flex items-center space-x-4">
-      <a href="/business/bookings" class="hover:bg-teal-700 px-3 py-2 rounded-lg">
+      <a href="/business/bookings" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
         <i class="fas fa-arrow-left"></i>
       </a>
       <h1 class="text-xl font-semibold">Bookings</h1>
     </div>
     <div class="flex items-center space-x-4">
+      <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-primary-hover)]" title="Toggle theme">
+        <i class="fas fa-sun theme-sun"></i>
+        <i class="fas fa-moon theme-moon hidden"></i>
+      </button>
       <a href="/business/dashboard"
-        class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg flex items-center space-x-2">
+        class="bg-[var(--color-secondary)] hover:brightness-110 px-4 py-2 rounded-lg flex items-center space-x-2">
         <i class="fas fa-chart-line"></i>
         <span>Dashboard</span>
       </a>
@@ -40,13 +44,13 @@
         {{if .Business.Logo}}
         <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
         {{else}}
-        <div class="w-8 h-8 bg-teal-700 rounded-full flex items-center justify-center">
+        <div class="w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
           <i class="fas fa-store text-white text-sm"></i>
         </div>
         {{end}}
         <span class="text-sm font-medium">{{.Business.Name}}</span>
       </button>
-      <a href="/business/logout" class="hover:bg-teal-700 px-3 py-2 rounded-lg">
+      <a href="/business/logout" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
         <i class="fas fa-sign-out-alt"></i>
       </a>
     </div>
@@ -62,11 +66,11 @@
           <!-- Page Header -->
           <div class="mb-8 flex justify-between items-center">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900">Bookings Management</h2>
-              <p class="mt-1 text-sm text-gray-600">View and manage your service bookings</p>
+              <h2 class="text-2xl font-bold text-[var(--color-text)]">Bookings Management</h2>
+              <p class="mt-1 text-sm text-[var(--color-text-secondary)]">View and manage your service bookings</p>
             </div>
             <button onclick="openQuickBookingModal()"
-              class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <i class="fas fa-plus"></i>
               <span>New Booking</span>
             </button>
@@ -75,128 +79,128 @@
           <!-- Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
             <!-- Pending Bookings -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="card p-6">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                  <i class="fas fa-clock text-yellow-600"></i>
+                <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-3">
+                  <i class="fas fa-clock text-[var(--color-warning)]"></i>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Pending</p>
-                  <p class="text-2xl font-bold text-gray-900">{{.PendingCount}}</p>
+                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Confirmed Bookings -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="card p-6">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                  <i class="fas fa-check-circle text-blue-600"></i>
+                <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-3">
+                  <i class="fas fa-check-circle text-[var(--color-info)]"></i>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Confirmed</p>
-                  <p class="text-2xl font-bold text-gray-900">{{.ConfirmedCount}}</p>
+                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Completed Bookings -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="card p-6">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
-                  <i class="fas fa-check text-green-600"></i>
+                <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-3">
+                  <i class="fas fa-check text-[var(--color-success)]"></i>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Completed</p>
-                  <p class="text-2xl font-bold text-gray-900">{{.CompletedCount}}</p>
+                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Canceled Bookings -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="card p-6">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
-                  <i class="fas fa-times text-red-600"></i>
+                <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-3">
+                  <i class="fas fa-times text-[var(--color-error)]"></i>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Cancelled</p>
-                  <p class="text-2xl font-bold text-gray-900">{{.CancelledCount}}</p>
+                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Total Bookings -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="card p-6">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-indigo-100 rounded-md p-3">
-                  <i class="fas fa-calendar-check text-indigo-600"></i>
+                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-3">
+                  <i class="fas fa-calendar-check text-[var(--color-secondary)]"></i>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Total Bookings</p>
-                  <p class="text-2xl font-bold text-gray-900">{{.TotalBookings}}</p>
+                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Total Revenue -->
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="card p-6">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                  <i class="fas fa-dollar-sign text-purple-600"></i>
+                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-3">
+                  <i class="fas fa-dollar-sign text-[var(--color-secondary)]"></i>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p class="text-2xl font-bold text-gray-900">${{printf "%.2f" .TotalRevenue}}</p>
+                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">${{printf "%.2f" .TotalRevenue}}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Bookings Table -->
-          <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">All Bookings</h3>
+          <div class="bg-[var(--color-surface)] card overflow-hidden">
+            <div class="px-6 py-4 border-b border-[var(--color-border)]">
+              <h3 class="text-lg font-medium text-[var(--color-text)]">All Bookings</h3>
             </div>
             <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+              <table class="min-w-full divide-y divide-[var(--color-border)]">
+                <thead class="bg-[var(--color-surface-secondary)]">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking #
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Booking #
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Service
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Amount
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
+                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
                   {{range .Bookings}}
                   <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{.BookingNumber}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{.Client.Name}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{range
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{.Client.Name}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{range
                       .BookingItems}}{{.Service.Name}}{{end}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">
                       {{.ScheduledDate.Format "2006-01-02 15:04"}}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{if eq
-                        .Status "pending" }}bg-yellow-100 text-yellow-800 {{else if eq .Status "confirmed"
-                        }}bg-green-100 text-green-800 {{else if eq .Status "completed" }}bg-blue-100 text-blue-800
-                        {{else if eq .Status "cancelled" }}bg-red-100 text-red-800 {{else}}bg-gray-100
-                        text-gray-800{{end}}">
+                        .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "confirmed"
+                        }}bg-[var(--color-success-light)] text-[var(--color-success)] {{else if eq .Status "completed" }}bg-[var(--color-info-light)] text-[var(--color-info)]
+                        {{else if eq .Status "cancelled" }}bg-[var(--color-error-light)] text-[var(--color-error)] {{else}}bg-[var(--color-surface-tertiary)]
+                        text-[var(--color-text-secondary)]{{end}}">
                         {{.Status}}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{.TotalAmount}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">${{.TotalAmount}}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex items-center space-x-2">
                         <select onchange="updateBookingStatus(this)" data-booking-id="{{.ID}}"
@@ -211,7 +215,7 @@
                   </tr>
                   {{else}}
                   <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colspan="7" class="px-6 py-4 text-center text-sm text-[var(--color-text-muted)]">
                       No bookings found. Create your first booking to get started.
                     </td>
                   </tr>
@@ -226,14 +230,14 @@
   </div>
 
   <!-- Quick Booking Modal -->
-  <div id="quickBookingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">Create New Booking</h3>
+  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div class="px-6 py-4 border-b border-[var(--color-border)]">
+        <h3 class="text-lg font-medium text-[var(--color-text)]">Create New Booking</h3>
       </div>
       <form id="quickBookingForm" class="px-6 py-4 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700">Service</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Service</label>
           <select id="bookingService" required
             class="input mt-1">
             <option value="">Select a service</option>
@@ -241,41 +245,41 @@
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Name</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
           <input type="text" id="bookingCustomerName" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Email</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
           <input type="email" id="bookingCustomerEmail"
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Phone</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
           <input type="tel" id="bookingCustomerPhone"
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Booking Date</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Date</label>
           <input type="date" id="bookingDate" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Booking Time</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Time</label>
           <input type="time" id="bookingTime" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Notes</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
           <textarea id="bookingNotes" rows="2"
             class="input mt-1"></textarea>
         </div>
         <div class="flex justify-end space-x-3 pt-4">
           <button type="button" onclick="hideQuickBookingModal()"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+            class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
             Cancel
           </button>
-          <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+          <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded">
             Create Booking
           </button>
         </div>

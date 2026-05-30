@@ -1,56 +1,56 @@
 {{define "quick-booking"}}
 <!-- Quick Booking Modal -->
-<div id="quickBookingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+<div id="quickBookingModal" class="fixed inset-0 bg-black/50 hidden overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
     <div class="mt-3">
-      <h3 class="text-lg font-medium text-gray-900">Quick Booking</h3>
+      <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Booking</h3>
       <form id="quickBookingForm" class="mt-4 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700">Select Service</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Select Service</label>
           <select id="bookingService" required
             class="input mt-1">
             <option value="">Choose a service...</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Name</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Customer Name</label>
           <input type="text" id="bookingCustomerName" required
             class="input mt-1"
             readonly>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Email</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Customer Email</label>
           <input type="email" id="bookingCustomerEmail"
             class="input mt-1"
             readonly>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Phone</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Customer Phone</label>
           <input type="tel" id="bookingCustomerPhone"
             class="input mt-1"
             readonly>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Booking Date</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Booking Date</label>
           <input type="date" id="bookingDate" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Booking Time</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Booking Time</label>
           <input type="time" id="bookingTime" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Notes</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Notes</label>
           <textarea id="bookingNotes" rows="2"
             class="input mt-1"></textarea>
         </div>
         <div class="flex justify-end space-x-3 pt-4">
           <button type="button" onclick="hideQuickBookingModal()"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+            class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-tertiary)] text-[var(--color-text)] px-4 py-2 rounded">
             Cancel
           </button>
-          <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+          <button type="submit" class="bg-[var(--color-secondary)] hover:opacity-90 text-white px-4 py-2 rounded">
             Create Booking
           </button>
         </div>

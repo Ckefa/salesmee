@@ -1,9 +1,9 @@
 {{define "product_picker"}}
 <div id="productPickerModal" class="fixed inset-0 bg-gray-900/50 hidden overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
-  <div class="relative top-8 mx-auto p-0 border w-full max-w-3xl shadow-2xl rounded-2xl bg-white max-h-[90vh] flex flex-col">
+  <div class="relative top-8 mx-auto p-0 border w-full max-w-3xl shadow-2xl rounded-2xl bg-[var(--color-surface)] max-h-[90vh] flex flex-col">
 
     <!-- ====== HEADER ====== -->
-    <div class="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-2xl text-white flex-shrink-0">
+    <div class="p-5 border-b border-[var(--color-border)] flex items-center justify-between bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-2xl text-white flex-shrink-0">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
           <i class="fas fa-box-open text-lg"></i>
@@ -21,49 +21,49 @@
     </div>
 
     <!-- ====== STEP INDICATOR ====== -->
-    <div class="flex items-center justify-center gap-0 px-6 py-3 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+    <div class="flex items-center justify-center gap-0 px-6 py-3 bg-[var(--color-surface-secondary)] border-b border-[var(--color-border)] flex-shrink-0">
       <div class="flex items-center gap-2">
         <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-emerald-500 text-white" id="step1Indicator">1</span>
         <span class="text-xs font-medium text-emerald-600" id="step1Label">Browse</span>
       </div>
       <div class="w-12 h-px mx-2 transition-colors duration-300 bg-emerald-300" id="step1to2"></div>
       <div class="flex items-center gap-2">
-        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-gray-300 text-gray-500" id="step2Indicator">2</span>
-        <span class="text-xs font-medium text-gray-400" id="step2Label">Review</span>
+        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]" id="step2Indicator">2</span>
+        <span class="text-xs font-medium text-[var(--color-text-muted)]" id="step2Label">Review</span>
       </div>
-      <div class="w-12 h-px mx-2 bg-gray-200 transition-colors duration-300" id="step2to3"></div>
+      <div class="w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300" id="step2to3"></div>
       <div class="flex items-center gap-2">
-        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-gray-300 text-gray-500" id="step3Indicator">3</span>
-        <span class="text-xs font-medium text-gray-400" id="step3Label">Details</span>
+        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]" id="step3Indicator">3</span>
+        <span class="text-xs font-medium text-[var(--color-text-muted)]" id="step3Label">Details</span>
       </div>
     </div>
 
     <!-- ====== STEP 1: PRODUCT GALLERY ====== -->
     <div id="pickerStep1" class="flex flex-col flex-1 min-h-0">
       <!-- Search -->
-      <div class="p-4 border-b border-gray-100 flex-shrink-0">
+      <div class="p-4 border-b border-[var(--color-border-light)] flex-shrink-0">
         <div class="relative">
-          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+          <i class="fas fa-search absolute left-3 top-3 text-[var(--color-text-muted)]"></i>
           <input type="text" id="pickerSearch" placeholder="Search by name or SKU..."
             class="input pl-10"
             oninput="filterPickerProducts()">
-          <button onclick="document.getElementById('pickerSearch').value='';filterPickerProducts()" class="absolute right-3 top-3 text-gray-300 hover:text-gray-500 hidden" id="pickerSearchClear">
+          <button onclick="document.getElementById('pickerSearch').value='';filterPickerProducts()" class="absolute right-3 top-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hidden" id="pickerSearchClear">
             <i class="fas fa-times-circle"></i>
           </button>
         </div>
       </div>
 
       <!-- Inline Cart Notice (visible when items in cart) -->
-      <div id="pickerCartNotice" class="hidden mx-4 mt-2 px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex-shrink-0">
+      <div id="pickerCartNotice" class="hidden mx-4 mt-2 px-4 py-2.5 bg-[var(--color-success-light)] border border-[var(--color-success)]/40 rounded-xl flex-shrink-0">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0">
             <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
               <i class="fas fa-shopping-cart text-emerald-600 text-xs"></i>
             </div>
-            <span class="text-sm text-emerald-800 font-medium truncate">
+            <span class="text-sm text-[var(--color-success)] font-medium truncate">
               <span id="pickerNoticeCount">0</span> item<span id="pickerNoticePlural">s</span> selected
             </span>
-            <span class="text-xs text-emerald-500 font-semibold flex-shrink-0">— $<span id="pickerNoticeTotal">0.00</span></span>
+            <span class="text-xs text-[var(--color-success)] font-semibold flex-shrink-0">— $<span id="pickerNoticeTotal">0.00</span></span>
           </div>
           <button onclick="pickerGoToStep(2)" class="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition flex-shrink-0 ml-2">
             Review Order <i class="fas fa-arrow-right ml-0.5"></i>
@@ -73,14 +73,14 @@
 
       <!-- Product Grid -->
       <div class="flex-1 overflow-y-auto p-4" id="pickerProductsGrid">
-        <div class="text-center py-16 text-gray-400">
+        <div class="text-center py-16 text-[var(--color-text-muted)]">
           <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
           <p class="text-sm">Loading products...</p>
         </div>
       </div>
 
       <!-- Floating Cart Bar -->
-      <div id="pickerCartBar" class="hidden flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+      <div id="pickerCartBar" class="hidden flex-shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         <div class="flex items-center gap-3">
           <div class="relative flex-shrink-0">
             <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
@@ -89,10 +89,10 @@
             <span id="pickerCartBadge" class="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm hidden">0</span>
           </div>
           <div class="min-w-0 flex-1">
-            <span class="text-sm font-semibold text-gray-800">
+            <span class="text-sm font-semibold text-[var(--color-text)]">
               <span id="pickerCartItemsLabel">0 items</span>
             </span>
-            <span class="text-xs text-gray-500 ml-2">· $<span id="pickerCartTotal">0.00</span></span>
+            <span class="text-xs text-[var(--color-text-secondary)] ml-2">· $<span id="pickerCartTotal">0.00</span></span>
           </div>
           <button id="pickerReviewBtn" onclick="pickerGoToStep(2)"
             class="flex-shrink-0 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
@@ -113,7 +113,7 @@
         </button>
 
         <div class="flex items-center justify-between mb-4">
-          <h4 class="text-base font-bold text-gray-900 flex items-center gap-2">
+          <h4 class="text-base font-bold text-[var(--color-text)] flex items-center gap-2">
             <i class="fas fa-clipboard-list text-emerald-500"></i>
             Review Your Order
           </h4>
@@ -122,7 +122,7 @@
 
         <!-- Cart Items List -->
         <div id="pickerCartItems" class="space-y-3">
-          <div class="text-center py-12 text-gray-400">
+          <div class="text-center py-12 text-[var(--color-text-muted)]">
             <i class="fas fa-shopping-cart text-4xl mb-3"></i>
             <p class="text-sm">Your cart is empty</p>
           </div>
@@ -132,17 +132,17 @@
         <div id="pickerCartSummary" class="hidden mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
           <div class="space-y-2">
             <div class="flex items-center justify-between text-sm">
-              <span class="text-gray-600">Subtotal (<span id="pickerSubtotalItems">0</span> items)</span>
-              <span class="font-semibold text-gray-800">$<span id="pickerSubtotalAmount">0.00</span></span>
+              <span class="text-[var(--color-text-secondary)]">Subtotal (<span id="pickerSubtotalItems">0</span> items)</span>
+              <span class="font-semibold text-[var(--color-text)]">$<span id="pickerSubtotalAmount">0.00</span></span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Footer -->
-      <div class="border-t border-gray-200 p-4 bg-white rounded-b-2xl flex-shrink-0">
+      <div class="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
         <div class="flex gap-3">
-          <button onclick="pickerGoToStep(1)" class="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 text-sm font-semibold transition active:scale-[0.98]">
+          <button onclick="pickerGoToStep(1)" class="flex-1 py-3 px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-sm font-semibold transition active:scale-[0.98]">
             <i class="fas fa-arrow-left mr-1"></i> Add More Items
           </button>
           <button id="pickerToDetailsBtn" onclick="pickerGoToStep(3)" disabled
@@ -166,16 +166,16 @@
         <!-- Order Summary Compact -->
         <div id="pickerCheckoutSummary" class="bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-xl border border-emerald-200 p-4 mb-6">
           <div class="flex items-center justify-between mb-3">
-            <h5 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+            <h5 class="text-sm font-bold text-[var(--color-text)] flex items-center gap-1.5">
               <i class="fas fa-receipt text-emerald-500"></i> Order Summary
             </h5>
-            <span class="text-xs text-gray-400" id="pickerCheckoutCount">0 items</span>
+            <span class="text-xs text-[var(--color-text-muted)]" id="pickerCheckoutCount">0 items</span>
           </div>
-          <div id="pickerCheckoutItems" class="space-y-1.5 max-h-24 overflow-y-auto text-sm text-gray-600">
+          <div id="pickerCheckoutItems" class="space-y-1.5 max-h-24 overflow-y-auto text-sm text-[var(--color-text-secondary)]">
             <!-- Filled by JS -->
           </div>
           <div class="border-t border-emerald-200 mt-2 pt-2 flex items-center justify-between">
-            <span class="font-bold text-gray-800 text-sm">Total</span>
+            <span class="font-bold text-[var(--color-text)] text-sm">Total</span>
             <span class="text-xl font-extrabold text-emerald-700">$<span id="pickerCheckoutTotal">0.00</span></span>
           </div>
         </div>
@@ -184,7 +184,7 @@
         <form id="productOrderForm" class="space-y-4">
           <!-- Delivery Address -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
               <i class="fas fa-location-dot text-emerald-500 mr-1"></i> Delivery Address <span class="text-red-400">*</span>
             </label>
             <input type="text" id="pickerDeliveryAddress" placeholder="e.g. 123 Main St, City, State"
@@ -195,14 +195,14 @@
           <!-- Delivery Date & Time -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
                 <i class="fas fa-calendar-day text-emerald-500 mr-1"></i> Delivery Date
               </label>
               <input type="date" id="pickerDeliveryDate"
                 class="input">
             </div>
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
                 <i class="fas fa-clock text-emerald-500 mr-1"></i> Time Slot
               </label>
               <select id="pickerDeliveryTimeSlot"
@@ -217,8 +217,8 @@
 
           <!-- Contact Phone -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-              <i class="fas fa-phone text-emerald-500 mr-1"></i> Contact Phone <span class="text-gray-400 font-normal">(optional)</span>
+            <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+              <i class="fas fa-phone text-emerald-500 mr-1"></i> Contact Phone <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
             </label>
             <input type="tel" id="pickerContactPhone" placeholder="e.g. +1 (555) 123-4567"
               class="input">
@@ -226,8 +226,8 @@
 
           <!-- Notes -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-              <i class="fas fa-pen text-emerald-500 mr-1"></i> Additional Notes <span class="text-gray-400 font-normal">(optional)</span>
+            <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+              <i class="fas fa-pen text-emerald-500 mr-1"></i> Additional Notes <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
             </label>
             <textarea id="pickerNotes" rows="2" placeholder="Special instructions, gate codes, landmarks..."
               class="input resize-none"></textarea>
@@ -236,9 +236,9 @@
       </div>
 
       <!-- Footer -->
-      <div class="border-t border-gray-200 p-4 bg-white rounded-b-2xl flex-shrink-0">
+      <div class="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
         <div class="flex gap-3">
-          <button onclick="pickerGoToStep(2)" class="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 text-sm font-semibold transition active:scale-[0.98]">
+          <button onclick="pickerGoToStep(2)" class="flex-1 py-3 px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-sm font-semibold transition active:scale-[0.98]">
             <i class="fas fa-arrow-left mr-1"></i> Back
           </button>
           <button id="pickerSubmitOrderBtn" onclick="submitProductOrder()"
@@ -246,7 +246,7 @@
             <i class="fas fa-paper-plane mr-1"></i> <span id="pickerSubmitBtnText">Create Order</span>
           </button>
         </div>
-        <p class="text-[10px] text-gray-400 text-center mt-2">
+        <p class="text-[10px] text-[var(--color-text-muted)] text-center mt-2">
           <i class="fas fa-info-circle mr-0.5"></i>
           <span id="pickerSubmitHint">The order will be sent as a draft to the client</span>
         </p>

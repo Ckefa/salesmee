@@ -1,29 +1,29 @@
 {{define "booking-sms"}}
 <div class="flex justify-end">
   <div class="max-w-xs lg:max-w-md w-full">
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3" data-message-id="${booking.id}"
+    <div class="bg-[var(--color-warning-light)] border border-[var(--color-warning)]/40 rounded-lg px-4 py-3" data-message-id="${booking.id}"
       data-booking-id="${booking.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2 min-w-0">
-          <i class="fas fa-calendar-check text-yellow-600"></i>
-          <span class="font-semibold text-yellow-800 text-sm">#${booking.booking_number || booking.id}</span>
-          <span class="text-gray-700 text-sm truncate">${booking.service_name || ''}</span>
+          <i class="fas fa-calendar-check text-[var(--color-warning)]"></i>
+          <span class="font-semibold text-[var(--color-warning)] text-sm">#${booking.booking_number || booking.id}</span>
+          <span class="text-[var(--color-text)] text-sm truncate">${booking.service_name || ''}</span>
         </div>
-        <button onclick="openBusinessEditBookingPicker(${booking.id})" class="text-yellow-600 hover:text-yellow-800 text-xs flex-shrink-0 ml-2" title="Edit Booking">
+        <button onclick="openBusinessEditBookingPicker(${booking.id})" class="text-[var(--color-warning)] hover:text-[var(--color-warning)] text-xs flex-shrink-0 ml-2" title="Edit Booking">
           <i class="fas fa-edit"></i>
         </button>
       </div>
-      <div class="booking-details text-sm text-gray-700 space-y-1">
+      <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
         <p class="flex items-center space-x-1">
-          <i class="fas fa-clock text-xs text-gray-400"></i>
+          <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
           <span>${bookingContent}</span>
         </p>
-        ${booking.notes ? '<p class="text-xs text-gray-500 italic mt-1 border-t border-gray-200 pt-1">' + booking.notes + '</p>' : ''}
+        ${booking.notes ? '<p class="text-xs text-[var(--color-text-secondary)] italic mt-1 border-t border-[var(--color-border)] pt-1">' + booking.notes + '</p>' : ''}
         <p class="hidden booking-notes-data">${booking.notes || ''}</p>
       </div>
-      <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-200 border-opacity-50">
-        <p class="text-xs text-gray-400">${new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true})}</p>
-        <span class="text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">pending</span>
+      <div class="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)] border-opacity-50">
+        <p class="text-xs text-[var(--color-text-muted)]">${new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true})}</p>
+        <span class="text-xs font-medium bg-[var(--color-warning-light)] text-[var(--color-warning)] px-2 py-0.5 rounded-full">pending</span>
       </div>
     </div>
   </div>

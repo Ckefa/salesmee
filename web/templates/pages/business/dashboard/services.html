@@ -6,10 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Services Management - OneFlow</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
   <style>
     .sidebar-item {
       transition: all 0.3s ease;
@@ -29,7 +30,7 @@
     }
 
     .table-row-hover:hover {
-      background-color: #f9fafb;
+      background-color: var(--color-surface-secondary);
     }
 
     .badge-price {
@@ -51,34 +52,38 @@
   </script>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-[var(--color-bg)]">
   <!-- Header -->
   <header class="navbar-glass">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/business/dashboard" class="text-gray-600 hover:text-gray-900 mr-4">
+          <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-4">
             <i class="fas fa-arrow-left"></i>
           </a>
-          <h1 class="text-xl font-semibold text-gray-900">Services Management</h1>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Services Management</h1>
         </div>
         <div class="flex items-center space-x-4">
           <button onclick="showAddServiceModal()"
-            class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
             <i class="fas fa-plus"></i>
             <span>Add Service</span>
+          </button>
+          <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
           </button>
           <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
             {{if .Business.Logo}}
             <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
             {{else}}
-            <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-              <i class="fas fa-store text-teal-600 text-sm"></i>
+            <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
             </div>
             {{end}}
-            <span class="text-sm font-medium text-gray-700">{{.Business.Name}}</span>
+            <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
           </button>
-          <a href="/business/logout" class="text-sm text-red-600 hover:text-red-800">Logout</a>
+          <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
         </div>
       </div>
     </div>
@@ -96,7 +101,7 @@
             <div class="flex-1 min-w-0">
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i class="fas fa-search text-gray-400"></i>
+                  <i class="fas fa-search text-[var(--color-text-muted)]"></i>
                 </div>
                 <input type="text" id="searchInput" placeholder="Search services..."
                   class="input pl-10">
@@ -116,7 +121,7 @@
           <!-- Services Grid -->
           <div id="servicesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {{range .Services}}
-            <div class="service-card bg-white rounded-lg shadow-md overflow-hidden" data-service-id="{{.ID}}">
+            <div class="service-card bg-[var(--color-surface)] rounded-xl card overflow-hidden" data-service-id="{{.ID}}">
               <div class="relative">
                 {{if .ImageURL}}
                 <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
@@ -126,43 +131,43 @@
                 </div>
                 {{end}}
                 {{if not .IsActive}}
-                <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs">
+                <div class="absolute top-2 right-2 bg-[var(--color-error)] text-white px-2 py-1 rounded text-xs">
                   Inactive
                 </div>
                 {{end}}
                 {{if .IsNegotiable}}
-                <div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                <div class="absolute top-2 left-2 bg-[var(--color-success)] text-white px-2 py-1 rounded text-xs">
                   <i class="fas fa-handshake mr-1"></i>Negotiable
                 </div>
                 {{end}}
               </div>
               <div class="p-4">
-                <h3 class="text-lg font-semibold text-gray-900">{{.Name}}</h3>
-                <p class="text-sm text-gray-600 mt-1">{{.Description}}</p>
+                <h3 class="text-lg font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+                <p class="text-sm text-[var(--color-text-secondary)] mt-1">{{.Description}}</p>
                 <div class="mt-4">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-gray-500">Price Range:</span>
+                    <span class="text-sm text-[var(--color-text-muted)]">Price Range:</span>
                     <div class="text-right">
-                      <span class="badge-price bg-teal-100 text-teal-800">
+                      <span class="badge-price bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                         ${{.MinPrice}} - ${{.MaxPrice}}
                       </span>
                     </div>
                   </div>
                   {{if .Duration}}
                   <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-500">Duration:</span>
-                    <span class="text-sm font-medium text-gray-900" data-duration="{{.Duration}}">{{.Duration}}
+                    <span class="text-sm text-[var(--color-text-muted)]">Duration:</span>
+                    <span class="text-sm font-medium text-[var(--color-text)]" data-duration="{{.Duration}}">{{.Duration}}
                       minutes</span>
                   </div>
                   {{end}}
                 </div>
                 <div class="mt-4 flex space-x-2">
                   <button onclick="editService(this.closest('[data-service-id]').dataset.serviceId)"
-                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm">
+                    class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-3 py-2 rounded text-sm">
                     <i class="fas fa-edit mr-1"></i> Edit
                   </button>
                   <button onclick="deleteService(this.closest('[data-service-id]').dataset.serviceId)"
-                    class="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+                    class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-3 py-2 rounded text-sm">
                     <i class="fas fa-trash mr-1"></i> Delete
                   </button>
                 </div>
@@ -170,10 +175,10 @@
             </div>
             {{else}}
             <div class="col-span-full text-center py-12">
-              <i class="fas fa-concierge-bell text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-600">No services found</p>
+              <i class="fas fa-concierge-bell text-[var(--color-text-muted)] text-5xl mb-4"></i>
+              <p class="text-[var(--color-text-secondary)]">No services found</p>
               <button onclick="showAddServiceModal()"
-                class="mt-4 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg">
+                class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg">
                 <i class="fas fa-plus mr-2"></i>Add your first service
               </button>
             </div>
@@ -185,36 +190,36 @@
   </div>
 
   <!-- Add/Edit Service Modal -->
-  <div id="serviceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+  <div id="serviceModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
       <div class="mt-3">
-        <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Add Service</h3>
+        <h3 class="text-lg font-medium text-[var(--color-text)]" id="modalTitle">Add Service</h3>
         <form id="serviceForm" class="mt-4 space-y-4">
           <input type="hidden" id="serviceId">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Service Name</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Service Name</label>
             <input type="text" id="serviceName" required
               class="input mt-1">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Description</label>
             <textarea id="serviceDescription" rows="3"
               class="input mt-1"></textarea>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700">Min Price</label>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Min Price</label>
               <input type="number" id="serviceMinPrice" step="0.01" required
                 class="input mt-1">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700">Max Price</label>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Max Price</label>
               <input type="number" id="serviceMaxPrice" step="0.01" required
                 class="input mt-1">
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Duration</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Duration</label>
             <div class="grid grid-cols-2 gap-2">
               <input type="number" id="serviceDuration" min="1" placeholder="Value"
                 class="input mt-1">
@@ -229,26 +234,26 @@
             <input type="hidden" id="serviceDurationInMinutes" name="duration_in_minutes">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Image URL</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Image URL</label>
             <input type="url" id="serviceImageURL"
               class="input mt-1">
           </div>
           <div class="flex items-center">
             <input type="checkbox" id="serviceIsNegotiable"
-              class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-            <label for="serviceIsNegotiable" class="ml-2 block text-sm text-gray-900">Price is negotiable</label>
+              class="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+            <label for="serviceIsNegotiable" class="ml-2 block text-sm text-[var(--color-text)]">Price is negotiable</label>
           </div>
           <div class="flex items-center">
             <input type="checkbox" id="serviceIsActive" checked
-              class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-            <label for="serviceIsActive" class="ml-2 block text-sm text-gray-900">Active</label>
+              class="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+            <label for="serviceIsActive" class="ml-2 block text-sm text-[var(--color-text)]">Active</label>
           </div>
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" onclick="hideServiceModal()"
-              class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
               Cancel
             </button>
-            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded">
+            <button type="submit" class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded">
               Save Service
             </button>
           </div>
@@ -499,8 +504,8 @@
       const services = document.querySelectorAll('[data-service-id]');
 
       services.forEach(service => {
-        const isActive = service.querySelector('.bg-red-500') === null;
-        const isNegotiable = service.querySelector('.bg-green-500') !== null;
+        const isActive = service.querySelector('.bg-\\[var\\(--color-error\\)\\]') === null;
+        const isNegotiable = service.querySelector('.bg-\\[var\\(--color-success\\)\\]') !== null;
 
         let show = false;
         switch (filter) {

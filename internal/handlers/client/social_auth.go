@@ -19,6 +19,8 @@ import (
 var (
 	clientGoogleAdapter     *services.GoogleAdapter
 	clientGoogleAdapterOnce sync.Once
+	clientFacebookAdapter     *services.FacebookAdapter
+	clientFacebookAdapterOnce sync.Once
 )
 
 func getClientGoogleAdapter() *services.GoogleAdapter {
@@ -26,6 +28,13 @@ func getClientGoogleAdapter() *services.GoogleAdapter {
 		clientGoogleAdapter = services.NewGoogleAdapter(os.Getenv("GOOGLE_CLIENT_REDIRECT_URL"))
 	})
 	return clientGoogleAdapter
+}
+
+func getClientFacebookAdapter() *services.FacebookAdapter {
+	clientFacebookAdapterOnce.Do(func() {
+		clientFacebookAdapter = services.NewFacebookAdapter(os.Getenv("FB_CLIENT_REDIRECT_URL"))
+	})
+	return clientFacebookAdapter
 }
 
 func clientGenerateState() string {
@@ -104,6 +113,88 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	} else {
 		if client.GoogleID == "" {
 			client.GoogleID = user.ProviderID
+			if user.AvatarURL != "" {
+				client.AvatarURL = user.AvatarURL
+			}
+			db.DB.Save(&client)
+		}
+	}
+
+	now := time.Now()
+	db.DB.Model(&models.Client{}).Where("id = ?", client.ID).Updates(map[string]interface{}{
+		"is_online":    true,
+		"last_seen_at": &now,
+	})
+
+	token, err := generateClientTokenFromID(client.ID, client.Email)
+	if err != nil {
+		c.HTML(500, "client_login.html", gin.H{
+			"Title": "Client Login - OneFlow",
+			"Error": "Failed to generate token.",
+		})
+		return
+	}
+
+	c.SetCookie("client_token", token, 86400, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/client")
+}
+
+func InitiateClientFacebookAuth(c *gin.Context) {
+	state := clientGenerateState()
+	c.SetCookie("client_facebook_oauth_state", state, 600, "/client/auth/facebook", "", false, true)
+	url := getClientFacebookAdapter().GetAuthURL(state)
+	c.Redirect(http.StatusFound, url)
+}
+
+func HandleClientFacebookCallback(c *gin.Context) {
+	state := c.Query("state")
+	cookieState, err := c.Cookie("client_facebook_oauth_state")
+	if err != nil || state == "" || state != cookieState {
+		c.HTML(400, "client_login.html", gin.H{
+			"Title": "Client Login - OneFlow",
+			"Error": "Invalid state parameter. Please try again.",
+		})
+		return
+	}
+	c.SetCookie("client_facebook_oauth_state", "", -1, "/client/auth/facebook", "", false, true)
+
+	code := c.Query("code")
+	if code == "" {
+		c.HTML(400, "client_login.html", gin.H{
+			"Title": "Client Login - OneFlow",
+			"Error": "No authorization code provided.",
+		})
+		return
+	}
+
+	user, err := getClientFacebookAdapter().ExchangeCode(code)
+	if err != nil {
+		c.HTML(500, "client_login.html", gin.H{
+			"Title": "Client Login - OneFlow",
+			"Error": "Failed to authenticate with Facebook.",
+		})
+		return
+	}
+
+	var client models.Client
+	if err := db.DB.Where("facebook_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&client).Error; err != nil {
+		client = models.Client{
+			Name:       user.Name,
+			Email:      user.Email,
+			FacebookID: user.ProviderID,
+			AvatarURL:  user.AvatarURL,
+			Status:     models.StatusNew,
+		}
+		if err := db.DB.Create(&client).Error; err != nil {
+			c.HTML(500, "client_login.html", gin.H{
+				"Title": "Client Login - OneFlow",
+				"Error": "Failed to create account.",
+			})
+			return
+		}
+	} else {
+		if client.FacebookID == "" {
+			client.FacebookID = user.ProviderID
 			if user.AvatarURL != "" {
 				client.AvatarURL = user.AvatarURL
 			}

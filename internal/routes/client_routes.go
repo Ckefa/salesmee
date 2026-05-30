@@ -19,6 +19,10 @@ func SetupClientRoutes(r *gin.Engine) {
 	r.GET("/client/auth/google", client.InitiateClientGoogleAuth)
 	r.GET("/client/auth/google/callback", client.HandleClientGoogleCallback)
 
+	// PUBLIC - Client Facebook Auth
+	r.GET("/client/auth/facebook", client.InitiateClientFacebookAuth)
+	r.GET("/client/auth/facebook/callback", client.HandleClientFacebookCallback)
+
 	// PROTECTED client ROUTES
 	clientProtected := r.Group("/client")
 	clientProtected.Use(client.ClientMiddleware())

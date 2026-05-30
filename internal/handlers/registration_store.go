@@ -13,6 +13,7 @@ type RegistrationData struct {
 	Email        string
 	BusinessType string
 	GoogleID     string
+	FacebookID   string
 	AvatarURL    string
 	CreatedAt    time.Time
 }

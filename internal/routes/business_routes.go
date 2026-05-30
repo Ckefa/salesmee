@@ -34,6 +34,10 @@ func SetupBusinessRoutes(r *gin.Engine) {
 	r.GET("/business/register/google", handlers.ShowRegisterGoogle)
 	r.POST("/business/register/google/complete", handlers.CompleteRegisterGoogle)
 
+	// PUBLIC - Business Facebook Auth
+	r.GET("/business/auth/facebook", handlers.InitiateBusinessFacebookAuth)
+	r.GET("/business/auth/facebook/callback", handlers.HandleBusinessFacebookCallback)
+
 	// PROTECTED BUSINESS ROUTES
 	protected := r.Group("/business")
 	protected.Use(middleware.BizzMiddleware())

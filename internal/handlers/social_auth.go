@@ -17,6 +17,8 @@ import (
 var (
 	businessGoogleAdapter     *services.GoogleAdapter
 	businessGoogleAdapterOnce sync.Once
+	businessFacebookAdapter     *services.FacebookAdapter
+	businessFacebookAdapterOnce sync.Once
 )
 
 func getBusinessGoogleAdapter() *services.GoogleAdapter {
@@ -24,6 +26,13 @@ func getBusinessGoogleAdapter() *services.GoogleAdapter {
 		businessGoogleAdapter = services.NewGoogleAdapter(os.Getenv("GOOGLE_REDIRECT_URL"))
 	})
 	return businessGoogleAdapter
+}
+
+func getBusinessFacebookAdapter() *services.FacebookAdapter {
+	businessFacebookAdapterOnce.Do(func() {
+		businessFacebookAdapter = services.NewFacebookAdapter(os.Getenv("FB_REDIRECT_URL"))
+	})
+	return businessFacebookAdapter
 }
 
 func generateState() string {
@@ -103,6 +112,77 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/business")
 }
 
+func InitiateBusinessFacebookAuth(c *gin.Context) {
+	state := generateState()
+	c.SetCookie("facebook_oauth_state", state, 600, "/business/auth/facebook", "", false, true)
+	url := getBusinessFacebookAdapter().GetAuthURL(state)
+	c.Redirect(http.StatusFound, url)
+}
+
+func HandleBusinessFacebookCallback(c *gin.Context) {
+	state := c.Query("state")
+	cookieState, err := c.Cookie("facebook_oauth_state")
+	if err != nil || state == "" || state != cookieState {
+		c.HTML(400, "business_login.html", gin.H{
+			"Title": "Login - OneFlow",
+			"Error": "Invalid state parameter. Please try again.",
+		})
+		return
+	}
+	c.SetCookie("facebook_oauth_state", "", -1, "/business/auth/facebook", "", false, true)
+
+	code := c.Query("code")
+	if code == "" {
+		c.HTML(400, "business_login.html", gin.H{
+			"Title": "Login - OneFlow",
+			"Error": "No authorization code provided.",
+		})
+		return
+	}
+
+	user, err := getBusinessFacebookAdapter().ExchangeCode(code)
+	if err != nil {
+		c.HTML(500, "business_login.html", gin.H{
+			"Title": "Login - OneFlow",
+			"Error": "Failed to authenticate with Facebook.",
+		})
+		return
+	}
+
+	var business models.Business
+	if err := db.DB.Where("facebook_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&business).Error; err != nil {
+		tok := RegStore.Save(&RegistrationData{
+			Name:       user.Name,
+			Username:   generateSlug(user.Name),
+			Email:      user.Email,
+			FacebookID: user.ProviderID,
+			AvatarURL:  user.AvatarURL,
+		})
+		c.Redirect(http.StatusFound, "/business/register/google?token="+tok)
+		return
+	}
+
+	if business.FacebookID == "" {
+		business.FacebookID = user.ProviderID
+		if user.AvatarURL != "" {
+			business.AvatarURL = user.AvatarURL
+		}
+		db.DB.Save(&business)
+	}
+
+	token, err := services.GenerateToken(business.ID, business.Email)
+	if err != nil {
+		c.HTML(500, "business_login.html", gin.H{
+			"Title": "Login - OneFlow",
+			"Error": "Failed to generate token.",
+		})
+		return
+	}
+
+	c.SetCookie("token", token, 86400, "/business", "", false, true)
+	c.Redirect(http.StatusFound, "/business")
+}
+
 func ShowRegisterGoogle(c *gin.Context) {
 	tok := c.Query("token")
 	data, ok := RegStore.Get(tok)
@@ -154,6 +234,7 @@ func CompleteRegisterGoogle(c *gin.Context) {
 		BusinessType: businessType,
 		Slug:         slug,
 		GoogleID:     data.GoogleID,
+		FacebookID:   data.FacebookID,
 		AvatarURL:    data.AvatarURL,
 		IsPublic:     true,
 	}

@@ -61,6 +61,16 @@
           Sign up with Google
         </a>
       </div>
+      {{if fbLogin}}
+      <div class="mb-5">
+        <a href="/business/auth/facebook"
+          class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+          style="border-color: var(--color-border); color: var(--color-text); background: var(--color-surface);">
+          <i class="fab fa-facebook text-blue-600 text-xl"></i>
+          Sign up with Facebook
+        </a>
+      </div>
+      {{end}}
 
       <div class="relative mb-5">
         <div class="absolute inset-0 flex items-center">

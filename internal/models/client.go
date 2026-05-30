@@ -22,6 +22,7 @@ type Client struct {
 	LastSeenAt     *time.Time   `json:"last_seen_at"`
 	ConversationID uint         `json:"conversation_id"`
 	GoogleID       string       `gorm:"uniqueIndex;default:null" json:"google_id"`
+	FacebookID     string       `gorm:"uniqueIndex;default:null" json:"facebook_id"`
 	AvatarURL      string       `json:"avatar_url"`
 	CreatedAt      time.Time    `json:"created_at"`
 	UpdatedAt      time.Time    `json:"updated_at"`

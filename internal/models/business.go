@@ -13,6 +13,7 @@ type Business struct {
 	IsPublic           bool      `gorm:"default:true" json:"is_public"`
 	Logo               string    `json:"logo"`
 	GoogleID           string    `gorm:"uniqueIndex;default:null" json:"google_id"`
+	FacebookID         string    `gorm:"uniqueIndex;default:null" json:"facebook_id"`
 	AvatarURL          string    `json:"avatar_url"`
 	SubscriptionPlanID *uint     `gorm:"default:null" json:"subscription_plan_id"`
 	CreatedAt          time.Time `json:"created_at"`

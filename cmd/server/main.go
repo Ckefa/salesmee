@@ -79,6 +79,9 @@ func main() {
 
 	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
 		"hasPrefix": strings.HasPrefix,
+		"fbLogin": func() bool {
+			return os.Getenv("FB_LOGIN") == "TRUE"
+		},
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
 			dict := make(map[string]interface{})
 			for i := 0; i < len(values); i += 2 {

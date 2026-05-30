@@ -64,6 +64,15 @@
         <span class="text-gray-700">Sign in with Google</span>
       </a>
     </div>
+    {{if fbLogin}}
+    <div class="mb-5">
+      <a href="/client/auth/facebook"
+        class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-200 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 bg-white">
+        <i class="fab fa-facebook text-blue-600 text-xl"></i>
+        <span class="text-gray-700">Sign in with Facebook</span>
+      </a>
+    </div>
+    {{end}}
 
     <div class="relative mb-5">
       <div class="absolute inset-0 flex items-center">

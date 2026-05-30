@@ -404,6 +404,19 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard.html", data)
 }
 
+func (h *BusinessHandler) GetPayments(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
+		return
+	}
+	c.HTML(http.StatusOK, "payments.html", gin.H{
+		"Business":   business,
+		"ActivePage": "payments",
+	})
+}
+
 func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 

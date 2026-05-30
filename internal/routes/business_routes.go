@@ -114,6 +114,12 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/logo", businessHandler.UploadBusinessLogo)
 		protected.PUT("/profile", businessHandler.UpdateBusinessProfile)
 
+		// Analytics
+		protected.GET("/analytics", businessHandler.GetAnalytics)
+
+		// Payments
+		protected.GET("/payments", businessHandler.GetPayments)
+
 		// Conversation progress routes
 		protected.GET("/conversations/:conversation_id/progress", handlers.GetConversationProgress)
 		protected.PUT("/conversations/:conversation_id/stage", handlers.UpdateConversationStage)

@@ -12,6 +12,8 @@
       {{template "order_card" .}}
       {{else if eq .MsgType "booking"}}
       {{template "booking_card" .}}
+      {{else if .MediaURL}}
+      {{template "media_message" .}}
       {{else}}
       {{template "text_message" .}}
       {{end}}

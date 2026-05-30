@@ -7,6 +7,8 @@
   {{template "client_order_card" .}}
   {{else if eq .MsgType "booking"}}
   {{template "client_booking_card" .}}
+  {{else if .MediaURL}}
+  {{template "client_media_message" .}}
   {{else}}
   {{template "client_text_message" .}}
   {{end}}

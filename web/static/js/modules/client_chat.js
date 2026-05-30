@@ -396,3 +396,52 @@ function cancelBooking(bookingId) {
     })
     .catch(e => { console.error(e); showNotification('Failed to cancel booking', 'error'); });
 }
+
+function toggleMediaTray() {
+  var tray = document.getElementById('media-tray');
+  var icon = document.getElementById('media-icon');
+  if (tray) {
+    tray.classList.toggle('hidden');
+    if (icon) {
+      icon.classList.toggle('fa-paperclip');
+      icon.classList.toggle('fa-times');
+    }
+  }
+}
+
+function triggerMediaUpload(type) {
+  var input = document.getElementById('media-input-' + type);
+  if (input) input.click();
+  var tray = document.getElementById('media-tray');
+  if (tray && !tray.classList.contains('hidden')) {
+    tray.classList.add('hidden');
+    var icon = document.getElementById('media-icon');
+    if (icon) icon.classList.replace('fa-times', 'fa-paperclip');
+  }
+}
+
+function handleMediaSelected(input) {
+  if (input.files && input.files.length > 0) {
+    var form = document.getElementById('message-form');
+    var textInput = form ? form.querySelector('input[name="content"]') : null;
+    if (textInput) textInput.required = false;
+    if (form && form.requestSubmit) {
+      form.requestSubmit();
+    } else if (form) {
+      form.submit();
+    }
+    if (textInput) textInput.required = true;
+  }
+}
+
+document.addEventListener('click', function(e) {
+  var container = document.getElementById('media-tray-container');
+  var tray = document.getElementById('media-tray');
+  if (container && tray && !tray.classList.contains('hidden') && !container.contains(e.target)) {
+    tray.classList.add('hidden');
+    var icon = document.getElementById('media-icon');
+    if (icon) {
+      icon.classList.replace('fa-times', 'fa-paperclip');
+    }
+  }
+});

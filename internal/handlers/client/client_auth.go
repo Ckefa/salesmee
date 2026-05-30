@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"oneflow/internal/db"
+	"oneflow/internal/handlers"
 	"oneflow/internal/models"
 	"oneflow/internal/services"
 
@@ -202,6 +203,8 @@ type MessageObj struct {
 	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
 	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
 	Sender    string      `json:"sender"`
+	MediaURL  string      `json:"media_url"`
+	MediaType string      `json:"media_type"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -275,6 +278,8 @@ func GetClientMessages(c *gin.Context) {
 			Value:     msg.Content,
 			Data:      msg,
 			Sender:    msg.Sender,
+			MediaURL:  msg.MediaURL,
+			MediaType: msg.MediaType,
 			CreatedAt: msg.CreatedAt,
 		}
 		messageObjs = append(messageObjs, messageObj)
@@ -483,6 +488,16 @@ func CreateClientMessage(c *gin.Context) {
 		Sender:         sender,
 	}
 
+	// Handle media upload
+	for _, field := range []string{"media_image", "media_document", "media_audio"} {
+		mediaURL, mediaType, err := handlers.SaveMediaFile(c, field)
+		if err == nil {
+			message.MediaURL = mediaURL
+			message.MediaType = mediaType
+			break
+		}
+	}
+
 	if err := db.DB.Create(&message).Error; err != nil {
 		log.Printf("Error creating message: %v", err)
 		c.String(500, "Failed to create message")
@@ -499,6 +514,8 @@ func CreateClientMessage(c *gin.Context) {
 		Value:     message.Content,
 		Data:      nil,
 		Sender:    message.Sender,
+		MediaURL:  message.MediaURL,
+		MediaType: message.MediaType,
 		CreatedAt: message.CreatedAt,
 	}
 

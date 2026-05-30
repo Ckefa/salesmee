@@ -1,9 +1,36 @@
 {{if eq .MessageObj.Sender "client"}}
 <div class="flex justify-end">
   <div class="max-w-xs lg:max-w-md">
+    {{if .MessageObj.MediaURL}}
+    <div class="bg-teal-600 text-white rounded-lg overflow-hidden">
+      {{if eq .MessageObj.MediaType "image"}}
+      <img src="/static/{{.MessageObj.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
+      {{else if eq .MessageObj.MediaType "document"}}
+      <div class="px-4 py-3">
+        <a href="/static/{{.MessageObj.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+          <i class="fas fa-file-alt text-lg text-white/80"></i>
+          <span class="font-medium">{{if .MessageObj.Value}}{{.MessageObj.Value}}{{else}}Document{{end}}</span>
+          <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
+        </a>
+      </div>
+      {{else if eq .MessageObj.MediaType "audio"}}
+      <div class="px-2 py-2">
+        <audio controls class="w-full h-10" preload="metadata">
+          <source src="/static/{{.MessageObj.MediaURL}}">
+        </audio>
+      </div>
+      {{end}}
+    </div>
+    {{if .MessageObj.Value}}
+    <div class="bg-teal-600 text-white rounded-lg px-4 py-2 -mt-1">
+      <p class="text-sm">{{.MessageObj.Value}}</p>
+    </div>
+    {{end}}
+    {{else}}
     <div class="bg-teal-600 text-white rounded-lg px-4 py-2">
       <p class="text-sm">{{.MessageObj.Value}}</p>
     </div>
+    {{end}}
     <div class="flex items-center justify-between mt-1">
       <p class="text-xs text-gray-500">{{.MessageObj.CreatedAt.Format "3:04 PM"}}</p>
     </div>
@@ -12,9 +39,36 @@
 {{else}}
 <div class="flex justify-start">
   <div class="max-w-xs lg:max-w-md">
+    {{if .MessageObj.MediaURL}}
+    <div class="bg-gray-200 text-gray-800 rounded-lg overflow-hidden">
+      {{if eq .MessageObj.MediaType "image"}}
+      <img src="/static/{{.MessageObj.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
+      {{else if eq .MessageObj.MediaType "document"}}
+      <div class="px-4 py-3">
+        <a href="/static/{{.MessageObj.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+          <i class="fas fa-file-alt text-lg text-blue-500"></i>
+          <span class="font-medium">{{if .MessageObj.Value}}{{.MessageObj.Value}}{{else}}Document{{end}}</span>
+          <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
+        </a>
+      </div>
+      {{else if eq .MessageObj.MediaType "audio"}}
+      <div class="px-2 py-2">
+        <audio controls class="w-full h-10" preload="metadata">
+          <source src="/static/{{.MessageObj.MediaURL}}">
+        </audio>
+      </div>
+      {{end}}
+    </div>
+    {{if .MessageObj.Value}}
+    <div class="bg-gray-200 text-gray-800 rounded-lg px-4 py-2 -mt-1">
+      <p class="text-sm">{{.MessageObj.Value}}</p>
+    </div>
+    {{end}}
+    {{else}}
     <div class="bg-gray-200 text-gray-800 rounded-lg px-4 py-2">
       <p class="text-sm">{{.MessageObj.Value}}</p>
     </div>
+    {{end}}
     <div class="flex items-center justify-between mt-1">
       <p class="text-xs text-gray-500">{{.MessageObj.CreatedAt.Format "3:04 PM"}}</p>
     </div>

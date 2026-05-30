@@ -4,6 +4,15 @@ import (
 	"oneflow/internal/models"
 )
 
+type PlanMeta struct {
+	Name                 string
+	Description          string
+	PayPalProductID      string
+	PayPalMonthlyPlanID  string
+	PayPalYearlyPlanID   string
+	Original             *models.SubscriptionPlan
+}
+
 type CheckoutContext struct {
 	CustomerEmail   string
 	BusinessID      uint
@@ -15,6 +24,8 @@ type CheckoutContext struct {
 	Currency        string
 	SuccessURL      string
 	CancelURL       string
+	Plan            *PlanMeta
+	SavePlan        func(*PlanMeta) error
 }
 
 type CheckoutSession struct {

@@ -20,6 +20,26 @@ type SubscriptionPageData struct {
 	Plans        []models.SubscriptionPlan
 	Usage        map[string]*subscription.LimitCheck
 	UpcomingInvoice *UpcomingInvoiceInfo
+
+	// Sidebar badge counts
+	ProductCount       int
+	ServiceCount       int
+	PendingOrderCount  int
+	PendingBookingCount int
+
+	// Enhanced fields
+	DaysRemaining      int
+	TotalDays          int
+	IsYearly           bool
+	YearlySavings      float64
+	YearlyPrice        float64
+	MonthlyPrice       float64
+	HasPaymentMethod   bool
+	IsCanceled         bool
+	IsTrialing         bool
+	TrialDaysRemaining int
+	PlanIcon           string
+	PlanColor          string
 }
 
 type UpcomingInvoiceInfo struct {
@@ -28,11 +48,31 @@ type UpcomingInvoiceInfo struct {
 	Interval string
 }
 
+type CheckoutPageData struct {
+	ActivePage string
+	Business   models.Business
+	Plan       *models.SubscriptionPlan
+	Interval   string
+	UnitAmount float64
+	Providers  []string
+
+	ProductCount       int
+	ServiceCount       int
+	PendingOrderCount  int
+	PendingBookingCount int
+}
+
 type PlansPageData struct {
 	ActivePage string
 	Business   models.Business
 	Plans      []models.SubscriptionPlan
 	Current    *models.SubscriptionPlan
+
+	// Sidebar badge counts
+	ProductCount       int
+	ServiceCount       int
+	PendingOrderCount  int
+	PendingBookingCount int
 }
 
 func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
@@ -46,6 +86,55 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
 		return
+	}
+
+	// Handle checkout success callback (webhooks can't reach localhost)
+	if c.Query("checkout") == "success" {
+		checkoutPlanCode := c.Query("plan_code")
+		checkoutInterval := c.DefaultQuery("interval", "month")
+		subscriptionID := c.Query("subscription_id")
+		if subscriptionID == "" {
+			subscriptionID = c.Query("session_id")
+		}
+		if checkoutPlanCode != "" {
+			var plan models.SubscriptionPlan
+			if err := h.db.Where("code = ? AND is_active = ?", checkoutPlanCode, true).First(&plan).Error; err == nil {
+				now := time.Now()
+				periodEnd := now.AddDate(0, 1, 0)
+				if checkoutInterval == "year" {
+					periodEnd = now.AddDate(1, 0, 0)
+				}
+
+				sub := models.BusinessSubscription{
+					BusinessID:           businessID,
+					PlanID:               plan.ID,
+					Status:               "active",
+					StripeSubscriptionID: subscriptionID,
+					BillingInterval:      checkoutInterval,
+					CurrentPeriodStart:   now,
+					CurrentPeriodEnd:     periodEnd,
+				}
+
+				var existing models.BusinessSubscription
+				if err := h.db.Where("business_id = ?", businessID).First(&existing).Error; err != nil {
+					h.db.Create(&sub)
+				} else {
+					h.db.Model(&existing).Updates(map[string]interface{}{
+						"plan_id":                plan.ID,
+						"status":                 "active",
+						"stripe_subscription_id": subscriptionID,
+						"billing_interval":       checkoutInterval,
+						"current_period_start":   now,
+						"current_period_end":     periodEnd,
+					})
+				}
+
+				h.db.Model(&models.Business{}).Where("id = ?", businessID).Update("subscription_plan_id", plan.ID)
+
+				c.Redirect(http.StatusFound, "/business/subscription")
+				return
+			}
+		}
 	}
 
 	var plans []models.SubscriptionPlan
@@ -67,13 +156,49 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 	}
 
 	if business.Subscription != nil {
-		data.Plan = &business.Subscription.Plan
-		if business.Subscription.Status == "active" || business.Subscription.Status == "trialing" {
-			data.UpcomingInvoice = &UpcomingInvoiceInfo{
-				Amount:   business.Subscription.Plan.PriceMonthly,
-				Date:     business.Subscription.CurrentPeriodEnd.Format("Jan 2, 2006"),
-				Interval: business.Subscription.BillingInterval,
+		sub := business.Subscription
+		data.Plan = &sub.Plan
+
+		if sub.Status == "active" || sub.Status == "trialing" {
+			amount := sub.Plan.PriceMonthly
+			if sub.BillingInterval == "year" {
+				amount = sub.Plan.PriceYearly
 			}
+			data.UpcomingInvoice = &UpcomingInvoiceInfo{
+				Amount:   amount,
+				Date:     sub.CurrentPeriodEnd.Format("Jan 2, 2006"),
+				Interval: sub.BillingInterval,
+			}
+		}
+
+		now := time.Now()
+		if sub.CurrentPeriodEnd.After(now) {
+			data.TotalDays = int(sub.CurrentPeriodEnd.Sub(sub.CurrentPeriodStart).Hours() / 24)
+			data.DaysRemaining = int(sub.CurrentPeriodEnd.Sub(now).Hours() / 24)
+		}
+
+		data.IsYearly = sub.BillingInterval == "year"
+		data.MonthlyPrice = sub.Plan.PriceMonthly
+		data.YearlyPrice = sub.Plan.PriceYearly
+		data.YearlySavings = (sub.Plan.PriceMonthly - sub.Plan.PriceYearly) * 12
+		data.HasPaymentMethod = sub.StripeCustomerID != ""
+		data.IsCanceled = sub.Status == "canceled"
+		data.IsTrialing = sub.Status == "trialing"
+
+		if sub.TrialEndsAt != nil && sub.TrialEndsAt.After(now) {
+			data.TrialDaysRemaining = int(sub.TrialEndsAt.Sub(now).Hours() / 24)
+		}
+
+		switch sub.Plan.Code {
+		case "diamond":
+			data.PlanIcon = "crown"
+			data.PlanColor = "amber"
+		case "gold":
+			data.PlanIcon = "rocket"
+			data.PlanColor = "teal"
+		default:
+			data.PlanIcon = "gem"
+			data.PlanColor = "slate"
 		}
 	}
 
@@ -122,12 +247,57 @@ func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
 	}
 }
 
+func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.Redirect(http.StatusFound, "/business/login")
+		return
+	}
+
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.Redirect(http.StatusFound, "/business/login")
+		return
+	}
+
+	planCode := c.Query("plan")
+	billingInterval := c.DefaultQuery("interval", "month")
+
+	var plan models.SubscriptionPlan
+	if err := h.db.Where("code = ? AND is_active = ?", planCode, true).First(&plan).Error; err != nil {
+		c.Redirect(http.StatusFound, "/business/subscription/plans")
+		return
+	}
+
+	var unitAmount float64
+	if billingInterval == "year" {
+		unitAmount = plan.PriceYearly
+	} else {
+		unitAmount = plan.PriceMonthly
+	}
+
+	data := CheckoutPageData{
+		ActivePage: "subscription",
+		Business:   business,
+		Plan:       &plan,
+		Interval:   billingInterval,
+		UnitAmount: unitAmount,
+		Providers:  []string{"stripe", "paypal"},
+	}
+
+	c.HTML(http.StatusOK, "checkout.html", data)
+}
+
 func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	planCode := c.PostForm("plan_code")
 	billingInterval := c.PostForm("interval")
+	providerName := c.PostForm("provider")
 	if billingInterval == "" {
 		billingInterval = "month"
+	}
+	if providerName == "" {
+		providerName = "stripe"
 	}
 
 	var business models.Business
@@ -155,7 +325,7 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 	}
 	host := c.Request.Host
 
-	provider := payment.NewStripeAdapter()
+	provider := payment.GetProvider(providerName)
 	checkoutCtx := &payment.CheckoutContext{
 		CustomerEmail:   business.Email,
 		BusinessID:      business.ID,
@@ -165,8 +335,23 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 		BillingInterval: billingInterval,
 		UnitAmount:      unitAmount,
 		Currency:        "usd",
-		SuccessURL:      fmt.Sprintf("%s://%s/business/subscription?checkout=success", scheme, host),
-		CancelURL:       fmt.Sprintf("%s://%s/business/subscription/plans?checkout=canceled", scheme, host),
+		SuccessURL:      fmt.Sprintf("%s://%s/business/subscription?checkout=success&plan_code=%s&interval=%s", scheme, host, planCode, billingInterval),
+		CancelURL:       fmt.Sprintf("%s://%s/business/subscription?checkout=canceled", scheme, host),
+		Plan: &payment.PlanMeta{
+			Name:                plan.Name,
+			Description:         plan.Description,
+			PayPalProductID:     plan.PayPalProductID,
+			PayPalMonthlyPlanID: plan.PayPalMonthlyPlanID,
+			PayPalYearlyPlanID:  plan.PayPalYearlyPlanID,
+			Original:            &plan,
+		},
+		SavePlan: func(pm *payment.PlanMeta) error {
+			return h.db.Model(&plan).Updates(map[string]interface{}{
+				"paypal_product_id":      pm.PayPalProductID,
+				"paypal_monthly_plan_id": pm.PayPalMonthlyPlanID,
+				"paypal_yearly_plan_id":  pm.PayPalYearlyPlanID,
+			}).Error
+		},
 	}
 
 	session, err := provider.CreateCheckoutSession(checkoutCtx)
@@ -284,6 +469,97 @@ func (h *BusinessHandler) BillingPortal(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"url": portalURL})
+}
+
+func (h *BusinessHandler) GetPlanBadge(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.String(http.StatusOK, "")
+		return
+	}
+
+	var business models.Business
+	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+		c.String(http.StatusOK, "")
+		return
+	}
+
+	planName := "Silver"
+	status := ""
+	if business.Subscription != nil && business.Subscription.Plan.Name != "" {
+		planName = business.Subscription.Plan.Name
+		status = business.Subscription.Status
+	}
+
+	if status == "canceled" || status == "past_due" {
+		c.String(http.StatusOK, fmt.Sprintf(
+			`<a href="/business/subscription/plans" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors shadow-sm">
+				<i class="fas fa-exclamation-triangle text-[10px]"></i> %s - %s
+			</a>`, planName, status))
+		return
+	}
+
+	c.String(http.StatusOK, fmt.Sprintf(
+		`<a href="/business/subscription" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:opacity-90 transition-opacity shadow-sm">
+			<i class="fas fa-crown text-[10px]"></i> %s
+		</a>`, planName))
+}
+
+func (h *BusinessHandler) GetPlanBadgeSidebar(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.String(http.StatusOK, "")
+		return
+	}
+
+	var business models.Business
+	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+		c.String(http.StatusOK, "")
+		return
+	}
+
+	planName := "Silver"
+	if business.Subscription != nil && business.Subscription.Plan.Name != "" {
+		planName = business.Subscription.Plan.Name
+	}
+
+	if planName == "Silver" {
+		c.String(http.StatusOK, `<span class="px-1.5 py-0.5 rounded-full bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]">Free</span>`)
+		return
+	}
+
+	c.String(http.StatusOK, fmt.Sprintf(
+		`<span class="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white">%s</span>`, planName))
+}
+
+func PayPalWebhook(h *BusinessHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, err := c.GetRawData()
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		provider := payment.NewPayPalAdapter()
+		event, err := provider.HandleWebhook(payload, "")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		switch event.Type {
+		case "BILLING.SUBSCRIPTION.ACTIVATED":
+			handleCheckoutCompleted(h.db, event)
+		case "BILLING.SUBSCRIPTION.UPDATED":
+			handleSubscriptionUpdated(h.db, event)
+		case "BILLING.SUBSCRIPTION.CANCELLED":
+			handleSubscriptionDeleted(h.db, event)
+		case "PAYMENT.SALE.COMPLETED":
+			handleInvoicePaid(h.db, event)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"received": true})
+	}
 }
 
 func StripeWebhook(h *BusinessHandler) gin.HandlerFunc {

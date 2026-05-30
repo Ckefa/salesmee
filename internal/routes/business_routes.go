@@ -117,13 +117,17 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		// Subscription & Billing routes
 		protected.GET("/subscription", businessHandler.GetSubscriptionPage)
 		protected.GET("/subscription/plans", businessHandler.GetPlansPage)
+		protected.GET("/subscription/checkout", businessHandler.GetCheckoutPage)
 		protected.POST("/subscription/checkout", businessHandler.CreateCheckout)
 		protected.POST("/subscription/change", businessHandler.ChangePlan)
 		protected.POST("/subscription/cancel", businessHandler.CancelSubscription)
 		protected.GET("/subscription/portal", businessHandler.BillingPortal)
+		protected.GET("/subscription/badge", businessHandler.GetPlanBadge)
+		protected.GET("/subscription/badge-sidebar", businessHandler.GetPlanBadgeSidebar)
 	}
 
-	// Stripe webhook (public)
+	// Webhooks (public)
 	r.POST("/stripe/webhook", business.StripeWebhook(businessHandler))
+	r.POST("/paypal/webhook", business.PayPalWebhook(businessHandler))
 
 }

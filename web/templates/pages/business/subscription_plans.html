@@ -47,69 +47,90 @@
 
 {{define "subscription_plans_content"}}
 <div class="max-w-5xl mx-auto p-6">
-  <div class="text-center mb-8">
+  <div class="text-center mb-6">
     <h2 class="text-2xl font-bold text-[var(--color-text)]">Pick the right plan for you</h2>
     <p class="text-[var(--color-text-secondary)] mt-2">All plans include a free trial. Upgrade, downgrade, or cancel anytime.</p>
   </div>
 
+  <div class="flex items-center justify-center gap-3 mb-8">
+    <span class="text-sm font-medium text-[var(--color-text)]">Monthly</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="interval-toggle" onchange="toggleBillingInterval()">
+      <div class="toggle-track"></div>
+      <div class="toggle-dot"></div>
+    </label>
+    <span class="text-sm font-medium text-[var(--color-text)]">Yearly <span class="text-[var(--color-primary)] font-semibold">Save 20%</span></span>
+  </div>
+
   <div class="grid md:grid-cols-3 gap-6">
     {{range $i, $plan := .Plans}}
-    <div class="card p-6 relative flex flex-col {{if .Current}}ring-2 ring-[var(--color-primary)]{{end}}">
+    {{$isCurrent := false}}
+    {{if $.Current}}{{if eq $.Current.ID $plan.ID}}{{$isCurrent = true}}{{end}}{{end}}
+    <div class="card p-6 relative flex flex-col {{if $isCurrent}}ring-2 ring-[var(--color-primary)]{{end}}"
+      data-plan="{{$plan.Code}}"
+      data-price-monthly="{{$plan.PriceMonthly}}"
+      data-price-yearly="{{$plan.PriceYearly}}">
       {{if eq $i 1}}
-      <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-xs font-semibold shadow-lg">
-        Most Popular
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-yellow-700 text-white text-xs font-semibold shadow-lg z-10 flex items-center gap-1">
+        <i class="fas fa-fire text-[10px]"></i> Most Popular
       </div>
       {{end}}
 
       <div>
-        <div class="w-12 h-12 rounded-xl {{if eq $i 0}}bg-slate-100{{else if eq $i 1}}bg-gradient-to-br from-teal-500 to-cyan-600{{else}}bg-gradient-to-br from-amber-500 to-orange-600{{end}} flex items-center justify-center mb-4">
-          <i class="fas {{if eq $i 0}}fa-gem{{else if eq $i 1}}fa-rocket{{else}}fa-crown{{end}} text-lg {{if gt $i 0}}text-white{{else}}text-slate-600{{end}}"></i>
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br
+          {{if eq $i 0}}from-slate-400 to-gray-500{{else if eq $i 1}}from-amber-600 to-yellow-700{{else}}from-indigo-500 to-violet-600{{end}}
+          flex items-center justify-center mb-4 shadow-md">
+          <i class="fas {{if eq $i 0}}fa-gem{{else if eq $i 1}}fa-rocket{{else}}fa-crown{{end}} text-lg text-white"></i>
         </div>
         <h3 class="text-xl font-semibold text-[var(--color-text)]">{{.Name}}</h3>
         <p class="text-sm text-[var(--color-text-muted)] mt-1">{{.Description}}</p>
 
         <div class="mt-4">
-          <div class="flex items-baseline gap-1">
-            {{if eq .PriceMonthly 0.0}}
-            <span class="text-3xl font-extrabold text-[var(--color-text)]">Free</span>
-            {{else}}
-            <span class="text-sm text-[var(--color-text-muted)]">from</span>
-            <span class="text-3xl font-extrabold text-[var(--color-text)]">${{printf "%.0f" .PriceMonthly}}</span>
-            <span class="text-[var(--color-text-muted)]">/mo</span>
+            <div class="flex items-baseline gap-1">
+              {{if eq .PriceMonthly 0.0}}
+              <span class="text-3xl font-extrabold text-[var(--color-text)]">Free</span>
+              {{else}}
+              <span class="text-3xl font-extrabold text-[var(--color-text)] plan-price">${{printf "%.0f" .PriceMonthly}}</span>
+              <span class="text-[var(--color-text-muted)] plan-interval">/mo</span>
+              {{end}}
+            </div>
+            {{if gt .PriceMonthly 0.0}}
+            <div class="text-xs text-[var(--color-text-muted)] mt-0.5 plan-yearly-note hidden">
+              ${{printf "%.0f" (mul .PriceYearly 12.0)}} billed yearly{{if gt (mul (sub .PriceMonthly .PriceYearly) 12.0) 0.0}} · Save ${{printf "%.0f" (mul (sub .PriceMonthly .PriceYearly) 12.0)}}{{end}}
+            </div>
             {{end}}
-          </div>
         </div>
 
         <ul class="mt-6 space-y-3">
           {{if eq .MaxConversations 0}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited conversations</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited conversations</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxConversations}} conversations</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxConversations}} conversations</li>
           {{end}}
           {{if eq .MaxProducts 0}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited products</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited products</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxProducts}} products</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxProducts}} products</li>
           {{end}}
           {{if eq .MaxServices 0}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited services</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited services</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxServices}} services</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxServices}} services</li>
           {{end}}
           {{if eq .MaxClients 0}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Unlimited clients</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited clients</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>{{.MaxClients}} clients</li>
+          <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxClients}} clients</li>
           {{end}}
-          {{if .HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Orders & bookings</li>{{end}}
-          {{if .HasAnalytics}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Analytics</li>{{end}}
-          {{if .HasMediaSharing}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Media & file sharing</li>{{end}}
-          {{if .HasPrioritySupport}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm"></i>Priority support</li>{{end}}
+          {{if .HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
+          {{if .HasAnalytics}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
+          {{if .HasMediaSharing}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media & file sharing</li>{{end}}
+          {{if .HasPrioritySupport}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
         </ul>
       </div>
 
       <div class="mt-auto pt-6">
-        {{if .Current}}
+        {{if $isCurrent}}
         <div class="w-full py-2.5 rounded-xl text-center text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
           <i class="fas fa-check mr-1.5"></i>Current Plan
         </div>
@@ -118,7 +139,7 @@
           Downgrade to {{.Name}}
         </button>
         {{else}}
-        <button onclick="startCheckout('{{.Code}}')" class="w-full py-2.5 rounded-xl {{if eq $i 1}}bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}} font-medium hover:opacity-90 transition-all text-sm">
+        <button onclick="startCheckout('{{.Code}}')" class="w-full py-2.5 rounded-xl {{if eq $i 1}}bg-gradient-to-r from-amber-600 to-yellow-700 text-white shadow-lg shadow-amber-700/25{{else if eq $i 2}}bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-violet-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}} font-medium hover:opacity-90 transition-all text-sm">
           {{if $.Current}}Upgrade to {{.Name}}{{else}}Start {{.Name}}{{end}}
         </button>
         {{end}}
@@ -129,18 +150,36 @@
 </div>
 
 <script>
+  function fmtPrice(n) {
+    return Number(n.toFixed(2)).toString();
+  }
+
+  function toggleBillingInterval() {
+    var checked = document.getElementById('interval-toggle').checked;
+    document.querySelectorAll('[data-plan]').forEach(function(card) {
+      var priceM = parseFloat(card.getAttribute('data-price-monthly'));
+      var priceY = parseFloat(card.getAttribute('data-price-yearly'));
+      var priceEl = card.querySelector('.plan-price');
+      var intervalEl = card.querySelector('.plan-interval');
+      var yearlyNote = card.querySelector('.plan-yearly-note');
+      if (priceEl) {
+        if (checked) {
+          priceEl.textContent = '$' + fmtPrice(priceY);
+          if (intervalEl) intervalEl.textContent = '/mo';
+          if (yearlyNote) yearlyNote.classList.remove('hidden');
+        } else {
+          priceEl.textContent = '$' + fmtPrice(priceM);
+          if (intervalEl) intervalEl.textContent = '/mo';
+          if (yearlyNote) yearlyNote.classList.add('hidden');
+        }
+      }
+    });
+    sessionStorage.setItem('billingInterval', checked ? 'year' : 'month');
+  }
+
   function startCheckout(planCode) {
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/business/subscription/checkout';
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'plan_code';
-    input.value = planCode;
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    var interval = sessionStorage.getItem('billingInterval') || 'month';
+    window.location.href = '/business/subscription/checkout?plan=' + planCode + '&interval=' + interval;
   }
 
   function switchPlan(planCode) {
@@ -157,5 +196,15 @@
     })
     .catch(() => alert('An error occurred'));
   }
+
+  // Restore toggle state
+  (function() {
+    var saved = sessionStorage.getItem('billingInterval');
+    var toggle = document.getElementById('interval-toggle');
+    if (saved === 'year' && toggle && !toggle.checked) {
+      toggle.checked = true;
+      toggleBillingInterval();
+    }
+  })();
 </script>
 {{end}}

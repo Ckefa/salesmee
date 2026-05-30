@@ -55,6 +55,7 @@
             {{.PendingBookingCount}} pending
           </a>
           {{end}}
+          <div hx-get="/business/subscription/badge" hx-trigger="load" hx-swap="innerHTML" class="flex items-center"></div>
           <a href="/business" class="btn btn-secondary btn-sm hide-mobile">
             <i class="fas fa-users"></i>
             Clients

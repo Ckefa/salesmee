@@ -21,6 +21,9 @@ type SubscriptionPlan struct {
 	SortOrder             int       `gorm:"default:0" json:"sort_order"`
 	StripeMonthlyPriceID  string    `json:"stripe_monthly_price_id"`
 	StripeYearlyPriceID   string    `json:"stripe_yearly_price_id"`
+	PayPalProductID       string    `json:"paypal_product_id"`
+	PayPalMonthlyPlanID   string    `json:"paypal_monthly_plan_id"`
+	PayPalYearlyPlanID    string    `json:"paypal_yearly_plan_id"`
 	IsActive              bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`

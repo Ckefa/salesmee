@@ -32,10 +32,10 @@ window.addEventListener('beforeunload', stopHeartbeat);
 function loadBusiness(businessId) {
   currentBusinessId = businessId;
   document.querySelectorAll('.business-item').forEach(item => {
-    item.classList.remove('bg-teal-50', 'border-l-4', 'border-teal-600');
+    item.classList.remove('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
   });
   const el = document.querySelector(`[data-business-id="${businessId}"]`);
-  if (el) el.classList.add('bg-teal-50', 'border-l-4', 'border-teal-600');
+  if (el) el.classList.add('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
   htmx.ajax('GET', `/client/businesses/${businessId}/messages`, {
     target: '#chat-area',
     swap: 'innerHTML'

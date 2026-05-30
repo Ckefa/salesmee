@@ -12,10 +12,10 @@ function hideNewClientModal() {
 function loadClient(clientId) {
   currentClientId = clientId;
   document.querySelectorAll('.client-item').forEach(function(item) {
-    item.classList.remove('bg-teal-50', 'border-l-4', 'border-teal-500');
+    item.classList.remove('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
   });
   var el = document.querySelector('[data-client-id="' + clientId + '"]');
-  if (el) el.classList.add('bg-teal-50', 'border-l-4', 'border-teal-500');
+  if (el) el.classList.add('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
   htmx.ajax('GET', 'clients/' + clientId + '/messages', {
     target: '#chat-area',
     swap: 'innerHTML'
@@ -33,8 +33,8 @@ function deleteClient(clientId, clientName) {
         if (el) el.remove();
         if (currentClientId == clientId) {
           document.getElementById('chat-area').innerHTML =
-            '<div class="flex-1 flex items-center justify-center text-gray-400">' +
-            '<div class="text-center text-gray-500">' +
+            '<div class="flex-1 flex items-center justify-center text-[var(--color-text-muted)]">' +
+            '<div class="text-center text-[var(--color-text-muted)]">' +
             '<i class="fas fa-comments text-6xl mb-4"></i>' +
             '<p>Select a client to start chatting</p></div></div>';
           currentClientId = null;

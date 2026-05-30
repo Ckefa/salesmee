@@ -188,24 +188,24 @@ function addOrderMessageToChat(order) {
   const div = document.createElement('div');
   div.className = 'flex justify-end';
   div.innerHTML = `<div class="max-w-xs lg:max-w-md w-full">
-    <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
+    <div class="bg-[var(--color-info-light)] border border-[var(--color-info)] rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
-          <i class="fas fa-shopping-cart text-blue-600"></i>
-          <span class="font-semibold text-blue-800 text-sm">[${order.id}]</span>
-          <span class="text-gray-700 text-sm">${order.product_name || 'Product'}</span>
+          <i class="fas fa-shopping-cart text-[var(--color-info)]"></i>
+          <span class="font-semibold text-[var(--color-info)] text-sm">[${order.id}]</span>
+          <span class="text-[var(--color-text)] text-sm">${order.product_name || 'Product'}</span>
         </div>
-        <button onclick="openClientEditOrderPicker(${order.id})" class="text-blue-600 hover:text-blue-800 text-xs" title="Edit Order">
+        <button onclick="openClientEditOrderPicker(${order.id})" class="text-[var(--color-info)] hover:opacity-80 text-xs" title="Edit Order">
           <i class="fas fa-edit"></i>
         </button>
       </div>
-      <div class="order-details text-sm text-gray-700">
+      <div class="order-details text-sm text-[var(--color-text)]">
         <p class="text-sm">Order #${order.order_number} - ${order.quantity || 1}x - $${parseFloat(order.total_amount).toFixed(2)}</p>
         <p class="hidden order-notes-data">${order.notes || ''}</p>
       </div>
       <div class="flex items-center justify-between mt-2">
-        <p class="text-xs text-gray-500">${new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})}</p>
-        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
+        <p class="text-xs text-[var(--color-text-muted)]">${new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})}</p>
+        <span class="text-xs bg-[var(--color-warning-light)] text-[var(--color-warning)] px-2 py-1 rounded">Pending</span>
       </div>
     </div>
   </div>`;
@@ -225,28 +225,28 @@ function addBookingMessageToChat(booking) {
   const status = booking.status || 'pending';
   const dateStr = bookingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const timeStr = bookingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const statusClass = status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-    status === 'confirmed' ? 'bg-green-100 text-green-800' :
-    status === 'completed' ? 'bg-blue-100 text-blue-800' :
-    status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
-  const borderClass = status === 'pending' ? 'border-yellow-200 bg-yellow-50' :
-    status === 'confirmed' ? 'border-green-200 bg-green-50' :
-    status === 'completed' ? 'border-blue-200 bg-blue-50' :
-    status === 'cancelled' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50';
-  const iconClass = status === 'pending' ? 'text-yellow-600' :
-    status === 'confirmed' ? 'text-green-600' :
-    status === 'completed' ? 'text-blue-600' :
-    status === 'cancelled' ? 'text-red-600' : 'text-gray-600';
+  const statusClass = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
+    status === 'confirmed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
+    status === 'completed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]';
+  const borderClass = status === 'pending' ? 'border-[var(--color-warning)] bg-[var(--color-warning-light)]' :
+    status === 'confirmed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
+    status === 'completed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
+    status === 'cancelled' ? 'border-[var(--color-error)] bg-[var(--color-error-light)]' : 'border-[var(--color-border)] bg-[var(--color-surface-secondary)]';
+  const iconClass = status === 'pending' ? 'text-[var(--color-warning)]' :
+    status === 'confirmed' ? 'text-[var(--color-success)]' :
+    status === 'completed' ? 'text-[var(--color-info)]' :
+    status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]';
 
   let extraHtml = '';
   if (status === 'pending') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-gray-200 border-opacity-50"><p class="text-xs text-center text-yellow-600 font-medium"><i class="fas fa-clock mr-1"></i>Awaiting business confirmation</p></div>';
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-warning)] font-medium"><i class="fas fa-clock mr-1"></i>Awaiting business confirmation</p></div>';
   } else if (status === 'confirmed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-gray-200 border-opacity-50"><p class="text-xs text-center text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
   } else if (status === 'completed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-gray-200 border-opacity-50"><p class="text-xs text-center text-blue-600 font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
   } else if (status === 'cancelled') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-gray-200 border-opacity-50"><p class="text-xs text-center text-red-600 font-medium"><i class="fas fa-ban mr-1"></i>This booking was cancelled</p></div>';
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-error)] font-medium"><i class="fas fa-ban mr-1"></i>This booking was cancelled</p></div>';
   }
 
   container.insertAdjacentHTML('beforeend', `
@@ -257,27 +257,27 @@ function addBookingMessageToChat(booking) {
             <div class="flex items-center space-x-2 min-w-0">
               <i class="fas fa-calendar-check ${iconClass}"></i>
               <span class="font-semibold text-sm ${iconClass}">#${bookingNumber}</span>
-              <span class="text-gray-700 text-sm truncate">${serviceName}</span>
+              <span class="text-[var(--color-text)] text-sm truncate">${serviceName}</span>
             </div>
             <div class="flex items-center space-x-1 flex-shrink-0 ml-2">
-              ${status === 'pending' ? '<button onclick="cancelBooking(' + booking.id + ')" class="text-red-500 hover:text-red-700 text-xs" title="Cancel Booking"><i class="fas fa-times"></i></button>' : ''}
+              ${status === 'pending' ? '<button onclick="cancelBooking(' + booking.id + ')" class="text-[var(--color-error)] hover:opacity-80 text-xs" title="Cancel Booking"><i class="fas fa-times"></i></button>' : ''}
               <button onclick="openClientEditBookingPicker(${booking.id})" class="${iconClass} hover:opacity-80 text-xs" title="Edit Booking">
                 <i class="fas fa-edit"></i>
               </button>
             </div>
           </div>
-          <div class="booking-details text-sm text-gray-700 space-y-1">
+          <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
             <p class="flex items-center space-x-1">
-              <i class="fas fa-clock text-xs text-gray-400"></i>
+              <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
               <span>${dateStr} at ${timeStr}</span>
             </p>
-            ${duration ? '<p class="flex items-center space-x-1"><i class="fas fa-hourglass-half text-xs text-gray-400"></i><span>' + duration + ' min</span></p>' : ''}
-            ${totalAmount ? '<p class="flex items-center space-x-1"><i class="fas fa-tag text-xs text-gray-400"></i><span>$' + parseFloat(totalAmount).toFixed(2) + '</span></p>' : ''}
-            ${notes ? '<p class="text-xs text-gray-500 italic mt-1 border-t border-gray-200 pt-1">' + notes + '</p>' : ''}
+            ${duration ? '<p class="flex items-center space-x-1"><i class="fas fa-hourglass-half text-xs text-[var(--color-text-muted)]"></i><span>' + duration + ' min</span></p>' : ''}
+            ${totalAmount ? '<p class="flex items-center space-x-1"><i class="fas fa-tag text-xs text-[var(--color-text-muted)]"></i><span>$' + parseFloat(totalAmount).toFixed(2) + '</span></p>' : ''}
+            ${notes ? '<p class="text-xs text-[var(--color-text-muted)] italic mt-1 border-t border-[var(--color-border)] pt-1">' + notes + '</p>' : ''}
             <p class="hidden booking-notes-data">${notes}</p>
           </div>
-          <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-200 border-opacity-50">
-            <p class="text-xs text-gray-400">Just now</p>
+          <div class="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]/50">
+            <p class="text-xs text-[var(--color-text-muted)]">Just now</p>
             <span class="text-xs font-medium ${statusClass} px-2 py-0.5 rounded-full booking-status">${status}</span>
           </div>
           ${extraHtml}
@@ -359,7 +359,7 @@ function updateClientOrderTotal(orderId) {
     const priceText = priceEl ? priceEl.textContent.replace('$', '') : '0';
     total += qty * parseFloat(priceText);
   });
-  const totalEl = card.querySelector('.text-lg.font-bold.text-gray-900');
+  const totalEl = card.querySelector('.text-lg.font-bold');
   if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
 }
 

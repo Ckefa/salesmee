@@ -1,21 +1,21 @@
 {{define "client_chat_header"}}
-<div class="bg-white border-b border-gray-200 p-4 flex items-center justify-between flex-shrink-0">
+<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-4 flex items-center justify-between flex-shrink-0">
   <div class="flex items-center space-x-3">
     {{if .Business.Logo}}
     <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-10 h-10 rounded-full object-cover">
     {{else}}
-    <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-      <i class="fas fa-store text-teal-600"></i>
+    <div class="w-10 h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+      <i class="fas fa-store text-[var(--color-primary)]"></i>
     </div>
     {{end}}
     <div>
-      <h2 class="font-semibold text-gray-900">{{.Business.Name}}</h2>
-      <p class="text-sm text-gray-500">{{.Business.BusinessType}}</p>
+      <h2 class="font-semibold text-[var(--color-text)]">{{.Business.Name}}</h2>
+      <p class="text-sm text-[var(--color-text-muted)]">{{.Business.BusinessType}}</p>
     </div>
   </div>
   <div class="flex items-center space-x-2">
-    <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-    <span class="text-sm text-gray-500">Online</span>
+    <span class="inline-block w-2 h-2 bg-[var(--color-success)] rounded-full"></span>
+    <span class="text-sm text-[var(--color-text-muted)]">Online</span>
   </div>
 </div>
 {{end}}

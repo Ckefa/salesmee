@@ -121,16 +121,16 @@ function updateServiceStepIndicators(step) {
     const labelEl = document.getElementById(item.label);
     const isActive = idx <= step;
     if (indEl) {
-      indEl.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${isActive ? 'bg-purple-500 text-white shadow-sm' : 'bg-gray-200 text-gray-400'}`;
+      indEl.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${isActive ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]'}`;
       if (isActive && idx < step) indEl.innerHTML = '<i class="fas fa-check text-[10px]"></i>';
       else indEl.textContent = String(idx);
     }
     if (labelEl) {
-      labelEl.className = `text-xs font-medium transition-colors duration-300 ${isActive ? 'text-purple-600' : 'text-gray-400'}`;
+      labelEl.className = `text-xs font-medium transition-colors duration-300 ${isActive ? 'text-[var(--color-secondary)]' : 'text-[var(--color-text-muted)]'}`;
     }
     if (item.line) {
       const lineEl = document.getElementById(item.line);
-      if (lineEl) lineEl.className = `w-12 h-px mx-2 transition-colors duration-300 ${isActive ? 'bg-purple-300' : 'bg-gray-200'}`;
+      if (lineEl) lineEl.className = `w-12 h-px mx-2 transition-colors duration-300 ${isActive ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]'}`;
     }
   });
 }
@@ -141,7 +141,7 @@ async function loadPickerServices() {
   const grid = document.getElementById('servicePickerGrid');
   const countEl = document.getElementById('servicePickerCount');
   if (!grid) return;
-  grid.innerHTML = '<div class="text-center py-16 text-gray-400"><i class="fas fa-spinner fa-spin text-3xl mb-3"></i><p class="text-sm">Loading services...</p></div>';
+  grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-spinner fa-spin text-3xl mb-3"></i><p class="text-sm">Loading services...</p></div>';
 
   try {
     let url;
@@ -156,7 +156,7 @@ async function loadPickerServices() {
       const msg = resp.status === 401 ? 'Not authenticated.' :
                   resp.status === 404 ? 'Services not found.' :
                   `Server error (${resp.status})`;
-      grid.innerHTML = `<div class="text-center py-12 text-orange-400"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>${msg}</p></div>`;
+      grid.innerHTML = `<div class="text-center py-12 text-[var(--color-warning)]"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>${msg}</p></div>`;
       return;
     }
 
@@ -186,7 +186,7 @@ async function loadPickerServices() {
     }
   } catch (e) {
     console.error('Failed to load services:', e);
-    grid.innerHTML = '<div class="text-center py-12 text-red-400"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Failed to load services</p></div>';
+    grid.innerHTML = '<div class="text-center py-12 text-[var(--color-error)]"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Failed to load services</p></div>';
   }
 }
 
@@ -202,7 +202,7 @@ function renderServicePicker(category) {
   if (clearBtn) clearBtn.classList.toggle('hidden', !search);
 
   if (!servicePickerServices || servicePickerServices.length === 0) {
-    grid.innerHTML = '<div class="text-center py-16 text-gray-400"><i class="fas fa-concierge-bell text-5xl mb-3"></i><p class="text-sm font-medium">No services available</p><p class="text-xs mt-1">Check back later for new services</p></div>';
+    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-concierge-bell text-5xl mb-3"></i><p class="text-sm font-medium">No services available</p><p class="text-xs mt-1">Check back later for new services</p></div>';
     if (catFilter) catFilter.innerHTML = '';
     return;
   }
@@ -210,9 +210,9 @@ function renderServicePicker(category) {
   // Render category filters
   if (catFilter) {
     let catHtml = '<button onclick="filterServiceCategory(\'\')" class="px-3 py-1.5 rounded-full text-xs font-medium transition ' +
-      (!category ? 'bg-purple-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200') + '">All</button>';
+      (!category ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)]') + '">All</button>';
     servicePickerCategories.forEach(cat => {
-      catHtml += `<button onclick="filterServiceCategory('${cat.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-full text-xs font-medium transition ${category === cat ? 'bg-purple-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">${cat}</button>`;
+      catHtml += `<button onclick="filterServiceCategory('${cat.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-full text-xs font-medium transition ${category === cat ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)]'}">${cat}</button>`;
     });
     catFilter.innerHTML = catHtml;
   }
@@ -226,7 +226,7 @@ function renderServicePicker(category) {
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="text-center py-16 text-gray-400"><i class="fas fa-search text-4xl mb-3"></i><p class="text-sm">No services match your criteria</p></div>';
+    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-search text-4xl mb-3"></i><p class="text-sm">No services match your criteria</p></div>';
     return;
   }
 
@@ -246,25 +246,25 @@ function renderServicePicker(category) {
       : minPrice > 0 ? `$${minPrice.toFixed(2)}` : 'Contact for price';
 
     html += `
-      <div class="service-picker-item border-2 rounded-xl transition-all duration-200 bg-white overflow-hidden border-gray-100 hover:border-purple-200 hover:shadow-sm cursor-pointer"
+      <div class="service-picker-item border-2 rounded-xl transition-all duration-200 bg-[var(--color-surface)] overflow-hidden border-[var(--color-border)] hover:border-[var(--color-secondary)] hover:shadow-sm cursor-pointer"
         onclick="selectService(${svcId})">
         <div class="flex p-3 gap-3">
-          <div class="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 flex items-center justify-center text-2xl">
+          <div class="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-gradient-to-br from-[var(--color-secondary-light)] to-pink-50 border border-[var(--color-secondary-light)] flex items-center justify-center text-2xl">
             ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover">` :
-              `<i class="fas fa-concierge-bell text-purple-300"></i>`}
+              `<i class="fas fa-concierge-bell text-[var(--color-secondary)]"></i>`}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-1">
-              <h5 class="font-semibold text-sm text-gray-900 truncate">${name}</h5>
-              <span class="text-sm font-bold text-purple-700 flex-shrink-0 ml-1 whitespace-nowrap">${priceDisplay}</span>
+              <h5 class="font-semibold text-sm text-[var(--color-text)] truncate">${name}</h5>
+              <span class="text-sm font-bold text-[var(--color-secondary)] flex-shrink-0 ml-1 whitespace-nowrap">${priceDisplay}</span>
             </div>
-            ${category ? `<span class="text-[10px] text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded inline-block mt-0.5">${category}</span>` : ''}
-            ${description ? `<p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">${description}</p>` : ''}
-            ${duration ? `<div class="flex items-center gap-1 mt-1.5 text-[11px] text-gray-400"><i class="far fa-clock"></i><span>${duration} min</span></div>` : ''}
+            ${category ? `<span class="text-[10px] text-[var(--color-secondary)] bg-[var(--color-secondary-light)] px-1.5 py-0.5 rounded inline-block mt-0.5">${category}</span>` : ''}
+            ${description ? `<p class="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">${description}</p>` : ''}
+            ${duration ? `<div class="flex items-center gap-1 mt-1.5 text-[11px] text-[var(--color-text-muted)]"><i class="far fa-clock"></i><span>${duration} min</span></div>` : ''}
           </div>
         </div>
         <div class="px-3 pb-3">
-          <div class="w-full py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs font-semibold text-center hover:from-purple-600 hover:to-pink-700 transition active:scale-[0.98] shadow-sm">
+          <div class="w-full py-2 rounded-lg bg-gradient-to-r from-[var(--color-secondary)] to-pink-600 text-white text-xs font-semibold text-center hover:opacity-90 transition active:scale-[0.98] shadow-sm">
             <i class="fas fa-plus mr-1"></i> Select Service
           </div>
         </div>
@@ -275,7 +275,7 @@ function renderServicePicker(category) {
 }
 
 function filterPickerServices() {
-  renderServicePicker(document.getElementById('servicePickerCategoryFilter')?.querySelector('.bg-purple-600.text-white')?.textContent || '');
+  renderServicePicker(document.getElementById('servicePickerCategoryFilter')?.querySelector('[class*="bg-[var(--color-secondary)]"][class*="text-white"]')?.textContent || '');
 }
 
 function filterServiceCategory(category) {
@@ -316,7 +316,7 @@ function selectService(svcId) {
     if (servicePickerSelectedService.imgUrl) {
       imgContainer.innerHTML = `<img src="${servicePickerSelectedService.imgUrl}" class="w-full h-full object-cover">`;
     } else {
-      imgContainer.innerHTML = '<i class="fas fa-concierge-bell text-purple-600 text-2xl"></i>';
+      imgContainer.innerHTML = '<i class="fas fa-concierge-bell text-[var(--color-secondary)] text-2xl"></i>';
     }
   }
 
@@ -362,37 +362,37 @@ function renderServiceConfirmation() {
     : servicePickerSelectedService.minPrice > 0 ? `$${servicePickerSelectedService.minPrice.toFixed(2)}` : '';
 
   container.innerHTML = `
-    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-4 mb-4">
+    <div class="bg-gradient-to-br from-[var(--color-secondary-light)] to-pink-50 rounded-xl border border-[var(--color-secondary)]/40 p-4 mb-4">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
-          <i class="fas fa-concierge-bell text-purple-600"></i>
+        <div class="w-12 h-12 rounded-xl bg-[var(--color-secondary-light)] flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
+          <i class="fas fa-concierge-bell text-[var(--color-secondary)]"></i>
         </div>
         <div>
-          <h4 class="font-bold text-gray-900">${servicePickerSelectedService.name}</h4>
-          ${servicePickerSelectedService.category ? `<span class="text-xs text-purple-500">${servicePickerSelectedService.category}</span>` : ''}
+          <h4 class="font-bold text-[var(--color-text)]">${servicePickerSelectedService.name}</h4>
+          ${servicePickerSelectedService.category ? `<span class="text-xs text-[var(--color-secondary)]">${servicePickerSelectedService.category}</span>` : ''}
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3 text-sm">
-        <div class="bg-white/60 rounded-lg p-2.5">
-          <p class="text-[10px] text-gray-400 uppercase tracking-wider">Date</p>
-          <p class="font-semibold text-gray-800">${dateStr}</p>
+        <div class="bg-[var(--color-surface)]/60 rounded-lg p-2.5">
+          <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Date</p>
+          <p class="font-semibold text-[var(--color-text)]">${dateStr}</p>
         </div>
-        <div class="bg-white/60 rounded-lg p-2.5">
-          <p class="text-[10px] text-gray-400 uppercase tracking-wider">Time</p>
-          <p class="font-semibold text-gray-800">${timeStr}</p>
+        <div class="bg-[var(--color-surface)]/60 rounded-lg p-2.5">
+          <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Time</p>
+          <p class="font-semibold text-[var(--color-text)]">${timeStr}</p>
         </div>
         ${servicePickerSelectedService.duration ? `
-        <div class="bg-white/60 rounded-lg p-2.5">
-          <p class="text-[10px] text-gray-400 uppercase tracking-wider">Duration</p>
-          <p class="font-semibold text-gray-800">${servicePickerSelectedService.duration} min</p>
+        <div class="bg-[var(--color-surface)]/60 rounded-lg p-2.5">
+          <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Duration</p>
+          <p class="font-semibold text-[var(--color-text)]">${servicePickerSelectedService.duration} min</p>
         </div>` : ''}
         ${price ? `
-        <div class="bg-white/60 rounded-lg p-2.5">
-          <p class="text-[10px] text-gray-400 uppercase tracking-wider">Estimated Price</p>
-          <p class="font-semibold text-purple-700">${price}</p>
+        <div class="bg-[var(--color-surface)]/60 rounded-lg p-2.5">
+          <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Estimated Price</p>
+          <p class="font-semibold text-[var(--color-secondary)]">${price}</p>
         </div>` : ''}
       </div>
-      ${notes ? `<div class="mt-3 bg-white/60 rounded-lg p-2.5 text-sm text-gray-600"><span class="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Notes</span>${notes}</div>` : ''}
+      ${notes ? `<div class="mt-3 bg-[var(--color-surface)]/60 rounded-lg p-2.5 text-sm text-[var(--color-text)]"><span class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider block mb-0.5">Notes</span>${notes}</div>` : ''}
     </div>`;
 }
 

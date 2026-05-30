@@ -7,20 +7,24 @@
   <meta name="color-scheme" content="light dark">
   <title>{{.Title}}</title>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="/static/js/core/theme.js?v=1"></script>
 </head>
 
-<body class="bg-gray-100 h-screen overflow-hidden">
-  <header class="bg-teal-600 text-white p-4 flex items-center justify-between">
+<body class="bg-[var(--color-bg)] h-screen overflow-hidden">
+  <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
     <div class="flex items-center space-x-4">
       <i class="fas fa-compass text-2xl"></i>
       <h1 class="text-xl font-semibold">Discover Businesses</h1>
     </div>
-    <div class="flex items-center space-x-4">
-      <span class="text-sm">{{.Email}}</span>
-      <a href="/client" class="hover:bg-teal-700 px-3 py-2 rounded-lg text-sm">
+    <div class="flex items-center space-x-3">
+      <span class="text-sm text-white/80">{{.Email}}</span>
+      <button class="theme-toggle w-9 h-9 rounded-xl hover:bg-white/20 flex items-center justify-center" title="Toggle theme">
+        <i class="fas fa-sun theme-sun text-white"></i>
+        <i class="fas fa-moon theme-moon hidden text-white"></i>
+      </button>
+      <a href="/client" class="hover:bg-white/20 px-3 py-2 rounded-lg text-sm">
         <i class="fas fa-arrow-left mr-1"></i> Back
       </a>
     </div>
@@ -31,7 +35,7 @@
     <div class="mb-6">
       <div class="relative">
         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <i class="fas fa-search text-gray-400"></i>
+          <i class="fas fa-search text-[var(--color-text-muted)]"></i>
         </div>
         <input type="text" id="searchInput" placeholder="Search businesses by name, type, or slug..."
           class="input pl-12">
@@ -41,28 +45,28 @@
     <!-- Results -->
     <div id="business-results" class="space-y-3">
       {{range .Businesses}}
-      <div class="business-card bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+      <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between hover:shadow-md transition-shadow">
         <div class="flex items-center space-x-4">
-          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
+          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
             {{if .Logo}}
             <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-full h-full object-cover">
             {{else}}
-            <i class="fas fa-store text-teal-500 text-xl"></i>
+            <i class="fas fa-store text-[var(--color-primary)] text-xl"></i>
             {{end}}
           </div>
           <div>
-            <h3 class="font-semibold text-gray-900">{{.Name}}</h3>
-            <p class="text-sm text-gray-500 capitalize">{{.BusinessType}}</p>
-            <p class="text-xs text-gray-400">/b/{{.Slug}}</p>
+            <h3 class="font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+            <p class="text-sm text-[var(--color-text-muted)] capitalize">{{.BusinessType}}</p>
+            <p class="text-xs text-[var(--color-text-muted)]">/b/{{.Slug}}</p>
           </div>
         </div>
         <button onclick="connectToBusiness({{.ID}})"
-          class="connect-btn px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
+          class="connect-btn px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-sm font-medium">
           <i class="fas fa-plus mr-1"></i> Connect
         </button>
       </div>
       {{else}}
-      <div class="text-center py-12 text-gray-500">
+      <div class="text-center py-12 text-[var(--color-text-muted)]">
         <i class="fas fa-store text-5xl mb-4"></i>
         <p class="text-lg">No businesses available</p>
         <p class="text-sm mt-1">Check back later for new businesses to connect with</p>
@@ -84,7 +88,7 @@
             const container = document.getElementById('business-results');
             if (businesses.length === 0) {
               container.innerHTML = `
-                <div class="text-center py-12 text-gray-500">
+                <div class="text-center py-12 text-[var(--color-text-muted)]">
                   <i class="fas fa-search text-5xl mb-4"></i>
                   <p class="text-lg">No businesses found</p>
                   <p class="text-sm mt-1">Try a different search term</p>
@@ -92,19 +96,19 @@
               return;
             }
             container.innerHTML = businesses.map(b => `
-              <div class="business-card bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+              <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div class="flex items-center space-x-4">
-                  <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
-                    ${b.logo ? `<img src="/static/${b.logo}" alt="${b.name}" class="w-full h-full object-cover">` : `<i class="fas fa-store text-teal-500 text-xl"></i>`}
+                  <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
+                    ${b.logo ? `<img src="/static/${b.logo}" alt="${b.name}" class="w-full h-full object-cover">` : `<i class="fas fa-store text-[var(--color-primary)] text-xl"></i>`}
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-900">${b.name}</h3>
-                    <p class="text-sm text-gray-500 capitalize">${b.business_type || ''}</p>
-                    <p class="text-xs text-gray-400">/b/${b.slug}</p>
+                    <h3 class="font-semibold text-[var(--color-text)]">${b.name}</h3>
+                    <p class="text-sm text-[var(--color-text-muted)] capitalize">${b.business_type || ''}</p>
+                    <p class="text-xs text-[var(--color-text-muted)]">/b/${b.slug}</p>
                   </div>
                 </div>
                 <button onclick="connectToBusiness(${b.id})"
-                  class="connect-btn px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium">
+                  class="connect-btn px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-sm font-medium">
                   <i class="fas fa-plus mr-1"></i> Connect
                 </button>
               </div>
@@ -123,8 +127,8 @@
         .then(data => {
           if (data.success) {
             btn.innerHTML = '<i class="fas fa-check mr-1"></i> Connected!';
-            btn.classList.remove('bg-teal-600', 'hover:bg-teal-700');
-            btn.classList.add('bg-green-500');
+            btn.classList.remove('bg-[var(--color-primary)]', 'hover:opacity-90');
+            btn.classList.add('bg-[var(--color-success)]');
             setTimeout(() => {
               window.location.href = '/client?business_id=' + businessId;
             }, 800);

@@ -82,16 +82,16 @@ function pickerGoToStep(step) {
     const labelEl = document.getElementById(item.label);
     const isActive = idx <= step;
     if (indEl) {
-      indEl.className = `step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-gray-500'}`;
+      indEl.className = `step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${isActive ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]'}`;
       if (isActive && idx < step) indEl.innerHTML = '<i class="fas fa-check text-[10px]"></i>';
       else indEl.textContent = String(idx);
     }
     if (labelEl) {
-      labelEl.className = `text-xs font-medium transition-colors duration-300 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`;
+      labelEl.className = `text-xs font-medium transition-colors duration-300 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`;
     }
     if (item.line) {
       const lineEl = document.getElementById(item.line);
-      if (lineEl) lineEl.className = `w-12 h-px mx-2 transition-colors duration-300 ${isActive ? 'bg-emerald-400' : 'bg-gray-200'}`;
+      if (lineEl) lineEl.className = `w-12 h-px mx-2 transition-colors duration-300 ${isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`;
     }
   });
 
@@ -186,7 +186,7 @@ function pickerUpdateCartBar() {
 async function loadPickerProducts() {
   const grid = document.getElementById('pickerProductsGrid');
   if (!grid) return;
-  grid.innerHTML = '<div class="text-center py-16 text-gray-400"><i class="fas fa-spinner fa-spin text-3xl mb-3"></i><p class="text-sm">Loading products...</p></div>';
+  grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-spinner fa-spin text-3xl mb-3"></i><p class="text-sm">Loading products...</p></div>';
 
   try {
     let url;
@@ -202,7 +202,7 @@ async function loadPickerProducts() {
                   resp.status === 403 ? 'Access denied.' :
                   resp.status === 404 ? 'Conversation not found.' :
                   `Server error (${resp.status})`;
-      grid.innerHTML = `<div class="text-center py-12 text-orange-400"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>${msg}</p></div>`;
+      grid.innerHTML = `<div class="text-center py-12 text-[var(--color-warning)]"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>${msg}</p></div>`;
       return;
     }
 
@@ -225,7 +225,7 @@ async function loadPickerProducts() {
     }
   } catch (e) {
     console.error('Picker: Failed to load products:', e);
-    grid.innerHTML = '<div class="text-center py-12 text-red-400"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Failed to load products</p></div>';
+    grid.innerHTML = '<div class="text-center py-12 text-[var(--color-error)]"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Failed to load products</p></div>';
   }
 }
 
@@ -240,7 +240,7 @@ function pickerRenderProducts() {
   if (clearBtn) clearBtn.classList.toggle('hidden', !search);
 
   if (!pickerProducts || pickerProducts.length === 0) {
-    grid.innerHTML = '<div class="text-center py-16 text-gray-400"><i class="fas fa-box-open text-5xl mb-3"></i><p class="text-sm font-medium">No products available</p><p class="text-xs mt-1">Add products from the Business dashboard</p></div>';
+    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-box-open text-5xl mb-3"></i><p class="text-sm font-medium">No products available</p><p class="text-xs mt-1">Add products from the Business dashboard</p></div>';
     return;
   }
 
@@ -251,7 +251,7 @@ function pickerRenderProducts() {
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="text-center py-16 text-gray-400"><i class="fas fa-search text-4xl mb-3"></i><p class="text-sm">No products match your search</p></div>';
+    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-search text-4xl mb-3"></i><p class="text-sm">No products match your search</p></div>';
     return;
   }
 
@@ -272,53 +272,53 @@ function pickerRenderProducts() {
     const cartQty = cartItem ? cartItem.quantity : 0;
     const outOfStock = stock <= 0;
 
-    let stockColor = 'bg-green-400';
+    let stockColor = 'bg-[var(--color-success)]';
     let stockLabel = `${stock} in stock`;
-    if (stock <= 0) { stockColor = 'bg-red-400'; stockLabel = 'Out of stock'; }
-    else if (stock <= minStock) { stockColor = 'bg-red-400'; stockLabel = `Only ${stock} left - reorder soon`; }
-    else if (stock <= 5) { stockColor = 'bg-orange-400'; stockLabel = `Only ${stock} left`; }
+    if (stock <= 0) { stockColor = 'bg-[var(--color-error)]'; stockLabel = 'Out of stock'; }
+    else if (stock <= minStock) { stockColor = 'bg-[var(--color-error)]'; stockLabel = `Only ${stock} left - reorder soon`; }
+    else if (stock <= 5) { stockColor = 'bg-[var(--color-warning)]'; stockLabel = `Only ${stock} left`; }
 
     const stockPct = stock > 0 ? Math.min((stock / Math.max(stock, 50)) * 100, 100) : 0;
 
     html += `
-      <div class="product-picker-item border-2 rounded-xl transition-all duration-200 bg-white overflow-hidden ${outOfStock ? 'border-red-100 opacity-70' : inCart ? 'border-emerald-300 shadow-md shadow-emerald-100' : 'border-gray-100 hover:border-emerald-200 hover:shadow-sm'}">
+      <div class="product-picker-item border-2 rounded-xl transition-all duration-200 bg-[var(--color-surface)] overflow-hidden ${outOfStock ? 'border-[var(--color-error-light)] opacity-70' : inCart ? 'border-[var(--color-primary)] shadow-md shadow-[var(--color-primary)]/20' : 'border-[var(--color-border)] hover:border-[var(--color-primary)] hover:shadow-sm'}">
         <div class="flex p-3 gap-3">
           <!-- Image -->
-          <div class="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-50 border border-gray-100 relative">
+          <div class="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] relative">
             ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover">` :
-              `<div class="w-full h-full flex items-center justify-center text-2xl text-gray-200"><i class="fas fa-box"></i></div>`}
-            ${outOfStock ? `<div class="absolute inset-0 bg-white/60 flex items-center justify-center"><span class="text-red-500 text-[10px] font-bold bg-red-50 px-1.5 py-0.5 rounded">UNAVAILABLE</span></div>` : ''}
-            ${inCart && !outOfStock ? `<div class="absolute top-1 right-1 bg-emerald-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">${cartQty}</div>` : ''}
+              `<div class="w-full h-full flex items-center justify-center text-2xl text-[var(--color-text-muted)]"><i class="fas fa-box"></i></div>`}
+            ${outOfStock ? `<div class="absolute inset-0 bg-[var(--color-surface)]/60 flex items-center justify-center"><span class="text-[var(--color-error)] text-[10px] font-bold bg-[var(--color-error-light)] px-1.5 py-0.5 rounded">UNAVAILABLE</span></div>` : ''}
+            ${inCart && !outOfStock ? `<div class="absolute top-1 right-1 bg-[var(--color-primary)] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">${cartQty}</div>` : ''}
           </div>
           <!-- Info -->
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-1">
-              <h5 class="font-semibold text-sm text-gray-900 truncate">${name}</h5>
-              <span class="text-base font-extrabold text-emerald-700 flex-shrink-0 ml-1">$${price.toFixed(2)}</span>
+              <h5 class="font-semibold text-sm text-[var(--color-text)] truncate">${name}</h5>
+              <span class="text-base font-extrabold text-[var(--color-primary-dark)] flex-shrink-0 ml-1">$${price.toFixed(2)}</span>
             </div>
-            ${sku ? `<span class="text-[10px] font-mono text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded inline-block mt-0.5">SKU: ${sku}</span>` : ''}
-            ${description ? `<p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">${description}</p>` : ''}
+            ${sku ? `<span class="text-[10px] font-mono text-[var(--color-text-muted)] bg-[var(--color-surface-secondary)] px-1.5 py-0.5 rounded inline-block mt-0.5">SKU: ${sku}</span>` : ''}
+            ${description ? `<p class="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">${description}</p>` : ''}
             <!-- Stock bar -->
             ${stock > 0 ? `
             <div class="mt-1.5 flex items-center gap-1.5">
-              <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="flex-1 h-1.5 bg-[var(--color-surface-tertiary)] rounded-full overflow-hidden">
                 <div class="h-full rounded-full ${stockColor}" style="width: ${stockPct}%"></div>
               </div>
-              <span class="text-[10px] text-gray-400 flex-shrink-0">${stock}</span>
+              <span class="text-[10px] text-[var(--color-text-muted)] flex-shrink-0">${stock}</span>
             </div>` : `
-            <div class="mt-1.5 text-[10px] text-red-400 font-medium">Out of stock</div>`}
+            <div class="mt-1.5 text-[10px] text-[var(--color-error)] font-medium">Out of stock</div>`}
           </div>
         </div>
         <!-- Action -->
         <div class="px-3 pb-3">
           ${outOfStock ? `
-          <div class="w-full py-2 rounded-lg bg-gray-100 text-gray-400 text-xs font-medium text-center cursor-not-allowed">Unavailable</div>` : inCart ? `
+          <div class="w-full py-2 rounded-lg bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] text-xs font-medium text-center cursor-not-allowed">Unavailable</div>` : inCart ? `
           <div class="flex items-center gap-1">
-            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty - 1})" class="flex-1 py-2 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 text-xs font-semibold transition active:scale-95"><i class="fas fa-minus"></i></button>
-            <span class="w-10 text-center text-sm font-bold text-emerald-700">${cartQty}</span>
-            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty + 1})" class="flex-1 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-xs font-semibold transition active:scale-95" ${cartQty >= stock ? 'disabled' : ''}><i class="fas fa-plus"></i></button>
+            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty - 1})" class="flex-1 py-2 rounded-lg border border-[var(--color-primary-light)] text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] text-xs font-semibold transition active:scale-95"><i class="fas fa-minus"></i></button>
+            <span class="w-10 text-center text-sm font-bold text-[var(--color-primary-dark)]">${cartQty}</span>
+            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty + 1})" class="flex-1 py-2 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] text-xs font-semibold transition active:scale-95" ${cartQty >= stock ? 'disabled' : ''}><i class="fas fa-plus"></i></button>
           </div>` : `
-          <button onclick="pickerAddToCartFromGrid(${prodId})" class="w-full py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 text-xs font-semibold transition active:scale-[0.98] shadow-sm">
+          <button onclick="pickerAddToCartFromGrid(${prodId})" class="w-full py-2 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white hover:opacity-90 text-xs font-semibold transition active:scale-[0.98] shadow-sm">
             <i class="fas fa-plus mr-1"></i> Add to Order
           </button>`}
         </div>
@@ -377,7 +377,7 @@ function pickerRenderCart() {
   if (totalEl) totalEl.textContent = pickerGetCartTotal().toFixed(2);
 
   if (pickerCart.length === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-400"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p class="text-sm">Your cart is empty</p><p class="text-xs mt-1">Go back and add some products</p></div>';
+    container.innerHTML = '<div class="text-center py-12 text-[var(--color-text-muted)]"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p class="text-sm">Your cart is empty</p><p class="text-xs mt-1">Go back and add some products</p></div>';
     if (summary) summary.classList.add('hidden');
     if (toDetailsBtn) toDetailsBtn.disabled = true;
     if (subtotalItems) subtotalItems.textContent = '0';
@@ -393,28 +393,28 @@ function pickerRenderCart() {
   pickerCart.forEach(item => {
     const lineTotal = item.quantity * item.product.price;
     html += `
-      <div class="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl hover:border-gray-200 transition cart-item" data-cart-item-id="${item.product.id}">
-        <div class="w-14 h-14 rounded-lg flex-shrink-0 overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center text-xl text-gray-200">
+      <div class="flex items-center gap-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border-light)] rounded-xl hover:border-[var(--color-border)] transition cart-item" data-cart-item-id="${item.product.id}">
+        <div class="w-14 h-14 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] flex items-center justify-center text-xl text-[var(--color-text-muted)]">
           ${item.product.imgUrl ? `<img src="${item.product.imgUrl}" class="w-full h-full object-cover">` : '<i class="fas fa-box"></i>'}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="font-semibold text-sm text-gray-900 truncate">${item.product.name}</p>
-          ${item.product.sku ? `<span class="text-[10px] font-mono text-gray-400">SKU: ${item.product.sku}</span>` : ''}
-          <p class="text-xs text-gray-500 mt-0.5">${
+          <p class="font-semibold text-sm text-[var(--color-text)] truncate">${item.product.name}</p>
+          ${item.product.sku ? `<span class="text-[10px] font-mono text-[var(--color-text-muted)]">SKU: ${item.product.sku}</span>` : ''}
+          <p class="text-xs text-[var(--color-text-muted)] mt-0.5">${
             item.product.price.toFixed(2)} each</p>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-            <button onclick="pickerCartDecrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-emerald-600 text-xs transition ${item.quantity <= 1 ? 'text-red-400 hover:text-red-500' : ''}">
+          <div class="flex items-center border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-surface)]">
+            <button onclick="pickerCartDecrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-primary)] text-xs transition ${item.quantity <= 1 ? 'text-[var(--color-error)] hover:text-[var(--color-error)]' : ''}">
               <i class="fas fa-${item.quantity <= 1 ? 'trash-alt' : 'minus'}"></i>
             </button>
-            <span class="w-8 h-8 flex items-center justify-center text-sm font-bold text-gray-800 border-x border-gray-200 bg-gray-50">${item.quantity}</span>
-            <button onclick="pickerCartIncrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-emerald-600 text-xs transition" ${item.quantity >= item.product.stock ? 'disabled style="opacity:30;cursor:not-allowed"' : ''}>
+            <span class="w-8 h-8 flex items-center justify-center text-sm font-bold text-[var(--color-text)] border-x border-[var(--color-border)] bg-[var(--color-surface-secondary)]">${item.quantity}</span>
+            <button onclick="pickerCartIncrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-primary)] text-xs transition" ${item.quantity >= item.product.stock ? 'disabled style="opacity:30;cursor:not-allowed"' : ''}>
               <i class="fas fa-plus"></i>
             </button>
           </div>
-          <span class="text-sm font-bold text-gray-900 w-16 text-right">$${lineTotal.toFixed(2)}</span>
-          <button onclick="pickerRemoveFromCart(${item.product.id})" class="text-gray-300 hover:text-red-500 text-xs p-1 transition" title="Remove">
+          <span class="text-sm font-bold text-[var(--color-text)] w-16 text-right">$${lineTotal.toFixed(2)}</span>
+          <button onclick="pickerRemoveFromCart(${item.product.id})" class="text-[var(--color-text-muted)] hover:text-[var(--color-error)] text-xs p-1 transition" title="Remove">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -460,7 +460,7 @@ function pickerRenderCheckout() {
   pickerCart.forEach(item => {
     html += `<div class="flex items-center justify-between text-xs">
       <span class="truncate max-w-[200px]">${item.quantity}x ${item.product.name}</span>
-      <span class="font-medium text-gray-700">$${(item.quantity * item.product.price).toFixed(2)}</span>
+      <span class="font-medium text-[var(--color-text)]">$${(item.quantity * item.product.price).toFixed(2)}</span>
     </div>`;
   });
   container.innerHTML = html;

@@ -720,6 +720,20 @@
   }
   .bottom-nav-item.active {
     color: var(--color-primary);
+    background: var(--color-primary-light);
+    border-radius: 8px;
+    position: relative;
+  }
+  .bottom-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: var(--color-primary);
+    border-radius: 0 0 4px 4px;
   }
   .bottom-nav-item:hover {
     color: var(--color-text-secondary);

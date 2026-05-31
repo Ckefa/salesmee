@@ -44,10 +44,10 @@
     </div>
   </header>
 
-  <div class="flex flex-1 min-h-0">
+  <div class="flex flex-1 min-h-0 relative overflow-hidden" id="clientLayout">
     <div id="clientSidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="toggleClientSidebar()"></div>
     {{template "business_list" .}}
-    <main class="flex-1 flex flex-col bg-[var(--color-bg)] min-w-0" id="chat-area">
+    <main class="flex-1 flex flex-col bg-[var(--color-bg)] min-w-0 pb-16 lg:pb-0" id="chat-area">
       <div id="skeleton-area" class="hidden">
         {{template "skeleton_chat" .}}
       </div>
@@ -59,22 +59,18 @@
 
   <!-- Mobile Bottom Navigation -->
   <nav class="bottom-nav hide-desktop hide-tablet">
-    <a href="/client" class="bottom-nav-item active">
+    <button class="bottom-nav-item active" onclick="onChatsTabClick(); setActiveTab(this)">
       <i class="fas fa-comments"></i>
       <span>Chats</span>
+    </button>
+    <a class="bottom-nav-item" id="bottomNavProducts" onclick="openProductsFromBottomNav(); setActiveTab(this)">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
     </a>
-    <a href="/client/discover" class="bottom-nav-item">
+    <a href="/client/discover" class="bottom-nav-item" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="setActiveTab(this)">
       <i class="fas fa-compass"></i>
       <span>Discover</span>
     </a>
-    <a href="/client/connect" class="bottom-nav-item">
-      <i class="fas fa-link"></i>
-      <span>Connect</span>
-    </a>
-    <button class="bottom-nav-item" onclick="OneFlowTheme.toggle()">
-      <i class="fas fa-adjust"></i>
-      <span>Theme</span>
-    </button>
   </nav>
 
   {{template "client_order" .}}
@@ -89,12 +85,46 @@
   <script src="/static/js/core/app.js?v=1"></script>
   <script>
     function toggleClientSidebar() {
-      var layout = document.getElementById('chat-area');
-      var sidebar = document.getElementById('clientSidebar');
+      var layout = document.getElementById('clientLayout');
       var overlay = document.getElementById('clientSidebarOverlay');
-      if (!sidebar) return;
-      var isOpen = sidebar.classList.toggle('sidebar-open');
+      if (!layout) return;
+      var isOpen = layout.classList.toggle('sidebar-open');
       if (overlay) overlay.classList.toggle('hidden', !isOpen);
+    }
+
+    function setActiveTab(el) {
+      document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
+        item.classList.remove('active');
+      });
+      el.classList.add('active');
+    }
+
+    function onChatsTabClick() {
+      var layout = document.getElementById('clientLayout');
+      var sidebarOpen = layout && layout.classList.contains('sidebar-open');
+      if (sidebarOpen) {
+        toggleClientSidebar();
+      } else if (window.businessId) {
+        htmx.ajax('GET', '/client/businesses/' + window.businessId + '/messages', {target: '#chat-area', swap: 'innerHTML'});
+      } else {
+        toggleClientSidebar();
+      }
+    }
+
+    function openProductsFromBottomNav() {
+      var bizId = window.businessId || (typeof currentBusinessId !== 'undefined' ? currentBusinessId : null);
+      if (bizId) {
+        htmx.ajax('GET', '/client/businesses/' + bizId + '/products-page', {target: '#chat-area', swap: 'innerHTML'});
+      } else {
+        document.getElementById('chat-area').innerHTML =
+          '<div class="flex-1 flex items-center justify-center empty-state">' +
+          '<div class="empty-state-icon empty-state-icon-primary"><i class="fas fa-box"></i></div>' +
+          '<h3 class="empty-state-title">Select a conversation</h3>' +
+          '<p class="empty-state-text">Choose a business from your chats to browse their products.</p>' +
+          '<div class="empty-state-cta">' +
+          '<a href="/client" class="btn btn-primary btn-sm"><i class="fas fa-comments"></i> Go to Chats</a>' +
+          '</div></div>';
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -163,8 +193,8 @@
         }
       });
       document.querySelector('#clientSidebarOverlay')?.addEventListener('click', function() {
-        var sidebar = document.getElementById('clientSidebar');
-        if (sidebar) sidebar.classList.remove('sidebar-open');
+        var layout = document.getElementById('clientLayout');
+        if (layout) layout.classList.remove('sidebar-open');
         this.classList.add('hidden');
       });
     });

@@ -31,6 +31,7 @@ window.addEventListener('beforeunload', stopHeartbeat);
 
 function loadBusiness(businessId) {
   currentBusinessId = businessId;
+  window.businessId = businessId;
   document.querySelectorAll('.business-item').forEach(item => {
     item.classList.remove('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
   });
@@ -39,6 +40,17 @@ function loadBusiness(businessId) {
   htmx.ajax('GET', `/client/businesses/${businessId}/messages`, {
     target: '#chat-area',
     swap: 'innerHTML'
+  });
+  // Auto-close sidebar on mobile and activate Chats tab
+  var layout = document.getElementById('clientLayout');
+  var overlay = document.getElementById('clientSidebarOverlay');
+  if (layout && layout.classList.contains('sidebar-open')) {
+    layout.classList.remove('sidebar-open');
+    if (overlay) overlay.classList.add('hidden');
+  }
+  document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
+    item.classList.remove('active');
+    if (item.querySelector('.fa-comments')) item.classList.add('active');
   });
 }
 

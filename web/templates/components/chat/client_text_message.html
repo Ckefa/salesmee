@@ -1,7 +1,7 @@
 {{define "client_text_message"}}
 {{if eq .Sender "client"}}
 <div class="flex justify-end">
-  <div class="max-w-xs lg:max-w-md">
+  <div class="max-w-[85%] lg:max-w-md">
     <div class="bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg px-4 py-2">
       <p class="text-sm">{{.Value}}</p>
     </div>
@@ -12,7 +12,7 @@
 </div>
 {{else}}
 <div class="flex justify-start">
-  <div class="max-w-xs lg:max-w-md">
+  <div class="max-w-[85%] lg:max-w-md">
     <div class="bg-[var(--color-surface-tertiary)] text-[var(--color-text)] rounded-lg px-4 py-2">
       <p class="text-sm">{{.Value}}</p>
     </div>

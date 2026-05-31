@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"threadly/internal/db"
-	"threadly/internal/models"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +17,8 @@ type MessageObj struct {
 	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
 	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
 	Sender    string      `json:"sender"`
+	MediaURL  string      `json:"media_url"`
+	MediaType string      `json:"media_type"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -77,6 +79,8 @@ func GetMessages(c *gin.Context) {
 			Value:     msg.Content,
 			Data:      msg,
 			Sender:    msg.Sender,
+			MediaURL:  msg.MediaURL,
+			MediaType: msg.MediaType,
 			CreatedAt: msg.CreatedAt,
 		}
 		messageObjs = append(messageObjs, messageObj)
@@ -268,6 +272,16 @@ func CreateMessage(c *gin.Context) {
 		ConversationID: conversation.ID,
 		Content:        content,
 		Sender:         sender,
+	}
+
+	// Handle media upload
+	for _, field := range []string{"media_image", "media_document", "media_audio"} {
+		mediaURL, mediaType, err := SaveMediaFile(c, field)
+		if err == nil {
+			message.MediaURL = mediaURL
+			message.MediaType = mediaType
+			break
+		}
 	}
 
 	if err := db.DB.Create(&message).Error; err != nil {

@@ -1,56 +1,56 @@
 {{define "quick-order"}}
 <!-- Quick Order Modal -->
-<div id="quickOrderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+<div id="quickOrderModal" class="fixed inset-0 bg-black/50 hidden overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
     <div class="mt-3">
-      <h3 class="text-lg font-medium text-gray-900">Quick Order</h3>
+      <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Order</h3>
       <form id="quickOrderForm" class="mt-4 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700">Select Product</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Select Product</label>
           <select id="orderProduct" required
             class="input mt-1">
             <option value="">Choose a product...</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Quantity</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Quantity</label>
           <input type="number" id="orderQuantity" min="1" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Name</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Customer Name</label>
           <input type="text" id="orderCustomerName" required
             class="input mt-1"
             readonly>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Email</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Customer Email</label>
           <input type="email" id="orderCustomerEmail"
             class="input mt-1"
             readonly>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Customer Phone</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Customer Phone</label>
           <input type="tel" id="orderCustomerPhone"
             class="input mt-1"
             readonly>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Delivery Address</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Delivery Address</label>
           <textarea id="orderDeliveryAddress" rows="2"
             class="input mt-1"></textarea>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Notes</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Notes</label>
           <textarea id="orderNotes" rows="2"
             class="input mt-1"></textarea>
         </div>
         <div class="flex justify-end space-x-3 pt-4">
           <button type="button" onclick="hideQuickOrderModal()"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+            class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-tertiary)] text-[var(--color-text)] px-4 py-2 rounded">
             Cancel
           </button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <button type="submit" class="bg-[var(--color-info)] hover:opacity-90 text-white px-4 py-2 rounded">
             Create Order
           </button>
         </div>

@@ -20,7 +20,10 @@ type Client struct {
 	Status         ClientStatus `gorm:"default:'new'" json:"status"`
 	IsOnline       bool         `gorm:"default:false" json:"is_online"`
 	LastSeenAt     *time.Time   `json:"last_seen_at"`
-	ConversationID uint         `json:"conversation_id"` // For template access
+	ConversationID uint         `json:"conversation_id"`
+	GoogleID       string       `gorm:"uniqueIndex;default:null" json:"google_id"`
+	FacebookID     string       `gorm:"uniqueIndex;default:null" json:"facebook_id"`
+	AvatarURL      string       `json:"avatar_url"`
 	CreatedAt      time.Time    `json:"created_at"`
 	UpdatedAt      time.Time    `json:"updated_at"`
 

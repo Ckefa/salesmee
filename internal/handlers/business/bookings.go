@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"threadly/internal/models"
+	"oneflow/internal/models"
 	"time"
 
 	"github.com/gin-gonic/gin"

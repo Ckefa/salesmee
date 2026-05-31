@@ -6,16 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"threadly/internal/db"
-	"threadly/internal/models"
-	"threadly/internal/services"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
+	"oneflow/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ShowCustomerLogin(c *gin.Context) {
 	c.HTML(200, "customer_login.html", gin.H{
-		"Title": "Customer Login - Threadly",
+		"Title": "Customer Login - OneFlow",
 	})
 }
 
@@ -23,7 +23,7 @@ func SendCustomerOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
 		c.HTML(400, "customer_login.html", gin.H{
-			"Title": "Customer Login - Threadly",
+			"Title": "Customer Login - OneFlow",
 			"Error": "Email is required",
 		})
 		return
@@ -32,14 +32,14 @@ func SendCustomerOTP(c *gin.Context) {
 	otp, err := services.SendCustomerOTP(email)
 	if err != nil {
 		c.HTML(400, "customer_login.html", gin.H{
-			"Title": "Customer Login - Threadly",
+			"Title": "Customer Login - OneFlow",
 			"Error": "Customer not found",
 		})
 		return
 	}
 
 	c.HTML(200, "customer_otp.html", gin.H{
-		"Title": "Enter OTP - Threadly",
+		"Title": "Enter OTP - OneFlow",
 		"Email": email,
 		"OTP":   otp, // For testing only
 	})
@@ -51,7 +51,7 @@ func VerifyCustomerOTP(c *gin.Context) {
 
 	if email == "" || otpCode == "" {
 		c.HTML(400, "customer_otp.html", gin.H{
-			"Title": "Enter OTP - Threadly",
+			"Title": "Enter OTP - OneFlow",
 			"Email": email,
 			"Error": "Email and OTP are required",
 		})
@@ -61,7 +61,7 @@ func VerifyCustomerOTP(c *gin.Context) {
 	customerAuth, err := services.VerifyCustomerOTP(email, otpCode)
 	if err != nil {
 		c.HTML(400, "customer_otp.html", gin.H{
-			"Title": "Enter OTP - Threadly",
+			"Title": "Enter OTP - OneFlow",
 			"Email": email,
 			"Error": "Invalid or expired OTP",
 		})
@@ -84,7 +84,7 @@ func VerifyCustomerOTP(c *gin.Context) {
 	token, err := services.GenerateCustomerToken(customerAuth)
 	if err != nil {
 		c.HTML(500, "customer_otp.html", gin.H{
-			"Title": "Enter OTP - Threadly",
+			"Title": "Enter OTP - OneFlow",
 			"Email": email,
 			"Error": "Failed to generate token",
 		})
@@ -137,14 +137,14 @@ func CustomerDashboard(c *gin.Context) {
 
 	if err != nil {
 		c.HTML(500, "customer_dashboard.html", gin.H{
-			"Title": "Customer Dashboard - Threadly",
+			"Title": "Customer Dashboard - OneFlow",
 			"Error": "Failed to load businesses",
 		})
 		return
 	}
 
 	c.HTML(200, "customer_dashboard.html", gin.H{
-		"Title":      "Customer Dashboard - Threadly",
+		"Title":      "Customer Dashboard - OneFlow",
 		"Email":      claims.Email,
 		"Businesses": businesses,
 	})

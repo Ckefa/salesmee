@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Payments - OneFlow</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-4">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Payments</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
+          </button>
+          <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+            {{if .Business.Logo}}
+            <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+            {{else}}
+            <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+            </div>
+            {{end}}
+            <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+          </button>
+          <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-screen pt-16">
+{{template "dashboard_sidebar" .}}
+    <main class="flex-1 overflow-y-auto flex items-center justify-center">
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center mb-6 shadow-lg shadow-teal-500/20">
+          <i class="fas fa-credit-card text-white text-3xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-[var(--color-text)] mb-2">Coming Soon</h2>
+        <p class="text-[var(--color-text-secondary)] max-w-md">Payments management is under development. You'll be able to track transactions, manage invoices, and view payment history here.</p>
+      </div>
+    </main>
+  </div>
+
+  {{template "business_profile" .}}
+
+  <script>
+    function showBusinessProfile() {
+      var el = document.getElementById('businessProfileModal');
+      if (el) el.classList.remove('hidden');
+    }
+    function hideBusinessProfile() {
+      var el = document.getElementById('businessProfileModal');
+      if (el) el.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

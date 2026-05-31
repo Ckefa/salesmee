@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"threadly/internal/handlers"
-	"threadly/internal/handlers/client"
+	"oneflow/internal/handlers"
+	"oneflow/internal/handlers/client"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,6 +15,14 @@ func SetupClientRoutes(r *gin.Engine) {
 	r.POST("/client/verify-otp", client.VerifyClientOTP)
 	r.GET("/client/logout", client.ClientLogout)
 
+	// PUBLIC - Client Google Auth
+	r.GET("/client/auth/google", client.InitiateClientGoogleAuth)
+	r.GET("/client/auth/google/callback", client.HandleClientGoogleCallback)
+
+	// PUBLIC - Client Facebook Auth
+	r.GET("/client/auth/facebook", client.InitiateClientFacebookAuth)
+	r.GET("/client/auth/facebook/callback", client.HandleClientFacebookCallback)
+
 	// PROTECTED client ROUTES
 	clientProtected := r.Group("/client")
 	clientProtected.Use(client.ClientMiddleware())
@@ -26,6 +34,8 @@ func SetupClientRoutes(r *gin.Engine) {
 		clientProtected.GET("/businesses/:business_id/messages", client.GetClientMessages)
 		clientProtected.POST("/businesses/:business_id/messages", client.CreateClientMessage)
 		clientProtected.GET("/businesses/:business_id/products", businessHandler.GetBusinessProducts)
+		clientProtected.GET("/businesses/:business_id/products-page", businessHandler.ShowClientProductsPage)
+		clientProtected.GET("/products/:id/images", businessHandler.GetClientProductImages)
 		clientProtected.GET("/businesses/:business_id/services", businessHandler.GetBusinessServices)
 		clientProtected.POST("/businesses/:business_id/bookings", businessHandler.ClientCreateBooking)
 		clientProtected.POST("/orders", businessHandler.ClientCreateOrder)

@@ -1,11 +1,11 @@
 {{define "business_profile"}}
 <div id="businessProfileModal"
-  class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-[28rem] shadow-lg rounded-md bg-white">
+  class="fixed inset-0 bg-black/50 hidden overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-[28rem] shadow-lg rounded-md bg-[var(--color-surface)]">
     <div class="mt-3">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="text-lg font-medium text-gray-900">Business Profile</h3>
-        <button onclick="hideBusinessProfile()" class="text-gray-400 hover:text-gray-600">
+        <h3 class="text-lg font-medium text-[var(--color-text)]">Business Profile</h3>
+        <button onclick="hideBusinessProfile()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -13,46 +13,46 @@
         <div class="flex justify-center mb-4">
           <div class="relative">
             <div id="profileLogoPreview"
-              class="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center overflow-hidden">
+              class="w-20 h-20 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center overflow-hidden">
               {{if .Business.Logo}}
               <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-full h-full object-cover">
               {{else}}
-              <i class="fas fa-store text-teal-600 text-2xl"></i>
+              <i class="fas fa-store text-[var(--color-primary)] text-2xl"></i>
               {{end}}
             </div>
             <button type="button" onclick="document.getElementById('profileLogoInput').click()"
-              class="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-md border border-gray-200 hover:bg-gray-50">
-              <i class="fas fa-camera text-gray-600 text-sm"></i>
+              class="absolute -bottom-1 -right-1 bg-[var(--color-surface)] rounded-full p-1.5 shadow-md border border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)]">
+              <i class="fas fa-camera text-[var(--color-text-secondary)] text-sm"></i>
             </button>
             <input type="file" id="profileLogoInput" name="logo" accept="image/*" class="hidden">
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Business Name</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Business Name</label>
           <input type="text" id="profileName" value="{{.Business.Name}}" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Owner Username</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Owner Username</label>
           <input type="text" id="profileUsername" value="{{.Business.Username}}" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Email</label>
           <input type="email" id="profileEmail" value="{{.Business.Email}}" required
             class="input mt-1">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">New Password</label>
+          <label class="block text-sm font-medium text-[var(--color-text)]">New Password</label>
           <input type="password" id="profilePassword" placeholder="Leave blank to keep current"
             class="input mt-1">
         </div>
-        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <div class="flex justify-end space-x-3 pt-4 border-t border-[var(--color-border)]">
           <button type="button" onclick="hideBusinessProfile()"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+            class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-tertiary)] text-[var(--color-text)] px-4 py-2 rounded">
             Cancel
           </button>
-          <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded">
+          <button type="submit" class="bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded">
             Save Changes
           </button>
         </div>

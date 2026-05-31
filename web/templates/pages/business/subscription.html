@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription - OneFlow</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-3">
+          <a href="/business" class="btn btn-ghost btn-icon" title="Back to Home">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Subscription</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="theme-toggle" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
+          </button>
+          <a href="/business" class="btn btn-secondary btn-sm">
+            <i class="fas fa-comments"></i> Chats
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-4rem)]">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)]">
+      {{template "subscription_content" .}}
+    </main>
+  </div>
+</body>
+</html>
+
+{{define "subscription_content"}}
+<div class="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+
+  {{if .Plan}}
+  {{$planCode := .Plan.Code}}
+  {{$planName := .Plan.Name}}
+  {{$priceM := .Plan.PriceMonthly}}
+  {{$priceY := .Plan.PriceYearly}}
+  {{$icon := .PlanIcon}}
+  {{$color := .PlanColor}}
+  {{$status := .Subscription.Status}}
+
+  {{$gradient := "from-slate-400 to-gray-500"}}
+  {{$iconClass := "fa-gem"}}
+  {{$iconBg := "bg-slate-100 dark:bg-slate-800"}}
+  {{$iconColor := "text-slate-600 dark:text-slate-300"}}
+  {{if eq $color "amber"}}
+    {{$gradient = "from-amber-600 to-yellow-700"}}
+    {{$iconClass = "fa-rocket"}}
+    {{$iconBg = "bg-amber-100 dark:bg-amber-900/50"}}
+    {{$iconColor = "text-amber-600 dark:text-amber-300"}}
+  {{else if eq $color "violet"}}
+    {{$gradient = "from-indigo-500 to-violet-600"}}
+    {{$iconClass = "fa-crown"}}
+    {{$iconBg = "bg-indigo-100 dark:bg-indigo-900/50"}}
+    {{$iconColor = "text-indigo-600 dark:text-indigo-300"}}
+  {{end}}
+
+  <!-- ═══════════════ PLAN HERO ═══════════════ -->
+  <div class="card overflow-hidden">
+    <div class="bg-gradient-to-r {{$gradient}} px-6 py-8 text-white">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+            <i class="fas {{$iconClass}} text-2xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h2 class="text-2xl font-bold">{{$planName}}</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold
+                {{if eq $status "active"}}bg-emerald-400/30 text-emerald-50
+                {{else if eq $status "trialing"}}bg-blue-400/30 text-blue-50
+                {{else if eq $status "past_due"}}bg-rose-400/30 text-rose-50
+                {{else}}bg-white/20 text-white/80{{end}}">
+                {{$status}}
+              </span>
+            </div>
+            <p class="text-white/80 text-sm mt-0.5">{{.Plan.Description}}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap items-end gap-x-8 gap-y-2">
+        {{if eq $priceM 0.0}}
+        <div>
+          <span class="text-4xl font-extrabold">Free</span>
+        </div>
+        {{else}}
+        <div>
+          <div class="flex items-baseline gap-1.5 flex-wrap">
+            <span class="text-3xl font-extrabold" id="hero-price"
+              data-monthly="{{$priceM}}" data-yearly="{{$priceY}}"
+              data-savings="{{.YearlySavings}}">${{printf "%.0f" $priceM}}</span>
+            <span class="text-white/70" id="hero-interval">/month</span>
+            {{if .IsYearly}}
+            <span class="ml-1.5 px-2 py-0.5 rounded bg-white/20 text-[11px] font-semibold tracking-wide" id="hero-badge-yearly">billed yearly</span>
+            {{end}}
+          </div>
+          {{if gt .YearlySavings 0.0}}
+          <p class="text-white/60 text-sm mt-0.5" id="hero-sub">
+            {{if .IsYearly}}
+            ${{printf "%.0f" (mul $priceY 12.0)}}/year total · <span class="ml-1 px-1.5 py-0.5 rounded bg-white/20 text-xs font-semibold">Save ${{printf "%.0f" .YearlySavings}}</span>
+            {{else}}
+            ${{printf "%.0f" $priceY}}/mo billed yearly — Save ${{printf "%.0f" .YearlySavings}}
+            {{end}}
+          </p>
+          {{end}}
+        </div>
+        {{end}}
+
+        {{if .IsTrialing}}
+        <div class="text-white/80 text-sm">
+          <i class="fas fa-hourglass-half mr-1"></i>
+          Trial{{if gt .TrialDaysRemaining 0}} — {{.TrialDaysRemaining}} days remaining{{end}}
+        </div>
+        {{else if .IsCanceled}}
+        <div class="text-rose-200 text-sm">
+          <i class="fas fa-times-circle mr-1"></i>
+          Canceled — access until {{.Subscription.CurrentPeriodEnd.Format "Jan 2"}}
+        </div>
+        {{else if gt .DaysRemaining 0}}
+        <div class="text-white/80 text-sm">
+          <i class="fas fa-sync-alt mr-1"></i>
+          Renews in {{.DaysRemaining}} days
+          {{if .Subscription.TrialEndsAt}}<span class="ml-2 text-white/60">· Trial ends {{.Subscription.TrialEndsAt.Format "Jan 2"}}</span>{{end}}
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="px-6 py-4 flex flex-wrap gap-3">
+      <a href="#plans" class="btn btn-primary btn-sm" onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'})">
+        <i class="fas fa-arrows-rotate"></i> Change Plan
+      </a>
+      <button onclick="openBillingPortal()" class="btn btn-secondary btn-sm">
+        <i class="fas fa-credit-card"></i> Billing Portal
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PLAN CARDS (with toggle) ═══════════════ -->
+  <div id="plans" class="scroll-mt-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <h3 class="text-lg font-semibold text-[var(--color-text)]">Choose Your Plan</h3>
+
+      {{if gt (len .Plans) 1}}
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium text-[var(--color-text)]">Monthly</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="interval-toggle" {{if .IsYearly}}checked{{end}} onchange="toggleBillingInterval()">
+          <div class="toggle-track"></div>
+          <div class="toggle-dot"></div>
+        </label>
+        <span class="text-sm font-medium text-[var(--color-text)]">Yearly <span class="text-[var(--color-primary)] font-semibold">Save 20%</span></span>
+      </div>
+      {{end}}
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      {{range $i, $plan := .Plans}}
+      {{$planPriceM := $plan.PriceMonthly}}
+      {{$planPriceY := $plan.PriceYearly}}
+      {{$isCurrent := eq $plan.Code $planCode}}
+      {{$planGradient := "from-slate-400 to-gray-500"}}
+      {{$planIcon := "fa-gem"}}
+      {{$planLabel := "silver"}}
+      {{if eq $plan.Code "gold"}}
+        {{$planGradient = "from-amber-600 to-yellow-700"}}
+        {{$planIcon = "fa-rocket"}}
+        {{$planLabel = "gold"}}
+      {{else if eq $plan.Code "diamond"}}
+        {{$planGradient = "from-indigo-500 to-violet-600"}}
+        {{$planIcon = "fa-crown"}}
+        {{$planLabel = "diamond"}}
+      {{end}}
+
+      <div class="card p-6 relative flex flex-col transition-all duration-300
+        {{if $isCurrent}}ring-2 ring-[var(--color-primary)] shadow-lg{{end}}
+        {{if not $isCurrent}}hover:shadow-md hover:-translate-y-0.5{{end}}"
+        data-plan="{{$plan.Code}}"
+        data-price-monthly="{{$planPriceM}}"
+        data-price-yearly="{{$planPriceY}}">
+
+        {{if and (eq $i 1) (not $isCurrent)}}
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-yellow-700 text-white text-xs font-semibold shadow-lg z-10 flex items-center gap-1">
+          <i class="fas fa-fire text-[10px]"></i> Most Popular
+        </div>
+        {{end}}
+
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br {{$planGradient}} flex items-center justify-center shadow-md">
+              <i class="fas {{$planIcon}} text-lg text-white"></i>
+            </div>
+            {{if $isCurrent}}
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+              Current
+            </span>
+            {{end}}
+          </div>
+
+          <h4 class="text-lg font-semibold text-[var(--color-text)]">{{$plan.Name}}</h4>
+          <p class="text-sm text-[var(--color-text-muted)] mt-0.5">{{$plan.Description}}</p>
+
+          <div class="mt-4">
+            {{if eq $planPriceM 0.0}}
+            <div class="text-3xl font-extrabold text-[var(--color-text)]">Free</div>
+            {{else}}
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-extrabold text-[var(--color-text)] plan-price">${{printf "%.0f" $planPriceM}}</span>
+              <span class="text-[var(--color-text-muted)] plan-interval">/mo</span>
+            </div>
+            <div class="text-xs text-[var(--color-text-muted)] mt-0.5 plan-yearly-note {{if not $.IsYearly}}hidden{{end}}">
+              ${{printf "%.0f" (mul $planPriceY 12.0)}} billed yearly{{if gt (mul (sub $planPriceM $planPriceY) 12.0) 0.0}} · Save ${{printf "%.0f" (mul (sub $planPriceM $planPriceY) 12.0)}}{{end}}
+            </div>
+            {{end}}
+          </div>
+
+          <ul class="mt-5 space-y-2.5">
+            {{if or (eq $plan.MaxConversations 0) (lt $plan.MaxConversations 0)}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited conversations</li>
+            {{else}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxConversations}} conversations</li>
+            {{end}}
+            {{if or (eq $plan.MaxProducts 0) (lt $plan.MaxProducts 0)}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited products</li>
+            {{else}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxProducts}} products</li>
+            {{end}}
+            {{if or (eq $plan.MaxServices 0) (lt $plan.MaxServices 0)}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited services</li>
+            {{else}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxServices}} services</li>
+            {{end}}
+            {{if or (eq $plan.MaxClients 0) (lt $plan.MaxClients 0)}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited clients</li>
+            {{else}}
+            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxClients}} clients</li>
+            {{end}}
+            {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
+            {{if $plan.HasAnalytics}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
+            {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media & file sharing</li>{{end}}
+            {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
+          </ul>
+        </div>
+
+        <div class="mt-auto pt-5">
+          {{if $isCurrent}}
+          <div class="w-full py-2.5 rounded-xl text-center text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+            <i class="fas fa-check mr-1.5"></i>Current Plan
+          </div>
+          {{else if eq $planPriceM 0.0}}
+          <button onclick="confirmDowngrade('{{$plan.Code}}', '{{$plan.Name}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-sm">
+            Downgrade to {{$plan.Name}}
+          </button>
+          {{else if gt $planPriceM $priceM}}
+          <button onclick="startCheckout('{{$plan.Code}}')" class="w-full py-2.5 rounded-xl
+            {{if eq $plan.Code "gold"}}bg-gradient-to-r from-amber-600 to-yellow-700 text-white shadow-lg shadow-amber-700/25{{else if eq $plan.Code "diamond"}}bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-violet-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}}
+            font-medium hover:opacity-90 transition-all text-sm">
+            Upgrade to {{$plan.Name}}
+          </button>
+          {{else}}
+          <button onclick="startCheckout('{{$plan.Code}}')" class="w-full py-2.5 rounded-xl
+            {{if eq $plan.Code "gold"}}bg-gradient-to-r from-amber-600 to-yellow-700 text-white shadow-lg shadow-amber-700/25{{else if eq $plan.Code "diamond"}}bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-violet-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}}
+            font-medium hover:opacity-90 transition-all text-sm">
+            Switch to {{$plan.Name}}
+          </button>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- ═══════════════ USAGE DASHBOARD ═══════════════ -->
+  <div>
+    <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Usage</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {{range $key, $check := .Usage}}
+      {{$current := $check.Current}}
+      {{$max := $check.Max}}
+      {{$percentage := 0.0}}
+      {{$isUnlimited := false}}
+      {{if eq $max -1}}
+        {{$isUnlimited = true}}
+        {{$percentage = 100.0}}
+      {{else if gt $max 0}}
+        {{$percentage = mul (div (float $current) (float $max)) 100.0}}
+      {{end}}
+      {{$ringColor := "stroke-[var(--color-success)]"}}
+      {{if gt $percentage 90.0}}
+        {{$ringColor = "stroke-[var(--color-error)]"}}
+      {{else if gt $percentage 60.0}}
+        {{$ringColor = "stroke-[var(--color-warning)]"}}
+      {{end}}
+
+      {{$radius := 32.0}}
+      {{$circumference := mul 2.0 (mul 3.14159 $radius)}}
+      {{$offset := mul $circumference (sub 1.0 (div $percentage 100.0))}}
+
+      <div class="card p-4 flex flex-col items-center text-center">
+        <div class="relative w-20 h-20 mb-3">
+          <svg class="w-20 h-20 -rotate-90" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="{{$radius}}" fill="none"
+              stroke="var(--color-surface-tertiary)" stroke-width="5"
+              stroke-linecap="round"/>
+            {{if $isUnlimited}}
+            <circle cx="36" cy="36" r="{{$radius}}" fill="none"
+              class="progress-ring-circle stroke-[var(--color-primary)]" stroke-width="5"
+              stroke-dasharray="{{$circumference}}"
+              stroke-dashoffset="0"
+              stroke-linecap="round"/>
+            {{else if gt $percentage 0.0}}
+            <circle cx="36" cy="36" r="{{$radius}}" fill="none"
+              class="progress-ring-circle {{$ringColor}}" stroke-width="5"
+              stroke-dasharray="{{$circumference}}"
+              stroke-dashoffset="{{$offset}}"
+              stroke-linecap="round"/>
+            {{end}}
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-sm font-bold text-[var(--color-text)]">
+              {{if $isUnlimited}}∞{{else}}{{printf "%.0f" $percentage}}%{{end}}
+            </span>
+          </div>
+        </div>
+        <p class="text-xs font-medium text-[var(--color-text-secondary)] capitalize mb-0.5">{{$key}}</p>
+        <p class="text-xs text-[var(--color-text-muted)]">
+          {{$current}}{{if not $isUnlimited}} / {{$max}}{{end}}
+        </p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- ═══════════════ BILLING & PAYMENT ═══════════════ -->
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
+        <i class="fas fa-receipt text-[var(--color-primary)]"></i>
+        Billing
+      </div>
+      {{if .UpcomingInvoice}}
+      <div class="space-y-1.5">
+        <p class="text-sm text-[var(--color-text-muted])">Next charge</p>
+        <p class="text-lg font-semibold text-[var(--color-text)]">{{.UpcomingInvoice.Date}}</p>
+        <p class="text-sm text-[var(--color-text-secondary)]">
+          ${{printf "%.2f" .UpcomingInvoice.Amount}} / {{.UpcomingInvoice.Interval}}
+        </p>
+      </div>
+      <div class="mt-3 pt-3 border-t border-[var(--color-border)]">
+        <button onclick="openBillingPortal()" class="text-xs font-medium text-[var(--color-primary)] hover:underline">
+          <i class="fas fa-external-link-alt mr-1"></i>Manage billing in Stripe
+        </button>
+      </div>
+      {{else if not .IsCanceled}}
+      <p class="text-sm text-[var(--color-text-muted)]">No active billing cycle.</p>
+      {{end}}
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
+        <i class="fas fa-credit-card text-[var(--color-primary)]"></i>
+        Payment Method
+      </div>
+      {{if .HasPaymentMethod}}
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-7 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
+          <i class="fas fa-credit-card text-sm"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-[var(--color-text)]">Card on file</p>
+          <p class="text-xs text-[var(--color-text-muted)]">Manage in Stripe Portal</p>
+        </div>
+      </div>
+      {{else}}
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-7 rounded bg-[var(--color-surface-tertiary)] flex items-center justify-center text-[var(--color-text-muted)]">
+          <i class="fas fa-credit-card text-sm"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-[var(--color-text)]">No payment method</p>
+          <p class="text-xs text-[var(--color-text-muted)]">Add one in the Stripe Portal</p>
+        </div>
+      </div>
+      {{end}}
+      <div class="mt-3 pt-3 border-t border-[var(--color-border)]">
+        <button onclick="openBillingPortal()" class="text-xs font-medium text-[var(--color-primary)] hover:underline">
+          <i class="fas fa-external-link-alt mr-1"></i>Manage in Stripe Portal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ INVOICE HISTORY ═══════════════ -->
+  <div class="card p-5">
+    <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
+      <i class="fas fa-file-invoice text-[var(--color-primary)]"></i>
+      Invoice History
+    </div>
+    <p class="text-sm text-[var(--color-text-muted)] mb-4">
+      View your complete billing history and download invoices in the Stripe Portal.
+    </p>
+    <button onclick="openBillingPortal()" class="btn btn-secondary btn-sm">
+      <i class="fas fa-external-link-alt"></i> Open Billing Portal
+    </button>
+  </div>
+
+  <!-- ═══════════════ DANGER ZONE ═══════════════ -->
+  {{if not .IsCanceled}}
+  {{if or (eq $planCode "gold") (eq $planCode "diamond")}}
+  <div class="pt-4 border-t-2 border-[var(--color-error)]">
+    <div class="flex items-center gap-2 text-sm font-semibold text-[var(--color-error)] mb-3">
+      <i class="fas fa-exclamation-triangle"></i>
+      Danger Zone
+    </div>
+    <div class="card p-5 border-[var(--color-error)] border">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h4 class="text-sm font-semibold text-[var(--color-text)]">Cancel Subscription</h4>
+          <p class="text-sm text-[var(--color-text-muted)] mt-1">
+            Downgrade to Silver (Free). You'll lose access to premium features including
+            {{if .Plan.HasAnalytics}}Analytics, {{end}}
+            {{if .Plan.HasPrioritySupport}}Priority Support, {{end}}
+            {{if .Plan.HasMediaSharing}}Media Sharing, {{end}}
+            {{if .Plan.HasOrdersAndBookings}}Orders & Bookings, {{end}}
+            and higher usage limits. Your access continues until {{.Subscription.CurrentPeriodEnd.Format "Jan 2, 2006"}}.
+          </p>
+        </div>
+        <button onclick="openCancelModal()" class="btn btn-danger btn-sm shrink-0">
+          <i class="fas fa-ban"></i> Cancel Subscription
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Confirmation Modal -->
+  <div class="modal-overlay" id="cancel-modal">
+    <div class="modal-content p-6">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[var(--color-error-light)] flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-exclamation-triangle text-2xl text-[var(--color-error)]"></i>
+        </div>
+        <h3 class="text-lg font-bold text-[var(--color-text)]">Cancel Subscription?</h3>
+        <p class="text-sm text-[var(--color-text-muted)] mt-2">
+          This will downgrade your {{$planName}} plan to <strong>Silver (Free)</strong>.
+        </p>
+      </div>
+
+      <div class="bg-[var(--color-surface-secondary)] rounded-xl p-4 mb-6 text-sm space-y-2">
+        <div class="flex justify-between"><span class="text-[var(--color-text-muted)]">Current plan</span><span class="font-medium text-[var(--color-text)]">{{$planName}}</span></div>
+        <div class="flex justify-between"><span class="text-[var(--color-text-muted)]">New plan</span><span class="font-medium text-[var(--color-text)]">Silver (Free)</span></div>
+        <div class="flex justify-between"><span class="text-[var(--color-text-muted)]">Access until</span><span class="font-medium text-[var(--color-text)]">{{.Subscription.CurrentPeriodEnd.Format "Jan 2, 2006"}}</span></div>
+        {{if gt .DaysRemaining 0}}
+        <div class="flex justify-between"><span class="text-[var(--color-text-muted)]">Days remaining</span><span class="font-medium text-[var(--color-text)]">{{.DaysRemaining}} days</span></div>
+        {{end}}
+      </div>
+
+      <p class="text-xs text-[var(--color-text-muted)] text-center mb-5">
+        You'll lose access to premium features like
+        {{if .Plan.HasAnalytics}}Analytics, {{end}}
+        {{if .Plan.HasPrioritySupport}}Priority Support, {{end}}
+        {{if .Plan.HasMediaSharing}}Media Sharing{{end}}
+        {{if and .Plan.HasAnalytics .Plan.HasPrioritySupport .Plan.HasMediaSharing .Plan.HasOrdersAndBookings}}, {{end}}
+        {{if .Plan.HasOrdersAndBookings}}Orders & Bookings{{end}},
+        and higher usage limits. This action cannot be undone.
+      </p>
+
+      <div class="flex gap-3">
+        <button onclick="closeCancelModal()" class="flex-1 py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-sm">
+          Keep My Plan
+        </button>
+        <button onclick="cancelSubscription()" class="flex-1 py-2.5 rounded-xl bg-[var(--color-error)] text-white font-medium hover:opacity-90 transition-all text-sm">
+          Yes, Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+  {{end}}
+  {{end}}
+
+  {{else}}
+  <!-- ═══════════════ NO SUBSCRIPTION STATE ═══════════════ -->
+  <div class="card p-10 text-center">
+    <div class="w-16 h-16 rounded-2xl bg-[var(--color-surface-secondary)] flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-crown text-2xl text-[var(--color-text-muted)]"></i>
+    </div>
+    <h2 class="text-xl font-semibold text-[var(--color-text)]">No active subscription</h2>
+    <p class="text-[var(--color-text-muted)] mt-2 max-w-md mx-auto">
+      Choose a plan to unlock premium features like analytics, priority support, and higher usage limits.
+    </p>
+    <a href="/business/subscription/plans" class="btn btn-primary mt-6">
+      <i class="fas fa-rocket"></i> View Plans
+    </a>
+  </div>
+  {{end}}
+</div>
+
+<script>
+  function openBillingPortal() {
+    fetch('/business/subscription/portal')
+      .then(r => r.json())
+      .then(d => { if (d.url) window.location.href = d.url; })
+      .catch(() => alert('Failed to open billing portal'));
+  }
+
+  function fmtPrice(n) {
+    return Number(n.toFixed(2)).toString();
+  }
+
+  function toggleBillingInterval() {
+    var checked = document.getElementById('interval-toggle').checked;
+
+    // Update plan card prices
+    document.querySelectorAll('[data-plan]').forEach(function(card) {
+      var priceM = parseFloat(card.getAttribute('data-price-monthly'));
+      var priceY = parseFloat(card.getAttribute('data-price-yearly'));
+      var priceEl = card.querySelector('.plan-price');
+      var intervalEl = card.querySelector('.plan-interval');
+      var yearlyNote = card.querySelector('.plan-yearly-note');
+
+      if (priceEl) {
+        if (checked) {
+          priceEl.textContent = '$' + fmtPrice(priceY);
+          if (intervalEl) intervalEl.textContent = '/mo';
+          if (yearlyNote) yearlyNote.classList.remove('hidden');
+        } else {
+          priceEl.textContent = '$' + fmtPrice(priceM);
+          if (intervalEl) intervalEl.textContent = '/mo';
+          if (yearlyNote) yearlyNote.classList.add('hidden');
+        }
+      }
+    });
+
+    // Update hero
+    var heroPrice = document.getElementById('hero-price');
+    var heroInterval = document.getElementById('hero-interval');
+    var heroBadge = document.getElementById('hero-badge-yearly');
+    var heroSub = document.getElementById('hero-sub');
+    if (heroPrice) {
+      var monthly = parseFloat(heroPrice.getAttribute('data-monthly'));
+      var yearly = parseFloat(heroPrice.getAttribute('data-yearly'));
+      var savings = parseFloat(heroPrice.getAttribute('data-savings') || '0');
+      if (checked) {
+        heroPrice.textContent = '$' + fmtPrice(yearly);
+        heroInterval.textContent = '/month';
+        if (heroBadge) heroBadge.classList.remove('hidden');
+        if (heroSub) heroSub.innerHTML = '$' + fmtPrice(yearly * 12) + '/year total · <span class="ml-1 px-1.5 py-0.5 rounded bg-white/20 text-xs font-semibold">Save $' + fmtPrice(savings) + '</span>';
+      } else {
+        heroPrice.textContent = '$' + fmtPrice(monthly);
+        heroInterval.textContent = '/month';
+        if (heroBadge) heroBadge.classList.add('hidden');
+        if (heroSub) heroSub.innerHTML = '$' + fmtPrice(yearly) + '/mo billed yearly — Save $' + fmtPrice(savings);
+      }
+    }
+
+    sessionStorage.setItem('billingInterval', checked ? 'year' : 'month');
+  }
+
+  function startCheckout(planCode) {
+    var interval = sessionStorage.getItem('billingInterval') || 'month';
+    window.location.href = '/business/subscription/checkout?plan=' + planCode + '&interval=' + interval;
+  }
+
+  function confirmDowngrade(planCode, planName) {
+    if (confirm('Are you sure you want to downgrade to ' + planName + '? You will lose access to premium features.')) {
+      fetch('/business/subscription/change', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'plan_code=' + planCode
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) { window.location.href = '/business/subscription'; }
+        else { alert(d.error || 'Failed to switch plan'); }
+      })
+      .catch(() => alert('An error occurred'));
+    }
+  }
+
+  function openCancelModal() {
+    document.getElementById('cancel-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCancelModal() {
+    document.getElementById('cancel-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function cancelSubscription() {
+    fetch('/business/subscription/cancel', { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) { window.location.href = '/business/subscription'; }
+        else { alert(d.error || 'Failed to cancel'); }
+      })
+      .catch(() => alert('An error occurred'));
+  }
+
+  // Close modal on overlay click
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+      closeCancelModal();
+    }
+  });
+
+  // Restore toggle state from session
+  (function() {
+    var saved = sessionStorage.getItem('billingInterval');
+    var toggle = document.getElementById('interval-toggle');
+    if (saved === 'year' && toggle && !toggle.checked) {
+      toggle.checked = true;
+      toggleBillingInterval();
+    }
+  })();
+</script>
+{{end}}

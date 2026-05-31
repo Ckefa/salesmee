@@ -2,7 +2,7 @@
 {{if gt .UnreadCount 0}}
 <span class="unread-badge" hx-put="clients/{{.ID}}/read" hx-target="#chat-panel"
   hx-on::after-request="this.style.display='none'"
-  title="{{.UnreadCount}} unread message{{if gt .UnreadCount 1}}s{{end}}">
+  title="{{.UnreadCount}} pending item{{if gt .UnreadCount 1}}s{{end}} (messages, orders, bookings)">
   {{if gt .UnreadCount 99}}99+{{else}}{{.UnreadCount}}{{end}}
 </span>
 {{end}}

@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"threadly/internal/db"
-	"threadly/internal/handlers"
-	"threadly/internal/handlers/business"
-	"threadly/internal/handlers/client"
-	"threadly/internal/middleware"
+	"oneflow/internal/db"
+	"oneflow/internal/handlers"
+	"oneflow/internal/handlers/business"
+	"oneflow/internal/handlers/client"
+	"oneflow/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +28,16 @@ func SetupBusinessRoutes(r *gin.Engine) {
 	r.POST("/business/login", handlers.Login)
 	r.GET("/business/logout", handlers.Logout)
 
+	// PUBLIC - Business Google Auth
+	r.GET("/business/auth/google", handlers.InitiateBusinessGoogleAuth)
+	r.GET("/business/auth/google/callback", handlers.HandleBusinessGoogleCallback)
+	r.GET("/business/register/google", handlers.ShowRegisterGoogle)
+	r.POST("/business/register/google/complete", handlers.CompleteRegisterGoogle)
+
+	// PUBLIC - Business Facebook Auth
+	r.GET("/business/auth/facebook", handlers.InitiateBusinessFacebookAuth)
+	r.GET("/business/auth/facebook/callback", handlers.HandleBusinessFacebookCallback)
+
 	// PROTECTED BUSINESS ROUTES
 	protected := r.Group("/business")
 	protected.Use(middleware.BizzMiddleware())
@@ -40,6 +50,9 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/products", businessHandler.CreateProduct)
 		protected.PUT("/products/:id", businessHandler.UpdateProduct)
 		protected.DELETE("/products/:id", businessHandler.DeleteProduct)
+		protected.POST("/products/:id/image", businessHandler.UploadProductImage)
+		protected.GET("/products/:id/images", businessHandler.GetProductImages)
+		protected.DELETE("/products/:id/images/:image_id", businessHandler.DeleteProductImage)
 		protected.GET("/services", businessHandler.GetServices)
 		protected.GET("/services/:id", businessHandler.GetService)
 		protected.POST("/services", businessHandler.CreateService)
@@ -104,9 +117,30 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/logo", businessHandler.UploadBusinessLogo)
 		protected.PUT("/profile", businessHandler.UpdateBusinessProfile)
 
+		// Analytics
+		protected.GET("/analytics", businessHandler.GetAnalytics)
+
+		// Payments
+		protected.GET("/payments", businessHandler.GetPayments)
+
 		// Conversation progress routes
 		protected.GET("/conversations/:conversation_id/progress", handlers.GetConversationProgress)
 		protected.PUT("/conversations/:conversation_id/stage", handlers.UpdateConversationStage)
+
+		// Subscription & Billing routes
+		protected.GET("/subscription", businessHandler.GetSubscriptionPage)
+		protected.GET("/subscription/plans", businessHandler.GetPlansPage)
+		protected.GET("/subscription/checkout", businessHandler.GetCheckoutPage)
+		protected.POST("/subscription/checkout", businessHandler.CreateCheckout)
+		protected.POST("/subscription/change", businessHandler.ChangePlan)
+		protected.POST("/subscription/cancel", businessHandler.CancelSubscription)
+		protected.GET("/subscription/portal", businessHandler.BillingPortal)
+		protected.GET("/subscription/badge", businessHandler.GetPlanBadge)
+		protected.GET("/subscription/badge-sidebar", businessHandler.GetPlanBadgeSidebar)
 	}
+
+	// Webhooks (public)
+	r.POST("/stripe/webhook", business.StripeWebhook(businessHandler))
+	r.POST("/paypal/webhook", business.PayPalWebhook(businessHandler))
 
 }

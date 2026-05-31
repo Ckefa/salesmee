@@ -10,14 +10,14 @@
         </div>
         {{if .IsOnline}}
         <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[var(--color-surface)] rounded-full flex items-center justify-center">
-          <div class="w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--color-surface)]"></div>
+          <div class="w-2.5 h-2.5 bg-[var(--color-success)] rounded-full border-2 border-[var(--color-surface)]"></div>
         </div>
         {{end}}
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
           <h3 class="font-medium text-sm text-[var(--color-text)] truncate">{{.Name}}</h3>
-          {{if .IsOnline}}<span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>{{end}}
+          {{if .IsOnline}}<span class="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] shrink-0"></span>{{end}}
         </div>
         <p class="text-xs text-[var(--color-text-muted)] truncate">{{.Email}}</p>
         <p class="text-xs text-[var(--color-text-muted)] truncate mt-0.5 last-message-preview">
@@ -32,7 +32,7 @@
         </span>
       </div>
       <button onclick="event.stopPropagation(); deleteClient('{{.ID}}', '{{.Name}}')"
-        class="btn btn-icon btn-icon-sm btn-ghost opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all shrink-0"
+        class="btn btn-icon btn-icon-sm btn-ghost opacity-0 group-hover:opacity-100 text-[var(--color-error)] hover:opacity-80 hover:bg-[var(--color-error-light)] transition-all shrink-0"
         title="Delete conversation">
         <i class="fas fa-trash-alt text-xs"></i>
       </button>

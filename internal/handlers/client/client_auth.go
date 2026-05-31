@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"threadly/internal/db"
-	"threadly/internal/models"
-	"threadly/internal/services"
+	"oneflow/internal/db"
+	"oneflow/internal/handlers"
+	"oneflow/internal/models"
+	"oneflow/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +25,7 @@ func ShowClientLogin(c *gin.Context) {
 		}
 	}
 	c.HTML(200, "client_login.html", gin.H{
-		"Title": "Client Login - Threadly",
+		"Title": "Client Login - OneFlow",
 	})
 }
 
@@ -32,7 +33,7 @@ func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - Threadly",
+			"Title": "Client Login - OneFlow",
 			"Error": "Email is required",
 		})
 		return
@@ -50,7 +51,7 @@ func SendClientOTP(c *gin.Context) {
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
 			c.HTML(500, "client_login.html", gin.H{
-				"Title": "Client Login - Threadly",
+				"Title": "Client Login - OneFlow",
 				"Error": "Failed to create account",
 			})
 			return
@@ -60,14 +61,14 @@ func SendClientOTP(c *gin.Context) {
 	_, err = services.SendClientOTP(email)
 	if err != nil {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - Threadly",
+			"Title": "Client Login - OneFlow",
 			"Error": "Failed to send OTP",
 		})
 		return
 	}
 
 	c.HTML(200, "client_otp.html", gin.H{
-		"Title": "Enter OTP - Threadly",
+		"Title": "Enter OTP - OneFlow",
 		"Email": email,
 	})
 }
@@ -78,7 +79,7 @@ func VerifyClientOTP(c *gin.Context) {
 
 	if email == "" || otpCode == "" {
 		c.HTML(400, "client_otp.html", gin.H{
-			"Title": "Enter OTP - Threadly",
+			"Title": "Enter OTP - OneFlow",
 			"Email": email,
 			"Error": "Email and OTP are required",
 		})
@@ -88,7 +89,7 @@ func VerifyClientOTP(c *gin.Context) {
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
 		c.HTML(400, "client_otp.html", gin.H{
-			"Title": "Enter OTP - Threadly",
+			"Title": "Enter OTP - OneFlow",
 			"Email": email,
 			"Error": "Invalid or expired OTP",
 		})
@@ -111,7 +112,7 @@ func VerifyClientOTP(c *gin.Context) {
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
 		c.HTML(500, "client_otp.html", gin.H{
-			"Title": "Enter OTP - Threadly",
+			"Title": "Enter OTP - OneFlow",
 			"Email": email,
 			"Error": "Failed to generate token",
 		})
@@ -169,7 +170,7 @@ func ClientDashboard(c *gin.Context) {
 	if err := db.DB.Raw(query, clientID).Scan(&businesses).Error; err != nil {
 		log.Printf("[ClientDashboard] ERROR running businesses query: %v", err)
 		c.HTML(500, "client.html", gin.H{
-			"Title": "Client Dashboard - Threadly",
+			"Title": "Client Dashboard - OneFlow",
 			"Error": "Failed to load businesses",
 		})
 		return
@@ -190,7 +191,7 @@ func ClientDashboard(c *gin.Context) {
 	}
 
 	c.HTML(200, "client.html", gin.H{
-		"Title":      "Client Dashboard - Threadly",
+		"Title":      "Client Dashboard - OneFlow",
 		"Email":      email,
 		"Businesses": businesses,
 	})
@@ -202,6 +203,8 @@ type MessageObj struct {
 	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
 	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
 	Sender    string      `json:"sender"`
+	MediaURL  string      `json:"media_url"`
+	MediaType string      `json:"media_type"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -275,6 +278,8 @@ func GetClientMessages(c *gin.Context) {
 			Value:     msg.Content,
 			Data:      msg,
 			Sender:    msg.Sender,
+			MediaURL:  msg.MediaURL,
+			MediaType: msg.MediaType,
 			CreatedAt: msg.CreatedAt,
 		}
 		messageObjs = append(messageObjs, messageObj)
@@ -483,6 +488,16 @@ func CreateClientMessage(c *gin.Context) {
 		Sender:         sender,
 	}
 
+	// Handle media upload
+	for _, field := range []string{"media_image", "media_document", "media_audio"} {
+		mediaURL, mediaType, err := handlers.SaveMediaFile(c, field)
+		if err == nil {
+			message.MediaURL = mediaURL
+			message.MediaType = mediaType
+			break
+		}
+	}
+
 	if err := db.DB.Create(&message).Error; err != nil {
 		log.Printf("Error creating message: %v", err)
 		c.String(500, "Failed to create message")
@@ -499,6 +514,8 @@ func CreateClientMessage(c *gin.Context) {
 		Value:     message.Content,
 		Data:      nil,
 		Sender:    message.Sender,
+		MediaURL:  message.MediaURL,
+		MediaType: message.MediaType,
 		CreatedAt: message.CreatedAt,
 	}
 

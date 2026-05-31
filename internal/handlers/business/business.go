@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"threadly/internal/models"
-	"threadly/internal/services"
+	"oneflow/internal/models"
+	"oneflow/internal/services"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -110,7 +110,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 
 	if err := h.db.Raw(query, businessID).Scan(&clientsWithUnread).Error; err != nil {
 		c.HTML(500, "business.html", gin.H{
-			"Title": "Threadly",
+			"Title": "OneFlow",
 			"Error": "Failed to load clients",
 		})
 		return
@@ -125,7 +125,38 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		}
 	}
 
-	// Count pending orders and bookings
+	// Count pending orders per client and add to unread badge
+	type pendingCountResult struct {
+		ClientID uint
+		Count    int
+	}
+	var orderPending []pendingCountResult
+	h.db.Model(&models.Order{}).
+		Select("client_id, COUNT(*) as count").
+		Where("business_id = ? AND status = 'pending'", businessID).
+		Group("client_id").
+		Find(&orderPending)
+	orderMap := make(map[uint]int)
+	for _, o := range orderPending {
+		orderMap[o.ClientID] = o.Count
+	}
+
+	var bookingPending []pendingCountResult
+	h.db.Model(&models.Booking{}).
+		Select("client_id, COUNT(*) as count").
+		Where("business_id = ? AND status = 'pending'", businessID).
+		Group("client_id").
+		Find(&bookingPending)
+	bookingMap := make(map[uint]int)
+	for _, b := range bookingPending {
+		bookingMap[b.ClientID] = b.Count
+	}
+
+	for i := range clientsWithUnread {
+		clientsWithUnread[i].UnreadCount += orderMap[clientsWithUnread[i].ID] + bookingMap[clientsWithUnread[i].ID]
+	}
+
+	// Count pending orders and bookings (global)
 	var pendingOrderCount int64
 	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
 
@@ -145,7 +176,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	h.db.First(&business, businessID)
 
 	c.HTML(200, "business.html", gin.H{
-		"Title":               "Threadly",
+		"Title":               "OneFlow",
 		"Business":            business,
 		"Clients":             clientsWithUnread,
 		"PendingOrderCount":   int(pendingOrderCount),
@@ -402,6 +433,19 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "dashboard.html", data)
+}
+
+func (h *BusinessHandler) GetPayments(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
+		return
+	}
+	c.HTML(http.StatusOK, "payments.html", gin.H{
+		"Business":   business,
+		"ActivePage": "payments",
+	})
 }
 
 func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"threadly/internal/db"
-	"threadly/internal/models"
+	"oneflow/internal/db"
+	"oneflow/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +32,7 @@ func ShowDiscover(c *gin.Context) {
 	log.Printf("[ShowDiscover] clientID=%d, foundPublicBusinesses=%d", clientID, len(businesses))
 
 	c.HTML(http.StatusOK, "client_discover.html", gin.H{
-		"Title":      "Discover Businesses - Threadly",
+		"Title":      "Discover Businesses - OneFlow",
 		"Businesses": businesses,
 		"Email":      c.GetString("client_email"),
 		"Client":     client,

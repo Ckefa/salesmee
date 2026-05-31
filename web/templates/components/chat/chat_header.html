@@ -1,14 +1,14 @@
 {{define "chat_header"}}
-<div class="bg-white border-b border-gray-200">
+<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
   <div class="px-6 py-3">
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-          <i class="fas fa-user text-teal-600"></i>
+        <div class="w-10 h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+          <i class="fas fa-user text-[var(--color-primary)]"></i>
         </div>
         <div>
-          <h2 class="font-semibold text-gray-900">{{.Customer.Name}}</h2>
-          <p class="text-sm text-gray-500">{{.Customer.Email}}</p>
+          <h2 class="font-semibold text-[var(--color-text)]">{{.Customer.Name}}</h2>
+          <p class="text-sm text-[var(--color-text-secondary)]">{{.Customer.Email}}</p>
         </div>
       </div>
       <div class="flex items-center space-x-2">
@@ -17,28 +17,28 @@
           <div class="w-2 h-2 bg-green-500 rounded-full"></div>
           <span class="text-xs text-green-600">Online</span>
           {{else}}
-          <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-          <span class="text-xs text-gray-500">Offline</span>
+          <div class="w-2 h-2 bg-[var(--color-text-muted)] rounded-full"></div>
+          <span class="text-xs text-[var(--color-text-secondary)]">Offline</span>
           {{if .Customer.LastSeenAt}}
-          <span class="text-xs text-gray-400">• {{.Customer.LastSeenAt.Format "3:04 PM"}}</span>
+          <span class="text-xs text-[var(--color-text-muted)]">• {{.Customer.LastSeenAt.Format "3:04 PM"}}</span>
           {{end}}
           {{end}}
         </div>
         <!-- Search Messages -->
         <button onclick="toggleMessageSearch()"
-          class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-secondary)] transition-colors"
           title="Search messages">
           <i class="fas fa-search text-sm"></i>
         </button>
         <!-- Customer Info (Split View) -->
         <button onclick="toggleCustomerInfo()"
-          class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-secondary)] transition-colors"
           title="Customer details">
           <i class="fas fa-info-circle text-sm"></i>
         </button>
         <!-- Analytics/Progress -->
         <button data-client-id="{{.Customer.ID}}"
-          class="progress-btn w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+          class="progress-btn w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-info-light)] text-[var(--color-info)] hover:bg-[var(--color-info-light)] transition-colors"
           title="Conversation progress">
           <i class="fas fa-chart-line text-sm"></i>
         </button>
@@ -50,13 +50,13 @@
     <div class="relative">
       <input type="text" id="messageSearchInput" placeholder="Search messages..."
         oninput="filterMessages(this.value)"
-        class="w-full pl-9 pr-3 py-2 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white text-sm transition-all">
-      <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
-      <button onclick="clearMessageSearch()" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm">
+        class="w-full pl-9 pr-3 py-2 bg-[var(--color-surface-secondary)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-surface)] text-sm transition-all">
+      <i class="fas fa-search absolute left-3 top-2.5 text-[var(--color-text-muted)] text-sm"></i>
+      <button onclick="clearMessageSearch()" class="absolute right-3 top-2.5 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] text-sm">
         <i class="fas fa-times"></i>
       </button>
     </div>
-    <div class="text-xs text-gray-400 mt-1 px-1">
+    <div class="text-xs text-[var(--color-text-muted)] mt-1 px-1">
       <span id="searchResultCount">0</span> results found
     </div>
   </div>

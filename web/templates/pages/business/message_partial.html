@@ -1,9 +1,35 @@
 <div class="flex {{if eq .Message.Sender "business"}}justify-end{{else}}justify-start{{end}}">
   <div class="max-w-xs lg:max-w-md">
-    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}}
-      rounded-lg px-4 py-2">
+    {{if .Message.MediaURL}}
+    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg overflow-hidden">
+      {{if eq .Message.MediaType "image"}}
+      <img src="/static/{{.Message.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
+      {{else if eq .Message.MediaType "document"}}
+      <div class="px-4 py-3">
+        <a href="/static/{{.Message.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+          <i class="fas fa-file-alt text-lg {{if eq .Message.Sender "business"}}text-white/80{{else}}text-blue-500{{end}}"></i>
+          <span class="font-medium">{{if .Message.Content}}{{.Message.Content}}{{else}}Document{{end}}</span>
+          <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
+        </a>
+      </div>
+      {{else if eq .Message.MediaType "audio"}}
+      <div class="px-2 py-2">
+        <audio controls class="w-full h-10" preload="metadata">
+          <source src="/static/{{.Message.MediaURL}}">
+        </audio>
+      </div>
+      {{end}}
+    </div>
+    {{if .Message.Content}}
+    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg px-4 py-2 -mt-1">
       <p class="text-sm">{{.Message.Content}}</p>
     </div>
+    {{end}}
+    {{else}}
+    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg px-4 py-2">
+      <p class="text-sm">{{.Message.Content}}</p>
+    </div>
+    {{end}}
     <div class="flex items-center justify-between mt-1">
       <p class="text-xs text-gray-500">{{.Message.CreatedAt.Format "3:04 PM"}}</p>
       {{if eq .Message.Sender "client"}}

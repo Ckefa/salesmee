@@ -1,4 +1,4 @@
-class ThreadlyApp {
+class OneFlowApp {
     constructor() {
         this.initProgressBar();
         this.initHTMX();
@@ -148,7 +148,7 @@ class ThreadlyApp {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    new ThreadlyApp();
+    new OneFlowApp();
 });
 
-window.ThreadlyApp = ThreadlyApp;
+window.OneFlowApp = OneFlowApp;

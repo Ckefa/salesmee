@@ -1,0 +1,38 @@
+{{define "media_message"}}
+<div class="flex {{if eq .Sender "business"}}justify-end{{else}}justify-start{{end}} message-item" data-message-text="{{.Value}}">
+  <div class="max-w-xs lg:max-w-md">
+    <div class="{{if eq .Sender "business"}}bg-[var(--color-primary)] text-white{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text)]{{end}} rounded-lg overflow-hidden">
+      {{if eq .MediaType "image"}}
+      <img src="/static/{{.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
+      {{else if eq .MediaType "document"}}
+      <div class="px-4 py-3">
+        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+          <i class="fas fa-file-alt text-lg {{if eq .Sender "business"}}text-white/80{{else}}text-blue-500{{end}}"></i>
+          <span class="font-medium">{{if .Value}}{{.Value}}{{else}}Document{{end}}</span>
+          <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
+        </a>
+      </div>
+      {{else if eq .MediaType "audio"}}
+      <div class="px-2 py-2">
+        <audio controls class="w-full h-10" preload="metadata">
+          <source src="/static/{{.MediaURL}}">
+        </audio>
+      </div>
+      {{end}}
+    </div>
+    {{if .Value}}
+    <div class="{{if eq .Sender "business"}}bg-[var(--color-primary)] text-white{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text)]{{end}} rounded-lg px-4 py-2 -mt-1">
+      <p class="text-sm">{{.Value}}</p>
+    </div>
+    {{end}}
+    <div class="flex items-center justify-end gap-1 mt-1">
+      <p class="text-xs text-[var(--color-text-secondary)]">{{.CreatedAt.Format "3:04 PM"}}</p>
+      {{if eq .Sender "business"}}
+      <span class="message-status text-[10px]">
+        <i class="fas fa-check text-[var(--color-text-muted)]"></i>
+      </span>
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}

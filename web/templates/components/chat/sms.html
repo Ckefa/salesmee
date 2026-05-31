@@ -1,22 +1,22 @@
 {{define "sms"}}
 <div class="max-w-xs lg:max-w-md w-full">
-  <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3" data-message-id="' + order.id + '"
+  <div class="bg-[var(--color-info-light)] border border-[var(--color-info)]/40 rounded-lg px-4 py-3" data-message-id="' + order.id + '"
     data-order-id="' + order.id + '">
     <div class="flex items-center justify-between mb-2">
-      <div class="flex items-center space-x-2"><i class="fas fa-shopping-cart text-blue-600"></i><span
-          class="font-semibold text-blue-800 text-sm">[' + order.id + ']</span><span class="text-gray-700 text-sm">' +
+      <div class="flex items-center space-x-2"><i class="fas fa-shopping-cart text-[var(--color-info)]"></i><span
+          class="font-semibold text-[var(--color-info)] text-sm">[' + order.id + ']</span><span class="text-[var(--color-text)] text-sm">' +
           (order.product_name || 'Product') + '</span><span
-          class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span></div><button
-        onclick="openBusinessEditOrderPicker(' + order.id + ')" class="text-blue-600 hover:text-blue-800 text-xs"
+          class="text-xs bg-[var(--color-warning-light)] text-[var(--color-warning)] px-2 py-1 rounded">Pending</span></div><button
+        onclick="openBusinessEditOrderPicker(' + order.id + ')" class="text-[var(--color-info)] hover:text-[var(--color-info)] text-xs"
         title="Edit Order"><i class="fas fa-edit"></i></button>
     </div>
-    <div class="order-details text-sm text-gray-700">
+    <div class="order-details text-sm text-[var(--color-text)]">
       <p class="text-sm">Order #' + (order.order_number || '') + ' - ' + (order.quantity || 1) + 'x - $' +
         parseFloat(order.total_amount || 0).toFixed(2) + '</p>
       <p class="hidden order-notes-data">' + (order.notes || '') + '</p>
     </div>
     <div class="flex items-center justify-between mt-2">
-      <p class="text-xs text-gray-500">' + new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit',
+      <p class="text-xs text-[var(--color-text-secondary)]">' + new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit',
         hour12: true}) + '</p>
     </div>
   </div>

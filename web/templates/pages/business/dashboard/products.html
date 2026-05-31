@@ -5,11 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <title>Products Management - Threadly</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Products Management - OneFlow</title>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
   <style>
     .sidebar-item {
       transition: all 0.3s ease;
@@ -29,7 +30,7 @@
     }
 
     .table-row-hover:hover {
-      background-color: #f9fafb;
+      background-color: var(--color-surface-secondary);
     }
 
     .badge-stock {
@@ -51,34 +52,38 @@
   </script>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-[var(--color-bg)]">
   <!-- Header -->
   <header class="navbar-glass">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/business" class="text-gray-600 hover:text-gray-900 mr-4">
+          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-4">
             <i class="fas fa-arrow-left"></i>
           </a>
-          <h1 class="text-xl font-semibold text-gray-900">Products Management</h1>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Products Management</h1>
         </div>
         <div class="flex items-center space-x-4">
           <button onclick="showAddProductModal()"
-            class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
             <i class="fas fa-plus"></i>
             <span>Add Product</span>
+          </button>
+          <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
           </button>
           <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
             {{if .Business.Logo}}
             <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
             {{else}}
-            <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-              <i class="fas fa-store text-teal-600 text-sm"></i>
+            <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
             </div>
             {{end}}
-            <span class="text-sm font-medium text-gray-700">{{.Business.Name}}</span>
+            <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
           </button>
-          <a href="/business/logout" class="text-sm text-red-600 hover:text-red-800">Logout</a>
+          <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
         </div>
       </div>
     </div>
@@ -96,7 +101,7 @@
             <div class="flex-1 min-w-0">
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i class="fas fa-search text-gray-400"></i>
+                  <i class="fas fa-search text-[var(--color-text-muted)]"></i>
                 </div>
                 <input type="text" id="searchInput" placeholder="Search products..."
                   class="input pl-10">
@@ -116,44 +121,60 @@
           <!-- Products Grid -->
           <div id="productsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {{range .Products}}
-            <div class="product-card bg-white rounded-lg shadow-md overflow-hidden" data-product-id="{{.ID}}">
-              <div class="relative">
+            <div class="product-card rounded-xl card overflow-hidden" data-product-id="{{.ID}}">
+              <div class="relative group cursor-pointer" onclick="document.getElementById('fileInput-{{.ID}}').click()">
                 {{if .ImageURL}}
-                <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
+                <img id="productImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
                 {{else}}
-                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                  <i class="fas fa-box text-gray-400 text-3xl"></i>
+                <div id="productImg-{{.ID}}" class="w-full h-48 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
+                  <i class="fas fa-box text-[var(--color-text-muted)] text-3xl"></i>
                 </div>
                 {{end}}
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fas fa-camera text-white text-2xl"></i>
+                </div>
+                {{$imgCount := len .Images}}
+                {{if gt $imgCount 1}}
+                <div class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                  {{$imgCount}}
+                </div>
+                {{end}}
+                <input type="file" id="fileInput-{{.ID}}" accept="image/*" class="hidden" onchange="uploadProductImage({{.ID}}, this)">
                 {{if not .IsActive}}
-                <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs">
+                <div class="absolute top-2 right-2 bg-[var(--color-error)] text-white px-2 py-1 rounded text-xs">
                   Inactive
                 </div>
                 {{end}}
               </div>
               <div class="p-4">
-                <h3 class="text-lg font-semibold text-gray-900">{{.Name}}</h3>
-                <p class="text-sm text-gray-600 mt-1">{{.Description}}</p>
+                <h3 class="text-lg font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+                <p class="text-sm text-[var(--color-text-secondary)] mt-1">{{.Description}}</p>
                 <div class="mt-4 flex items-center justify-between">
                   <div>
-                    <p class="text-2xl font-bold text-gray-900">${{.Price}}</p>
-                    <p class="text-xs text-gray-500">SKU: {{.SKU}}</p>
+                    <p class="text-2xl font-bold text-[var(--color-text)]">${{.Price}}</p>
+                    <p class="text-xs text-[var(--color-text-muted)]">SKU: {{.SKU}}</p>
                   </div>
                   <div class="text-right">
                     <span
-                      class="badge-stock {{if le .Stock .MinStock}}bg-red-100 text-red-800{{else}}bg-green-100 text-green-800{{end}}"
+                      class="badge-stock {{if le .Stock .MinStock}}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-success-light)] text-[var(--color-success)]{{end}}"
                       data-stock="{{.Stock}}" data-min-stock="{{.MinStock}}">
                       {{.Stock}} in stock
                     </span>
                   </div>
                 </div>
                 <div class="mt-4 flex space-x-2">
+                  {{if or .ImageURL (gt (len .Images) 0)}}
+                  <button onclick="previewProductImage({{.ID}}, '{{.Name}}')"
+                    class="flex-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-2 rounded text-sm">
+                    <i class="fas fa-eye mr-1"></i> Preview
+                  </button>
+                  {{end}}
                   <button onclick="editProduct(this.closest('[data-product-id]').dataset.productId)"
-                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm">
+                    class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-3 py-2 rounded text-sm">
                     <i class="fas fa-edit mr-1"></i> Edit
                   </button>
                   <button onclick="deleteProduct(this.closest('[data-product-id]').dataset.productId)"
-                    class="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+                    class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-3 py-2 rounded text-sm">
                     <i class="fas fa-trash mr-1"></i> Delete
                   </button>
                 </div>
@@ -161,10 +182,10 @@
             </div>
             {{else}}
             <div class="col-span-full text-center py-12">
-              <i class="fas fa-box text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-600">No products found</p>
+              <i class="fas fa-box text-[var(--color-text-muted)] text-5xl mb-4"></i>
+              <p class="text-[var(--color-text-secondary)]">No products found</p>
               <button onclick="showAddProductModal()"
-                class="mt-4 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg">
+                class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg">
                 <i class="fas fa-plus mr-2"></i>Add your first product
               </button>
             </div>
@@ -176,63 +197,101 @@
   </div>
 
   <!-- Add/Edit Product Modal -->
-  <div id="productModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+  <div id="productModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
       <div class="mt-3">
-        <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Add Product</h3>
+        <h3 class="text-lg font-medium text-[var(--color-text)]" id="modalTitle">Add Product</h3>
         <form id="productForm" class="mt-4 space-y-4">
           <input type="hidden" id="productId">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Name</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Name</label>
             <input type="text" id="productName" required
               class="input mt-1">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Description</label>
             <textarea id="productDescription" rows="3"
               class="input mt-1"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Price</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Price</label>
             <input type="number" id="productPrice" step="0.01" required
               class="input mt-1">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">SKU</label>
-            <input type="text" id="productSKU"
-              class="input mt-1">
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">SKU</label>
+            <div class="relative mt-1">
+              <input type="text" id="productSKU"
+                class="input w-full pr-10">
+              <button type="button" onclick="generateSKU()" title="Generate SKU"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)]">
+                <i class="fas fa-rotate"></i>
+              </button>
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Stock</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Stock</label>
             <input type="number" id="productStock" required
               class="input mt-1">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Min Stock Level</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Min Stock Level</label>
             <input type="number" id="productMinStock"
-              class="input mt-1">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Image URL</label>
-            <input type="url" id="productImageURL"
               class="input mt-1">
           </div>
           <div class="flex items-center">
             <input type="checkbox" id="productIsActive" checked
-              class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-            <label for="productIsActive" class="ml-2 block text-sm text-gray-900">Active</label>
+              class="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+            <label for="productIsActive" class="ml-2 block text-sm text-[var(--color-text)]">Active</label>
           </div>
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" onclick="hideProductModal()"
-              class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
               Cancel
             </button>
-            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded">
+            <button type="submit" class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded">
               Save Product
             </button>
           </div>
         </form>
       </div>
+    </div>
+  </div>
+
+  <!-- Image Gallery Modal -->
+  <div id="imagePreviewModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50" onclick="hideImagePreview()">
+    <div class="relative top-20 mx-auto p-4 border w-auto max-w-xl shadow-lg rounded-md bg-[var(--color-surface)]" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-[var(--color-text)]" id="galleryTitle">Product Images</h3>
+        <button onclick="hideImagePreview()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Main Image -->
+      <div class="relative bg-black/5 rounded-lg flex items-center justify-center h-[400px]">
+        <button id="galleryPrevBtn" onclick="galleryPrev()"
+          class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <img id="galleryMainImage" src="" alt="" class="max-w-full max-h-full object-contain p-4">
+        <button id="galleryNextBtn" onclick="galleryNext()"
+          class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Counter -->
+      <div id="galleryCounterContainer" class="text-center text-sm text-[var(--color-text-muted)] mt-3 hidden">
+        <span id="galleryCounter">0 / 0</span>
+      </div>
+
+      <!-- Thumbnails -->
+      <div class="mt-3 flex items-center space-x-2 overflow-x-auto py-2" id="galleryThumbnails">
+      </div>
+
+      <!-- Hidden file input for gallery upload -->
+      <input type="file" id="galleryFileInput" accept="image/*" class="hidden" onchange="galleryUploadImage(this)">
     </div>
   </div>
 
@@ -264,7 +323,6 @@
             document.getElementById('productSKU').value = product.sku || '';
             document.getElementById('productStock').value = product.stock;
             document.getElementById('productMinStock').value = product.min_stock || '';
-            document.getElementById('productImageURL').value = product.image_url || '';
             document.getElementById('productIsActive').checked = product.is_active;
 
             document.getElementById('productModal').classList.remove('hidden');
@@ -301,6 +359,206 @@
       }
     }
 
+    // --- Gallery State ---
+    let galleryData = { images: [], currentIndex: 0, productId: 0, productName: '' };
+
+    function uploadProductImage(productId, input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch(`/business/products/${productId}/image`, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const container = document.querySelector(`[data-product-id="${productId}"] .relative`);
+            const img = document.getElementById(`productImg-${productId}`);
+            if (img.tagName === 'IMG') {
+              img.src = data.image_url;
+            } else {
+              const newImg = document.createElement('img');
+              newImg.id = `productImg-${productId}`;
+              newImg.src = data.image_url;
+              newImg.alt = '';
+              newImg.className = 'w-full h-48 object-cover';
+              img.replaceWith(newImg);
+            }
+            // Update or add count badge
+            updateImageCountBadge(productId);
+          } else {
+            alert('Failed to upload image');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to upload image');
+        });
+
+      input.value = '';
+    }
+
+    function updateImageCountBadge(productId) {
+      const card = document.querySelector(`[data-product-id="${productId}"] .relative`);
+      if (!card) return;
+      const existingBadge = card.querySelector('.absolute.bottom-2.right-2');
+      // Reload the page to get accurate count for simplicity
+      location.reload();
+    }
+
+    function previewProductImage(productId, name) {
+      galleryData.productId = productId;
+      galleryData.productName = name || 'Product';
+      galleryData.currentIndex = 0;
+
+      fetch(`/business/products/${productId}/images`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.images.length > 0) {
+            galleryData.images = data.images;
+            renderGallery();
+            document.getElementById('imagePreviewModal').classList.remove('hidden');
+          } else {
+            alert('No images to preview');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to load images');
+        });
+    }
+
+    function hideImagePreview() {
+      document.getElementById('imagePreviewModal').classList.add('hidden');
+      galleryData = { images: [], currentIndex: 0, productId: 0, productName: '' };
+    }
+
+    function renderGallery() {
+      const images = galleryData.images;
+      if (images.length === 0) return;
+
+      const idx = galleryData.currentIndex;
+      const mainImg = document.getElementById('galleryMainImage');
+      mainImg.src = images[idx].image_url;
+      mainImg.alt = galleryData.productName;
+
+      document.getElementById('galleryTitle').textContent = galleryData.productName + ' - Images';
+
+      // Counter
+      const counterContainer = document.getElementById('galleryCounterContainer');
+      const counter = document.getElementById('galleryCounter');
+      if (images.length > 1) {
+        counterContainer.classList.remove('hidden');
+        counter.textContent = (idx + 1) + ' / ' + images.length;
+      } else {
+        counterContainer.classList.add('hidden');
+      }
+
+      // Prev/next visibility
+      document.getElementById('galleryPrevBtn').style.display = images.length > 1 ? '' : 'none';
+      document.getElementById('galleryNextBtn').style.display = images.length > 1 ? '' : 'none';
+
+      // Render thumbnails
+      const container = document.getElementById('galleryThumbnails');
+      container.innerHTML = '';
+
+      images.forEach((img, i) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-200 ' +
+          (i === idx ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]' : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]');
+        thumb.innerHTML = '<img src="' + img.image_url + '" alt="" class="w-full h-full object-cover">';
+        thumb.onclick = function () { galleryGoTo(i); };
+        container.appendChild(thumb);
+      });
+
+      // Upload button as last thumbnail
+      const uploadThumb = document.createElement('div');
+      uploadThumb.className = 'flex-shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-[var(--color-border)] flex items-center justify-center cursor-pointer hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] text-[var(--color-text-muted)] transition-all duration-200';
+      uploadThumb.innerHTML = '<i class="fas fa-plus"></i>';
+      uploadThumb.onclick = function () { document.getElementById('galleryFileInput').click(); };
+      container.appendChild(uploadThumb);
+    }
+
+    function galleryPrev() {
+      if (galleryData.images.length === 0) return;
+      galleryData.currentIndex = (galleryData.currentIndex - 1 + galleryData.images.length) % galleryData.images.length;
+      renderGallery();
+    }
+
+    function galleryNext() {
+      if (galleryData.images.length === 0) return;
+      galleryData.currentIndex = (galleryData.currentIndex + 1) % galleryData.images.length;
+      renderGallery();
+    }
+
+    function galleryGoTo(index) {
+      if (index < 0 || index >= galleryData.images.length) return;
+      galleryData.currentIndex = index;
+      renderGallery();
+    }
+
+    function galleryUploadImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      fetch(`/business/products/${galleryData.productId}/image`, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            galleryGoTo(galleryData.images.length);
+            updateImageCountBadge(galleryData.productId);
+            // Refresh gallery data
+            return fetch(`/business/products/${galleryData.productId}/images`);
+          } else {
+            alert('Failed to upload image');
+          }
+        })
+        .then(response => {
+          if (response) return response.json();
+        })
+        .then(data => {
+          if (data && data.success) {
+            galleryData.images = data.images;
+            renderGallery();
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to upload image');
+        });
+
+      input.value = '';
+    }
+
+    // Keyboard navigation for gallery
+    document.addEventListener('keydown', function (e) {
+      const modal = document.getElementById('imagePreviewModal');
+      if (modal.classList.contains('hidden')) return;
+      if (e.key === 'Escape') hideImagePreview();
+      if (e.key === 'ArrowLeft') galleryPrev();
+      if (e.key === 'ArrowRight') galleryNext();
+    });
+
+    function generateSKU() {
+      const prefix = 'SKU';
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let random = '';
+      for (let i = 0; i < 8; i++) {
+        random += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('productSKU').value = prefix + '-' + random;
+    }
+
     // Product form submission
     document.getElementById('productForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -315,7 +573,6 @@
         sku: document.getElementById('productSKU').value,
         stock: parseInt(document.getElementById('productStock').value),
         min_stock: parseInt(document.getElementById('productMinStock').value) || 0,
-        image_url: document.getElementById('productImageURL').value,
         is_active: document.getElementById('productIsActive').checked
       };
 

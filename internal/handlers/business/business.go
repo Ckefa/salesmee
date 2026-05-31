@@ -125,7 +125,38 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		}
 	}
 
-	// Count pending orders and bookings
+	// Count pending orders per client and add to unread badge
+	type pendingCountResult struct {
+		ClientID uint
+		Count    int
+	}
+	var orderPending []pendingCountResult
+	h.db.Model(&models.Order{}).
+		Select("client_id, COUNT(*) as count").
+		Where("business_id = ? AND status = 'pending'", businessID).
+		Group("client_id").
+		Find(&orderPending)
+	orderMap := make(map[uint]int)
+	for _, o := range orderPending {
+		orderMap[o.ClientID] = o.Count
+	}
+
+	var bookingPending []pendingCountResult
+	h.db.Model(&models.Booking{}).
+		Select("client_id, COUNT(*) as count").
+		Where("business_id = ? AND status = 'pending'", businessID).
+		Group("client_id").
+		Find(&bookingPending)
+	bookingMap := make(map[uint]int)
+	for _, b := range bookingPending {
+		bookingMap[b.ClientID] = b.Count
+	}
+
+	for i := range clientsWithUnread {
+		clientsWithUnread[i].UnreadCount += orderMap[clientsWithUnread[i].ID] + bookingMap[clientsWithUnread[i].ID]
+	}
+
+	// Count pending orders and bookings (global)
 	var pendingOrderCount int64
 	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
 

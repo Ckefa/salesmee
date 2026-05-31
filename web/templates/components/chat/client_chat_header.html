@@ -1,5 +1,5 @@
 {{define "client_chat_header"}}
-<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-4 flex items-center justify-between flex-shrink-0">
+<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-4 flex items-center justify-between flex-shrink-0 relative">
   <div class="flex items-center space-x-3">
     {{if .Business.Logo}}
     <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-10 h-10 rounded-full object-cover">
@@ -12,6 +12,13 @@
       <h2 class="font-semibold text-[var(--color-text)]">{{.Business.Name}}</h2>
       <p class="text-sm text-[var(--color-text-muted)]">{{.Business.BusinessType}}</p>
     </div>
+  </div>
+  <div class="absolute left-1/2 -translate-x-1/2">
+    <button hx-get="/client/businesses/{{.Business.ID}}/products-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false"
+      class="text-sm text-[var(--color-primary)] hover:underline flex items-center space-x-1">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
+    </button>
   </div>
   <div class="flex items-center space-x-2">
     <span class="inline-block w-2 h-2 bg-[var(--color-success)] rounded-full"></span>

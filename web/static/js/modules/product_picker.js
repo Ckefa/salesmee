@@ -9,6 +9,7 @@ let pickerCurrentStep = 1;
 
 // Edit mode state
 let pickerEditMode = false;
+let pickerGoBackToChat = false;
 let pickerEditOrderId = null;
 let pickerEditItems = [];
 let pickerEditNotes = '';
@@ -675,7 +676,13 @@ async function submitProductOrder() {
       if (data.success) {
         hideProductPicker();
         showNotification('Order placed successfully!', 'success');
-        if (typeof startMessagePolling === 'function') {
+        if (pickerGoBackToChat) {
+          pickerGoBackToChat = false;
+          setTimeout(function () {
+            var btn = document.querySelector('[hx-get*="/messages"]');
+            if (btn && btn.click) btn.click();
+          }, 800);
+        } else if (typeof startMessagePolling === 'function') {
           setTimeout(() => {
             fetch(`/client/businesses/${pickerBusinessId}/messages`)
               .then(r => r.text())
@@ -748,4 +755,26 @@ function openBusinessProductPicker(clientId) {
 function openClientProductPicker() {
   if (!businessId) { showNotification('No business selected', 'error'); return; }
   showProductPicker('client', null, businessId, clientId);
+}
+
+function openClientProductPickerWithProduct(productId) {
+  if (!businessId) { showNotification('No business selected', 'error'); return; }
+  pickerGoBackToChat = true;
+  showProductPicker('client', null, businessId, clientId);
+
+  const maxAttempts = 50;
+  let attempts = 0;
+  const interval = setInterval(function () {
+    attempts++;
+    if (pickerProducts.length > 0) {
+      clearInterval(interval);
+      var product = pickerProducts.find(function (p) { return p.id === productId; });
+      if (product) {
+        pickerAddToCart(product, 1);
+        pickerGoToStep(2);
+      }
+    } else if (attempts >= maxAttempts) {
+      clearInterval(interval);
+    }
+  }, 100);
 }

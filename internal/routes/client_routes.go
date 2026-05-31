@@ -34,6 +34,8 @@ func SetupClientRoutes(r *gin.Engine) {
 		clientProtected.GET("/businesses/:business_id/messages", client.GetClientMessages)
 		clientProtected.POST("/businesses/:business_id/messages", client.CreateClientMessage)
 		clientProtected.GET("/businesses/:business_id/products", businessHandler.GetBusinessProducts)
+		clientProtected.GET("/businesses/:business_id/products-page", businessHandler.ShowClientProductsPage)
+		clientProtected.GET("/products/:id/images", businessHandler.GetClientProductImages)
 		clientProtected.GET("/businesses/:business_id/services", businessHandler.GetBusinessServices)
 		clientProtected.POST("/businesses/:business_id/bookings", businessHandler.ClientCreateBooking)
 		clientProtected.POST("/orders", businessHandler.ClientCreateOrder)

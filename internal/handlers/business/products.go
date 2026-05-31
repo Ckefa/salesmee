@@ -136,10 +136,24 @@ func (h *BusinessHandler) DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Where("id = ? AND business_id = ?", productID, businessID).Delete(&models.Product{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
+	var product models.Product
+	if err := h.db.Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
+
+	var images []models.ProductImage
+	h.db.Where("product_id = ?", productID).Find(&images)
+
+	for _, img := range images {
+		relPath := strings.TrimPrefix(img.ImageURL, "/")
+		filePath := filepath.Join("web", relPath)
+		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+			// Log but continue
+		}
+	}
+	h.db.Where("product_id = ?", productID).Delete(&models.ProductImage{})
+	h.db.Delete(&product)
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
@@ -313,4 +327,72 @@ func (h *BusinessHandler) GetBusinessProducts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, products)
+}
+
+func (h *BusinessHandler) ShowClientProductsPage(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	if clientID == 0 {
+		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Client not authenticated"})
+		return
+	}
+
+	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "client.html", gin.H{"error": "Invalid business ID"})
+		return
+	}
+
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "client.html", gin.H{"error": "Business not found"})
+		return
+	}
+
+	var products []models.Product
+	h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order ASC")
+	}).Where("business_id = ? AND is_active = ?", businessID, true).Order("created_at DESC").Find(&products)
+
+	var client models.Client
+	h.db.First(&client, clientID)
+
+	c.HTML(http.StatusOK, "client_products.html", gin.H{
+		"Business": business,
+		"Client":   client,
+		"Products": products,
+	})
+}
+
+func (h *BusinessHandler) GetClientProductImages(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	if clientID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Client not authenticated"})
+		return
+	}
+
+	productID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	var product models.Product
+	if err := h.db.Where("id = ? AND is_active = ?", productID, true).First(&product).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+
+	var images []models.ProductImage
+	h.db.Where("product_id = ?", productID).Order("sort_order ASC").Find(&images)
+
+	if len(images) == 0 && product.ImageURL != "" {
+		images = append(images, models.ProductImage{
+			ID:        0,
+			ProductID: uint(productID),
+			ImageURL:  product.ImageURL,
+			SortOrder: 0,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "images": images})
 }

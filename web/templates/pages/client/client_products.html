@@ -1,0 +1,220 @@
+<div class="flex flex-col h-full">
+  <!-- Header -->
+  <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-4 flex items-center justify-between flex-shrink-0">
+    <div class="flex items-center space-x-3">
+      <button hx-get="/client/businesses/{{.Business.ID}}/messages" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] flex items-center space-x-1 mr-4">
+        <i class="fas fa-arrow-left text-lg"></i>
+        <span class="text-sm">Chats</span>
+      </button>
+      {{if .Business.Logo}}
+      <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-10 h-10 rounded-full object-cover">
+      {{else}}
+      <div class="w-10 h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+        <i class="fas fa-store text-[var(--color-primary)]"></i>
+      </div>
+      {{end}}
+      <div>
+        <h2 class="font-semibold text-[var(--color-text)]">{{.Business.Name}}</h2>
+        <p class="text-sm text-[var(--color-text-muted)]">Products</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="flex-1 overflow-y-auto p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {{range .Products}}
+      <div class="product-card rounded-xl card overflow-hidden" data-product-id="{{.ID}}">
+        <div class="relative group">
+          {{if .ImageURL}}
+          <img id="clientProductImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
+          {{else}}
+          <div id="clientProductImg-{{.ID}}" class="w-full h-48 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
+            <i class="fas fa-box text-[var(--color-text-muted)] text-3xl"></i>
+          </div>
+          {{end}}
+          {{$imgCount := len .Images}}
+          {{if gt $imgCount 1}}
+          <div class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+            {{$imgCount}}
+          </div>
+          {{end}}
+        </div>
+        <div class="p-4">
+          <h3 class="text-lg font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+          <p class="text-sm text-[var(--color-text-secondary)] mt-1">{{.Description}}</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div>
+              <p class="text-2xl font-bold text-[var(--color-text)]">${{.Price}}</p>
+              <p class="text-xs text-[var(--color-text-muted)]">SKU: {{.SKU}}</p>
+            </div>
+            <div class="text-right">
+              <span class="badge-stock bg-[var(--color-success-light)] text-[var(--color-success)]">
+                {{.Stock}} in stock
+              </span>
+            </div>
+          </div>
+          <div class="mt-4 flex space-x-2">
+            {{if or .ImageURL (gt (len .Images) 0)}}
+            <button onclick="previewClientProduct({{.ID}}, '{{.Name}}')"
+              class="flex-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-2 rounded text-sm">
+              <i class="fas fa-eye mr-1"></i> Preview
+            </button>
+            {{end}}
+            <button onclick="openClientProductPickerWithProduct({{.ID}})"
+              class="flex-1 bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-2 rounded text-sm">
+              <i class="fas fa-shopping-cart mr-1"></i> Place Order
+            </button>
+          </div>
+        </div>
+      </div>
+      {{else}}
+      <div class="col-span-full text-center py-12">
+        <i class="fas fa-box text-[var(--color-text-muted)] text-5xl mb-4"></i>
+        <p class="text-[var(--color-text-secondary)]">No products available</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</div>
+
+<!-- Gallery Modal -->
+<div id="clientGalleryModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50" onclick="hideClientGallery()">
+  <div class="relative top-20 mx-auto p-4 border w-auto max-w-xl shadow-lg rounded-md bg-[var(--color-surface)]" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-medium text-[var(--color-text)]" id="clientGalleryTitle">Product Images</h3>
+      <button onclick="hideClientGallery()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xl">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="relative bg-black/5 rounded-lg flex items-center justify-center h-[400px]">
+      <button id="clientGalleryPrevBtn" onclick="clientGalleryPrev()"
+        class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <img id="clientGalleryMainImage" src="" alt="" class="max-w-full max-h-full object-contain p-4">
+      <button id="clientGalleryNextBtn" onclick="clientGalleryNext()"
+        class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div id="clientGalleryCounterContainer" class="text-center text-sm text-[var(--color-text-muted)] mt-3 hidden">
+      <span id="clientGalleryCounter">0 / 0</span>
+    </div>
+
+    <div class="mt-3 flex items-center space-x-2 overflow-x-auto py-2" id="clientGalleryThumbnails"></div>
+  </div>
+</div>
+
+  <style>
+    .product-card {
+      transition: all 0.3s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .badge-stock {
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+  </style>
+  <script>
+    var businessId = {{.Business.ID}};
+    var clientId = {{.Client.ID}};
+
+  let clientGalleryData = { images: [], currentIndex: 0, productId: 0, productName: '' };
+
+  function previewClientProduct(productId, name) {
+    clientGalleryData.productId = productId;
+    clientGalleryData.productName = name || 'Product';
+    clientGalleryData.currentIndex = 0;
+
+    fetch(`/client/products/${productId}/images`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.images.length > 0) {
+          clientGalleryData.images = data.images;
+          renderClientGallery();
+          document.getElementById('clientGalleryModal').classList.remove('hidden');
+        } else {
+          alert('No images to preview');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to load images');
+      });
+  }
+
+  function hideClientGallery() {
+    document.getElementById('clientGalleryModal').classList.add('hidden');
+    clientGalleryData = { images: [], currentIndex: 0, productId: 0, productName: '' };
+  }
+
+  function renderClientGallery() {
+    const images = clientGalleryData.images;
+    if (images.length === 0) return;
+
+    const idx = clientGalleryData.currentIndex;
+    const mainImg = document.getElementById('clientGalleryMainImage');
+    mainImg.src = images[idx].image_url;
+    mainImg.alt = clientGalleryData.productName;
+
+    document.getElementById('clientGalleryTitle').textContent = clientGalleryData.productName + ' - Images';
+
+    const counterContainer = document.getElementById('clientGalleryCounterContainer');
+    const counter = document.getElementById('clientGalleryCounter');
+    if (images.length > 1) {
+      counterContainer.classList.remove('hidden');
+      counter.textContent = (idx + 1) + ' / ' + images.length;
+    } else {
+      counterContainer.classList.add('hidden');
+    }
+
+    document.getElementById('clientGalleryPrevBtn').style.display = images.length > 1 ? '' : 'none';
+    document.getElementById('clientGalleryNextBtn').style.display = images.length > 1 ? '' : 'none';
+
+    const container = document.getElementById('clientGalleryThumbnails');
+    container.innerHTML = '';
+
+    images.forEach((img, i) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-200 ' +
+        (i === idx ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]' : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]');
+      thumb.innerHTML = '<img src="' + img.image_url + '" alt="" class="w-full h-full object-cover">';
+      thumb.onclick = function () { clientGalleryGoTo(i); };
+      container.appendChild(thumb);
+    });
+  }
+
+  function clientGalleryPrev() {
+    if (clientGalleryData.images.length === 0) return;
+    clientGalleryData.currentIndex = (clientGalleryData.currentIndex - 1 + clientGalleryData.images.length) % clientGalleryData.images.length;
+    renderClientGallery();
+  }
+
+  function clientGalleryNext() {
+    if (clientGalleryData.images.length === 0) return;
+    clientGalleryData.currentIndex = (clientGalleryData.currentIndex + 1) % clientGalleryData.images.length;
+    renderClientGallery();
+  }
+
+  function clientGalleryGoTo(index) {
+    if (index < 0 || index >= clientGalleryData.images.length) return;
+    clientGalleryData.currentIndex = index;
+    renderClientGallery();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    const modal = document.getElementById('clientGalleryModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    if (e.key === 'Escape') hideClientGallery();
+    if (e.key === 'ArrowLeft') clientGalleryPrev();
+    if (e.key === 'ArrowRight') clientGalleryNext();
+  });
+</script>

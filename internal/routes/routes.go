@@ -42,6 +42,13 @@ func Setup(r *gin.Engine) {
 		}
 	}
 
+	// Legal pages
+	r.GET("/privacy", handlers.ShowPrivacy)
+	r.GET("/terms", handlers.ShowTerms)
+	r.GET("/cookies", handlers.ShowCookies)
+	r.GET("/user-deletion", handlers.ShowUserDeletion)
+	r.POST("/user-deletion", handlers.SubmitUserDeletion)
+
 	// Public business profile
 	r.GET("/b/:slug", business.GetPublicProfile)
 

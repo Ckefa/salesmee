@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
   <script>
     function showBusinessProfile() {
       var el = document.getElementById('businessProfileModal');
@@ -25,12 +26,12 @@
   <!-- Header -->
   <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
     <div class="flex items-center space-x-4">
-      <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden hover:bg-[var(--color-primary-hover)] text-white">
-        <i class="fas fa-bars text-lg"></i>
-      </button>
       <a href="/business/bookings" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
         <i class="fas fa-arrow-left"></i>
       </a>
+      <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden hover:bg-[var(--color-primary-hover)] text-white">
+        <i class="fas fa-bars text-lg"></i>
+      </button>
       <h1 class="text-xl font-semibold">Bookings</h1>
     </div>
     <div class="flex items-center space-x-4">

@@ -12,18 +12,19 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
   <header class="navbar-glass">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center gap-3">
-          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
           <a href="/business/subscription" class="btn btn-ghost btn-icon" title="Back to Subscription">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Choose a Plan</h1>
         </div>
         <div class="flex items-center gap-3">
@@ -85,7 +86,7 @@
     <span class="text-sm font-medium text-[var(--color-text)]">Yearly <span class="text-[var(--color-primary)] font-semibold">Save 20%</span></span>
   </div>
 
-  <div class="grid md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {{range $i, $plan := .Plans}}
     {{$isCurrent := false}}
     {{if $.Current}}{{if eq $.Current.ID $plan.ID}}{{$isCurrent = true}}{{end}}{{end}}

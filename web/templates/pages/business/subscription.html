@@ -12,18 +12,19 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
   <header class="navbar-glass">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center gap-3">
-          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
           <a href="/business" class="btn btn-ghost btn-icon" title="Back to Home">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Subscription</h1>
         </div>
         <div class="flex items-center gap-3">
@@ -196,7 +197,7 @@
       {{end}}
     </div>
 
-    <div class="grid md:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {{range $i, $plan := .Plans}}
       {{$planPriceM := $plan.PriceMonthly}}
       {{$planPriceY := $plan.PriceYearly}}
@@ -374,7 +375,7 @@
   </div>
 
   <!-- ═══════════════ BILLING & PAYMENT ═══════════════ -->
-  <div class="grid md:grid-cols-2 gap-5">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
     <div class="card p-5">
       <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
         <i class="fas fa-receipt text-[var(--color-primary)]"></i>

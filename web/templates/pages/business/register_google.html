@@ -55,7 +55,7 @@
 
       <form method="POST" action="/business/register/google/complete?token={{.Token}}" id="registerForm">
         <p class="text-sm text-[var(--color-text-muted)] mb-4 text-center">What type of business do you run?</p>
-        <div class="grid grid-cols-3 gap-3" id="typeGrid">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="typeGrid">
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="automotive" style="border-color: var(--color-border);">
             <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-car text-orange-600 dark:text-orange-400"></i></div>
             <span class="text-xs font-medium text-[var(--color-text)]">Automotive</span>

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
   <style>
     .sidebar-item {
       transition: all 0.3s ease;
@@ -58,12 +59,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-2">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
-          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-4">
+          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Products Management</h1>
         </div>
         <div class="flex items-center space-x-4">

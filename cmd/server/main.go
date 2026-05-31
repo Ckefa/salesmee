@@ -40,6 +40,7 @@ func main() {
 		&models.BookingItem{},
 		&models.Payment{},
 		&models.InventoryLog{},
+		&models.ProductImage{},
 		&models.SubscriptionPlan{},
 		&models.BusinessSubscription{},
 	)

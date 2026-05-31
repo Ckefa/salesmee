@@ -21,7 +21,18 @@ type Product struct {
 	// Relationships
 	Business   Business       `gorm:"foreignKey:BusinessID" json:"business,omitempty"`
 	OrderItems []OrderItem    `gorm:"foreignKey:ProductID" json:"order_items,omitempty"`
+	Images     []ProductImage `gorm:"foreignKey:ProductID" json:"images,omitempty"`
 	Inventory  []InventoryLog `gorm:"foreignKey:ProductID" json:"inventory_logs,omitempty"`
+}
+
+type ProductImage struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	ProductID uint      `gorm:"not null;index" json:"product_id"`
+	ImageURL  string    `json:"image_url"`
+	SortOrder int       `gorm:"default:0" json:"sort_order"`
+	CreatedAt time.Time `json:"created_at"`
+
+	Product Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 }
 
 type InventoryLog struct {

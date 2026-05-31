@@ -1,5 +1,19 @@
 {{define "landing_scripts"}}
 <script>
+  if (localStorage.getItem('cookies_accepted') === 'true') {
+    {{if .AnalyticsID}}
+    (function() {
+      var analyticsUrl = 'https://{{.AnalyticsID}}.s.oneflow.com/js/script.js';
+      var script = document.createElement('script');
+      script.src = analyticsUrl;
+      script.defer = true;
+      script.dataset.domain = 'oneflow.com';
+      document.head.appendChild(script);
+    })();
+    {{end}}
+  }
+</script>
+<script>
   // Scroll-triggered reveal (IntersectionObserver)
   document.addEventListener('DOMContentLoaded', function() {
     var reveals = document.querySelectorAll('.reveal');

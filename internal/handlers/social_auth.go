@@ -93,6 +93,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 
 	if business.GoogleID == "" {
 		business.GoogleID = user.ProviderID
+		business.EmailVerified = true
 		if user.AvatarURL != "" {
 			business.AvatarURL = user.AvatarURL
 		}
@@ -164,6 +165,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 
 	if business.FacebookID == "" {
 		business.FacebookID = user.ProviderID
+		business.EmailVerified = true
 		if user.AvatarURL != "" {
 			business.AvatarURL = user.AvatarURL
 		}
@@ -227,16 +229,17 @@ func CompleteRegisterGoogle(c *gin.Context) {
 	}
 
 	user := models.Business{
-		Email:        data.Email,
-		Password:     nil,
-		Name:         data.Name,
-		Username:     data.Username,
-		BusinessType: businessType,
-		Slug:         slug,
-		GoogleID:     data.GoogleID,
-		FacebookID:   data.FacebookID,
-		AvatarURL:    data.AvatarURL,
-		IsPublic:     true,
+		Email:          data.Email,
+		Password:       nil,
+		Name:           data.Name,
+		Username:       data.Username,
+		BusinessType:   businessType,
+		Slug:           slug,
+		GoogleID:       data.GoogleID,
+		FacebookID:     data.FacebookID,
+		AvatarURL:      data.AvatarURL,
+		EmailVerified:  true,
+		IsPublic:       true,
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {

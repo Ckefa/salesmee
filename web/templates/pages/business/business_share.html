@@ -86,6 +86,7 @@
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
   <div class="flex h-screen pt-16">
 {{template "dashboard_sidebar" .}}
 
@@ -329,6 +330,7 @@
         });
     }
   </script>
+  {{template "csrf_script" .}}
 </body>
 
 </html>

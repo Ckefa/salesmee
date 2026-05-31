@@ -11,6 +11,13 @@ func Setup(r *gin.Engine) {
 	// Main routes
 	r.GET("/", handlers.HomePage)
 
+	// SEO
+	r.GET("/sitemap.xml", handlers.SitemapXML)
+	r.GET("/robots.txt", handlers.RobotsTXT)
+
+	// 404 handler
+	r.NoRoute(handlers.Show404)
+
 	// API
 	api := r.Group("/api/v1")
 	{

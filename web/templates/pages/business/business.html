@@ -154,6 +154,8 @@
     </div>
   </header>
 
+  {{template "verify_banner" .}}
+
   <!-- Stats Widgets Bar -->
   <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 lg:px-6 py-3 shrink-0" style="margin-top: 1px;">
     <button onclick="toggleStats()" class="lg:hidden flex items-center justify-between w-full text-sm font-medium text-[var(--color-text)] mb-0 stats-toggle" type="button">
@@ -232,6 +234,38 @@
   {{template "product_picker" .}}
   {{template "service_picker" .}}
   {{template "business_profile" .}}
+
+  {{if not .Business.EmailVerified}}
+  <!-- Email Verification Modal -->
+  <div id="verifyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div class="w-full max-w-md card p-8 shadow-2xl animate-scale-in text-center" onclick="event.stopPropagation()">
+      <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-5">
+        <i class="fas fa-shield-halved text-amber-600 dark:text-amber-400 text-2xl"></i>
+      </div>
+      <h2 class="text-xl font-bold text-[var(--color-text)] mb-2">Verify Your Email</h2>
+      <p class="text-sm text-[var(--color-text-secondary)] mb-6 leading-relaxed">
+        A verification link was sent to <strong class="text-[var(--color-text)]">{{.Business.Email}}</strong>.
+        Please verify your email to unlock full account security and all platform features.
+      </p>
+      <div class="space-y-3">
+        <button onclick="resendVerification()" class="btn btn-primary w-full">
+          <i class="fas fa-envelope mr-2"></i>Resend Verification Email
+        </button>
+        <button onclick="dismissVerifyModal()" class="btn btn-ghost w-full text-sm text-[var(--color-text-secondary)]">
+          I'll do this later
+        </button>
+      </div>
+      <p class="text-xs text-[var(--color-text-muted)] mt-5">
+        Didn't receive the email? Check your spam folder or click resend above.
+      </p>
+    </div>
+  </div>
+  <script>
+    function dismissVerifyModal() {
+      document.getElementById('verifyModal').remove();
+    }
+  </script>
+  {{end}}
 
   <!-- Command Palette Overlay -->
   <div id="cmdOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-center pt-[15vh] animate-fade-in" onclick="closeCommandPalette(event)">
@@ -391,5 +425,6 @@
       }
     });
   </script>
+  {{template "csrf_script" .}}
 </body>
 </html>

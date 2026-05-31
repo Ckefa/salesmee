@@ -179,6 +179,8 @@
       }, 1000);
     }
 
+  {{template "csrf_script" .}}
+  <script>
     function showOtpToast(msg) {
       var existing = document.getElementById('otpToast');
       if (existing) existing.remove();

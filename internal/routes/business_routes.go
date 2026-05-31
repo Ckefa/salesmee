@@ -28,6 +28,15 @@ func SetupBusinessRoutes(r *gin.Engine) {
 	r.POST("/business/login", handlers.Login)
 	r.GET("/business/logout", handlers.Logout)
 
+	// Public - Password Reset
+	r.GET("/business/forgot-password", handlers.ShowForgotPassword)
+	r.POST("/business/forgot-password", handlers.SendForgotPassword)
+	r.GET("/business/reset-password", handlers.ShowResetPassword)
+	r.POST("/business/reset-password", handlers.SubmitResetPassword)
+
+	// Public - Email Verification
+	r.GET("/business/verify", handlers.VerifyBusinessEmail)
+
 	// PUBLIC - Business Google Auth
 	r.GET("/business/auth/google", handlers.InitiateBusinessGoogleAuth)
 	r.GET("/business/auth/google/callback", handlers.HandleBusinessGoogleCallback)
@@ -43,6 +52,9 @@ func SetupBusinessRoutes(r *gin.Engine) {
 	protected.Use(middleware.BizzMiddleware())
 	{
 		// Business Dashboard routes
+		// Email verification (protected)
+		protected.POST("/verify/send", handlers.SendBusinessVerification)
+
 		protected.GET("/", businessHandler.GetBizHome)
 		protected.GET("/dashboard", businessHandler.GetDashboard)
 		protected.GET("/products", businessHandler.GetProducts)

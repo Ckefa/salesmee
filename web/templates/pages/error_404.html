@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}}</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="/static/js/core/theme.js?v=1"></script>
+  {{template "landing_head" .}}
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased font-sans min-h-screen flex items-center justify-center p-4">
+  <div class="text-center max-w-lg">
+    <div class="text-8xl font-extrabold text-slate-200 mb-4">404</div>
+    <h1 class="text-3xl font-bold text-slate-900 mb-3">Page not found</h1>
+    <p class="text-slate-500 mb-8 leading-relaxed">The page you're looking for doesn't exist or has been moved.</p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a href="/" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold shadow-lg hover:shadow-teal-500/30 transition-all">
+        <i class="fas fa-home"></i>
+        Go Home
+      </a>
+      <a href="/guide" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-700 font-semibold border border-slate-200 hover:bg-slate-50 transition-all">
+        <i class="fas fa-book"></i>
+        View Guide
+      </a>
+    </div>
+  </div>
+</body>
+</html>

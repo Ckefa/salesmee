@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strings"
@@ -278,6 +280,19 @@ func RegisterStep3(c *gin.Context) {
 		})
 		return
 	}
+
+	// Send verification email
+	b := make([]byte, 32)
+	rand.Read(b)
+	verificationToken := hex.EncodeToString(b)
+	db.DB.Model(&user).Update("verification_token", verificationToken)
+
+	scheme := "https"
+	if c.Request.TLS == nil {
+		scheme = "http"
+	}
+	verifyLink := scheme + "://" + c.Request.Host + "/business/verify?token=" + verificationToken
+	services.SendVerificationEmail(user.Email, verifyLink)
 
 	RegStore.Delete(tok)
 

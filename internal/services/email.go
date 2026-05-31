@@ -16,7 +16,15 @@ func getFromEmail() string {
 	return from
 }
 
+func isResendEnabled() bool {
+	return os.Getenv("RESEND") == "true"
+}
+
 func SendOTPEmail(toEmail, otpCode string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your OneFlow verification code\n  Body: Your verification code is: %s\n  Expires in: 10 minutes", toEmail, otpCode)
+		return nil
+	}
 	apiKey := os.Getenv("RESEND_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
@@ -72,6 +80,10 @@ func SendOTPEmail(toEmail, otpCode string) error {
 }
 
 func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment successful - OneFlow %s plan\n  Body: Hi %s, your %s plan is now active.", toEmail, planName, businessName, planName)
+		return nil
+	}
 	apiKey := os.Getenv("RESEND_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
@@ -125,6 +137,10 @@ func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 }
 
 func SendSubscriptionExpired(toEmail, businessName string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your OneFlow subscription has ended\n  Body: Hi %s, your OneFlow subscription has ended. Your account has been downgraded to the Free plan.", toEmail, businessName)
+		return nil
+	}
 	apiKey := os.Getenv("RESEND_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
@@ -177,7 +193,131 @@ func SendSubscriptionExpired(toEmail, businessName string) error {
 	return nil
 }
 
+func SendPasswordResetEmail(toEmail, resetLink string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Reset your OneFlow password\n  Body: Click the link below to reset your password (expires in 1 hour):\n  %s", toEmail, resetLink)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128273;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Reset your password</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Click the button below to reset your password. This link expires in 1 hour.
+					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488, #0891b2); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">Reset Password</a>
+					</div>
+					<p style="color: #94a3b8; font-size: 12px; line-height: 1.5; margin: 24px 0 0;">
+						If you didn't request a password reset, you can safely ignore this email.
+					</p>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, resetLink)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: "Reset your OneFlow password",
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send password reset email: %w", err)
+	}
+
+	log.Printf("Password reset email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
+func SendVerificationEmail(toEmail, verifyLink string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Verify your OneFlow email address\n  Body: Click the link below to verify your email:\n  %s", toEmail, verifyLink)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#10071;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Verify your email</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Click the button below to verify your email address and activate your account.
+					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488, #0891b2); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">Verify Email</a>
+					</div>
+					<p style="color: #94a3b8; font-size: 12px; line-height: 1.5; margin: 24px 0 0;">
+						If you didn't create an account, you can safely ignore this email.
+					</p>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, verifyLink)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: "Verify your OneFlow email address",
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send verification email: %w", err)
+	}
+
+	log.Printf("Verification email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
 func SendSubscriptionFailed(toEmail, businessName string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment failed - OneFlow subscription\n  Body: Hi %s, we were unable to process your latest payment. Please update your payment method.", toEmail, businessName)
+		return nil
+	}
 	apiKey := os.Getenv("RESEND_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")

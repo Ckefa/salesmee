@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"oneflow/internal/db"
 	"oneflow/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,15 @@ func BizzMiddleware() gin.HandlerFunc {
 
 		claims, err := services.ValidateToken(token)
 		if err != nil {
+			c.Redirect(http.StatusFound, "/business/login")
+			c.Abort()
+			return
+		}
+
+		var exists bool
+		db.DB.Raw("SELECT EXISTS(SELECT 1 FROM businesses WHERE id = ?)", claims.UserID).Scan(&exists)
+		if !exists {
+			c.SetCookie("token", "", -1, "/", "", false, true)
 			c.Redirect(http.StatusFound, "/business/login")
 			c.Abort()
 			return

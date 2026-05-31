@@ -59,6 +59,7 @@
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
 
   <div class="flex h-[calc(100vh-4rem)]">
     {{template "dashboard_sidebar" .}}
@@ -67,6 +68,7 @@
     </main>
   </div>
   {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
   {{template "checkout_scripts" .}}
 </body>
 </html>

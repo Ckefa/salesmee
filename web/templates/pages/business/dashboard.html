@@ -122,6 +122,8 @@
     </div>
   </header>
 
+  {{template "verify_banner" .}}
+
   <div class="flex h-[calc(100vh-4rem)]">
 {{template "dashboard_sidebar" .}}
 
@@ -359,6 +361,31 @@
 
     function showBusinessProfile() { var el = document.getElementById('businessProfileModal'); if (el) el.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
     function hideBusinessProfile() { var el = document.getElementById('businessProfileModal'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; }
+
+    function resendVerification() {
+      var btn = event.target.closest('button');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Sending'; }
+      fetch('/business/verify/send', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.message || d.message === 'Email already verified') {
+            document.getElementById('verifyBanner').remove();
+            showNotification(d.message || 'Email verified!', 'success');
+          } else {
+            showNotification(d.error || 'Failed to send', 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend Email'; }
+          }
+        })
+        .catch(function() {
+          showNotification('Failed to send verification email', 'error');
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend Email'; }
+        });
+    }
+    function dismissVerifyBanner() {
+      var el = document.getElementById('verifyBanner');
+      if (el) el.remove();
+    }
   </script>
+  {{template "csrf_script" .}}
 </body>
 </html>

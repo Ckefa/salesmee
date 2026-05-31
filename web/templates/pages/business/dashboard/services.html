@@ -122,6 +122,7 @@
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
 
   <div class="flex h-screen pt-16">
 {{template "dashboard_sidebar" .}}
@@ -564,6 +565,7 @@
 
   {{template "business_profile" .}}
   {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
 </body>
 
 </html>

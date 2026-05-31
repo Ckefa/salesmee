@@ -685,6 +685,45 @@
     }
   }
 
+  /* --- Collapsible Stats (Mobile) --- */
+  #statsGrid {
+    display: grid;
+  }
+  @media (max-width: 1023px) {
+    #statsGrid {
+      display: none;
+    }
+    #statsGrid.expanded {
+      display: grid;
+    }
+    .stats-toggle .stats-chevron {
+      transition: transform 0.2s ease;
+    }
+    .stats-toggle.expanded .stats-chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  /* --- Dashboard Sidebar (Mobile) --- */
+  .dashboard-sidebar {
+    display: block;
+  }
+  @media (max-width: 1023px) {
+    .dashboard-sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform var(--transition-slow);
+      box-shadow: var(--shadow-xl);
+    }
+    .dashboard-sidebar.open {
+      transform: translateX(0);
+    }
+  }
+
   /* --- Bottom Navigation (Mobile) --- */
   .bottom-nav {
     position: fixed;

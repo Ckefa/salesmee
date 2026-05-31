@@ -1,0 +1,23 @@
+{{define "mobile_bottom_nav"}}
+{{$active := .ActivePage}}
+<nav class="bottom-nav hide-desktop hide-tablet">
+  <button onclick="handleChatsNav()" class="bottom-nav-item {{if eq $active `chat`}}active{{end}}">
+    <i class="fas fa-comments"></i>
+    <span>Chats</span>
+  </button>
+  <a href="/business/dashboard" class="bottom-nav-item {{if eq $active `dashboard`}}active{{end}}">
+    <i class="fas fa-chart-line"></i>
+    <span>Dashboard</span>
+  </a>
+</nav>
+<script>
+function handleChatsNav() {
+  var path = window.location.pathname.replace(/\/+$/, '');
+  if (path === '/business') {
+    if (typeof toggleSidebar === 'function') toggleSidebar();
+  } else {
+    window.location.href = '/business';
+  }
+}
+</script>
+{{end}}

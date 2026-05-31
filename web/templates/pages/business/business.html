@@ -39,78 +39,127 @@
     <div class="flex items-center gap-1">
       <div hx-get="/business/subscription/badge" hx-trigger="load" hx-swap="innerHTML" class="flex items-center"></div>
 
-      <!-- Theme Toggle -->
-      <button class="theme-toggle" title="Toggle theme">
-        <i class="fas fa-sun theme-sun"></i>
-        <i class="fas fa-moon theme-moon hidden"></i>
-      </button>
-
-      <!-- Notification Bell -->
-      <div class="relative" id="notifContainer">
-        <button onclick="toggleNotifications()" class="btn btn-icon btn-ghost relative">
-          <i class="fas fa-bell text-lg"></i>
-          {{if gt .TotalPending 0}}
-          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
-          {{end}}
+      <!-- Desktop: action items shown inline -->
+      <div class="hidden lg:flex items-center gap-1">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" title="Toggle theme">
+          <i class="fas fa-sun theme-sun"></i>
+          <i class="fas fa-moon theme-moon hidden"></i>
         </button>
-        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-72 card shadow-lg z-50 overflow-hidden animate-fade-in-down">
-          <div class="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-            <span class="text-sm font-semibold text-[var(--color-text)]">Notifications</span>
-            <span class="text-xs text-[var(--color-text-muted)]">{{.TotalPending}} pending</span>
-          </div>
-          <div class="max-h-72 overflow-y-auto">
-            {{if gt .PendingOrderCount 0}}
-            <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
-              <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 dark:bg-amber-900/30"><i class="fas fa-shopping-cart text-amber-600 dark:text-amber-400 text-xs"></i></div>
-              <div><p class="text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingOrderCount}}</span> pending orders</p><p class="text-xs text-[var(--color-text-muted)]">Awaiting your action</p></div>
-            </div>
+
+        <!-- Notification Bell -->
+        <div class="relative" id="notifContainer">
+          <button onclick="toggleNotifications()" class="btn btn-icon btn-ghost relative">
+            <i class="fas fa-bell text-lg"></i>
+            {{if gt .TotalPending 0}}
+            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
             {{end}}
-            {{if gt .PendingBookingCount 0}}
-            <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
-              <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 dark:bg-purple-900/30"><i class="fas fa-calendar text-purple-600 dark:text-purple-400 text-xs"></i></div>
-              <div><p class="text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingBookingCount}}</span> pending bookings</p><p class="text-xs text-[var(--color-text-muted)]">Need confirmation</p></div>
+          </button>
+          <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-72 card shadow-lg z-50 overflow-hidden animate-fade-in-down">
+            <div class="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+              <span class="text-sm font-semibold text-[var(--color-text)]">Notifications</span>
+              <span class="text-xs text-[var(--color-text-muted)]">{{.TotalPending}} pending</span>
             </div>
-            {{end}}
-            <div class="px-4 py-3 text-center text-xs text-[var(--color-text-muted)]">
-              {{if eq .TotalPending 0}}All caught up! 🎉{{else}}<a href="/business/dashboard" class="link">Manage all in Dashboard</a>{{end}}
+            <div class="max-h-72 overflow-y-auto">
+              {{if gt .PendingOrderCount 0}}
+              <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 dark:bg-amber-900/30"><i class="fas fa-shopping-cart text-amber-600 dark:text-amber-400 text-xs"></i></div>
+                <div><p class="text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingOrderCount}}</span> pending orders</p><p class="text-xs text-[var(--color-text-muted)]">Awaiting your action</p></div>
+              </div>
+              {{end}}
+              {{if gt .PendingBookingCount 0}}
+              <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 dark:bg-purple-900/30"><i class="fas fa-calendar text-purple-600 dark:text-purple-400 text-xs"></i></div>
+                <div><p class="text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingBookingCount}}</span> pending bookings</p><p class="text-xs text-[var(--color-text-muted)]">Need confirmation</p></div>
+              </div>
+              {{end}}
+              <div class="px-4 py-3 text-center text-xs text-[var(--color-text-muted)]">
+                {{if eq .TotalPending 0}}All caught up! 🎉{{else}}<a href="/business/dashboard" class="link">Manage all in Dashboard</a>{{end}}
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Profile -->
+        <button onclick="showBusinessProfile()" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors">
+          {{if .Business.Logo}}
+          <img src="/static/{{.Business.Logo}}" class="avatar avatar-sm">
+          {{else}}
+          <div class="avatar avatar-sm avatar-placeholder"><i class="fas fa-store text-white text-[10px]"></i></div>
+          {{end}}
+          <span class="text-sm font-medium text-[var(--color-text)] hide-mobile hidden sm:block">{{.Business.Name}}</span>
+        </button>
+
+        <div class="flex items-center gap-1">
+          <a href="/business/share" class="btn btn-icon btn-ghost" title="Share">
+            <i class="fas fa-share-alt text-sm"></i>
+          </a>
+          <a href="/business/dashboard" class="btn btn-icon btn-ghost relative" title="Dashboard">
+            <i class="fas fa-chart-line text-sm"></i>
+            {{if gt .TotalPending 0}}
+            <span class="animate-shake absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
+            {{end}}
+          </a>
+          <button onclick="showNewClientModal()" class="btn btn-icon btn-ghost" title="New Customer">
+            <i class="fas fa-plus text-sm"></i>
+          </button>
+          <a href="/business/logout" class="btn btn-icon btn-ghost hover:text-rose-500" title="Logout">
+            <i class="fas fa-sign-out-alt text-sm"></i>
+          </a>
+        </div>
       </div>
 
-      <!-- Profile -->
-      <button onclick="showBusinessProfile()" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors">
-        {{if .Business.Logo}}
-        <img src="/static/{{.Business.Logo}}" class="avatar avatar-sm">
-        {{else}}
-        <div class="avatar avatar-sm avatar-placeholder"><i class="fas fa-store text-white text-[10px]"></i></div>
-        {{end}}
-        <span class="text-sm font-medium text-[var(--color-text)] hide-mobile hidden sm:block">{{.Business.Name}}</span>
-      </button>
-
-      <div class="flex items-center gap-1">
-        <a href="/business/share" class="btn btn-icon btn-ghost" title="Share">
-          <i class="fas fa-share-alt text-sm"></i>
-        </a>
-        <a href="/business/dashboard" class="btn btn-icon btn-ghost relative" title="Dashboard">
-          <i class="fas fa-chart-line text-sm"></i>
-          {{if gt .TotalPending 0}}
-          <span class="animate-shake absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
-          {{end}}
-        </a>
-        <button onclick="showNewClientModal()" class="btn btn-icon btn-ghost" title="New Customer">
-          <i class="fas fa-plus text-sm"></i>
+      <!-- Mobile: overflow menu trigger -->
+      <div class="relative lg:hidden">
+        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
+          <i class="fas fa-ellipsis-v text-lg"></i>
         </button>
-        <a href="/business/logout" class="btn btn-icon btn-ghost hover:text-rose-500" title="Logout">
-          <i class="fas fa-sign-out-alt text-sm"></i>
-        </a>
+        <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+          <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <i class="fas fa-adjust w-5 text-center"></i>
+            <span>Toggle Theme</span>
+          </button>
+          <button onclick="toggleNotifications()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors relative">
+            <i class="fas fa-bell w-5 text-center"></i>
+            <span>Notifications</span>
+            {{if gt .TotalPending 0}}
+            <span class="ml-auto w-5 h-5 text-white text-[9px] font-bold rounded-full flex items-center justify-center" style="background: var(--color-info)">{{.TotalPending}}</span>
+            {{end}}
+          </button>
+          <div class="border-t border-[var(--color-border-light)] my-1"></div>
+          <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <i class="fas fa-store w-5 text-center"></i>
+            <span>Business Profile</span>
+          </button>
+          <a href="/business/share" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <i class="fas fa-share-alt w-5 text-center"></i>
+            <span>Share</span>
+          </a>
+          <a href="/business/dashboard" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <i class="fas fa-chart-line w-5 text-center"></i>
+            <span>Dashboard</span>
+          </a>
+          <button onclick="showNewClientModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <i class="fas fa-plus w-5 text-center"></i>
+            <span>New Customer</span>
+          </button>
+          <div class="border-t border-[var(--color-border-light)] my-1"></div>
+          <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <i class="fas fa-sign-out-alt w-5 text-center"></i>
+            <span>Logout</span>
+          </a>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- Stats Widgets Bar -->
   <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 lg:px-6 py-3 shrink-0" style="margin-top: 1px;">
-    <div class="flex items-center gap-4 overflow-x-auto scrollbar-none">
+    <button onclick="toggleStats()" class="lg:hidden flex items-center justify-between w-full text-sm font-medium text-[var(--color-text)] mb-0 stats-toggle" type="button">
+      <span><i class="fas fa-chart-simple mr-2"></i>Stats &amp; Overview</span>
+      <i class="fas fa-chevron-down stats-chevron transition-transform duration-200"></i>
+    </button>
+    <div id="statsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-0 lg:mt-0">
       <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent);">
         <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 15%, transparent);">
           <i class="fas fa-comments" style="color: var(--color-primary); font-size: 0.875rem;"></i>
@@ -173,29 +222,7 @@
     </main>
   </div>
 
-  <!-- Mobile Bottom Navigation -->
-  <nav class="bottom-nav hide-desktop hide-tablet">
-    <a href="/business" class="bottom-nav-item active">
-      <i class="fas fa-comments"></i>
-      <span>Chats</span>
-    </a>
-    <a href="/business/dashboard" class="bottom-nav-item">
-      <i class="fas fa-chart-line"></i>
-      <span>Dashboard</span>
-    </a>
-    <button onclick="showNewClientModal()" class="bottom-nav-item">
-      <i class="fas fa-plus-circle"></i>
-      <span>New</span>
-    </a>
-    <a href="/business/share" class="bottom-nav-item">
-      <i class="fas fa-share-alt"></i>
-      <span>Share</span>
-    </a>
-    <button class="bottom-nav-item" onclick="OneFlowTheme.toggle()">
-      <i class="fas fa-adjust"></i>
-      <span>Theme</span>
-    </button>
-  </nav>
+  {{template "mobile_bottom_nav" .}}
 
   <!-- Modals -->
   {{template "new-client" .}}

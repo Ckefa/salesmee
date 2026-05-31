@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "landing_head" .}}
+  <title>Account Deletion Request — OneFlow</title>
+  <style>
+    .form-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.875rem; transition: border-color 0.2s; }
+    .form-input:focus { outline: none; border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20,184,166,0.15); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased font-sans">
+  {{template "landing_nav" .}}
+
+  <main class="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto">
+    {{if .Submitted}}
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-check-circle text-teal-600 text-2xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 mb-2">Deletion Request Submitted</h1>
+        <p class="text-slate-600 mb-4">Your account deletion request has been received.</p>
+        <div class="bg-slate-50 rounded-xl p-4 mb-6 text-left text-sm">
+          <p class="text-slate-700"><strong>Request ID:</strong> <span class="font-mono text-teal-700">{{.RequestID}}</span></p>
+          <p class="text-slate-500 mt-1">Please save this ID to check the status of your request.</p>
+        </div>
+        <div class="text-left text-sm text-slate-600 space-y-2">
+          <p><strong>What happens next:</strong></p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>We will process your deletion request within 30 days.</li>
+            <li>Your account, profile, messages, and associated data will be permanently deleted.</li>
+            <li>You will receive a confirmation email once the deletion is complete.</li>
+            <li>If you are a client connected to businesses, those businesses will no longer be able to message you through the platform.</li>
+          </ul>
+        </div>
+        <a href="/" class="inline-flex items-center mt-6 px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm font-semibold shadow-lg hover:from-teal-600 hover:to-cyan-700 transition-all">
+          <i class="fas fa-home mr-2"></i> Return Home
+        </a>
+      </div>
+    {{else}}
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+        <h1 class="text-2xl font-bold text-slate-900 mb-2">Request Account Deletion</h1>
+        <p class="text-sm text-slate-500 mb-6">Submit a request to permanently delete your OneFlow account and associated data.</p>
+
+        <form method="POST" action="/user-deletion" class="space-y-5">
+          <input type="hidden" name="external_id" value="{{.ExternalID}}">
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="email" name="email" required class="form-input" placeholder="account@example.com" value="{{.Email}}">
+            <p class="text-xs text-slate-400 mt-1">The email address associated with your OneFlow account.</p>
+          </div>
+
+          <div>
+            <label for="account_type" class="block text-sm font-medium text-slate-700 mb-1">Account Type</label>
+            <select id="account_type" name="account_type" required class="form-input">
+              <option value="">Select account type...</option>
+              <option value="business" {{if eq .AccountType "business"}}selected{{end}}>Business Account</option>
+              <option value="client" {{if eq .AccountType "client"}}selected{{end}}>Client Account</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="reason" class="block text-sm font-medium text-slate-700 mb-1">Reason for Deletion (optional)</label>
+            <textarea id="reason" name="reason" rows="3" class="form-input" placeholder="Tell us why you're leaving..."></textarea>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+            <div class="flex items-start gap-3">
+              <i class="fas fa-exclamation-triangle mt-0.5 text-amber-600"></i>
+              <div>
+                <p class="font-medium">This action cannot be undone.</p>
+                <p class="mt-1 text-amber-700">Deleting your account will permanently remove your profile, messages, orders, bookings, and all associated data. Connected businesses or clients will lose access to your conversations.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <input type="checkbox" id="confirm" name="confirm" required class="mt-1 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+            <label for="confirm" class="text-sm text-slate-600">I understand that this action is permanent and cannot be reversed.</label>
+          </div>
+
+          <button type="submit" class="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-semibold shadow-lg hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fas fa-trash-alt mr-2"></i> Delete My Account
+          </button>
+        </form>
+
+        <p class="text-xs text-slate-400 mt-6 text-center">
+          This URL is provided for compliance with Facebook and Google OAuth data deletion requirements.
+          <a href="/privacy" class="text-teal-600 hover:underline">Privacy Policy</a>
+        </p>
+      </div>
+    {{end}}
+  </main>
+
+  {{template "landing_footer" .}}
+  {{template "landing_scripts" .}}
+</body>
+</html>

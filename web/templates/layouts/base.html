@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{.Title}} - OneFlow</title>
   <meta name="color-scheme" content="light dark">
+  <meta name="description" content="OneFlow — CRM Powered by Real-Time Chat">
+  <meta property="og:title" content="{{.Title}} - OneFlow">
+  <meta property="og:description" content="Turn every conversation into a sale.">
+  <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,8 +20,46 @@
 <body class="h-screen overflow-hidden">
   {{template "content" .}}
 
+  {{template "cookie_consent" .}}
+
   <script src="/static/js/core/app.js?v=1"></script>
   <script src="/static/js/modules/shared.js?v=1"></script>
+
+  <script>
+    // Auto-inject CSRF token into all forms
+    document.addEventListener('DOMContentLoaded', function() {
+      var csrfToken = getCookie('csrf_token');
+      if (csrfToken) {
+        document.querySelectorAll('form').forEach(function(form) {
+          var method = (form.method || 'GET').toUpperCase();
+          if (method !== 'GET') {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_csrf';
+            input.value = csrfToken;
+            form.appendChild(input);
+          }
+        });
+      }
+    });
+    function getCookie(name) {
+      var value = '; ' + document.cookie;
+      var parts = value.split('; ' + name + '=');
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    if (localStorage.getItem('cookies_accepted') === 'true') {
+      {{if .AnalyticsID}}
+      (function() {
+        var s = document.createElement('script');
+        s.src = 'https://{{.AnalyticsID}}.s.oneflow.com/js/script.js';
+        s.defer = true;
+        s.dataset.domain = 'oneflow.com';
+        document.head.appendChild(s);
+      })();
+      {{end}}
+    }
+  </script>
+
   {{if .ExtraScripts}}{{.ExtraScripts}}{{end}}
 </body>
 </html>

@@ -1,7 +1,7 @@
 {{define "client_media_message"}}
 {{if eq .Sender "client"}}
 <div class="flex justify-end">
-  <div class="max-w-xs lg:max-w-md">
+  <div class="max-w-[85%] lg:max-w-md">
     <div class="bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg overflow-hidden">
       {{if eq .MediaType "image"}}
       <img src="/static/{{.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
@@ -33,7 +33,7 @@
 </div>
 {{else}}
 <div class="flex justify-start">
-  <div class="max-w-xs lg:max-w-md">
+  <div class="max-w-[85%] lg:max-w-md">
     <div class="bg-[var(--color-surface-tertiary)] text-[var(--color-text)] rounded-lg overflow-hidden">
       {{if eq .MediaType "image"}}
       <img src="/static/{{.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">

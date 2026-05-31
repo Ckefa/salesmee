@@ -11,6 +11,13 @@ func Setup(r *gin.Engine) {
 	// Main routes
 	r.GET("/", handlers.HomePage)
 
+	// SEO
+	r.GET("/sitemap.xml", handlers.SitemapXML)
+	r.GET("/robots.txt", handlers.RobotsTXT)
+
+	// 404 handler
+	r.NoRoute(handlers.Show404)
+
 	// API
 	api := r.Group("/api/v1")
 	{
@@ -41,6 +48,16 @@ func Setup(r *gin.Engine) {
 			dev.DELETE("/items/:id", handlers.DeleteItem)
 		}
 	}
+
+	// Guide
+	r.GET("/guide", handlers.ShowGuide)
+
+	// Legal pages
+	r.GET("/privacy", handlers.ShowPrivacy)
+	r.GET("/terms", handlers.ShowTerms)
+	r.GET("/cookies", handlers.ShowCookies)
+	r.GET("/user-deletion", handlers.ShowUserDeletion)
+	r.POST("/user-deletion", handlers.SubmitUserDeletion)
 
 	// Public business profile
 	r.GET("/b/:slug", business.GetPublicProfile)

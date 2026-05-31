@@ -102,6 +102,7 @@
             </div>
             <span class="text-sm text-[var(--color-text-secondary)]">Remember me</span>
           </label>
+          <a href="/business/forgot-password" class="text-sm text-teal-600 hover:text-teal-500 font-medium transition-colors">Forgot password?</a>
         </div>
 
         <button type="submit" id="loginBtn"
@@ -164,5 +165,6 @@
       if (this.value.length >= 6) { err.classList.add('hidden'); this.classList.remove('input-error'); }
     });
   </script>
+  {{template "csrf_script" .}}
 </body>
 </html>

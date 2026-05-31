@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
   <style>
     .sidebar-item {
       transition: all 0.3s ease;
@@ -58,36 +59,70 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-4">
+          <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Services Management</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <button onclick="showAddServiceModal()"
-            class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-            <i class="fas fa-plus"></i>
-            <span>Add Service</span>
-          </button>
-          <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
-            <i class="fas fa-sun theme-sun"></i>
-            <i class="fas fa-moon theme-moon hidden"></i>
-          </button>
-          <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
-            {{if .Business.Logo}}
-            <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-            {{else}}
-            <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+          <!-- Desktop: action items shown inline -->
+          <div class="hidden lg:flex items-center space-x-4">
+            <button onclick="showAddServiceModal()"
+              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              <i class="fas fa-plus"></i>
+              <span>Add Service</span>
+            </button>
+            <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+              {{if .Business.Logo}}
+              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+              {{else}}
+              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+              </div>
+              {{end}}
+              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+            </button>
+            <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
+          </div>
+
+          <!-- Mobile: overflow menu trigger -->
+          <div class="relative lg:hidden">
+            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+              <button onclick="showAddServiceModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-plus w-5 text-center"></i>
+                <span>Add Service</span>
+              </button>
+              <div class="border-t border-[var(--color-border-light)] my-1"></div>
+              <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-adjust w-5 text-center"></i>
+                <span>Toggle Theme</span>
+              </button>
+              <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-store w-5 text-center"></i>
+                <span>Business Profile</span>
+              </button>
+              <div class="border-t border-[var(--color-border-light)] my-1"></div>
+              <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                <span>Logout</span>
+              </a>
             </div>
-            {{end}}
-            <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
-          </button>
-          <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
+          </div>
         </div>
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
 
   <div class="flex h-screen pt-16">
 {{template "dashboard_sidebar" .}}
@@ -191,7 +226,7 @@
 
   <!-- Add/Edit Service Modal -->
   <div id="serviceModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
+    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
       <div class="mt-3">
         <h3 class="text-lg font-medium text-[var(--color-text)]" id="modalTitle">Add Service</h3>
         <form id="serviceForm" class="mt-4 space-y-4">
@@ -529,6 +564,8 @@
   </script>
 
   {{template "business_profile" .}}
+  {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
 </body>
 
 </html>

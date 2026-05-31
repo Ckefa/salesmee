@@ -84,15 +84,11 @@ func GetMessages(c *gin.Context) {
 			CreatedAt: msg.CreatedAt,
 		}
 		messageObjs = append(messageObjs, messageObj)
-		log.Printf("Added message ID=%d, Content='%s', Sender='%s', ConvoID=%d",
-			msg.ID, msg.Content, msg.Sender, msg.ConversationID)
 	}
 
 	// Fetch orders
 	var orders []models.Order
 	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&orders)
-	log.Printf("Found %d orders for client_id=%d, business_id=%d", len(orders), client.ID, businessID)
-
 	for _, order := range orders {
 		var orderItems []models.OrderItem
 		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
@@ -176,14 +172,11 @@ func GetMessages(c *gin.Context) {
 			Sender:    order.Sender,
 			CreatedAt: order.CreatedAt,
 		})
-		log.Printf("Added order ID=%d to MessageObj", order.ID)
 	}
 
 	// Fetch bookings
 	var bookings []models.Booking
 	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&bookings)
-	log.Printf("Found %d bookings for client_id=%d, business_id=%d", len(bookings), client.ID, businessID)
-
 	for _, booking := range bookings {
 		var serviceName string
 		var serviceNames []string
@@ -224,7 +217,6 @@ func GetMessages(c *gin.Context) {
 			Sender:    booking.Sender,
 			CreatedAt: booking.CreatedAt,
 		})
-		log.Printf("Added booking ID=%d to MessageObj", booking.ID)
 	}
 
 	// Sort messageObjs by CreatedAt

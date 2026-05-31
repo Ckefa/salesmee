@@ -685,6 +685,45 @@
     }
   }
 
+  /* --- Collapsible Stats (Mobile) --- */
+  #statsGrid {
+    display: grid;
+  }
+  @media (max-width: 1023px) {
+    #statsGrid {
+      display: none;
+    }
+    #statsGrid.expanded {
+      display: grid;
+    }
+    .stats-toggle .stats-chevron {
+      transition: transform 0.2s ease;
+    }
+    .stats-toggle.expanded .stats-chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  /* --- Dashboard Sidebar (Mobile) --- */
+  .dashboard-sidebar {
+    display: block;
+  }
+  @media (max-width: 1023px) {
+    .dashboard-sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform var(--transition-slow);
+      box-shadow: var(--shadow-xl);
+    }
+    .dashboard-sidebar.open {
+      transform: translateX(0);
+    }
+  }
+
   /* --- Bottom Navigation (Mobile) --- */
   .bottom-nav {
     position: fixed;
@@ -720,6 +759,20 @@
   }
   .bottom-nav-item.active {
     color: var(--color-primary);
+    background: var(--color-primary-light);
+    border-radius: 8px;
+    position: relative;
+  }
+  .bottom-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: var(--color-primary);
+    border-radius: 0 0 4px 4px;
   }
   .bottom-nav-item:hover {
     color: var(--color-text-secondary);

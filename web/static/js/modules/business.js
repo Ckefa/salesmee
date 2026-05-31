@@ -20,6 +20,12 @@ function loadClient(clientId) {
     target: '#chat-area',
     swap: 'innerHTML'
   });
+  if (window.innerWidth < 1024) {
+    var layout = document.getElementById('mainLayout');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (layout) layout.classList.remove('sidebar-open');
+    if (overlay) overlay.classList.add('hidden');
+  }
 }
 
 function deleteClient(clientId, clientName) {
@@ -107,6 +113,13 @@ function openPaymentModal(clientId) {
     document.body.appendChild(modal);
   }
   modal.classList.remove('hidden');
+}
+
+function toggleStats() {
+  var grid = document.getElementById('statsGrid');
+  var btn = document.querySelector('.stats-toggle');
+  if (grid) grid.classList.toggle('expanded');
+  if (btn) btn.classList.toggle('expanded');
 }
 
 function toggleActionButtons() {

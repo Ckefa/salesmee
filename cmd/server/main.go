@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"oneflow/internal/db"
+	"oneflow/internal/handlers/admin"
+	"oneflow/internal/middleware"
 	"oneflow/internal/models"
 	"oneflow/internal/routes"
 	"time"
@@ -43,6 +45,9 @@ func main() {
 		&models.ProductImage{},
 		&models.SubscriptionPlan{},
 		&models.BusinessSubscription{},
+		&models.PasswordResetToken{},
+		&models.Admin{},
+		&models.AuditLog{},
 	)
 	log.Println("✅ Database auto-migration completed successfully")
 
@@ -55,10 +60,18 @@ func main() {
 	// Seed default subscription plans
 	seedSubscriptionPlans(db.DB)
 
+	// Seed admin account
+	admin.SeedAdmin()
+
 	r := gin.Default()
 	if err := r.SetTrustedProxies(nil); err != nil {
 		log.Fatalf("failed to set trusted proxies: %v", err)
 	}
+
+	// Rate limiting (before CSRF so blocked requests don't need tokens)
+	r.Use(middleware.RateLimitGlobal())
+	// Apply CSRF protection globally
+	r.Use(middleware.CSRFMiddleware())
 	// Collect template files
 	var files []string
 
@@ -119,6 +132,7 @@ func main() {
 	routes.Setup(r)
 	routes.SetupBusinessRoutes(r)
 	routes.SetupClientRoutes(r)
+	routes.SetupAdminRoutes(r)
 
 	log.Println("🚀 Running on :" + os.Getenv("APP_PORT"))
 	r.Run(":" + os.Getenv("APP_PORT"))
@@ -191,7 +205,7 @@ func seedSubscriptionPlans(d *gorm.DB) {
 	}
 
 	for _, plan := range plans {
-		d.Create(&plan)
+		d.FirstOrCreate(&plan, models.SubscriptionPlan{Code: plan.Code})
 	}
 
 	log.Println("✅ Subscription plans seeded successfully")

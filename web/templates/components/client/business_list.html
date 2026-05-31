@@ -12,7 +12,12 @@
 }}
 <aside class="sidebar" id="clientSidebar">
   <div class="p-4 border-b border-[var(--color-border)] shrink-0">
-    <h2 class="font-semibold text-[var(--color-text)]">Your Businesses</h2>
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold text-[var(--color-text)]">Your Businesses</h2>
+      <button onclick="toggleClientSidebar()" class="lg:hidden btn btn-icon btn-ghost text-[var(--color-text-muted)] hover:text-[var(--color-text)] -mr-1" title="Close sidebar" aria-label="Close sidebar">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
     <div class="input-with-icon mt-2">
       <i class="fas fa-search input-icon"></i>
       <input type="text" id="businessSearch" placeholder="Search businesses..."
@@ -76,7 +81,7 @@
       <h3 class="empty-state-title">No businesses connected yet</h3>
       <p class="empty-state-text">Discover and connect with businesses to start chatting, ordering, and booking services.</p>
       <div class="empty-state-cta">
-        <a href="/client/discover" class="btn btn-primary btn-sm">
+        <a href="/client/discover" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="toggleClientSidebar()" class="btn btn-primary btn-sm">
           <i class="fas fa-compass"></i>
           Find Businesses
         </a>
@@ -86,7 +91,7 @@
   </div>
 
   <div class="p-3 border-t border-[var(--color-border)] shrink-0">
-    <a href="/client/discover"
+    <a href="/client/discover" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="toggleClientSidebar()"
       class="flex items-center justify-center gap-2 btn btn-ghost w-full text-sm">
       <i class="fas fa-compass"></i>
       <span>Discover Businesses</span>

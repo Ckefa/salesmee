@@ -1,5 +1,11 @@
 {{ define "biz-sidebar" }}
 <aside class="sidebar" id="bizSidebar">
+  <div class="lg:hidden flex items-center justify-between px-4 pt-4 pb-2 border-b border-[var(--color-border)] shrink-0">
+    <span class="text-sm font-semibold text-[var(--color-text)]">Clients</span>
+    <button onclick="toggleSidebar()" class="btn btn-icon btn-ghost btn-icon-sm">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
   <div class="p-3 border-b border-[var(--color-border)] shrink-0">
     <div class="input-with-icon">
       <i class="fas fa-search input-icon"></i>

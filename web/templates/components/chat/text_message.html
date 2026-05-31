@@ -1,6 +1,6 @@
 {{define "text_message"}}
 <div class="flex {{if eq .Sender "business"}}justify-end{{else}}justify-start{{end}} message-item" data-message-text="{{.Value}}">
-  <div class="max-w-xs lg:max-w-md">
+  <div class="max-w-[85%] lg:max-w-md">
     <div class="{{if eq .Sender "business"}}bg-[var(--color-primary)] text-white{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text)]{{end}} rounded-lg
       px-4 py-2">
       <p class="text-sm">{{.Value}}</p>

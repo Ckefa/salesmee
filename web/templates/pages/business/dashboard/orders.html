@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
   <style>
     .table-row-hover:hover {
       background-color: var(--color-surface-secondary);
@@ -39,49 +40,95 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-4">
+          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Orders Management</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <a href="/business"
-            class="btn btn-secondary px-4 py-2 rounded-lg flex items-center space-x-2">
-            <i class="fas fa-users"></i>
-            <span>Clients</span>
-          </a>
-          <button onclick="showQuickOrderModal()"
-            class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Quick Order</span>
-          </button>
-          <button onclick="showQuickBookingModal()"
-            class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-            <i class="fas fa-calendar-plus"></i>
-            <span>Quick Booking</span>
-          </button>
-          <button class="theme-toggle text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
-            <i class="fas fa-sun theme-sun"></i>
-            <i class="fas fa-moon theme-moon hidden"></i>
-          </button>
-          <button class="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-            <i class="fas fa-bell"></i>
-          </button>
-          <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
-            {{if .Business.Logo}}
-            <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-            {{else}}
-            <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+          <!-- Desktop: action items shown inline -->
+          <div class="hidden lg:flex items-center space-x-4">
+            <a href="/business"
+              class="btn btn-secondary px-4 py-2 rounded-lg flex items-center space-x-2">
+              <i class="fas fa-users"></i>
+              <span>Clients</span>
+            </a>
+            <button onclick="showQuickOrderModal()"
+              class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              <i class="fas fa-shopping-cart"></i>
+              <span>Quick Order</span>
+            </button>
+            <button onclick="showQuickBookingModal()"
+              class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              <i class="fas fa-calendar-plus"></i>
+              <span>Quick Booking</span>
+            </button>
+            <button class="theme-toggle text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <button class="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+              <i class="fas fa-bell"></i>
+            </button>
+            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+              {{if .Business.Logo}}
+              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+              {{else}}
+              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+              </div>
+              {{end}}
+              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+            </button>
+            <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
+          </div>
+
+          <!-- Mobile: overflow menu trigger -->
+          <div class="relative lg:hidden">
+            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+              <a href="/business" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-users w-5 text-center"></i>
+                <span>Clients</span>
+              </a>
+              <button onclick="showQuickOrderModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-shopping-cart w-5 text-center"></i>
+                <span>Quick Order</span>
+              </button>
+              <button onclick="showQuickBookingModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-calendar-plus w-5 text-center"></i>
+                <span>Quick Booking</span>
+              </button>
+              <div class="border-t border-[var(--color-border-light)] my-1"></div>
+              <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-adjust w-5 text-center"></i>
+                <span>Toggle Theme</span>
+              </button>
+              <button class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-bell w-5 text-center"></i>
+                <span>Notifications</span>
+              </button>
+              <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-store w-5 text-center"></i>
+                <span>Business Profile</span>
+              </button>
+              <div class="border-t border-[var(--color-border-light)] my-1"></div>
+              <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                <span>Logout</span>
+              </a>
             </div>
-            {{end}}
-            <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
-          </button>
-          <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
+          </div>
         </div>
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
 
   <div class="flex h-screen pt-16">
 {{template "dashboard_sidebar" .}}
@@ -96,7 +143,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <!-- Pending Orders -->
           <div class="bg-[var(--color-surface)] rounded-xl card p-6">
             <div class="flex items-center">
@@ -258,7 +305,7 @@
 
   <!-- Quick Order Modal -->
   <div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
+    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
       <div class="mt-3">
         <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Order</h3>
         <form id="quickOrderForm" class="mt-4 space-y-4">
@@ -315,7 +362,7 @@
 
   <!-- Quick Booking Modal -->
   <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[var(--color-surface)]">
+    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
       <div class="mt-3">
         <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Booking</h3>
         <form id="quickBookingForm" class="mt-4 space-y-4">
@@ -536,6 +583,8 @@
   </script>
 
   {{template "business_profile" .}}
+  {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
 </body>
 
 </html>

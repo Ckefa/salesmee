@@ -16,6 +16,8 @@ type Business struct {
 	FacebookID         string    `gorm:"uniqueIndex;default:null" json:"facebook_id"`
 	AvatarURL          string    `json:"avatar_url"`
 	SubscriptionPlanID *uint     `gorm:"default:null" json:"subscription_plan_id"`
+	EmailVerified      bool      `gorm:"default:false" json:"email_verified"`
+	VerificationToken  string    `gorm:"default:null" json:"-"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 

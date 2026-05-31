@@ -1,8 +1,13 @@
 {{define "dashboard_sidebar"}}
 {{$active := .ActivePage}}
-<aside
-  class="w-64 bg-[var(--color-surface)] border-r border-[var(--color-border)] overflow-y-auto hide-mobile scrollbar-thin">
-  <nav class="mt-4 px-3 space-y-1">
+<aside class="w-64 dashboard-sidebar bg-[var(--color-surface)] border-r border-[var(--color-border)] overflow-y-auto scrollbar-thin">
+  <div class="lg:hidden flex items-center justify-between px-4 pt-4 pb-2 border-b border-[var(--color-border)] mb-2">
+    <span class="text-sm font-semibold text-[var(--color-text)]">Dashboard</span>
+    <button onclick="toggleDashboardSidebar()" class="btn btn-icon btn-ghost btn-icon-sm">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <nav class="mt-2 px-3 space-y-1">
     <a href="/business/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
       {{if eq $active `dashboard`}}bg-[var(--color-primary-light)]
       text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
@@ -74,4 +79,18 @@
     </a>
   </nav>
 </aside>
+<div id="dashboardSidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="toggleDashboardSidebar()"></div>
+<script>
+function toggleDashboardSidebar() {
+  var overlay = document.getElementById('dashboardSidebarOverlay');
+  var sidebar = document.querySelector('.dashboard-sidebar');
+  if (!sidebar) return;
+  sidebar.classList.toggle('open');
+  if (sidebar.classList.contains('open')) {
+    if (overlay) overlay.classList.remove('hidden');
+  } else {
+    if (overlay) overlay.classList.add('hidden');
+  }
+}
+</script>
 {{end}}

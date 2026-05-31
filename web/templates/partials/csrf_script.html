@@ -1,0 +1,24 @@
+{{define "csrf_script"}}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var csrfToken = getCookie('csrf_token');
+    if (csrfToken) {
+      document.querySelectorAll('form').forEach(function(form) {
+        var method = (form.method || 'GET').toUpperCase();
+        if (method !== 'GET' && !form.querySelector('input[name="_csrf"]')) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = '_csrf';
+          input.value = csrfToken;
+          form.appendChild(input);
+        }
+      });
+    }
+  });
+  function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+</script>
+{{end}}

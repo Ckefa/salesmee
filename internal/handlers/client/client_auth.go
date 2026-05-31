@@ -234,9 +234,6 @@ func getOrCreateConversation(clientID uint, businessID uint) (*models.Conversati
 			conversation.ID, clientID, businessID)
 	}
 
-	log.Printf("Using conversation ID=%d (client_id=%d, business_id=%d)",
-		conversation.ID, conversation.ClientID, conversation.BusinessID)
-
 	return &conversation, &client, nil
 }
 
@@ -249,8 +246,6 @@ func GetClientMessages(c *gin.Context) {
 		c.String(400, "Invalid business ID")
 		return
 	}
-
-	log.Printf("GetClientMessages: clientID=%d, businessID=%d", clientID, businessID)
 
 	// Get or create conversation using helper
 	conversation, client, err := getOrCreateConversation(clientID, businessID)
@@ -267,8 +262,6 @@ func GetClientMessages(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Loaded %d messages for conversation_id=%d", len(messages), conversation.ID)
-
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
 	for _, msg := range messages {
@@ -283,15 +276,11 @@ func GetClientMessages(c *gin.Context) {
 			CreatedAt: msg.CreatedAt,
 		}
 		messageObjs = append(messageObjs, messageObj)
-		log.Printf("Added message ID=%d, Content='%s', Sender='%s', ConvoID=%d",
-			msg.ID, msg.Content, msg.Sender, msg.ConversationID)
 	}
 
 	// Fetch orders
 	var orders []models.Order
 	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&orders)
-	log.Printf("Found %d orders for client_id=%d, business_id=%d", len(orders), client.ID, businessID)
-
 	for _, order := range orders {
 		var orderItems []models.OrderItem
 		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
@@ -376,14 +365,11 @@ func GetClientMessages(c *gin.Context) {
 			Sender:    order.Sender,
 			CreatedAt: order.CreatedAt,
 		})
-		log.Printf("Added order ID=%d to MessageObj", order.ID)
 	}
 
 	// Fetch bookings
 	var bookings []models.Booking
 	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&bookings)
-	log.Printf("Found %d bookings for client_id=%d, business_id=%d", len(bookings), client.ID, businessID)
-
 	for _, booking := range bookings {
 		var bookingItems []models.BookingItem
 		db.DB.Where("booking_id = ?", booking.ID).Find(&bookingItems)
@@ -422,7 +408,6 @@ func GetClientMessages(c *gin.Context) {
 			Sender:    booking.Sender,
 			CreatedAt: booking.CreatedAt,
 		})
-		log.Printf("Added booking ID=%d to MessageObj", booking.ID)
 	}
 
 	// Sort all messageObjs by CreatedAt
@@ -433,9 +418,6 @@ func GetClientMessages(c *gin.Context) {
 			}
 		}
 	}
-
-	log.Printf("Total MessageObjs: %d (messages=%d, orders=%d, bookings=%d)",
-		len(messageObjs), len(messages), len(orders), len(bookings))
 
 	// Get business info
 	var business struct {

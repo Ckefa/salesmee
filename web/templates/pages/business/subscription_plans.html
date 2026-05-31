@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
   <header class="navbar-glass">
@@ -21,20 +22,43 @@
           <a href="/business/subscription" class="btn btn-ghost btn-icon" title="Back to Subscription">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Choose a Plan</h1>
         </div>
         <div class="flex items-center gap-3">
-          <button class="theme-toggle" title="Toggle theme">
-            <i class="fas fa-sun theme-sun"></i>
-            <i class="fas fa-moon theme-moon hidden"></i>
-          </button>
-          <a href="/business" class="btn btn-secondary btn-sm">
-            <i class="fas fa-comments"></i> Chats
-          </a>
+          <!-- Desktop: action items shown inline -->
+          <div class="hidden lg:flex items-center gap-3">
+            <button class="theme-toggle" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <a href="/business" class="btn btn-secondary btn-sm">
+              <i class="fas fa-comments"></i> Chats
+            </a>
+          </div>
+
+          <div class="relative lg:hidden">
+            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+              <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-adjust w-5 text-center"></i>
+                <span>Toggle Theme</span>
+              </button>
+              <a href="/business" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-comments w-5 text-center"></i>
+                <span>Chats</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
 
   <div class="flex h-[calc(100vh-4rem)]">
     {{template "dashboard_sidebar" .}}
@@ -42,6 +66,8 @@
       {{template "subscription_plans_content" .}}
     </main>
   </div>
+  {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
 </body>
 </html>
 
@@ -62,7 +88,7 @@
     <span class="text-sm font-medium text-[var(--color-text)]">Yearly <span class="text-[var(--color-primary)] font-semibold">Save 20%</span></span>
   </div>
 
-  <div class="grid md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {{range $i, $plan := .Plans}}
     {{$isCurrent := false}}
     {{if $.Current}}{{if eq $.Current.ID $plan.ID}}{{$isCurrent = true}}{{end}}{{end}}

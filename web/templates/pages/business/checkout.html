@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
   <header class="navbar-glass">
@@ -21,20 +22,44 @@
           <a href="/business/subscription" class="btn btn-ghost btn-icon" title="Back to Subscription">
             <i class="fas fa-arrow-left"></i>
           </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
           <h1 class="text-xl font-semibold text-[var(--color-text)]">Checkout</h1>
         </div>
         <div class="flex items-center gap-3">
-          <button class="theme-toggle" title="Toggle theme">
-            <i class="fas fa-sun theme-sun"></i>
-            <i class="fas fa-moon theme-moon hidden"></i>
-          </button>
-          <a href="/business" class="btn btn-secondary btn-sm">
-            <i class="fas fa-comments"></i> Chats
-          </a>
+          <!-- Desktop: action items shown inline -->
+          <div class="hidden lg:flex items-center gap-3">
+            <button class="theme-toggle" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <a href="/business" class="btn btn-secondary btn-sm">
+              <i class="fas fa-comments"></i> Chats
+            </a>
+          </div>
+
+          <!-- Mobile: overflow menu trigger -->
+          <div class="relative lg:hidden">
+            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+              <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-adjust w-5 text-center"></i>
+                <span>Toggle Theme</span>
+              </button>
+              <a href="/business" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-comments w-5 text-center"></i>
+                <span>Chats</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </header>
+  {{template "verify_banner" .}}
 
   <div class="flex h-[calc(100vh-4rem)]">
     {{template "dashboard_sidebar" .}}
@@ -42,6 +67,9 @@
       {{template "checkout_content" .}}
     </main>
   </div>
+  {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
+  {{template "checkout_scripts" .}}
 </body>
 </html>
 
@@ -87,7 +115,7 @@
       </div>
     </div>
     <div class="px-6 py-4">
-      <ul class="grid grid-cols-2 gap-2">
+      <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>
           {{if eq $plan.MaxClients 0}}Unlimited clients{{else}}{{$plan.MaxClients}} clients{{end}}
         </li>
@@ -165,4 +193,20 @@
   </div>
   {{end}}
 </div>
+{{end}}
+
+{{define "checkout_scripts"}}
+<script>
+  function toggleSidebar() {
+    var overlay = document.getElementById('sidebarOverlay');
+    var sidebar = document.querySelector('aside');
+    if (!sidebar) return;
+    sidebar.classList.toggle('sidebar-open');
+    if (sidebar.classList.contains('sidebar-open')) {
+      overlay.classList.remove('hidden');
+    } else {
+      overlay.classList.add('hidden');
+    }
+  }
+</script>
 {{end}}

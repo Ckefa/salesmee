@@ -29,6 +29,7 @@ func SetupClientRoutes(r *gin.Engine) {
 	{
 		clientProtected.GET("/", client.ClientDashboard)
 		clientProtected.GET("/discover", client.ShowDiscover)
+		clientProtected.GET("/discover-page", client.ShowDiscover)
 		clientProtected.GET("/discover/search", client.SearchBusinesses)
 		clientProtected.POST("/connect/:business_id", client.ConnectToBusiness)
 		clientProtected.GET("/businesses/:business_id/messages", client.GetClientMessages)

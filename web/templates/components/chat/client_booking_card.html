@@ -20,7 +20,7 @@
   {{$iconColor = "text-[var(--color-error)]"}}
 {{end}}
 <div class='flex {{if eq .Sender "client"}}justify-end{{else}}justify-start{{end}}'>
-  <div class="max-w-xs lg:max-w-md w-full">
+  <div class="max-w-[85%] lg:max-w-md w-full">
     <div class="{{$statusBg}} border rounded-lg px-4 py-3" data-message-id="{{.ID}}"
       data-booking-id="{{if .Data}}{{.Data.id}}{{end}}" data-service-id="{{if .Data}}{{.Data.service_id}}{{end}}">
       <div class="flex items-center justify-between mb-2">

@@ -88,7 +88,24 @@
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
 
+  function toggleHeaderMenu(btn) {
+    var menu = btn.nextElementSibling;
+    if (menu) {
+      menu.classList.toggle('hidden');
+    }
+  }
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest && !e.target.closest('.relative.lg\\:hidden')) {
+      var menus = document.querySelectorAll('#headerMenu:not(.hidden)');
+      for (var i = 0; i < menus.length; i++) {
+        menus[i].classList.add('hidden');
+      }
+    }
+  });
+
   window.showNotification = showNotification;
   window.removeToast = removeToast;
   window.getCookie = getCookie;
+  window.toggleHeaderMenu = toggleHeaderMenu;
 })();

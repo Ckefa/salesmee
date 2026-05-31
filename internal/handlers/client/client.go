@@ -18,18 +18,15 @@ func ShowDiscover(c *gin.Context) {
 	var client models.Client
 	db.DB.First(&client, clientID)
 
-	// Get client's existing business IDs (via conversations)
-	var existingIDs []uint
-	db.DB.Model(&models.Conversation{}).Where("client_id = ?", clientID).Pluck("business_id", &existingIDs)
-	log.Printf("[ShowDiscover] clientID=%d, existingConversationBusinessIDs=%v", clientID, existingIDs)
+	businesses := getDiscoverableBusinesses(clientID)
 
-	var businesses []models.Business
-	query := db.DB.Where("is_public = ?", true)
-	if len(existingIDs) > 0 {
-		query = query.Where("id NOT IN ?", existingIDs)
+	// If HTMX request, render partial for in-chat-area loading
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "client_discover_content.html", gin.H{
+			"Businesses": businesses,
+		})
+		return
 	}
-	query.Order("name ASC").Limit(20).Find(&businesses)
-	log.Printf("[ShowDiscover] clientID=%d, foundPublicBusinesses=%d", clientID, len(businesses))
 
 	c.HTML(http.StatusOK, "client_discover.html", gin.H{
 		"Title":      "Discover Businesses - OneFlow",
@@ -37,6 +34,19 @@ func ShowDiscover(c *gin.Context) {
 		"Email":      c.GetString("client_email"),
 		"Client":     client,
 	})
+}
+
+func getDiscoverableBusinesses(clientID uint) []models.Business {
+	var existingIDs []uint
+	db.DB.Model(&models.Conversation{}).Where("client_id = ?", clientID).Pluck("business_id", &existingIDs)
+
+	var businesses []models.Business
+	query := db.DB.Where("is_public = ?", true)
+	if len(existingIDs) > 0 {
+		query = query.Where("id NOT IN ?", existingIDs)
+	}
+	query.Order("name ASC").Limit(20).Find(&businesses)
+	return businesses
 }
 
 func SearchBusinesses(c *gin.Context) {

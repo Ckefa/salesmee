@@ -54,8 +54,15 @@ func SendClientOTP(email string) (string, error) {
 		db.DB.Save(&customerAuth)
 	}
 
-	// For testing, log the OTP (in production, this would be sent via email)
+	// Log OTP for dev fallback
 	fmt.Printf("OTP for %s: %s\n", email, otpCode)
+
+	// Send OTP via email only if RESEND=true
+	if os.Getenv("RESEND") == "true" {
+		if err := SendOTPEmail(email, otpCode); err != nil {
+			fmt.Printf("Warning: failed to send OTP email: %v\n", err)
+		}
+	}
 
 	return otpCode, nil
 }

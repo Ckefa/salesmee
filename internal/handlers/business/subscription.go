@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 	"oneflow/internal/models"
+	"oneflow/internal/services"
 	"oneflow/internal/services/payment"
 	"oneflow/internal/services/subscription"
 
@@ -663,6 +664,10 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 	}
 
 	d.Model(&business).Update("subscription_plan_id", plan.ID)
+
+	if err := services.SendSubscriptionSuccess(business.Email, business.Name, plan.Name); err != nil {
+		fmt.Printf("Warning: failed to send subscription success email to %s: %v\n", business.Email, err)
+	}
 }
 
 func handleSubscriptionUpdated(d *gorm.DB, event *payment.WebhookEvent) {
@@ -692,25 +697,40 @@ func handleSubscriptionUpdated(d *gorm.DB, event *payment.WebhookEvent) {
 }
 
 func handleSubscriptionDeleted(d *gorm.DB, event *payment.WebhookEvent) {
-	d.Model(&models.BusinessSubscription{}).
-		Where("stripe_subscription_id = ?", event.SubscriptionID).
-		Update("status", "canceled")
+	var sub models.BusinessSubscription
+	if err := d.Where("stripe_subscription_id = ?", event.SubscriptionID).Preload("Business").First(&sub).Error; err != nil {
+		return
+	}
+
+	d.Model(&sub).Update("status", "canceled")
+
+	if err := services.SendSubscriptionExpired(sub.Business.Email, sub.Business.Name); err != nil {
+		fmt.Printf("Warning: failed to send subscription expired email to %s: %v\n", sub.Business.Email, err)
+	}
 }
 
 func handleInvoicePaid(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_customer_id = ?", event.CustomerID).First(&sub).Error; err != nil {
+	if err := d.Where("stripe_customer_id = ?", event.CustomerID).Preload("Business").Preload("Plan").First(&sub).Error; err != nil {
 		return
 	}
 
 	d.Model(&sub).Update("status", "active")
+
+	if err := services.SendSubscriptionSuccess(sub.Business.Email, sub.Business.Name, sub.Plan.Name); err != nil {
+		fmt.Printf("Warning: failed to send renewal success email to %s: %v\n", sub.Business.Email, err)
+	}
 }
 
 func handleInvoicePaymentFailed(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_customer_id = ?", event.CustomerID).First(&sub).Error; err != nil {
+	if err := d.Where("stripe_customer_id = ?", event.CustomerID).Preload("Business").First(&sub).Error; err != nil {
 		return
 	}
 
 	d.Model(&sub).Update("status", "past_due")
+
+	if err := services.SendSubscriptionFailed(sub.Business.Email, sub.Business.Name); err != nil {
+		fmt.Printf("Warning: failed to send payment failed email to %s: %v\n", sub.Business.Email, err)
+	}
 }

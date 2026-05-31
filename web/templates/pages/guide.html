@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "landing_head" .}}
+  <title>How It Works — OneFlow Guide</title>
+  <style>
+    .guide-step {
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .guide-step:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px -8px rgba(0,0,0,0.1);
+    }
+    .guide-tab {
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      cursor: pointer;
+    }
+    .guide-tab.active {
+      background: #0d9488;
+      color: white;
+      box-shadow: 0 4px 12px rgba(13,148,136,0.3);
+    }
+    .guide-panel {
+      display: none;
+      animation: slide-up 0.5s ease-out;
+    }
+    .guide-panel.active {
+      display: block;
+    }
+    .tip-box {
+      border-left: 4px solid #0d9488;
+      background: linear-gradient(135deg, #f0fdfa, #ffffff);
+    }
+    .tip-box-warning {
+      border-left: 4px solid #f59e0b;
+      background: linear-gradient(135deg, #fffbeb, #ffffff);
+    }
+    .step-number {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .section-link {
+      transition: all 0.2s ease;
+    }
+    .section-link:hover {
+      color: #0d9488;
+      padding-left: 4px;
+    }
+    .connector-line {
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(180deg, #0d9488, #99f6e4);
+      position: absolute;
+      left: 19px;
+      top: 48px;
+    }
+    .guide-card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .faq-q {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .faq-q:hover {
+      color: #0d9488;
+    }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .faq-a.open {
+      max-height: 300px;
+      opacity: 1;
+    }
+    .faq-q .fa-chevron-down {
+      transition: transform 0.3s ease;
+    }
+    .faq-q.open .fa-chevron-down {
+      transform: rotate(180deg);
+    }
+    .badge-guide {
+      display: inline-block;
+      padding: 0.15rem 0.7rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .glow-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .glow-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(13,148,136,0.06), transparent 60%);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased font-sans">
+  {{template "landing_nav" .}}
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-28 pb-20 lg:pt-36 lg:pb-28">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 25% 50%, rgba(45,212,191,0.3) 0%, transparent 50%), radial-gradient(circle at 75% 30%, rgba(6,182,212,0.2) 0%, transparent 50%);"></div>
+    <div class="absolute top-20 left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-10 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <span class="badge-guide bg-teal-500/20 text-teal-300 border border-teal-500/30 mb-4 inline-block">Complete Guide</span>
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
+        How <span class="gradient-text">OneFlow</span> Works
+      </h1>
+      <p class="mt-4 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        A complete walkthrough for businesses and clients. From your first login to advanced workflows — we've got you covered.
+      </p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href="#business-guide" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold transition-all shadow-lg shadow-teal-500/25">
+          <i class="fas fa-store"></i> For Businesses
+        </a>
+        <a href="#client-guide" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/20">
+          <i class="fas fa-user"></i> For Clients
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Jump -->
+  <section class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-2 text-sm">
+      <span class="text-slate-400 font-medium mr-1 text-xs uppercase tracking-wider">Jump to:</span>
+      <button onclick="switchTab('business')" class="guide-tab px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 bg-slate-100 active" id="tab-business">
+        <i class="fas fa-store mr-1.5 text-teal-500"></i>Business Guide
+      </button>
+      <button onclick="switchTab('client')" class="guide-tab px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 bg-slate-100" id="tab-client">
+        <i class="fas fa-user mr-1.5 text-cyan-500"></i>Client Guide
+      </button>
+    </div>
+  </section>
+
+  <!-- Business Guide -->
+  <div id="panel-business" class="guide-panel active">
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16" id="business-guide">
+      <!-- Section Header -->
+      <div class="text-center mb-12">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-500/20">
+          <i class="fas fa-store text-white text-2xl"></i>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900">Business Guide</h2>
+        <p class="mt-2 text-slate-500 max-w-xl mx-auto">Everything you need to set up, manage, and grow your business on OneFlow.</p>
+      </div>
+
+      <!-- Sidebar Nav + Content -->
+      <div class="flex flex-col lg:flex-row gap-10">
+        <!-- Sidebar -->
+        <div class="lg:w-64 flex-shrink-0">
+          <div class="lg:sticky lg:top-24 space-y-1 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">On this page</span>
+            <a href="#biz-setup" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-rocket text-teal-500 w-5"></i> Getting Started</a>
+            <a href="#biz-products" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-box text-teal-500 w-5"></i> Products & Services</a>
+            <a href="#biz-orders" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-shopping-cart text-teal-500 w-5"></i> Managing Orders</a>
+            <a href="#biz-bookings" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-calendar text-teal-500 w-5"></i> Bookings</a>
+            <a href="#biz-chat" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-comments text-teal-500 w-5"></i> Client Chat</a>
+            <a href="#biz-analytics" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-chart-line text-teal-500 w-5"></i> Analytics</a>
+            <a href="#biz-tips" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-lightbulb text-teal-500 w-5"></i> Pro Tips</a>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 min-w-0 space-y-10">
+
+          <!-- 1. Getting Started -->
+          <div id="biz-setup" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-teal-100 text-teal-700">1</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Getting Started</h3>
+                <p class="text-sm text-slate-500">Set up your business in minutes</p>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-teal-100 to-teal-50 text-teal-600 mb-4"><i class="fas fa-user-plus"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Create Your Account</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Sign up with your email or Google account. Choose your business type, add your business name, logo, and contact details. Your public profile is generated automatically.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-teal-100 to-teal-50 text-teal-600 mb-4"><i class="fas fa-palette"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Customize Your Profile</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Add a cover image, write a compelling description, set your business hours, and configure your address. Your public profile at <code class="text-teal-600 bg-teal-50 px-1 rounded text-xs">/b/your-slug</code> goes live instantly.</p>
+              </div>
+            </div>
+            <div class="tip-box mt-4 rounded-xl p-4">
+              <div class="flex gap-3">
+                <i class="fas fa-lightbulb text-teal-500 mt-0.5"></i>
+                <div>
+                  <span class="text-sm font-semibold text-teal-800">Pro Tip</span>
+                  <p class="text-sm text-teal-700 mt-0.5">Use a high-quality logo and write a clear business description. Businesses with complete profiles get <strong>3x more client engagement</strong>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Products & Services -->
+          <div id="biz-products" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-teal-100 text-teal-700">2</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Products & Services</h3>
+                <p class="text-sm text-slate-500">List what you offer</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card mb-4">
+              <div class="flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600"><i class="fas fa-cube"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 mb-2">Add Products or Services</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed">Navigate to your dashboard and open <strong>Products</strong> or <strong>Services</strong>. Add a name, description, price, and optional image. You can organize items into categories and set availability windows for services.</p>
+                  <ul class="mt-3 space-y-1.5 text-sm text-slate-600">
+                    <li><i class="fas fa-check-circle text-emerald-500 w-5"></i> Set custom pricing (fixed or range)</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 w-5"></i> Toggle availability on/off individually</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 w-5"></i> Group items by category for easy browsing</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 w-5"></i> Services support duration and buffer time</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Orders -->
+          <div id="biz-orders" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-teal-100 text-teal-700">3</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Managing Orders</h3>
+                <p class="text-sm text-slate-500">Receive, track, and fulfill customer orders</p>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-truck"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Order Lifecycle</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Orders flow through statuses: <span class="text-amber-600 font-medium">Pending</span> → <span class="text-blue-600 font-medium">Confirmed</span> → <span class="text-emerald-600 font-medium">Completed</span> or <span class="text-red-600 font-medium">Cancelled</span>. Update status from the dashboard or use the Quick Order modal for instant creation.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-bolt"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Quick Order Modal</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Click the <strong>Quick Order</strong> floating button on your dashboard to create an order in seconds. Select a client, pick products, set the status — all without leaving your current view.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Bookings -->
+          <div id="biz-bookings" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-teal-100 text-teal-700">4</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Bookings & Appointments</h3>
+                <p class="text-sm text-slate-500">Accept and manage client appointments</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card mb-4">
+              <div class="flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600"><i class="fas fa-calendar-check"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 mb-2">How Bookings Work</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed">Clients can book your services directly from your public profile. Each service has a defined duration and price. You can also create bookings manually from the dashboard using the <strong>Quick Booking</strong> modal. All bookings sync to your dashboard in real-time.</p>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium"><i class="fas fa-clock"></i> Duration-based</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium"><i class="fas fa-bell"></i> Real-time notifications</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium"><i class="fas fa-sync"></i> Auto-sync calendar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Chat -->
+          <div id="biz-chat" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-teal-100 text-teal-700">5</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Client Communication</h3>
+                <p class="text-sm text-slate-500">Real-time chat with your clients</p>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600 mb-4"><i class="fas fa-comment-dots"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Live Chat</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Each client connection opens a dedicated chat channel. Messages deliver instantly — no refresh needed. Share order confirmations, booking details, and answer questions in real-time.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600 mb-4"><i class="fas fa-share-alt"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Share Your Widget</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Generate an embeddable chat widget from your dashboard. Add it to your website so clients can reach you directly. The widget shows your business name, status, and opens a chat instantly.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Analytics -->
+          <div id="biz-analytics" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-teal-100 text-teal-700">6</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Analytics & Insights</h3>
+                <p class="text-sm text-slate-500">Track your business performance</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+              <div class="flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 mb-2">Dashboard Analytics</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed">Your analytics dashboard gives you a bird's-eye view of your business. Monitor total orders, revenue, booking rates, and client growth. Use these insights to identify your most popular services and peak hours.</p>
+                  <div class="mt-3 grid grid-cols-3 gap-3">
+                    <div class="bg-slate-50 rounded-xl p-3 text-center">
+                      <div class="text-2xl font-bold text-teal-600">📊</div>
+                      <div class="text-xs text-slate-500 mt-1">Revenue</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3 text-center">
+                      <div class="text-2xl font-bold text-teal-600">📦</div>
+                      <div class="text-xs text-slate-500 mt-1">Orders</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3 text-center">
+                      <div class="text-2xl font-bold text-teal-600">👥</div>
+                      <div class="text-xs text-slate-500 mt-1">Clients</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. Pro Tips -->
+          <div id="biz-tips" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-amber-100 text-amber-700"><i class="fas fa-star text-xs"></i></div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Pro Tips</h3>
+                <p class="text-sm text-slate-500">Take your business to the next level</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="tip-box rounded-xl p-4">
+                <div class="flex gap-3">
+                  <i class="fas fa-bolt text-teal-500 mt-0.5"></i>
+                  <div>
+                    <span class="text-sm font-semibold text-teal-800">Use Quick Actions</span>
+                    <p class="text-sm text-teal-700 mt-0.5">The floating <strong>Quick Order</strong> and <strong>Quick Booking</strong> buttons on your dashboard save clicks. Use them for rapid order entry during busy periods.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="tip-box rounded-xl p-4">
+                <div class="flex gap-3">
+                  <i class="fas fa-bell text-teal-500 mt-0.5"></i>
+                  <div>
+                    <span class="text-sm font-semibold text-teal-800">Stay Notified</span>
+                    <p class="text-sm text-teal-700 mt-0.5">Enable browser notifications to get instant alerts when new orders or bookings come in. Never miss a client request.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="tip-box rounded-xl p-4">
+                <div class="flex gap-3">
+                  <i class="fas fa-share-nodes text-teal-500 mt-0.5"></i>
+                  <div>
+                    <span class="text-sm font-semibold text-teal-800">Share Your Profile</span>
+                    <p class="text-sm text-teal-700 mt-0.5">Your public profile at <code class="font-mono text-teal-600 bg-teal-50 px-1 rounded">/b/your-slug</code> is a mini-website. Share it on social media, add it to your email signature, or link it from your existing site.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="tip-box-warning rounded-xl p-4">
+                <div class="flex gap-3">
+                  <i class="fas fa-crown text-amber-500 mt-0.5"></i>
+                  <div>
+                    <span class="text-sm font-semibold text-amber-800">Upgrade for More</span>
+                    <p class="text-sm text-amber-700 mt-0.5">Premium plans unlock unlimited products, advanced analytics, priority support, and custom branding. Check the <a href="#pricing" class="underline font-medium">Pricing page</a> for details.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Client Guide -->
+  <div id="panel-client" class="guide-panel">
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16" id="client-guide">
+      <!-- Section Header -->
+      <div class="text-center mb-12">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-500/20">
+          <i class="fas fa-user text-white text-2xl"></i>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900">Client Guide</h2>
+        <p class="mt-2 text-slate-500 max-w-xl mx-auto">Learn how to connect with businesses, place orders, book services, and chat in real-time.</p>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-10">
+        <!-- Sidebar -->
+        <div class="lg:w-64 flex-shrink-0">
+          <div class="lg:sticky lg:top-24 space-y-1 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">On this page</span>
+            <a href="#client-connect" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-link text-cyan-500 w-5"></i> Connecting</a>
+            <a href="#client-orders" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-shopping-bag text-cyan-500 w-5"></i> Placing Orders</a>
+            <a href="#client-bookings" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-calendar-day text-cyan-500 w-5"></i> Booking Services</a>
+            <a href="#client-chat" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-message text-cyan-500 w-5"></i> Live Chat</a>
+            <a href="#client-account" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-user-gear text-cyan-500 w-5"></i> Your Account</a>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 min-w-0 space-y-10">
+
+          <!-- 1. Connecting -->
+          <div id="client-connect" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-cyan-100 text-cyan-700">1</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Connecting to a Business</h3>
+                <p class="text-sm text-slate-500">Get started in seconds</p>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-qrcode"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Via Business Profile</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Visit any business's public profile at <code class="text-cyan-600 bg-cyan-50 px-1 rounded text-xs">/b/slug</code> and click <strong>Connect</strong>. Enter your name and phone number or email, verify with a one-time code, and you're connected.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-globe"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Via Widget</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Businesses can embed a chat widget on their website. Click the chat icon, enter your details, and you'll be connected instantly. No app download required.</p>
+              </div>
+            </div>
+            <div class="tip-box mt-4 rounded-xl p-4">
+              <div class="flex gap-3">
+                <i class="fas fa-shield-halved text-teal-500 mt-0.5"></i>
+                <div>
+                  <span class="text-sm font-semibold text-teal-800">Privacy First</span>
+                  <p class="text-sm text-teal-700 mt-0.5">Your contact information is only shared with businesses you explicitly connect to. You control who can reach you.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Orders -->
+          <div id="client-orders" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-cyan-100 text-cyan-700">2</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Placing Orders</h3>
+                <p class="text-sm text-slate-500">Order products and services seamlessly</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+              <div class="flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600"><i class="fas fa-cart-plus"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 mb-2">How to Order</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed">Once connected to a business, browse their products and services from their profile. Select what you need and submit your order. The business gets notified instantly and will confirm or update the status. You'll receive real-time updates through the chat.</p>
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-bolt"></i> Instant notification</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-sync"></i> Real-time status</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-comment"></i> Chat updates</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Bookings -->
+          <div id="client-bookings" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-cyan-100 text-cyan-700">3</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Booking Services</h3>
+                <p class="text-sm text-slate-500">Schedule appointments with ease</p>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-hand-pointer"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Book from Profile</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Visit the business profile, browse their services, pick a date and time, and confirm. The booking appears instantly on both your and the business's calendar.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-clock"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Duration & Availability</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Each service shows its duration so you know how much time to set aside. Businesses define their availability, so you'll only see bookable slots that work for both of you.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Chat -->
+          <div id="client-chat" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-cyan-100 text-cyan-700">4</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Live Chat</h3>
+                <p class="text-sm text-slate-500">Talk to businesses in real-time</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card mb-4">
+              <div class="flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600"><i class="fas fa-comments"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 mb-2">Chat Features</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed">Every connection opens a dedicated chat channel. Messages arrive instantly — no page refresh needed. Use chat to ask questions about products, confirm booking details, or get support. Your conversation history is always available.</p>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-bolt"></i> Real-time delivery</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-clock"></i> Chat history</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-bell"></i> Push notifications</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Account -->
+          <div id="client-account" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="step-number bg-cyan-100 text-cyan-700">5</div>
+              <div>
+                <h3 class="text-2xl font-bold text-slate-900">Managing Your Account</h3>
+                <p class="text-sm text-slate-500">Stay in control</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm glow-card flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;"><i class="fas fa-pen"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 text-sm">Edit Your Profile</h4>
+                  <p class="text-sm text-slate-600">Update your name, email, or phone number from the client portal. Businesses you're connected to will see your updated info automatically.</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm glow-card flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;"><i class="fas fa-eye-slash"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 text-sm">Manage Connections</h4>
+                  <p class="text-sm text-slate-600">View all businesses you're connected to and disconnect at any time. Disconnecting removes the business's access to your information.</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm glow-card flex items-start gap-4">
+                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;"><i class="fas fa-trash-can"></i></div>
+                <div>
+                  <h4 class="font-semibold text-slate-900 text-sm">Delete Your Data</h4>
+                  <p class="text-sm text-slate-600">Request account deletion at any time via the <a href="/user-deletion" class="text-cyan-600 underline">User Deletion</a> page. Your data will be permanently removed within 30 days.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FAQ -->
+  <section class="bg-white border-t border-slate-200 py-12 lg:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-3xl font-extrabold text-slate-900">Frequently Asked Questions</h2>
+        <p class="mt-2 text-slate-500">Quick answers to common questions</p>
+      </div>
+      <div class="space-y-3">
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
+            <span class="font-semibold text-slate-900 text-sm">Is there a mobile app?</span>
+            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+          </div>
+          <div class="faq-a text-sm text-slate-600 leading-relaxed">OneFlow is fully responsive and works great on mobile browsers. A native mobile app is on our roadmap — stay tuned!</div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
+            <span class="font-semibold text-slate-900 text-sm">Can I connect with multiple businesses?</span>
+            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+          </div>
+          <div class="faq-a text-sm text-slate-600 leading-relaxed">Absolutely. As a client, you can connect to as many businesses as you'd like. Each connection has its own chat channel and order history.</div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
+            <span class="font-semibold text-slate-900 text-sm">How much does OneFlow cost?</span>
+            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+          </div>
+          <div class="faq-a text-sm text-slate-600 leading-relaxed">OneFlow offers a free tier for businesses with essential features. Premium plans unlock advanced analytics, unlimited products, custom branding, and priority support. Check the <a href="/#pricing" class="text-teal-600 underline">Pricing section</a> for details.</div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
+            <span class="font-semibold text-slate-900 text-sm">Is my data secure?</span>
+            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+          </div>
+          <div class="faq-a text-sm text-slate-600 leading-relaxed">Yes. We use industry-standard encryption for data in transit and at rest. Your personal information is never shared without your explicit consent. See our <a href="/privacy" class="text-teal-600 underline">Privacy Policy</a> for full details.</div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
+            <span class="font-semibold text-slate-900 text-sm">Can I cancel or modify an order?</span>
+            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+          </div>
+          <div class="faq-a text-sm text-slate-600 leading-relaxed">Yes. Contact the business through the chat to request changes or cancellation. Businesses can update order status from their dashboard.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-gradient-to-br from-teal-600 to-cyan-700 py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl font-extrabold text-white">Ready to Get Started?</h2>
+      <p class="mt-3 text-lg text-teal-100 max-w-lg mx-auto">Join thousands of businesses and clients already using OneFlow.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-4">
+        <a href="/business/register" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-teal-700 font-semibold shadow-lg hover:shadow-xl transition-all">
+          <i class="fas fa-rocket"></i> Start Free Trial
+        </a>
+        <a href="/" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 text-white font-semibold border border-white/30 hover:bg-white/20 transition-all">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {{template "landing_footer" .}}
+
+  <!-- Mobile bottom nav -->
+  <div class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-2 flex justify-around items-center md:hidden shadow-2xl">
+    <a href="#business-guide" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium">
+      <i class="fas fa-store text-base"></i><span>Business</span>
+    </a>
+    <a href="#client-guide" class="flex flex-col items-center gap-0.5 text-slate-500 text-xs font-medium">
+      <i class="fas fa-user text-base"></i><span>Client</span>
+    </a>
+    <a href="/business/register" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium">
+      <i class="fas fa-rocket text-base"></i><span>Get Started</span>
+    </a>
+  </div>
+
+  {{template "landing_scripts" .}}
+
+  <script>
+    function switchTab(tab) {
+      var businessPanel = document.getElementById('panel-business');
+      var clientPanel = document.getElementById('panel-client');
+      var businessTab = document.getElementById('tab-business');
+      var clientTab = document.getElementById('tab-client');
+
+      if (tab === 'business') {
+        businessPanel.classList.add('active');
+        clientPanel.classList.remove('active');
+        businessTab.classList.add('active');
+        clientTab.classList.remove('active');
+      } else {
+        clientPanel.classList.add('active');
+        businessPanel.classList.remove('active');
+        clientTab.classList.add('active');
+        businessTab.classList.remove('active');
+      }
+    }
+
+    function toggleFAQ(el) {
+      el.classList.toggle('open');
+      var answer = el.nextElementSibling;
+      answer.classList.toggle('open');
+    }
+
+    // Open tab based on URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.location.hash === '#client-guide') {
+        switchTab('client');
+      } else if (window.location.hash === '#business-guide') {
+        switchTab('business');
+      }
+    });
+  </script>
+</body>
+</html>

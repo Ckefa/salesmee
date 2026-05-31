@@ -42,6 +42,9 @@ func Setup(r *gin.Engine) {
 		}
 	}
 
+	// Guide
+	r.GET("/guide", handlers.ShowGuide)
+
 	// Legal pages
 	r.GET("/privacy", handlers.ShowPrivacy)
 	r.GET("/terms", handlers.ShowTerms)

@@ -143,14 +143,14 @@
         </div>
 
         <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
           <!-- Pending Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-6">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
             <div class="flex items-center">
-              <div class="p-3 bg-[var(--color-warning-light)] rounded-full">
+              <div class="p-2.5 bg-[var(--color-warning-light)] rounded-full">
                 <i class="fas fa-clock text-[var(--color-warning)]"></i>
               </div>
-              <div class="ml-4">
+              <div class="ml-3">
                 <p class="text-sm text-[var(--color-text-secondary)]">Pending</p>
                 <p class="text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
               </div>
@@ -158,12 +158,12 @@
           </div>
 
           <!-- Confirmed Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-6">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
             <div class="flex items-center">
-              <div class="p-3 bg-[var(--color-info-light)] rounded-full">
+              <div class="p-2.5 bg-[var(--color-info-light)] rounded-full">
                 <i class="fas fa-check-circle text-[var(--color-info)]"></i>
               </div>
-              <div class="ml-4">
+              <div class="ml-3">
                 <p class="text-sm text-[var(--color-text-secondary)]">Confirmed</p>
                 <p class="text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
               </div>
@@ -171,12 +171,12 @@
           </div>
 
           <!-- Completed Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-6">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
             <div class="flex items-center">
-              <div class="p-3 bg-[var(--color-success-light)] rounded-full">
+              <div class="p-2.5 bg-[var(--color-success-light)] rounded-full">
                 <i class="fas fa-check text-[var(--color-success)]"></i>
               </div>
-              <div class="ml-4">
+              <div class="ml-3">
                 <p class="text-sm text-[var(--color-text-secondary)]">Completed</p>
                 <p class="text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
               </div>
@@ -184,12 +184,12 @@
           </div>
 
           <!-- Canceled Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-6">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
             <div class="flex items-center">
-              <div class="p-3 bg-[var(--color-error-light)] rounded-full">
+              <div class="p-2.5 bg-[var(--color-error-light)] rounded-full">
                 <i class="fas fa-times text-[var(--color-error)]"></i>
               </div>
-              <div class="ml-4">
+              <div class="ml-3">
                 <p class="text-sm text-[var(--color-text-secondary)]">Canceled</p>
                 <p class="text-2xl font-bold text-[var(--color-text)]">{{.CanceledCount}}</p>
               </div>
@@ -197,12 +197,12 @@
           </div>
 
           <!-- Total Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-6">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
             <div class="flex items-center">
-              <div class="p-3 bg-[var(--color-secondary-light)] rounded-full">
+              <div class="p-2.5 bg-[var(--color-secondary-light)] rounded-full">
                 <i class="fas fa-shopping-cart text-[var(--color-secondary)]"></i>
               </div>
-              <div class="ml-4">
+              <div class="ml-3">
                 <p class="text-sm text-[var(--color-text-secondary)]">Total Orders</p>
                 <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalOrders}}</p>
               </div>
@@ -210,12 +210,12 @@
           </div>
 
           <!-- Total Revenue -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-6">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
             <div class="flex items-center">
-              <div class="p-3 bg-[var(--color-secondary-light)] rounded-full">
+              <div class="p-2.5 bg-[var(--color-secondary-light)] rounded-full">
                 <i class="fas fa-dollar-sign text-[var(--color-secondary)]"></i>
               </div>
-              <div class="ml-4">
+              <div class="ml-3">
                 <p class="text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
                 <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
               </div>

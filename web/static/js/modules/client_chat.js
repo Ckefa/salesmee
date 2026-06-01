@@ -86,7 +86,7 @@ function submitOrderForm() {
 
   fetch('/client/orders', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify(data)
   })
     .then(r => r.json())
@@ -118,7 +118,7 @@ function submitBookingForm() {
 
   fetch('/client/bookings', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify({
       service_id: parseInt(serviceSelect.value),
       scheduled_date: bookingDateTime,
@@ -155,7 +155,7 @@ function scrollToBottom() {
 let pollingInterval = null;
 
 function markAsRead() {
-  fetch(`/client/businesses/${businessId}/read`, { method: 'PUT' })
+  fetch(`/client/businesses/${businessId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function () {
       var badge = document.querySelector('.business-item[data-business-id="' + businessId + '"] .unread-badge');
       if (badge) badge.remove();
@@ -291,7 +291,7 @@ function clientConfirmOrder(orderId) {
   if (!confirm('Confirm this order?')) return;
   fetch(`/client/orders/${orderId}/confirm`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify({ items: [] })
   })
     .then(r => r.json())
@@ -367,7 +367,7 @@ function cancelOrder(orderId) {
   if (!confirm('Are you sure you want to cancel this order?')) return;
   fetch(`/client/orders/${orderId}/cancel`, {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + getCookie('client_token') }
+    headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
   })
     .then(r => r.json())
     .then(data => {
@@ -384,7 +384,7 @@ function cancelBooking(bookingId) {
   if (!confirm('Are you sure you want to cancel this booking?')) return;
   fetch(`/client/bookings/${bookingId}/cancel`, {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + getCookie('client_token') }
+    headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
   })
     .then(r => r.json())
     .then(data => {

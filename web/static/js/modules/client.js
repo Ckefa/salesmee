@@ -15,7 +15,7 @@ function startHeartbeat() {
   heartbeatInterval = setInterval(function () {
     fetch('/client/heartbeat', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + getCookie('client_token') }
+      headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
     }).catch(console.error);
   }, 30000);
 }
@@ -61,7 +61,7 @@ function sendMessage() {
 
 function disconnectBusiness(businessId) {
   if (!confirm('Remove this business from your list? You can reconnect later.')) return;
-  fetch('/client/disconnect/' + businessId, { method: 'POST' })
+  fetch('/client/disconnect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -99,7 +99,7 @@ function submitOrderForm() {
 
   fetch('/client/orders', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify(data)
   })
     .then(r => r.json())

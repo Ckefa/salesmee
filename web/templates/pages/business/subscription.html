@@ -609,7 +609,7 @@
     if (confirm('Are you sure you want to downgrade to ' + planName + '? You will lose access to premium features.')) {
       fetch('/business/subscription/change', {
         method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCookie('csrf_token')},
         body: 'plan_code=' + planCode
       })
       .then(r => r.json())
@@ -632,7 +632,7 @@
   }
 
   function cancelSubscription() {
-    fetch('/business/subscription/cancel', { method: 'POST' })
+    fetch('/business/subscription/cancel', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
       .then(r => r.json())
       .then(d => {
         if (d.success) { window.location.href = '/business/subscription'; }

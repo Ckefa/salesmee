@@ -38,7 +38,17 @@ func GetCSRFToken(c *gin.Context) string {
 }
 
 func CSRFMiddleware() gin.HandlerFunc {
+	skipPaths := map[string]bool{
+		"/stripe/webhook": true,
+		"/paypal/webhook": true,
+	}
+
 	return func(c *gin.Context) {
+		if skipPaths[c.Request.URL.Path] {
+			c.Next()
+			return
+		}
+
 		if c.Request.Method == "GET" || c.Request.Method == "HEAD" || c.Request.Method == "OPTIONS" {
 			// Set CSRF token for GET requests
 			GetCSRFToken(c)

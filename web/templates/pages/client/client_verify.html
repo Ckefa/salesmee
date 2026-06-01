@@ -46,6 +46,14 @@
 
         <!-- Result Container -->
         <div id="verify-result"></div>
+
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('htmx:configRequest', function(evt) {
+              evt.detail.headers['X-CSRF-Token'] = getCookie('csrf_token');
+            });
+          });
+        </script>
         
         <!-- Error Display -->
         {{if .Error}}

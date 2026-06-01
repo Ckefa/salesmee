@@ -137,7 +137,7 @@
       btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
       var formData = new FormData();
       formData.append('email', document.querySelector('input[name="email"]').value);
-      fetch('/client/send-otp', { method: 'POST', body: formData })
+      fetch('/client/send-otp', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: formData })
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.redirect) { window.location.href = data.redirect; return; }

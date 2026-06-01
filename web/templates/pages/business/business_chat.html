@@ -1,86 +1,30 @@
-<div class="flex flex-1 min-h-0">
-  <!-- Main Chat Area -->
-  <div class="flex flex-col flex-1 min-w-0">
-    {{template "progress_controls" .}}
+<div class="flex flex-col flex-1 min-h-0">
+  {{template "progress_controls" .}}
 
-    {{template "chat_header" .}}
+  {{template "chat_header" .}}
 
-    <!-- Messages Area -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
-      {{range .Messages}}
-      {{if eq .MsgType "order"}}
-      {{template "order_card" .}}
-      {{else if eq .MsgType "booking"}}
-      {{template "booking_card" .}}
-      {{else if .MediaURL}}
-      {{template "media_message" .}}
-      {{else}}
-      {{template "text_message" .}}
-      {{end}}
-      {{else}}
-      <div class="text-center text-[var(--color-text-secondary)] py-8">
-        <i class="fas fa-inbox text-4xl mb-2"></i>
-        <p>No messages yet. Start the conversation!</p>
-      </div>
-      {{end}}
+  <!-- Messages Area -->
+  <div class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" id="messages-container">
+    {{range .Messages}}
+    {{if eq .MsgType "order"}}
+    {{template "order_card" .}}
+    {{else if eq .MsgType "booking"}}
+    {{template "booking_card" .}}
+    {{else if .MediaURL}}
+    {{template "media_message" .}}
+    {{else}}
+    {{template "text_message" .}}
+    {{end}}
+    {{else}}
+    <div class="text-center text-[var(--color-text-secondary)] py-8">
+      <i class="fas fa-inbox text-4xl mb-2"></i>
+      <p>No messages yet. Start the conversation!</p>
     </div>
-
-    {{template "message_input" .}}
+    {{end}}
   </div>
 
-  <!-- Customer Details Panel (Split View) -->
-  <div id="customerInfoPanel" class="hidden w-72 bg-[var(--color-surface)] border-l border-[var(--color-border)] flex flex-col shrink-0 overflow-y-auto">
-    <div class="p-4 border-b border-[var(--color-border)]">
-      <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-sm text-[var(--color-text)]">Customer Details</h3>
-        <button onclick="toggleCustomerInfo()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] text-sm">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div>
-    <div class="p-4 space-y-4">
-      <!-- Contact Info -->
-      <div>
-        <h4 class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Contact</h4>
-        <div class="space-y-2">
-          <div class="flex items-center gap-2 text-sm">
-            <i class="fas fa-envelope text-[var(--color-text-muted)] w-4 text-xs"></i>
-            <span class="text-[var(--color-text)] truncate">{{.Customer.Email}}</span>
-          </div>
-          {{if .Customer.Phone}}
-          <div class="flex items-center gap-2 text-sm">
-            <i class="fas fa-phone text-[var(--color-text-muted)] w-4 text-xs"></i>
-            <span class="text-[var(--color-text)]">{{.Customer.Phone}}</span>
-          </div>
-          {{end}}
-          <div class="flex items-center gap-2 text-sm">
-            <i class="fas fa-tag text-[var(--color-text-muted)] w-4 text-xs"></i>
-            <span class="text-[var(--color-text)] capitalize">{{.Customer.Status}}</span>
-          </div>
-        </div>
-      </div>
-      <!-- Quick Actions -->
-      <div>
-        <h4 class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Actions</h4>
-        <div class="space-y-1.5">
-          <button onclick="openBusinessProductPicker({{.Customer.ID}})"
-            class="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--color-text)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] transition-colors flex items-center gap-2">
-            <i class="fas fa-box text-[var(--color-primary)] w-4 text-xs"></i>
-            New Order
-          </button>
-          <button onclick="openServicePicker({{.Customer.ID}})"
-            class="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--color-text)] hover:bg-[var(--color-secondary-light)] hover:text-[var(--color-secondary)] transition-colors flex items-center gap-2">
-            <i class="fas fa-calendar-check text-[var(--color-secondary)] w-4 text-xs"></i>
-            New Booking
-          </button>
-          <button onclick="openPaymentModal({{.Customer.ID}})"
-            class="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--color-text)] hover:bg-[var(--color-accent-light)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-2">
-            <i class="fas fa-credit-card text-[var(--color-accent)] w-4 text-xs"></i>
-            Request Payment
-          </button>
-        </div>
-      </div>
-    </div>
+  <div class="shrink-0">
+    {{template "message_input" .}}
   </div>
 </div>
 

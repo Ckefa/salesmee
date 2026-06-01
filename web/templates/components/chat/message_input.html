@@ -1,123 +1,64 @@
 {{define "message_input"}}
-<div class="bg-[var(--color-surface)] border-t border-[var(--color-border)]">
-  <!-- Smart Suggestions Bar -->
-  <div id="smartSuggestions" class="hidden px-4 pt-2 pb-1 flex items-center gap-2 overflow-x-auto">
-    <span class="text-[10px] text-[var(--color-text-muted)] font-medium uppercase tracking-wider shrink-0">Quick actions</span>
+<div class="bg-[var(--color-surface)] border-t border-[var(--color-border)] px-4 pt-4 pb-0 lg:pb-4">
+  <div class="flex space-x-2 mb-3">
     <button onclick="openBusinessProductPicker({{.Customer.ID}})"
-      class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary-dark)] text-xs font-medium hover:bg-[var(--color-primary-light)] border border-[var(--color-primary)]/20 transition-colors">
-      <i class="fas fa-box mr-1"></i>Send Order
+      class="bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
     </button>
     <button onclick="openServicePicker({{.Customer.ID}})"
-      class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-secondary-light)] text-[var(--color-secondary)] text-xs font-medium hover:bg-[var(--color-secondary-light)] border border-[var(--color-secondary)]/20 transition-colors">
-      <i class="fas fa-calendar-check mr-1"></i>Book Appointment
+      class="bg-[var(--color-secondary)] hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
+      <i class="fas fa-concierge-bell"></i>
+      <span>Services</span>
     </button>
     <button onclick="openPaymentModal({{.Customer.ID}})"
-      class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-accent-light)] text-[var(--color-accent)] text-xs font-medium hover:bg-[var(--color-accent-light)] border border-[var(--color-accent)]/20 transition-colors">
-      <i class="fas fa-credit-card mr-1"></i>Request Payment
+      class="bg-[var(--color-accent)] hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
+      <i class="fas fa-credit-card"></i>
+      <span>Payment</span>
     </button>
   </div>
 
-  <!-- Typing Indicator -->
-  <div id="typingIndicator" class="hidden px-4 py-1">
-    <div class="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
-      <div class="flex items-center gap-1">
-        <span class="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full animate-bounce" style="animation-delay:0ms"></span>
-        <span class="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full animate-bounce" style="animation-delay:150ms"></span>
-        <span class="w-1.5 h-1.5 bg-[var(--color-text-muted)] rounded-full animate-bounce" style="animation-delay:300ms"></span>
-      </div>
-      <span>{{.Customer.Name}} is typing...</span>
-    </div>
-  </div>
-
-  <!-- Quick Replies Dropdown -->
-  <div id="quickReplies" class="hidden px-4 py-2 border-b border-[var(--color-border-light)] bg-[var(--color-surface-secondary)]">
-    <div class="flex items-center gap-2 overflow-x-auto">
-      <span class="text-[10px] text-[var(--color-text-muted)] font-medium uppercase tracking-wider shrink-0">Quick replies</span>
-      <button onclick="insertQuickReply('Sure, let me look into that for you.')"
-        class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-surface)] text-[var(--color-text)] text-xs font-medium hover:bg-[var(--color-surface-tertiary)] border border-[var(--color-border)] transition-colors whitespace-nowrap">
-        Let me check
-      </button>
-      <button onclick="insertQuickReply('I\'ll send you a quote shortly.')"
-        class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-surface)] text-[var(--color-text)] text-xs font-medium hover:bg-[var(--color-surface-tertiary)] border border-[var(--color-border)] transition-colors whitespace-nowrap">
-        Send quote
-      </button>
-      <button onclick="insertQuickReply('Thank you for your patience!')"
-        class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-surface)] text-[var(--color-text)] text-xs font-medium hover:bg-[var(--color-surface-tertiary)] border border-[var(--color-border)] transition-colors whitespace-nowrap">
-        Thank you
-      </button>
-      <button onclick="insertQuickReply('Can you provide more details?')"
-        class="shrink-0 px-3 py-1 rounded-full bg-[var(--color-surface)] text-[var(--color-text)] text-xs font-medium hover:bg-[var(--color-surface-tertiary)] border border-[var(--color-border)] transition-colors whitespace-nowrap">
-        More details
-      </button>
-    </div>
-  </div>
-
-  <div class="p-4">
-    <form id="message-form" hx-post="clients/{{.Customer.ID}}/messages" hx-target="#messages-container"
-      hx-swap="beforeend" hx-encoding="multipart/form-data">
-      <div class="flex space-x-3">
-        <div class="relative" data-client-id="{{.Customer.ID}}">
-          <button type="button" onclick="toggleActionButtons()"
-            class="bg-[var(--color-secondary)] hover:opacity-90 text-white w-10 h-10 rounded-full flex items-center justify-center">
-            <i class="fas fa-plus" id="action-icon"></i>
-          </button>
-          <div id="action-buttons" class="absolute bottom-12 left-0 space-y-2 hidden">
-            <button onclick="openBusinessProductPicker(this.closest('[data-client-id]').dataset.clientId)"
-              class="bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-2 rounded-lg shadow-lg flex items-center space-x-1 text-sm whitespace-nowrap">
-              <i class="fas fa-box"></i>
-              <span>Products</span>
-            </button>
-            <button onclick="openServicePicker(this.closest('[data-client-id]').dataset.clientId)"
-              class="bg-[var(--color-secondary)] hover:opacity-90 text-white px-3 py-2 rounded-lg shadow-lg flex items-center space-x-1 text-sm whitespace-nowrap">
-              <i class="fas fa-concierge-bell"></i>
-              <span>Services</span>
-            </button>
-            <button onclick="openPaymentModal(this.closest('[data-client-id]').dataset.clientId)"
-              class="bg-[var(--color-accent)] hover:opacity-90 text-white px-3 py-2 rounded-lg shadow-lg flex items-center space-x-1 text-sm whitespace-nowrap">
-              <i class="fas fa-credit-card"></i>
-              <span>Payment</span>
-            </button>
-          </div>
-        </div>
-        <div class="relative" id="media-tray-container">
-          <button type="button" onclick="toggleMediaTray()"
-            class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-text-muted)] text-[var(--color-text-secondary)] w-10 h-10 rounded-full flex items-center justify-center transition-colors">
-            <i class="fas fa-paperclip" id="media-icon"></i>
-          </button>
-          <div id="media-tray" class="absolute bottom-12 left-0 space-y-2 hidden">
-            <div class="flex gap-2 bg-[var(--color-surface)] p-2 rounded-xl shadow-xl border border-[var(--color-border)]">
-              <button type="button" onclick="triggerMediaUpload('image')"
-                class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
-                <i class="fas fa-image text-blue-500 text-xl"></i>
-                <span class="text-xs text-[var(--color-text-secondary)]">Images</span>
-              </button>
-              <button type="button" onclick="triggerMediaUpload('document')"
-                class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
-                <i class="fas fa-file-alt text-amber-500 text-xl"></i>
-                <span class="text-xs text-[var(--color-text-secondary)]">Documents</span>
-              </button>
-              <button type="button" onclick="triggerMediaUpload('audio')"
-                class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
-                <i class="fas fa-microphone text-rose-500 text-xl"></i>
-                <span class="text-xs text-[var(--color-text-secondary)]">Voice Note</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <input type="text" name="content" id="messageInput" placeholder="Type a message... (/ for quick replies)"
-          oninput="onMessageInput(this)"
-          onkeydown="onMessageKeydown(event)"
-          class="input flex-1"
-          required>
-        <input type="hidden" name="sender" value="business">
-        <button type="submit" class="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg hover:opacity-90">
-          <i class="fas fa-paper-plane"></i>
+  <form id="message-form" hx-post="clients/{{.Customer.ID}}/messages" hx-target="#messages-container"
+    hx-swap="beforeend" hx-on::after-request="this.reset()" hx-encoding="multipart/form-data">
+    <div class="flex space-x-3">
+      <div class="relative" id="media-tray-container">
+        <button type="button" onclick="toggleMediaTray()"
+          class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-text-muted)] text-[var(--color-text-secondary)] w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0">
+          <i class="fas fa-paperclip" id="media-icon"></i>
         </button>
+        <div id="media-tray" class="absolute bottom-12 left-0 space-y-2 hidden">
+          <div class="flex gap-2 bg-[var(--color-surface)] p-2 rounded-xl shadow-xl border border-[var(--color-border)]">
+            <button type="button" onclick="triggerMediaUpload('image')"
+              class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
+              <i class="fas fa-image text-blue-500 text-xl"></i>
+              <span class="text-xs text-[var(--color-text-secondary)]">Images</span>
+            </button>
+            <button type="button" onclick="triggerMediaUpload('document')"
+              class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
+              <i class="fas fa-file-alt text-amber-500 text-xl"></i>
+              <span class="text-xs text-[var(--color-text-secondary)]">Documents</span>
+            </button>
+            <button type="button" onclick="triggerMediaUpload('audio')"
+              class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
+              <i class="fas fa-microphone text-rose-500 text-xl"></i>
+              <span class="text-xs text-[var(--color-text-secondary)]">Voice Note</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <input type="file" name="media_image" id="media-input-image" accept="image/*" class="hidden" onchange="handleMediaSelected(this)">
-      <input type="file" name="media_document" id="media-input-document" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx" class="hidden" onchange="handleMediaSelected(this)">
-      <input type="file" name="media_audio" id="media-input-audio" accept="audio/*" class="hidden" onchange="handleMediaSelected(this)">
-    </form>
-  </div>
+      <input type="text" name="content" id="messageInput" placeholder="Type a message... (/ for quick replies)"
+        oninput="onMessageInput(this)"
+        onkeydown="onMessageKeydown(event)"
+        class="input flex-1"
+        required>
+      <input type="hidden" name="sender" value="business">
+      <button type="submit" class="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg hover:opacity-90">
+        <i class="fas fa-paper-plane"></i> Send
+      </button>
+    </div>
+    <input type="file" name="media_image" id="media-input-image" accept="image/*" class="hidden" onchange="handleMediaSelected(this)">
+    <input type="file" name="media_document" id="media-input-document" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx" class="hidden" onchange="handleMediaSelected(this)">
+    <input type="file" name="media_audio" id="media-input-audio" accept="audio/*" class="hidden" onchange="handleMediaSelected(this)">
+  </form>
 </div>
 {{end}}

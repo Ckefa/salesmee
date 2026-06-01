@@ -94,7 +94,7 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
       <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Page Header -->
@@ -264,8 +264,8 @@
   </div>
 
   <!-- Quick Booking Modal -->
-  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4">
+  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
       <div class="px-6 py-4 border-b border-[var(--color-border)]">
         <h3 class="text-lg font-medium text-[var(--color-text)]">Create New Booking</h3>
       </div>
@@ -361,6 +361,7 @@
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify({status: status})
       })
@@ -456,6 +457,7 @@
         method: method,
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(bookingData)
       })

@@ -29,6 +29,7 @@
       {{end}}
 
       <form method="POST" action="/admin/login" class="space-y-4">
+        {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
           <input type="email" name="email" required

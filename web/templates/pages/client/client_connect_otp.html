@@ -37,6 +37,7 @@
     {{end}}
 
     <form method="POST" action="/api/connect/{{.Business.Slug}}/verify-otp" class="space-y-4">
+      {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
       <input type="hidden" name="email" value="{{.Email}}">
       <div>
         <label for="otp" class="block text-sm font-medium text-gray-700 mb-2">Enter OTP Code</label>

@@ -626,14 +626,14 @@ async function submitProductOrder() {
       if (pickerMode === 'client') {
         resp = await fetch(`/client/orders/${pickerEditOrderId}/update`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
           credentials: 'same-origin',
           body: JSON.stringify(body)
         });
       } else {
         resp = await fetch(`/business/orders/${pickerEditOrderId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
           credentials: 'same-origin',
           body: JSON.stringify(body)
         });
@@ -663,7 +663,7 @@ async function submitProductOrder() {
     } else if (pickerMode === 'client') {
       resp = await fetch('/client/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
         credentials: 'same-origin',
         body: JSON.stringify({
           business_id: parseInt(pickerBusinessId),
@@ -701,7 +701,7 @@ async function submitProductOrder() {
     } else {
       resp = await fetch(`/business/conversations/${pickerConversationId}/order-draft`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
         credentials: 'same-origin',
         body: JSON.stringify({
           items,

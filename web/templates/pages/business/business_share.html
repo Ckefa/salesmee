@@ -91,7 +91,7 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
       <div class="py-8">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
@@ -288,7 +288,7 @@
       const btn = event.target.closest('button');
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Regenerating...';
-      fetch('/business/regenerate-slug', { method: 'POST' })
+      fetch('/business/regenerate-slug', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
         .then(r => r.json())
         .then(data => {
           if (data.success) {

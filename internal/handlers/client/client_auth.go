@@ -10,6 +10,7 @@ import (
 
 	"salesmee/internal/db"
 	"salesmee/internal/handlers"
+	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 
@@ -24,18 +25,18 @@ func ShowClientLogin(c *gin.Context) {
 			return
 		}
 	}
-	c.HTML(200, "client_login.html", gin.H{
+	c.HTML(200, "client_login.html", middleware.TemplateData(c, gin.H{
 		"Title": "Client Login - SalesMee",
-	})
+	}))
 }
 
 func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
-		c.HTML(400, "client_login.html", gin.H{
+		c.HTML(400, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Login - SalesMee",
 			"Error": "Email is required",
-		})
+		}))
 		return
 	}
 
@@ -50,27 +51,27 @@ func SendClientOTP(c *gin.Context) {
 			Status: models.StatusNew,
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
-			c.HTML(500, "client_login.html", gin.H{
+			c.HTML(500, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account",
-			})
+			}))
 			return
 		}
 	}
 
 	_, err = services.SendClientOTP(email)
 	if err != nil {
-		c.HTML(400, "client_login.html", gin.H{
+		c.HTML(400, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Login - SalesMee",
 			"Error": "Failed to send OTP",
-		})
+		}))
 		return
 	}
 
-	c.HTML(200, "client_otp.html", gin.H{
+	c.HTML(200, "client_otp.html", middleware.TemplateData(c, gin.H{
 		"Title": "Enter OTP - SalesMee",
 		"Email": email,
-	})
+	}))
 }
 
 func VerifyClientOTP(c *gin.Context) {
@@ -78,21 +79,21 @@ func VerifyClientOTP(c *gin.Context) {
 	otpCode := c.PostForm("otp")
 
 	if email == "" || otpCode == "" {
-		c.HTML(400, "client_otp.html", gin.H{
+		c.HTML(400, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Email and OTP are required",
-		})
+		}))
 		return
 	}
 
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
-		c.HTML(400, "client_otp.html", gin.H{
+		c.HTML(400, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Invalid or expired OTP",
-		})
+		}))
 		return
 	}
 
@@ -111,11 +112,11 @@ func VerifyClientOTP(c *gin.Context) {
 	// Generate JWT token
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
-		c.HTML(500, "client_otp.html", gin.H{
+		c.HTML(500, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Failed to generate token",
-		})
+		}))
 		return
 	}
 

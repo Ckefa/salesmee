@@ -30,7 +30,7 @@ function loadClient(clientId) {
 
 function deleteClient(clientId, clientName) {
   if (!confirm('Are you sure you want to delete "' + clientName + '"? This action cannot be undone.')) return;
-  fetch('clients/' + clientId, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })
+  fetch('clients/' + clientId, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data.success) {
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      fetch('clients', { method: 'POST', body: new FormData(this) })
+      fetch('clients', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: new FormData(this) })
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.success) {
@@ -166,7 +166,7 @@ function saveConversationProgress(clientId, stage) {
       var fd = new FormData();
       fd.append('current_stage', stage);
       fd.append('progress_score', getProgressScore(stage));
-      fetch('/conversations/' + data.conversation_id + '/stage', { method: 'PUT', body: fd })
+      fetch('/conversations/' + data.conversation_id + '/stage', { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: fd })
         .then(function(r) { return r.ok ? showNotification('Conversation progress updated!', 'success') : showNotification('Failed to update progress', 'error'); })
         .catch(function() { showNotification('Failed to save conversation progress', 'error'); });
     })

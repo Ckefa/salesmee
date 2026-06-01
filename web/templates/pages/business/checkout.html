@@ -63,7 +63,7 @@
 
   <div class="flex h-[calc(100vh-4rem)]">
     {{template "dashboard_sidebar" .}}
-    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)]">
+    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)] pb-16">
       {{template "checkout_content" .}}
     </main>
   </div>
@@ -153,6 +153,7 @@
           </div>
         </div>
         <form method="POST" action="/business/subscription/checkout">
+          {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
           <input type="hidden" name="plan_code" value="{{$plan.Code}}">
           <input type="hidden" name="interval" value="{{$interval}}">
           <input type="hidden" name="provider" value="stripe">
@@ -176,6 +177,7 @@
           </div>
         </div>
         <form method="POST" action="/business/subscription/checkout">
+          {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
           <input type="hidden" name="plan_code" value="{{$plan.Code}}">
           <input type="hidden" name="interval" value="{{$interval}}">
           <input type="hidden" name="provider" value="paypal">

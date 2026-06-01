@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"salesmee/internal/db"
+	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +14,9 @@ import (
 )
 
 func ShowLogin(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin_login.html", gin.H{
+	c.HTML(http.StatusOK, "admin_login.html", middleware.TemplateData(c, gin.H{
 		"Title": "Admin Login - SalesMee",
-	})
+	}))
 }
 
 func Login(c *gin.Context) {
@@ -23,27 +24,27 @@ func Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if email == "" || password == "" {
-		c.HTML(http.StatusOK, "admin_login.html", gin.H{
+		c.HTML(http.StatusOK, "admin_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Admin Login - SalesMee",
 			"Error": "Email and password are required",
-		})
+		}))
 		return
 	}
 
 	var admin models.Admin
 	if err := db.DB.Where("email = ?", email).First(&admin).Error; err != nil {
-		c.HTML(http.StatusOK, "admin_login.html", gin.H{
+		c.HTML(http.StatusOK, "admin_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Admin Login - SalesMee",
 			"Error": "Invalid credentials",
-		})
+		}))
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
-		c.HTML(http.StatusOK, "admin_login.html", gin.H{
+		c.HTML(http.StatusOK, "admin_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Admin Login - SalesMee",
 			"Error": "Invalid credentials",
-		})
+		}))
 		return
 	}
 

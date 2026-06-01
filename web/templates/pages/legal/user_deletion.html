@@ -42,6 +42,7 @@
         <p class="text-sm text-slate-500 mb-6">Submit a request to permanently delete your SalesMee account and associated data.</p>
 
         <form method="POST" action="/user-deletion" class="space-y-5">
+          {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
           <input type="hidden" name="external_id" value="{{.ExternalID}}">
 
           <div>

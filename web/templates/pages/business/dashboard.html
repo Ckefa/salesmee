@@ -128,7 +128,7 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)]">
+    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)] pb-16">
       {{template "dashboard_content" .}}
     </main>
   </div>
@@ -299,7 +299,7 @@
         delivery_address: document.getElementById('orderDeliveryAddress').value,
         notes: document.getElementById('orderNotes').value
       };
-      fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) })
+      fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(orderData) })
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.success) { hideQuickOrderModal(); showNotification(data.message || 'Order created!', 'success'); location.reload(); }
@@ -318,7 +318,7 @@
         booking_date: document.getElementById('bookingDateTime').value,
         notes: document.getElementById('bookingNotes').value
       };
-      fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bookingData) })
+      fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(bookingData) })
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.success) { hideQuickBookingModal(); showNotification(data.message || 'Booking created!', 'success'); location.reload(); }

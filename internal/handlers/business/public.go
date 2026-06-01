@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"salesmee/internal/db"
+	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"time"
@@ -16,31 +17,31 @@ func GetPublicProfile(c *gin.Context) {
 
 	var business models.Business
 	if err := db.DB.Where("slug = ? AND is_public = ?", slug, true).Preload("Clients").First(&business).Error; err != nil {
-		c.HTML(http.StatusNotFound, "public_profile.html", gin.H{
+		c.HTML(http.StatusNotFound, "public_profile.html", middleware.TemplateData(c, gin.H{
 			"Title": "Business Not Found - SalesMee",
 			"Error": "Business not found or not available",
-		})
+		}))
 		return
 	}
 
 	var products []models.Product
 	db.DB.Where("business_id = ? AND is_active = ?", business.ID, true).Find(&products)
 
-	var services []models.Service
-	db.DB.Where("business_id = ? AND is_active = ?", business.ID, true).Find(&services)
+	var svcList []models.Service
+	db.DB.Where("business_id = ? AND is_active = ?", business.ID, true).Find(&svcList)
 
 	// Determine if business is accepting clients (has any recent activity)
 	var totalClients int64
 	db.DB.Model(&models.Client{}).Where("business_id = ?", business.ID).Count(&totalClients)
 
-	c.HTML(http.StatusOK, "public_profile.html", gin.H{
+	c.HTML(http.StatusOK, "public_profile.html", middleware.TemplateData(c, gin.H{
 		"Title":          business.Name + " - SalesMee",
 		"Business":       business,
 		"Products":       products,
-		"Services":       services,
+		"Services":       svcList,
 		"TotalClients":   int(totalClients),
 		"IsAcceptingClients": totalClients >= 0, // always true for now
-	})
+	}))
 }
 
 type ConnectRequest struct {
@@ -57,17 +58,17 @@ func ShowConnect(c *gin.Context) {
 
 	var business models.Business
 	if err := db.DB.Where("slug = ?", slug).First(&business).Error; err != nil {
-		c.HTML(http.StatusNotFound, "public_profile.html", gin.H{
+		c.HTML(http.StatusNotFound, "public_profile.html", middleware.TemplateData(c, gin.H{
 			"Title": "Business Not Found - SalesMee",
 			"Error": "Business not found",
-		})
+		}))
 		return
 	}
 
-	c.HTML(http.StatusOK, "client_connect.html", gin.H{
+	c.HTML(http.StatusOK, "client_connect.html", middleware.TemplateData(c, gin.H{
 		"Title":    "Connect - " + business.Name,
 		"Business": business,
-	})
+	}))
 }
 
 func SendConnectOTP(c *gin.Context) {
@@ -81,11 +82,11 @@ func SendConnectOTP(c *gin.Context) {
 
 	email := c.PostForm("email")
 	if email == "" {
-		c.HTML(http.StatusBadRequest, "client_connect.html", gin.H{
+		c.HTML(http.StatusBadRequest, "client_connect.html", middleware.TemplateData(c, gin.H{
 			"Title":    "Connect - SalesMee",
 			"Business": business,
 			"Error":    "Email is required",
-		})
+		}))
 		return
 	}
 
@@ -100,30 +101,30 @@ func SendConnectOTP(c *gin.Context) {
 			Status:     models.StatusNew,
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
-			c.HTML(http.StatusInternalServerError, "client_connect.html", gin.H{
+			c.HTML(http.StatusInternalServerError, "client_connect.html", middleware.TemplateData(c, gin.H{
 				"Title":    "Connect - SalesMee",
 				"Business": business,
 				"Error":    "Failed to create client",
-			})
+			}))
 			return
 		}
 	}
 
 	_, err = services.SendClientOTP(email)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "client_connect.html", gin.H{
+		c.HTML(http.StatusBadRequest, "client_connect.html", middleware.TemplateData(c, gin.H{
 			"Title":    "Connect - SalesMee",
 			"Business": business,
 			"Error":    "Failed to send OTP",
-		})
+		}))
 		return
 	}
 
-	c.HTML(http.StatusOK, "client_connect_otp.html", gin.H{
+	c.HTML(http.StatusOK, "client_connect_otp.html", middleware.TemplateData(c, gin.H{
 		"Title":    "Verify OTP - SalesMee",
 		"Business": business,
 		"Email":    email,
-	})
+	}))
 }
 
 func VerifyConnectOTP(c *gin.Context) {
@@ -139,23 +140,23 @@ func VerifyConnectOTP(c *gin.Context) {
 	otpCode := c.PostForm("otp")
 
 	if email == "" || otpCode == "" {
-		c.HTML(http.StatusBadRequest, "client_connect_otp.html", gin.H{
+		c.HTML(http.StatusBadRequest, "client_connect_otp.html", middleware.TemplateData(c, gin.H{
 			"Title":    "Verify OTP - SalesMee",
 			"Business": business,
 			"Email":    email,
 			"Error":    "Email and OTP are required",
-		})
+		}))
 		return
 	}
 
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "client_connect_otp.html", gin.H{
+		c.HTML(http.StatusBadRequest, "client_connect_otp.html", middleware.TemplateData(c, gin.H{
 			"Title":    "Verify OTP - SalesMee",
 			"Business": business,
 			"Email":    email,
 			"Error":    "Invalid or expired OTP",
-		})
+		}))
 		return
 	}
 
@@ -171,11 +172,11 @@ func VerifyConnectOTP(c *gin.Context) {
 
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "client_connect_otp.html", gin.H{
+		c.HTML(http.StatusInternalServerError, "client_connect_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Verify OTP - SalesMee",
 			"Email": email,
 			"Error": "Failed to generate token",
-		})
+		}))
 		return
 	}
 

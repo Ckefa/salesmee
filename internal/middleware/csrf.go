@@ -11,6 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func TemplateData(c *gin.Context, data gin.H) gin.H {
+	if data == nil {
+		data = gin.H{}
+	}
+	if _, exists := data["CSRFToken"]; !exists {
+		data["CSRFToken"] = c.GetString("csrf_token")
+	}
+	return data
+}
+
 var csrfSecret string
 
 func init() {
@@ -30,6 +40,11 @@ func generateCSRFToken() string {
 }
 
 func GetCSRFToken(c *gin.Context) string {
+	if existing, err := c.Cookie("csrf_token"); err == nil && existing != "" {
+		c.Set("csrf_token", existing)
+		c.SetCookie("csrf_token", existing, 3600, "/", "", false, false)
+		return existing
+	}
 	token := generateCSRFToken()
 	c.SetCookie("csrf_token", token, 3600, "/", "", false, false)
 	// Also set in context for template rendering
@@ -83,6 +98,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Set("csrf_token", cookieToken)
 		c.Next()
 	}
 }

@@ -134,7 +134,7 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 p-6">
+    <main class="flex-1 p-6 pb-16">
       <div class="max-w-7xl mx-auto">
         <!-- Page Header -->
         <div class="mb-8">
@@ -304,8 +304,8 @@
   </div>
 
   <!-- Quick Order Modal -->
-  <div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
+  <div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto p-6 pb-16">
       <div class="mt-3">
         <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Order</h3>
         <form id="quickOrderForm" class="mt-4 space-y-4">
@@ -361,8 +361,8 @@
   </div>
 
   <!-- Quick Booking Modal -->
-  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
+  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto p-6 pb-16">
       <div class="mt-3">
         <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Booking</h3>
         <form id="quickBookingForm" class="mt-4 space-y-4">
@@ -464,20 +464,24 @@
     // Modal functions
     function showQuickOrderModal() {
       document.getElementById('quickOrderModal').classList.remove('hidden');
+      document.getElementById('quickOrderModal').classList.add('flex');
       loadProductsForOrder();
     }
 
     function hideQuickOrderModal() {
+      document.getElementById('quickOrderModal').classList.remove('flex');
       document.getElementById('quickOrderModal').classList.add('hidden');
       document.getElementById('quickOrderForm').reset();
     }
 
     function showQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.remove('hidden');
+      document.getElementById('quickBookingModal').classList.add('flex');
       loadServicesForBooking();
     }
 
     function hideQuickBookingModal() {
+      document.getElementById('quickBookingModal').classList.remove('flex');
       document.getElementById('quickBookingModal').classList.add('hidden');
       document.getElementById('quickBookingForm').reset();
     }
@@ -491,6 +495,7 @@
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify({status: status})
       })
@@ -527,6 +532,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(orderData)
       })
@@ -562,6 +568,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(bookingData)
       })

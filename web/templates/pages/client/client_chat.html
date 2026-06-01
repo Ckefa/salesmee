@@ -23,6 +23,7 @@
 
 {{template "client_message_input" .}}
 
+{{template "csrf_script" .}}
 <script>
   var businessId = {{.Business.ID}};
   var clientId = {{.Client.ID}};

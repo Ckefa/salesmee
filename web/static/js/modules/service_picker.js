@@ -493,14 +493,14 @@ async function submitServiceBooking() {
         body.scheduled_date = bookingDateTime;
         resp = await fetch(`/client/bookings/${servicePickerEditBookingId}/update`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
           body: JSON.stringify(body)
         });
       } else {
         body.booking_date = bookingDateTime;
         resp = await fetch(`/business/bookings/${servicePickerEditBookingId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
           body: JSON.stringify(body)
         });
       }
@@ -530,7 +530,7 @@ async function submitServiceBooking() {
     } else if (servicePickerMode === 'client') {
       resp = await fetch('/client/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
         body: JSON.stringify({
           service_id: servicePickerSelectedService.id,
           scheduled_date: bookingDateTime,
@@ -571,7 +571,7 @@ async function submitServiceBooking() {
       }
       resp = await fetch('/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
         body: JSON.stringify({
           client_id: parseInt(clientId),
           service_id: servicePickerSelectedService.id,

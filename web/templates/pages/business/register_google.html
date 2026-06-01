@@ -54,6 +54,7 @@
       {{end}}
 
       <form method="POST" action="/business/register/google/complete?token={{.Token}}" id="registerForm">
+        {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
         <p class="text-sm text-[var(--color-text-muted)] mb-4 text-center">What type of business do you run?</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="typeGrid">
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="automotive" style="border-color: var(--color-border);">

@@ -128,7 +128,7 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
       <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Search and Filter -->
@@ -225,8 +225,8 @@
   </div>
 
   <!-- Add/Edit Service Modal -->
-  <div id="serviceModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
+  <div id="serviceModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto p-6 pb-16">
       <div class="mt-3">
         <h3 class="text-lg font-medium text-[var(--color-text)]" id="modalTitle">Add Service</h3>
         <form id="serviceForm" class="mt-4 space-y-4">
@@ -303,9 +303,11 @@
       document.getElementById('serviceForm').reset();
       document.getElementById('serviceId').value = '';
       document.getElementById('serviceModal').classList.remove('hidden');
+      document.getElementById('serviceModal').classList.add('flex');
     }
 
     function hideServiceModal() {
+      document.getElementById('serviceModal').classList.remove('flex');
       document.getElementById('serviceModal').classList.add('hidden');
     }
 
@@ -351,6 +353,7 @@
             }
 
             document.getElementById('serviceModal').classList.remove('hidden');
+            document.getElementById('serviceModal').classList.add('flex');
           } else {
             alert('Failed to load service data');
           }
@@ -367,6 +370,7 @@
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-Token': getCookie('csrf_token')
           }
         })
           .then(response => response.json())
@@ -500,6 +504,7 @@
         method: method,
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(serviceData)
       })

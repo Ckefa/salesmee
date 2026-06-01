@@ -12,7 +12,7 @@ function scrollToBottom() {
 }
 
 function markAsRead() {
-  fetch(`/business/clients/${clientId}/read`, { method: 'PUT' })
+  fetch(`/business/clients/${clientId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function() {
       var badge = document.querySelector('.client-item[data-client-id="' + clientId + '"] .unread-badge');
       if (badge) badge.remove();
@@ -82,6 +82,7 @@ function updateClientStatus(clientId, status) {
 
   fetch('/business/clients/' + clientId + '/status', {
     method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
     body: formData
   })
     .then(response => {
@@ -163,6 +164,7 @@ function updateConversationStatus(conversationId, stage) {
 
   fetch('/business/conversations/' + conversationId + '/status', {
     method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
     body: formData
   })
     .then(response => {
@@ -200,6 +202,7 @@ function saveChatProgress(conversationId, stage) {
 
   fetch('/business/conversations/' + conversationId + '/status', {
     method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
     body: formData
   })
     .then(response => {
@@ -248,7 +251,7 @@ function showNotification(message, type) {
 
 function sendOrderToClient(orderId) {
   if (!confirm('Send this order to the client?')) return;
-  fetch(`/business/orders/${orderId}/send`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/send`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -263,7 +266,7 @@ function sendOrderToClient(orderId) {
 
 function confirmOrderBusiness(orderId) {
   if (!confirm('Confirm and process this order?')) return;
-  fetch(`/business/orders/${orderId}/confirm`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/confirm`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -278,7 +281,7 @@ function confirmOrderBusiness(orderId) {
 
 function rejectOrder(orderId) {
   if (!confirm('Reject this order?')) return;
-  fetch(`/business/orders/${orderId}/reject`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/reject`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -293,7 +296,7 @@ function rejectOrder(orderId) {
 
 function cancelDraftOrder(orderId) {
   if (!confirm('Discard this draft order?')) return;
-  fetch(`/business/orders/${orderId}/reject`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/reject`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -307,7 +310,7 @@ function cancelDraftOrder(orderId) {
 }
 
 function orderItemIncrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/increment`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/items/${productId}/increment`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) fetchMessages();
@@ -316,7 +319,7 @@ function orderItemIncrement(orderId, productId, btn) {
 }
 
 function orderItemDecrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/decrement`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/items/${productId}/decrement`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) fetchMessages();
@@ -330,7 +333,7 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
 
   fetch(`/business/bookings/${bookingId}/status`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify({ status: newStatus })
   })
     .then(r => r.json())

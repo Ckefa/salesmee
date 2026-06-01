@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"oneflow/internal/data"
 	"oneflow/internal/db"
 	"oneflow/internal/handlers/admin"
 	"oneflow/internal/middleware"
@@ -123,6 +124,14 @@ func main() {
 		"mul": func(a, b float64) float64 { return a * b },
 		"div": func(a, b float64) float64 { return a / b },
 		"float": func(i int) float64 { return float64(i) },
+		"currencySymbol": func(code string) string {
+			for _, c := range data.Currencies {
+				if c.Code == code {
+					return c.Symbol
+				}
+			}
+			return code
+		},
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)
 

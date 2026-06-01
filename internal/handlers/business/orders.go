@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"oneflow/internal/data"
 	"oneflow/internal/models"
 	"time"
 
@@ -151,6 +152,8 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"TotalOrders":    len(orders),
 		"TotalRevenue":   totalRevenue,
 		"ActivePage":     "orders",
+		"Countries":      data.Countries,
+		"Currencies":     data.Currencies,
 	})
 }
 

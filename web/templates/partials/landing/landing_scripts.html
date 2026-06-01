@@ -67,6 +67,10 @@
     if (hamburger) hamburger.addEventListener('click', openMobile);
     if (closeMenu) closeMenu.addEventListener('click', closeMobile);
     if (menuOverlay) menuOverlay.addEventListener('click', closeMobile);
+    // Close on link click (mobile)
+    if (mobileMenu) mobileMenu.addEventListener('click', function(e) {
+      if (e.target.tagName === 'A') closeMobile();
+    });
   });
 
   // Testimonial carousel

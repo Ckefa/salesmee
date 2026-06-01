@@ -12,6 +12,8 @@ type RegistrationData struct {
 	Username     string
 	Email        string
 	BusinessType string
+	Country      string
+	Currency     string
 	GoogleID     string
 	FacebookID   string
 	AvatarURL    string

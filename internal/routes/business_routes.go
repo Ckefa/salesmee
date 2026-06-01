@@ -128,6 +128,9 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		// Profile & Logo upload
 		protected.POST("/logo", businessHandler.UploadBusinessLogo)
 		protected.PUT("/profile", businessHandler.UpdateBusinessProfile)
+		protected.POST("/profile/initiate", businessHandler.InitiateProfileChange)
+		protected.POST("/profile/confirm", businessHandler.ConfirmProfileChange)
+		protected.POST("/profile/resend-otp", businessHandler.ResendProfileOTP)
 
 		// Analytics
 		protected.GET("/analytics", businessHandler.GetAnalytics)

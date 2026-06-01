@@ -185,7 +185,7 @@
                 </div>
                 <div class="ml-4">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">${{printf "%.2f" .TotalRevenue}}</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
                 </div>
               </div>
             </div>
@@ -234,7 +234,7 @@
                         {{.Status}}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">${{.TotalAmount}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex items-center space-x-2">
                         <select onchange="updateBookingStatus(this)" data-booking-id="{{.ID}}"
@@ -322,6 +322,8 @@
   </div>
 
   <script>
+    const CURRENCY_SYMBOL = '{{currencySymbol .Business.Currency}}';
+
     function openQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.remove('hidden');
       document.getElementById('quickBookingModal').classList.add('flex');
@@ -341,7 +343,7 @@
           const select = document.getElementById('bookingService');
           select.innerHTML = '<option value="">Select a service</option>';
           data.services.forEach(service => {
-            select.innerHTML += `<option value="${service.id}">${service.name} - $${service.max_price}</option>`;
+            select.innerHTML += `<option value="${service.id}">${service.name} - ${CURRENCY_SYMBOL}${service.max_price}</option>`;
           });
           return data.services;
         })
@@ -476,6 +478,7 @@
   </script>
 
   {{template "business_profile" .}}
+  {{template "business_profile_script" .}}
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
 </body>

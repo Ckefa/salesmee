@@ -1,0 +1,201 @@
+{{define "business_profile_script"}}
+<script>
+var profileChangeToken = '';
+var otpTimerInterval = null;
+
+(function() {
+  var pf = document.getElementById('businessProfileForm');
+  if (!pf) return;
+
+  var profileCountry = document.getElementById('profileCountry');
+  var profileCurrency = document.getElementById('profileCurrency');
+  if (profileCountry) profileCountry.value = '{{.Business.Country}}';
+  if (profileCurrency) profileCurrency.value = '{{.Business.Currency}}';
+
+  pf.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var step1Error = document.getElementById('step1Error');
+    if (step1Error) step1Error.classList.add('hidden');
+
+    var pw = document.getElementById('profilePassword')?.value || '';
+    var cpw = document.getElementById('profileConfirmPassword')?.value || '';
+    if (pw !== cpw) {
+      if (step1Error) { step1Error.textContent = 'Passwords do not match'; step1Error.classList.remove('hidden'); }
+      return;
+    }
+    if (pw && pw.length < 6) {
+      if (step1Error) { step1Error.textContent = 'Password must be at least 6 characters'; step1Error.classList.remove('hidden'); }
+      return;
+    }
+
+    var btn = document.getElementById('step1SubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+
+    var fd = new FormData();
+    fd.append('name', document.getElementById('profileName')?.value || '');
+    fd.append('username', document.getElementById('profileUsername')?.value || '');
+    fd.append('email', document.getElementById('profileEmail')?.value || '');
+    if (pw) fd.append('password', pw);
+    if (cpw) fd.append('confirm_password', cpw);
+    fd.append('country', document.getElementById('profileCountry')?.value || '');
+    fd.append('currency', document.getElementById('profileCurrency')?.value || '');
+    var li = document.getElementById('profileLogoInput');
+    if (li && li.files.length > 0) fd.append('logo', li.files[0]);
+
+    fetch('/business/profile/initiate', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        btn.disabled = false;
+        btn.innerHTML = 'Continue';
+        if (d.success) {
+          hideBusinessProfile();
+          location.reload();
+        } else if (d.requires_otp) {
+          profileChangeToken = d.token;
+          showProfileStep2();
+        } else {
+          if (step1Error) { step1Error.textContent = d.error || 'Failed to update profile'; step1Error.classList.remove('hidden'); }
+        }
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Continue';
+        if (step1Error) { step1Error.textContent = 'Failed to update profile'; step1Error.classList.remove('hidden'); }
+      });
+  });
+
+  document.getElementById('profileLogoInput')?.addEventListener('change', function(e) {
+    if (e.target.files.length === 0) return;
+    var r = new FileReader();
+    r.onload = function(ev) {
+      var p = document.querySelector('#profileLogoPreview');
+      if (p) p.innerHTML = '<img src="' + ev.target.result + '" class="w-full h-full object-cover">';
+    };
+    r.readAsDataURL(e.target.files[0]);
+  });
+})();
+
+function showProfileStep2() {
+  document.getElementById('step1Content').classList.add('hidden');
+  document.getElementById('step2Content').classList.remove('hidden');
+  document.getElementById('step1Indicator').classList.remove('bg-[var(--color-primary)]');
+  document.getElementById('step1Indicator').classList.add('bg-[var(--color-surface-tertiary)]');
+  document.getElementById('step1Label').classList.remove('text-[var(--color-primary)]');
+  document.getElementById('step1Label').classList.add('text-[var(--color-text-muted)]');
+  document.getElementById('step2Indicator').classList.remove('bg-[var(--color-surface-tertiary)]');
+  document.getElementById('step2Indicator').classList.add('bg-[var(--color-primary)]');
+  document.getElementById('step2Label').classList.remove('text-[var(--color-text-muted)]');
+  document.getElementById('step2Label').classList.add('text-[var(--color-primary)]');
+  document.getElementById('otpInput').value = '';
+  document.getElementById('otpInput').focus();
+  var otpErr = document.getElementById('otpError');
+  if (otpErr) otpErr.classList.add('hidden');
+  startProfileOtpTimer();
+}
+
+function backToStep1() {
+  clearInterval(otpTimerInterval);
+  document.getElementById('step2Content').classList.add('hidden');
+  document.getElementById('step1Content').classList.remove('hidden');
+  document.getElementById('step2Indicator').classList.remove('bg-[var(--color-primary)]');
+  document.getElementById('step2Indicator').classList.add('bg-[var(--color-surface-tertiary)]');
+  document.getElementById('step2Label').classList.remove('text-[var(--color-primary)]');
+  document.getElementById('step2Label').classList.add('text-[var(--color-text-muted)]');
+  document.getElementById('step1Indicator').classList.remove('bg-[var(--color-surface-tertiary)]');
+  document.getElementById('step1Indicator').classList.add('bg-[var(--color-primary)]');
+  document.getElementById('step1Label').classList.remove('text-[var(--color-text-muted)]');
+  document.getElementById('step1Label').classList.add('text-[var(--color-primary)]');
+}
+
+function confirmProfileChanges() {
+  var otp = document.getElementById('otpInput')?.value || '';
+  if (otp.length !== 6) {
+    var otpErr = document.getElementById('otpError');
+    if (otpErr) { otpErr.textContent = 'Please enter the complete 6-digit code'; otpErr.classList.remove('hidden'); }
+    return;
+  }
+  var btn = document.getElementById('step2SubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Verifying...';
+  var otpErr = document.getElementById('otpError');
+  if (otpErr) otpErr.classList.add('hidden');
+
+  var fd = new FormData();
+  fd.append('token', profileChangeToken);
+  fd.append('otp', otp);
+
+  fetch('/business/profile/confirm', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.disabled = false;
+      btn.innerHTML = 'Verify & Save';
+      if (d.success) {
+        clearInterval(otpTimerInterval);
+        hideBusinessProfile();
+        location.reload();
+      } else {
+        var otpErr2 = document.getElementById('otpError');
+        if (otpErr2) { otpErr2.textContent = d.error || 'Invalid verification code'; otpErr2.classList.remove('hidden'); }
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.innerHTML = 'Verify & Save';
+      var otpErr3 = document.getElementById('otpError');
+      if (otpErr3) { otpErr3.textContent = 'Failed to verify code'; otpErr3.classList.remove('hidden'); }
+    });
+}
+
+function resendProfileOtp() {
+  var btn = document.getElementById('resendOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  var fd = new FormData();
+  fd.append('token', profileChangeToken);
+
+  fetch('/business/profile/resend-otp', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        startProfileOtpTimer();
+        if (typeof showNotification === 'function') showNotification('Verification code resent to your email', 'success');
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to resend code', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Resend Code';
+      }
+    })
+    .catch(function() {
+      if (typeof showNotification === 'function') showNotification('Failed to resend code', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Resend Code';
+    });
+}
+
+function startProfileOtpTimer() {
+  clearInterval(otpTimerInterval);
+  var totalSeconds = 600;
+  var resendBtn = document.getElementById('resendOtpBtn');
+  resendBtn.disabled = true;
+  resendBtn.textContent = 'Resend Code';
+
+  function tick() {
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    document.getElementById('otpTimer').textContent =
+      String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    if (totalSeconds <= 0) {
+      clearInterval(otpTimerInterval);
+      document.getElementById('otpTimer').textContent = 'Expired';
+      resendBtn.disabled = false;
+      resendBtn.textContent = 'Resend Code';
+    }
+    totalSeconds--;
+  }
+  tick();
+  otpTimerInterval = setInterval(tick, 1000);
+}
+</script>
+{{end}}

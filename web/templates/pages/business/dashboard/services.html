@@ -184,7 +184,7 @@
                     <span class="text-sm text-[var(--color-text-muted)]">Price Range:</span>
                     <div class="text-right">
                       <span class="badge-price bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
-                        ${{.MinPrice}} - ${{.MaxPrice}}
+                        {{currencySymbol $.Business.Currency}}{{.MinPrice}} - {{currencySymbol $.Business.Currency}}{{.MaxPrice}}
                       </span>
                     </div>
                   </div>
@@ -564,6 +564,7 @@
   </script>
 
   {{template "business_profile" .}}
+  {{template "business_profile_script" .}}
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
 </body>

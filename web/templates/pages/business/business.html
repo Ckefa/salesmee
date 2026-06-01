@@ -397,34 +397,8 @@
         if (dd) dd.classList.add('hidden');
       }
     });
-
-    document.addEventListener('DOMContentLoaded', function() {
-      var pf = document.getElementById('businessProfileForm');
-      if (pf) {
-        pf.addEventListener('submit', function(e) {
-          e.preventDefault();
-          var fd = new FormData();
-          fd.append('name', document.getElementById('profileName')?.value || '');
-          fd.append('username', document.getElementById('profileUsername')?.value || '');
-          fd.append('email', document.getElementById('profileEmail')?.value || '');
-          var pw = document.getElementById('profilePassword')?.value;
-          if (pw) fd.append('password', pw);
-          var li = document.getElementById('profileLogoInput');
-          if (li && li.files.length > 0) fd.append('logo', li.files[0]);
-          fetch('/business/profile', { method: 'PUT', body: fd })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { if (d.success) { hideBusinessProfile(); location.reload(); } else if (typeof showNotification === 'function') { showNotification(d.error || 'Failed to update profile', 'error'); } else { alert(d.error || 'Failed'); } })
-            .catch(function() { if (typeof showNotification === 'function') { showNotification('Failed to update profile', 'error'); } else { alert('Failed'); } });
-        });
-        document.getElementById('profileLogoInput')?.addEventListener('change', function(e) {
-          if (e.target.files.length === 0) return;
-          var r = new FileReader();
-          r.onload = function(ev) { var p = document.querySelector('#profileLogoPreview'); if (p) p.innerHTML = '<img src="' + ev.target.result + '" class="w-full h-full object-cover">'; };
-          r.readAsDataURL(e.target.files[0]);
-        });
-      }
-    });
   </script>
+  {{template "business_profile_script" .}}
   {{template "csrf_script" .}}
 </body>
 </html>

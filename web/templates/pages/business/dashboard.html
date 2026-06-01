@@ -221,40 +221,8 @@
 
   <script src="/static/js/modules/shared.js?v=1"></script>
   <script src="/static/js/core/app.js?v=1"></script>
+  {{template "business_profile_script" .}}
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var profileForm = document.getElementById('businessProfileForm');
-      if (profileForm) {
-        profileForm.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var formData = new FormData();
-          formData.append('name', document.getElementById('profileName').value);
-          formData.append('username', document.getElementById('profileUsername').value);
-          formData.append('email', document.getElementById('profileEmail').value);
-          var password = document.getElementById('profilePassword').value;
-          if (password) formData.append('password', password);
-          var logoInput = document.getElementById('profileLogoInput');
-          if (logoInput && logoInput.files.length > 0) formData.append('logo', logoInput.files[0]);
-          fetch('/business/profile', { method: 'PUT', body: formData })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-              if (data.success) { hideBusinessProfile(); location.reload(); }
-              else { showNotification(data.error || 'Failed', 'error'); }
-            })
-            .catch(function() { showNotification('Failed to update profile', 'error'); });
-        });
-        document.getElementById('profileLogoInput')?.addEventListener('change', function(e) {
-          if (e.target.files.length === 0) return;
-          var reader = new FileReader();
-          reader.onload = function(ev) {
-            var preview = document.querySelector('#profileLogoPreview');
-            if (preview) preview.innerHTML = '<img src="' + ev.target.result + '" class="w-full h-full object-cover">';
-          };
-          reader.readAsDataURL(e.target.files[0]);
-        });
-      }
-    });
-
     setInterval(function() {
       htmx.ajax('GET', '/business/dashboard', { target: 'main', swap: 'innerHTML' });
     }, 30000);

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"oneflow/internal/data"
 	"oneflow/internal/models"
 	"path/filepath"
 	"strconv"
@@ -38,6 +39,8 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		"Business":   currentBusiness,
 		"Products":   products,
 		"ActivePage": "products",
+		"Countries":  data.Countries,
+		"Currencies": data.Currencies,
 	})
 }
 

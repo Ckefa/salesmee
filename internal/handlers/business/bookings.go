@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"oneflow/internal/data"
 	"oneflow/internal/models"
 	"time"
 
@@ -153,6 +154,8 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		"TotalBookings":   len(bookings),
 		"TotalRevenue":    totalRevenue,
 		"ActivePage":      "bookings",
+		"Countries":       data.Countries,
+		"Currencies":      data.Currencies,
 	})
 }
 

@@ -91,15 +91,15 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm text-[var(--color-text-muted)]">Total Revenue</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)] mt-1">${{printf "%.2f" .TotalRevenue}}</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)] mt-1">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                   <i class="fas fa-dollar-sign text-emerald-600 dark:text-emerald-400"></i>
                 </div>
               </div>
               <div class="mt-3 flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
-                <span>Orders: ${{printf "%.2f" .OrdersRevenue}}</span>
-                <span>Bookings: ${{printf "%.2f" .BookingsRevenue}}</span>
+                <span>Orders: {{currencySymbol .Business.Currency}}{{printf "%.2f" .OrdersRevenue}}</span>
+                <span>Bookings: {{currencySymbol .Business.Currency}}{{printf "%.2f" .BookingsRevenue}}</span>
               </div>
             </div>
 
@@ -268,7 +268,7 @@
                     <tr class="border-b border-[var(--color-border)] table-row-hover">
                       <td class="py-2.5 text-[var(--color-text)]">{{.Name}}</td>
                       <td class="py-2.5 text-right text-[var(--color-text)]">{{.Count}}</td>
-                      <td class="py-2.5 text-right font-medium text-[var(--color-text)]">${{printf "%.2f" .Revenue}}</td>
+                      <td class="py-2.5 text-right font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{printf "%.2f" .Revenue}}</td>
                     </tr>
                     {{end}}
                   </tbody>
@@ -279,9 +279,9 @@
               {{end}}
             </div>
 
-            <!-- Monthly Revenue Trend -->
+            <!-- Monthly Revenue -->
             <div class="rounded-xl card p-5">
-              <h2 class="text-lg font-semibold text-[var(--color-text)] mb-4">Monthly Revenue</h2>
+              <h3 class="text-base font-semibold text-[var(--color-text)] mb-4">Monthly Revenue</h3>
               {{if .MonthlyRevenue}}
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
@@ -295,7 +295,7 @@
                     {{range .MonthlyRevenue}}
                     <tr class="border-b border-[var(--color-border)] table-row-hover">
                       <td class="py-2.5 text-[var(--color-text)]">{{.Month}}</td>
-                      <td class="py-2.5 text-right font-medium text-[var(--color-text)]">${{printf "%.2f" .Revenue}}</td>
+                      <td class="py-2.5 text-right font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{printf "%.2f" .Revenue}}</td>
                     </tr>
                     {{end}}
                   </tbody>
@@ -313,6 +313,7 @@
   </div>
 
   {{template "business_profile" .}}
+  {{template "business_profile_script" .}}
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
 

@@ -1,15 +1,30 @@
 {{define "business_profile"}}
 <div id="businessProfileModal"
-  class="fixed inset-0 bg-black/50 hidden overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-full max-w-lg mx-4 shadow-lg rounded-md bg-[var(--color-surface)]">
-    <div class="mt-3">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="text-lg font-medium text-[var(--color-text)]">Business Profile</h3>
-        <button onclick="hideBusinessProfile()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]">
-          <i class="fas fa-times"></i>
-        </button>
+  class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 md:p-6">
+  <div class="relative w-full max-w-lg border shadow-lg rounded-md bg-[var(--color-surface)] max-h-full md:max-h-[85vh] overflow-y-auto p-4 md:p-5">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-lg font-medium text-[var(--color-text)]">Business Profile</h3>
+      <button onclick="hideBusinessProfile()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="flex items-center justify-center space-x-4 mt-2 mb-4">
+      <div class="flex items-center">
+        <div id="step1Indicator" class="w-8 h-8 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-sm font-medium">1</div>
+        <span id="step1Label" class="hidden md:inline ml-2 text-sm font-medium text-[var(--color-primary)]">Details</span>
       </div>
-      <form id="businessProfileForm" class="space-y-4 mt-4">
+      <div class="w-12 h-0.5 bg-[var(--color-border)]"></div>
+      <div class="flex items-center">
+        <div id="step2Indicator" class="w-8 h-8 rounded-full bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] flex items-center justify-center text-sm font-medium">2</div>
+        <span id="step2Label" class="hidden md:inline ml-2 text-sm text-[var(--color-text-muted)]">Verify</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Details -->
+    <div id="step1Content">
+      <form id="businessProfileForm" class="space-y-4">
         <div class="flex justify-center mb-4">
           <div class="relative">
             <div id="profileLogoPreview"
@@ -47,16 +62,79 @@
           <input type="password" id="profilePassword" placeholder="Leave blank to keep current"
             class="input mt-1">
         </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Confirm New Password</label>
+          <input type="password" id="profileConfirmPassword" placeholder="Re-enter new password"
+            class="input mt-1">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)]">Country</label>
+            <select id="profileCountry" class="input mt-1 text-sm">
+              {{range .Countries}}
+              <option value="{{.Code}}" {{if eq .Code $.Business.Country}}selected{{end}}>{{.Name}}</option>
+              {{end}}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)]">Currency</label>
+            <select id="profileCurrency" class="input mt-1 text-sm">
+              {{range .Currencies}}
+              <option value="{{.Code}}" {{if eq .Code $.Business.Currency}}selected{{end}}>{{.Code}} - {{.Name}} ({{.Symbol}})</option>
+              {{end}}
+            </select>
+          </div>
+        </div>
+        <div id="step1Error" class="text-red-500 text-sm hidden"></div>
         <div class="flex justify-end space-x-3 pt-4 border-t border-[var(--color-border)]">
           <button type="button" onclick="hideBusinessProfile()"
             class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-tertiary)] text-[var(--color-text)] px-4 py-2 rounded">
             Cancel
           </button>
-          <button type="submit" class="bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded">
-            Save Changes
+          <button type="submit" id="step1SubmitBtn" class="bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded">
+            Continue
           </button>
         </div>
       </form>
+    </div>
+
+    <!-- Step 2: OTP Verify -->
+    <div id="step2Content" class="hidden">
+      <div class="text-center py-4">
+        <div class="w-16 h-16 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-envelope text-[var(--color-primary)] text-2xl"></i>
+        </div>
+        <p class="text-[var(--color-text)] font-medium mb-1">Check your email</p>
+        <p class="text-sm text-[var(--color-text-muted)] mb-1">We sent a 6-digit verification code to</p>
+        <p class="text-sm font-medium text-[var(--color-text)]" id="otpEmailDisplay">{{.Business.Email}}</p>
+      </div>
+      <div class="max-w-xs mx-auto mb-4">
+        <label class="block text-sm font-medium text-[var(--color-text)] text-center mb-2">Verification Code</label>
+        <input type="text" id="otpInput" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+          class="input text-center text-2xl tracking-[0.5em] font-mono"
+          placeholder="000000">
+        <div id="otpError" class="text-red-500 text-sm text-center mt-2 hidden"></div>
+      </div>
+      <div class="text-center mb-4">
+        <p class="text-sm text-[var(--color-text-muted)]">
+          Code expires in <span id="otpTimer" class="font-medium text-[var(--color-text)]">10:00</span>
+        </p>
+        <button type="button" id="resendOtpBtn" onclick="resendProfileOtp()"
+          class="text-sm text-[var(--color-primary)] hover:underline mt-1 disabled:opacity-50 disabled:no-underline"
+          disabled>
+          Resend Code
+        </button>
+      </div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-[var(--color-border)]">
+        <button type="button" id="backToStep1Btn" onclick="backToStep1()"
+          class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-surface-tertiary)] text-[var(--color-text)] px-4 py-2 rounded">
+          Back
+        </button>
+        <button type="button" id="step2SubmitBtn" onclick="confirmProfileChanges()"
+          class="bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded">
+          Verify &amp; Save
+        </button>
+      </div>
     </div>
   </div>
 </div>

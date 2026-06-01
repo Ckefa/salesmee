@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"oneflow/internal/db"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 )

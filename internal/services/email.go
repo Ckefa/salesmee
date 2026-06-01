@@ -22,7 +22,7 @@ func isResendEnabled() bool {
 
 func SendOTPEmail(toEmail, otpCode string) error {
 	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your OneFlow verification code\n  Body: Your verification code is: %s\n  Expires in: 10 minutes", toEmail, otpCode)
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your SalesMee verification code\n  Body: Your verification code is: %s\n  Expires in: 10 minutes", toEmail, otpCode)
 		return nil
 	}
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -40,7 +40,7 @@ func SendOTPEmail(toEmail, otpCode string) error {
 		<tr><td align="center">
 			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
 				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
-					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
 					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 16px;">Your verification code</h2>
@@ -55,7 +55,7 @@ func SendOTPEmail(toEmail, otpCode string) error {
 					</p>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
 				</td></tr>
 			</table>
 		</td></tr>
@@ -66,7 +66,7 @@ func SendOTPEmail(toEmail, otpCode string) error {
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
 		To:      []string{toEmail},
-		Subject: "Your OneFlow verification code",
+		Subject: "Your SalesMee verification code",
 		Html:    html,
 	}
 
@@ -81,7 +81,7 @@ func SendOTPEmail(toEmail, otpCode string) error {
 
 func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment successful - OneFlow %s plan\n  Body: Hi %s, your %s plan is now active.", toEmail, planName, businessName, planName)
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment successful - SalesMee %s plan\n  Body: Hi %s, your %s plan is now active.", toEmail, planName, businessName, planName)
 		return nil
 	}
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -99,7 +99,7 @@ func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 		<tr><td align="center">
 			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
 				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
-					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
 					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#10004;&#65039;</div>
@@ -112,7 +112,7 @@ func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 					</p>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
 				</td></tr>
 			</table>
 		</td></tr>
@@ -123,7 +123,7 @@ func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
 		To:      []string{toEmail},
-		Subject: "Payment successful - OneFlow " + planName + " plan",
+		Subject: "Payment successful - SalesMee " + planName + " plan",
 		Html:    html,
 	}
 
@@ -138,7 +138,7 @@ func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 
 func SendSubscriptionExpired(toEmail, businessName string) error {
 	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your OneFlow subscription has ended\n  Body: Hi %s, your OneFlow subscription has ended. Your account has been downgraded to the Free plan.", toEmail, businessName)
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your salesmee subscription has ended\n  Body: Hi %s, your SalesMee subscription has ended. Your account has been downgraded to the Free plan.", toEmail, businessName)
 		return nil
 	}
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -156,20 +156,20 @@ func SendSubscriptionExpired(toEmail, businessName string) error {
 		<tr><td align="center">
 			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
 				<tr><td style="background: linear-gradient(135deg, #dc2626, #ea580c); padding: 32px; text-align: center;">
-					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
 					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128276;</div>
 					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Subscription expired</h2>
 					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
-						Hi %s, your OneFlow subscription has ended.
+						Hi %s, your SalesMee subscription has ended.
 					</p>
 					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">
 						Your account has been downgraded to the Free plan. To regain access to premium features, please subscribe to a new plan.
 					</p>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
 				</td></tr>
 			</table>
 		</td></tr>
@@ -180,7 +180,7 @@ func SendSubscriptionExpired(toEmail, businessName string) error {
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
 		To:      []string{toEmail},
-		Subject: "Your OneFlow subscription has ended",
+		Subject: "Your salesmee subscription has ended",
 		Html:    html,
 	}
 
@@ -195,7 +195,7 @@ func SendSubscriptionExpired(toEmail, businessName string) error {
 
 func SendPasswordResetEmail(toEmail, resetLink string) error {
 	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Reset your OneFlow password\n  Body: Click the link below to reset your password (expires in 1 hour):\n  %s", toEmail, resetLink)
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Reset your SalesMee password\n  Body: Click the link below to reset your password (expires in 1 hour):\n  %s", toEmail, resetLink)
 		return nil
 	}
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -213,7 +213,7 @@ func SendPasswordResetEmail(toEmail, resetLink string) error {
 		<tr><td align="center">
 			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
 				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
-					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
 					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128273;</div>
@@ -229,7 +229,7 @@ func SendPasswordResetEmail(toEmail, resetLink string) error {
 					</p>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
 				</td></tr>
 			</table>
 		</td></tr>
@@ -240,7 +240,7 @@ func SendPasswordResetEmail(toEmail, resetLink string) error {
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
 		To:      []string{toEmail},
-		Subject: "Reset your OneFlow password",
+		Subject: "Reset your SalesMee password",
 		Html:    html,
 	}
 
@@ -255,7 +255,7 @@ func SendPasswordResetEmail(toEmail, resetLink string) error {
 
 func SendVerificationEmail(toEmail, verifyLink string) error {
 	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Verify your OneFlow email address\n  Body: Click the link below to verify your email:\n  %s", toEmail, verifyLink)
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Verify your SalesMee email address\n  Body: Click the link below to verify your email:\n  %s", toEmail, verifyLink)
 		return nil
 	}
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -273,7 +273,7 @@ func SendVerificationEmail(toEmail, verifyLink string) error {
 		<tr><td align="center">
 			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
 				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
-					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
 					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#10071;</div>
@@ -289,7 +289,7 @@ func SendVerificationEmail(toEmail, verifyLink string) error {
 					</p>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
 				</td></tr>
 			</table>
 		</td></tr>
@@ -300,7 +300,7 @@ func SendVerificationEmail(toEmail, verifyLink string) error {
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
 		To:      []string{toEmail},
-		Subject: "Verify your OneFlow email address",
+		Subject: "Verify your SalesMee email address",
 		Html:    html,
 	}
 
@@ -315,7 +315,7 @@ func SendVerificationEmail(toEmail, verifyLink string) error {
 
 func SendSubscriptionFailed(toEmail, businessName string) error {
 	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment failed - OneFlow subscription\n  Body: Hi %s, we were unable to process your latest payment. Please update your payment method.", toEmail, businessName)
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment failed - SalesMee subscription\n  Body: Hi %s, we were unable to process your latest payment. Please update your payment method.", toEmail, businessName)
 		return nil
 	}
 	apiKey := os.Getenv("RESEND_API_KEY")
@@ -333,7 +333,7 @@ func SendSubscriptionFailed(toEmail, businessName string) error {
 		<tr><td align="center">
 			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
 				<tr><td style="background: linear-gradient(135deg, #dc2626, #ea580c); padding: 32px; text-align: center;">
-					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">OneFlow</h1>
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
 					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#9888;&#65039;</div>
@@ -346,7 +346,7 @@ func SendSubscriptionFailed(toEmail, businessName string) error {
 					</p>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
-					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 OneFlow. All rights reserved.</p>
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
 				</td></tr>
 			</table>
 		</td></tr>
@@ -357,7 +357,7 @@ func SendSubscriptionFailed(toEmail, businessName string) error {
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
 		To:      []string{toEmail},
-		Subject: "Payment failed - OneFlow subscription",
+		Subject: "Payment failed - SalesMee subscription",
 		Html:    html,
 	}
 

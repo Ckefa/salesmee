@@ -16,7 +16,7 @@
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
-            <p class="text-2xl font-bold text-[var(--color-text)]">${{.TotalRevenue}}</p>
+            <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{.TotalRevenue}}</p>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@
                 <p class="text-sm text-[var(--color-text-secondary)]">{{.Client.Name}}</p>
               </div>
               <div class="text-right">
-                <p class="text-sm font-medium text-[var(--color-text)]">${{.TotalAmount}}</p>
+                <p class="text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
                 <span
                   class="badge-status {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]{{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]{{else if eq .Status `completed` }}bg-[var(--color-success-light)] text-[var(--color-success)]{{else}}bg-[var(--color-error-light)] text-[var(--color-error)]{{end}}">
                   {{.Status}}
@@ -110,7 +110,7 @@
                 <p class="text-xs text-[var(--color-text-muted)]">{{.ScheduledDate.Format "Jan 2, 2006"}}</p>
               </div>
               <div class="text-right">
-                <p class="text-sm font-medium text-[var(--color-text)]">${{.TotalAmount}}</p>
+                <p class="text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
                 <span class="badge-status 
                   {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
                   {{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]

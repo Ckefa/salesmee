@@ -3,7 +3,8 @@ package business
 import (
 	"net/http"
 	"sort"
-	"oneflow/internal/models"
+	"salesmee/internal/data"
+	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -112,5 +113,7 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 		"TopProducts":       topProducts,
 		"ActiveClients":     activeClients,
 		"MonthlyRevenue":    monthlyRevenue,
+		"Countries":         data.Countries,
+		"Currencies":        data.Currencies,
 	})
 }

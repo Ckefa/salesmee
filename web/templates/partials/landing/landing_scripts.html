@@ -3,11 +3,11 @@
   if (localStorage.getItem('cookies_accepted') === 'true') {
     {{if .AnalyticsID}}
     (function() {
-      var analyticsUrl = 'https://{{.AnalyticsID}}.s.oneflow.com/js/script.js';
+      var analyticsUrl = 'https://{{.AnalyticsID}}.s.salesmee.com/js/script.js';
       var script = document.createElement('script');
       script.src = analyticsUrl;
       script.defer = true;
-      script.dataset.domain = 'oneflow.com';
+      script.dataset.domain = 'salesmee.com';
       document.head.appendChild(script);
     })();
     {{end}}
@@ -67,6 +67,10 @@
     if (hamburger) hamburger.addEventListener('click', openMobile);
     if (closeMenu) closeMenu.addEventListener('click', closeMobile);
     if (menuOverlay) menuOverlay.addEventListener('click', closeMobile);
+    // Close on link click (mobile)
+    if (mobileMenu) mobileMenu.addEventListener('click', function(e) {
+      if (e.target.tagName === 'A') closeMobile();
+    });
   });
 
   // Testimonial carousel

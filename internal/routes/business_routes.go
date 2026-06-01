@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"oneflow/internal/db"
-	"oneflow/internal/handlers"
-	"oneflow/internal/handlers/business"
-	"oneflow/internal/handlers/client"
-	"oneflow/internal/middleware"
+	"salesmee/internal/db"
+	"salesmee/internal/handlers"
+	"salesmee/internal/handlers/business"
+	"salesmee/internal/handlers/client"
+	"salesmee/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -128,6 +128,9 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		// Profile & Logo upload
 		protected.POST("/logo", businessHandler.UploadBusinessLogo)
 		protected.PUT("/profile", businessHandler.UpdateBusinessProfile)
+		protected.POST("/profile/initiate", businessHandler.InitiateProfileChange)
+		protected.POST("/profile/confirm", businessHandler.ConfirmProfileChange)
+		protected.POST("/profile/resend-otp", businessHandler.ResendProfileOTP)
 
 		// Analytics
 		protected.GET("/analytics", businessHandler.GetAnalytics)

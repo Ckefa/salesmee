@@ -24,11 +24,9 @@
 
     <div class="card p-8 w-full max-w-lg relative z-10 shadow-lg">
       <div class="text-center mb-6">
-        <a href="/" class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/25 mb-3">
-          <i class="fas fa-comments text-white text-lg"></i>
-        </a>
+        <div class="bg-white rounded-lg p-1.5 inline-block mx-auto mb-3"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-8 sm:h-10"></div>
         <h1 class="text-2xl font-bold text-[var(--color-text)]">Create your account</h1>
-        <p class="text-[var(--color-text-secondary)] mt-1 text-sm">Join thousands of businesses on OneFlow</p>
+        <p class="text-[var(--color-text-secondary)] mt-1 text-sm">Join thousands of businesses on SalesMee</p>
       </div>
 
       <!-- Progress Bar -->
@@ -58,93 +56,46 @@
 
         <p class="text-sm text-[var(--color-text-muted)] mb-4 text-center">What type of business do you run?</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="typeGrid">
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="automotive" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-car text-orange-600 dark:text-orange-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Automotive</span>
+          {{range .BusinessTypes}}
+          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="{{.Value}}" style="border-color: var(--color-border);">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-1.5" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent);">
+              <i class="fas {{.Icon}} text-[var(--color-primary)]"></i>
+            </div>
+            <span class="text-xs font-medium text-[var(--color-text)]">{{.Label}}</span>
           </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="beauty" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-sparkles text-pink-600 dark:text-pink-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Beauty</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="childcare" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-child text-pink-600 dark:text-pink-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Childcare</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="cleaning" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-spray-can-sparkles text-cyan-600 dark:text-cyan-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Cleaning</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="consulting" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-handshake text-sky-600 dark:text-sky-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Consulting</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="dental" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-tooth text-blue-600 dark:text-blue-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Dental</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="education" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-graduation-cap text-indigo-600 dark:text-indigo-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Education</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="farming" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-tractor text-green-600 dark:text-green-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Farming</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="fitness" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-dumbbell text-green-600 dark:text-green-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Fitness</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="home_services" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-wrench text-yellow-600 dark:text-yellow-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Home Services</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="legal" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-gavel text-purple-600 dark:text-purple-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Legal</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="medical" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-heart-pulse text-red-600 dark:text-red-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Medical</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="photography" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-camera text-violet-600 dark:text-violet-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Photography</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="real_estate" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-building text-amber-600 dark:text-amber-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Real Estate</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="restaurant" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-utensils text-orange-600 dark:text-orange-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Restaurant & Food</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="retail" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-bag-shopping text-teal-600 dark:text-teal-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Retail & Shopping</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="salon" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-cut text-teal-600 dark:text-teal-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Salon</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="spa" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-spa text-violet-600 dark:text-violet-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Spa</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="technology" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-microchip text-slate-600 dark:text-slate-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Technology / IT</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="veterinary" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-paw text-emerald-600 dark:text-emerald-400"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Veterinary</span>
-          </div>
-          <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="other" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl" style="background: var(--color-surface-tertiary); width:2.5rem;height:2.5rem;border-radius:0.75rem;display:flex;align-items:center;justify-content:center;margin:0 auto 0.375rem"><i class="fas fa-ellipsis" style="color: var(--color-text-muted);"></i></div>
-            <span class="text-xs font-medium text-[var(--color-text)]">Other</span>
-          </div>
+          {{end}}
         </div>
         <input type="hidden" id="business_type" name="business_type" value="{{.BusinessType}}">
         <p class="text-xs text-[var(--color-error)] mt-2 hidden text-center" id="typeError">Please select a business type</p>
+
+        <div class="mt-6 pt-5 border-t border-[var(--color-border)]">
+          <p class="text-sm font-medium text-[var(--color-text)] mb-3">Location & Currency</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="country" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
+                <i class="fas fa-globe w-4 text-center mr-1"></i>Country
+              </label>
+              <select id="country" name="country"
+                class="input text-sm">
+                {{range .Countries}}
+                <option value="{{.Code}}" {{if eq .Code "US"}}selected{{end}}>{{.Name}}</option>
+                {{end}}
+              </select>
+            </div>
+            <div>
+              <label for="currency" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
+                <i class="fas fa-money-bill-wave w-4 text-center mr-1"></i>Currency
+              </label>
+              <select id="currency" name="currency"
+                class="input text-sm">
+                {{range .Currencies}}
+                <option value="{{.Code}}" {{if eq .Code "USD"}}selected{{end}}>{{.Code}} - {{.Name}} ({{.Symbol}})</option>
+                {{end}}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="mt-5 flex justify-between">
           <a href="/business/register" class="btn btn-secondary">
             <i class="fas fa-arrow-left text-xs"></i> Back

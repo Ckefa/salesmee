@@ -5,7 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"oneflow/internal/models"
+	"salesmee/internal/data"
+	"salesmee/internal/models"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -151,6 +152,8 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"TotalOrders":    len(orders),
 		"TotalRevenue":   totalRevenue,
 		"ActivePage":     "orders",
+		"Countries":      data.Countries,
+		"Currencies":     data.Currencies,
 	})
 }
 

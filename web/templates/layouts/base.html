@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{.Title}} - OneFlow</title>
+  <title>{{.Title}} - SalesMee</title>
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="OneFlow — CRM Powered by Real-Time Chat">
-  <meta property="og:title" content="{{.Title}} - OneFlow">
+  <meta name="description" content="SalesMee — CRM Powered by Real-Time Chat">
+  <meta property="og:title" content="{{.Title}} - SalesMee">
   <meta property="og:description" content="Turn every conversation into a sale.">
   <meta property="og:type" content="website">
+  <link rel="icon" type="image/x-icon" href="/static/images/salesmee.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -51,9 +52,9 @@
       {{if .AnalyticsID}}
       (function() {
         var s = document.createElement('script');
-        s.src = 'https://{{.AnalyticsID}}.s.oneflow.com/js/script.js';
+        s.src = 'https://{{.AnalyticsID}}.s.salesmee.com/js/script.js';
         s.defer = true;
-        s.dataset.domain = 'oneflow.com';
+        s.dataset.domain = 'salesmee.com';
         document.head.appendChild(s);
       })();
       {{end}}

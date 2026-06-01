@@ -15,6 +15,8 @@ type Business struct {
 	GoogleID           string    `gorm:"uniqueIndex;default:null" json:"google_id"`
 	FacebookID         string    `gorm:"uniqueIndex;default:null" json:"facebook_id"`
 	AvatarURL          string    `json:"avatar_url"`
+	Country            string    `gorm:"default:'US'" json:"country"`
+	Currency           string    `gorm:"default:'USD'" json:"currency"`
 	SubscriptionPlanID *uint     `gorm:"default:null" json:"subscription_plan_id"`
 	EmailVerified      bool      `gorm:"default:false" json:"email_verified"`
 	VerificationToken  string    `gorm:"default:null" json:"-"`

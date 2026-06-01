@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ShowForgotPassword(c *gin.Context) {
 	c.HTML(http.StatusOK, "forgot_password.html", gin.H{
-		"Title": "Forgot Password - OneFlow",
+		"Title": "Forgot Password - SalesMee",
 	})
 }
 
@@ -23,7 +23,7 @@ func SendForgotPassword(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
 		c.HTML(http.StatusOK, "forgot_password.html", gin.H{
-			"Title": "Forgot Password - OneFlow",
+			"Title": "Forgot Password - SalesMee",
 			"Error": "Email is required",
 		})
 		return
@@ -33,7 +33,7 @@ func SendForgotPassword(c *gin.Context) {
 	if err := db.DB.Where("email = ?", email).First(&business).Error; err != nil {
 		// Don't reveal if email exists - always show success
 		c.HTML(http.StatusOK, "forgot_password.html", gin.H{
-			"Title":   "Forgot Password - OneFlow",
+			"Title":   "Forgot Password - SalesMee",
 			"Success": "If that email is registered, you'll receive a password reset link shortly.",
 		})
 		return
@@ -53,7 +53,7 @@ func SendForgotPassword(c *gin.Context) {
 
 	if err := db.DB.Create(&reset).Error; err != nil {
 		c.HTML(http.StatusOK, "forgot_password.html", gin.H{
-			"Title": "Forgot Password - OneFlow",
+			"Title": "Forgot Password - SalesMee",
 			"Error": "Something went wrong. Please try again.",
 		})
 		return
@@ -67,14 +67,14 @@ func SendForgotPassword(c *gin.Context) {
 
 	if err := services.SendPasswordResetEmail(email, resetLink); err != nil {
 		c.HTML(http.StatusOK, "forgot_password.html", gin.H{
-			"Title": "Forgot Password - OneFlow",
+			"Title": "Forgot Password - SalesMee",
 			"Error": "Failed to send email. Please try again later.",
 		})
 		return
 	}
 
 	c.HTML(http.StatusOK, "forgot_password.html", gin.H{
-		"Title":   "Forgot Password - OneFlow",
+		"Title":   "Forgot Password - SalesMee",
 		"Success": "If that email is registered, you'll receive a password reset link shortly.",
 	})
 }
@@ -89,14 +89,14 @@ func ShowResetPassword(c *gin.Context) {
 	var reset models.PasswordResetToken
 	if err := db.DB.Where("token = ? AND used = ? AND expires_at > ?", token, false, time.Now()).First(&reset).Error; err != nil {
 		c.HTML(http.StatusOK, "reset_password.html", gin.H{
-			"Title": "Reset Password - OneFlow",
+			"Title": "Reset Password - SalesMee",
 			"Error": "Invalid or expired reset link.",
 		})
 		return
 	}
 
 	c.HTML(http.StatusOK, "reset_password.html", gin.H{
-		"Title": "Reset Password - OneFlow",
+		"Title": "Reset Password - SalesMee",
 		"Token": token,
 	})
 }
@@ -107,7 +107,7 @@ func SubmitResetPassword(c *gin.Context) {
 
 	if token == "" || password == "" {
 		c.HTML(http.StatusOK, "reset_password.html", gin.H{
-			"Title": "Reset Password - OneFlow",
+			"Title": "Reset Password - SalesMee",
 			"Error": "All fields are required",
 			"Token": token,
 		})
@@ -116,7 +116,7 @@ func SubmitResetPassword(c *gin.Context) {
 
 	if len(password) < 6 {
 		c.HTML(http.StatusOK, "reset_password.html", gin.H{
-			"Title": "Reset Password - OneFlow",
+			"Title": "Reset Password - SalesMee",
 			"Error": "Password must be at least 6 characters",
 			"Token": token,
 		})
@@ -126,7 +126,7 @@ func SubmitResetPassword(c *gin.Context) {
 	var reset models.PasswordResetToken
 	if err := db.DB.Where("token = ? AND used = ? AND expires_at > ?", token, false, time.Now()).First(&reset).Error; err != nil {
 		c.HTML(http.StatusOK, "reset_password.html", gin.H{
-			"Title": "Reset Password - OneFlow",
+			"Title": "Reset Password - SalesMee",
 			"Error": "Invalid or expired reset link.",
 		})
 		return

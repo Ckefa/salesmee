@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
+
+	appdata "salesmee/internal/data"
 
 	"github.com/gin-gonic/gin"
 )
@@ -56,7 +58,7 @@ func ShowLogin(c *gin.Context) {
 		}
 	}
 	c.HTML(200, "business_login.html", gin.H{
-		"Title": "Login - OneFlow",
+		"Title": "Login - SalesMee",
 	})
 }
 
@@ -68,33 +70,17 @@ func ShowRegisterStep1(c *gin.Context) {
 		}
 	}
 	c.HTML(200, "register_step1.html", gin.H{
-		"Title": "Register - OneFlow",
+		"Title": "Register - SalesMee",
 	})
 }
 
-var validBusinessTypes = map[string]bool{
-	"automotive":    true,
-	"beauty":        true,
-	"childcare":     true,
-	"cleaning":      true,
-	"consulting":    true,
-	"dental":        true,
-	"education":     true,
-	"farming":       true,
-	"fitness":       true,
-	"home_services": true,
-	"legal":         true,
-	"medical":       true,
-	"photography":   true,
-	"real_estate":   true,
-	"restaurant":    true,
-	"retail":        true,
-	"salon":         true,
-	"spa":          true,
-	"technology":    true,
-	"veterinary":   true,
-	"other":        true,
-}
+var validBusinessTypes = func() map[string]bool {
+	m := make(map[string]bool)
+	for _, bt := range appdata.BusinessTypes {
+		m[bt.Value] = true
+	}
+	return m
+}()
 
 func RegisterStep1(c *gin.Context) {
 	if token, err := c.Cookie("token"); err == nil && token != "" {
@@ -110,7 +96,7 @@ func RegisterStep1(c *gin.Context) {
 
 	if name == "" || username == "" || email == "" {
 		c.HTML(200, "register_step1.html", gin.H{
-			"Title": "Register - OneFlow",
+			"Title": "Register - SalesMee",
 			"Error": "All fields are required",
 		})
 		return
@@ -119,7 +105,7 @@ func RegisterStep1(c *gin.Context) {
 	var existing models.Business
 	if db.DB.Where("email = ?", email).First(&existing).Error == nil {
 		c.HTML(200, "register_step1.html", gin.H{
-			"Title": "Register - OneFlow",
+			"Title": "Register - SalesMee",
 			"Error": "Email already exists",
 		})
 		return
@@ -150,12 +136,15 @@ func ShowRegisterStep2(c *gin.Context) {
 	}
 
 	c.HTML(200, "register_step2.html", gin.H{
-		"Title":        "Register - OneFlow",
-		"Token":        tok,
-		"Name":         data.Name,
-		"Username":     data.Username,
-		"Email":        data.Email,
-		"BusinessType": data.BusinessType,
+		"Title":         "Register - SalesMee",
+		"Token":         tok,
+		"Name":          data.Name,
+		"Username":      data.Username,
+		"Email":         data.Email,
+		"BusinessType":  data.BusinessType,
+		"Countries":     appdata.Countries,
+		"Currencies":    appdata.Currencies,
+		"BusinessTypes": appdata.BusinessTypes,
 	})
 }
 
@@ -177,18 +166,33 @@ func RegisterStep2(c *gin.Context) {
 	businessType := c.PostForm("business_type")
 	if businessType == "" || !validBusinessTypes[businessType] {
 		c.HTML(200, "register_step2.html", gin.H{
-			"Title":        "Register - OneFlow",
-			"Token":        tok,
-			"Name":         data.Name,
-			"Username":     data.Username,
-			"Email":        data.Email,
-			"BusinessType": data.BusinessType,
-			"Error":        "Please select a valid business type",
+			"Title":         "Register - SalesMee",
+			"Token":         tok,
+			"Name":          data.Name,
+			"Username":      data.Username,
+			"Email":         data.Email,
+			"BusinessType":  data.BusinessType,
+			"Error":         "Please select a valid business type",
+			"Countries":     appdata.Countries,
+			"Currencies":    appdata.Currencies,
+			"BusinessTypes": appdata.BusinessTypes,
 		})
 		return
 	}
 
+	country := c.PostForm("country")
+	currency := c.PostForm("currency")
+
+	if country == "" {
+		country = "US"
+	}
+	if currency == "" {
+		currency = "USD"
+	}
+
 	data.BusinessType = businessType
+	data.Country = country
+	data.Currency = currency
 	RegStore.Delete(tok)
 	newTok := RegStore.Save(data)
 
@@ -211,12 +215,14 @@ func ShowRegisterStep3(c *gin.Context) {
 	}
 
 	c.HTML(200, "register_step3.html", gin.H{
-		"Title":        "Register - OneFlow",
+		"Title":        "Register - SalesMee",
 		"Token":        tok,
 		"Name":         data.Name,
 		"Username":     data.Username,
 		"Email":        data.Email,
 		"BusinessType": data.BusinessType,
+		"Country":      data.Country,
+		"Currency":     data.Currency,
 	})
 }
 
@@ -239,12 +245,14 @@ func RegisterStep3(c *gin.Context) {
 
 	if password == "" || len(password) < 6 {
 		c.HTML(200, "register_step3.html", gin.H{
-			"Title":        "Register - OneFlow",
+			"Title":        "Register - SalesMee",
 			"Token":        tok,
 			"Name":         data.Name,
 			"Username":     data.Username,
 			"Email":        data.Email,
 			"BusinessType": data.BusinessType,
+			"Country":      data.Country,
+			"Currency":     data.Currency,
 			"Error":        "Password must be at least 6 characters",
 		})
 		return
@@ -257,12 +265,23 @@ func RegisterStep3(c *gin.Context) {
 		slug = uniqueSlug(generateSlug(data.Username))
 	}
 
+	country := data.Country
+	if country == "" {
+		country = "US"
+	}
+	currency := data.Currency
+	if currency == "" {
+		currency = "USD"
+	}
+
 	user := models.Business{
 		Email:        data.Email,
 		Password:     &hashedPassword,
 		Name:         data.Name,
 		Username:     data.Username,
 		BusinessType: data.BusinessType,
+		Country:      country,
+		Currency:     currency,
 		Slug:         slug,
 		IsPublic:     true,
 	}
@@ -270,12 +289,14 @@ func RegisterStep3(c *gin.Context) {
 	if err := db.DB.Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
 		c.HTML(200, "register_step3.html", gin.H{
-			"Title":        "Register - OneFlow",
+			"Title":        "Register - SalesMee",
 			"Token":        tok,
 			"Name":         data.Name,
 			"Username":     data.Username,
 			"Email":        data.Email,
 			"BusinessType": data.BusinessType,
+			"Country":      data.Country,
+			"Currency":     data.Currency,
 			"Error":        "Email already exists",
 		})
 		return
@@ -313,7 +334,7 @@ func Login(c *gin.Context) {
 	var user models.Business
 	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		c.HTML(401, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Invalid email or password",
 		})
 		return
@@ -321,7 +342,7 @@ func Login(c *gin.Context) {
 
 	if user.Password == nil || !services.Check(*user.Password, password) {
 		c.HTML(401, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Invalid email or password",
 		})
 		return
@@ -330,7 +351,7 @@ func Login(c *gin.Context) {
 	token, err := services.GenerateToken(user.ID, user.Email)
 	if err != nil {
 		c.HTML(500, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token",
 		})
 		return

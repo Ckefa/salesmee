@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -69,7 +69,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("client_google_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
 		})
 		return
@@ -79,7 +79,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "No authorization code provided.",
 		})
 		return
@@ -88,7 +88,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	user, err := getClientGoogleAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(500, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Failed to authenticate with Google.",
 		})
 		return
@@ -105,7 +105,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
 			c.HTML(500, "client_login.html", gin.H{
-				"Title": "Client Login - OneFlow",
+				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account.",
 			})
 			return
@@ -129,7 +129,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	token, err := generateClientTokenFromID(client.ID, client.Email)
 	if err != nil {
 		c.HTML(500, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Failed to generate token.",
 		})
 		return
@@ -151,7 +151,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("client_facebook_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
 		})
 		return
@@ -161,7 +161,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "No authorization code provided.",
 		})
 		return
@@ -170,7 +170,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	user, err := getClientFacebookAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(500, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Failed to authenticate with Facebook.",
 		})
 		return
@@ -187,7 +187,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
 			c.HTML(500, "client_login.html", gin.H{
-				"Title": "Client Login - OneFlow",
+				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account.",
 			})
 			return
@@ -211,7 +211,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	token, err := generateClientTokenFromID(client.ID, client.Email)
 	if err != nil {
 		c.HTML(500, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Failed to generate token.",
 		})
 		return

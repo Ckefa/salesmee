@@ -21,11 +21,8 @@
       <button onclick="toggleSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden" id="sidebarToggle">
         <i class="fas fa-bars text-lg"></i>
       </button>
-      <a href="/" class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-sm">
-          <i class="fas fa-comments text-white text-xs"></i>
-        </div>
-        <span class="text-lg font-bold text-[var(--color-text)]">OneFlow</span>
+      <a href="/business" class="flex items-center gap-2.5">
+        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
       </a>
     </div>
 
@@ -116,7 +113,7 @@
           <i class="fas fa-ellipsis-v text-lg"></i>
         </button>
         <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-          <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+          <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
             <i class="fas fa-adjust w-5 text-center"></i>
             <span>Toggle Theme</span>
           </button>
@@ -397,34 +394,8 @@
         if (dd) dd.classList.add('hidden');
       }
     });
-
-    document.addEventListener('DOMContentLoaded', function() {
-      var pf = document.getElementById('businessProfileForm');
-      if (pf) {
-        pf.addEventListener('submit', function(e) {
-          e.preventDefault();
-          var fd = new FormData();
-          fd.append('name', document.getElementById('profileName')?.value || '');
-          fd.append('username', document.getElementById('profileUsername')?.value || '');
-          fd.append('email', document.getElementById('profileEmail')?.value || '');
-          var pw = document.getElementById('profilePassword')?.value;
-          if (pw) fd.append('password', pw);
-          var li = document.getElementById('profileLogoInput');
-          if (li && li.files.length > 0) fd.append('logo', li.files[0]);
-          fetch('/business/profile', { method: 'PUT', body: fd })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { if (d.success) { hideBusinessProfile(); location.reload(); } else if (typeof showNotification === 'function') { showNotification(d.error || 'Failed to update profile', 'error'); } else { alert(d.error || 'Failed'); } })
-            .catch(function() { if (typeof showNotification === 'function') { showNotification('Failed to update profile', 'error'); } else { alert('Failed'); } });
-        });
-        document.getElementById('profileLogoInput')?.addEventListener('change', function(e) {
-          if (e.target.files.length === 0) return;
-          var r = new FileReader();
-          r.onload = function(ev) { var p = document.querySelector('#profileLogoPreview'); if (p) p.innerHTML = '<img src="' + ev.target.result + '" class="w-full h-full object-cover">'; };
-          r.readAsDataURL(e.target.files[0]);
-        });
-      }
-    });
   </script>
+  {{template "business_profile_script" .}}
   {{template "csrf_script" .}}
 </body>
 </html>

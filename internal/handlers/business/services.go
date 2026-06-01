@@ -3,7 +3,8 @@ package business
 import (
 	"net/http"
 	"strconv"
-	"oneflow/internal/models"
+	"salesmee/internal/data"
+	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,6 +46,8 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 		"Business":   currentBusiness,
 		"Services":   services,
 		"ActivePage": "services",
+		"Countries":  data.Countries,
+		"Currencies": data.Currencies,
 	})
 }
 

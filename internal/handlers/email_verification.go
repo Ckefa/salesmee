@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"net/http"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +50,7 @@ func VerifyBusinessEmail(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
 		c.HTML(http.StatusOK, "verify_email.html", gin.H{
-			"Title": "Verify Email - OneFlow",
+			"Title": "Verify Email - SalesMee",
 			"Error": "Missing verification token.",
 		})
 		return
@@ -59,7 +59,7 @@ func VerifyBusinessEmail(c *gin.Context) {
 	var business models.Business
 	if err := db.DB.Where("verification_token = ?", token).First(&business).Error; err != nil {
 		c.HTML(http.StatusOK, "verify_email.html", gin.H{
-			"Title": "Verify Email - OneFlow",
+			"Title": "Verify Email - SalesMee",
 			"Error": "Invalid or expired verification link.",
 		})
 		return
@@ -71,7 +71,7 @@ func VerifyBusinessEmail(c *gin.Context) {
 	})
 
 	c.HTML(http.StatusOK, "verify_email.html", gin.H{
-		"Title":   "Verify Email - OneFlow",
+		"Title":   "Verify Email - SalesMee",
 		"Success": "Your email has been verified! You can now log in to your account.",
 	})
 }

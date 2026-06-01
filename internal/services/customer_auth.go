@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 
 	"github.com/golang-jwt/jwt/v5"
 )

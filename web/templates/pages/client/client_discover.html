@@ -75,6 +75,7 @@
     </div>
   </div>
 
+  {{template "csrf_script" .}}
   <script>
     let searchTimeout;
 
@@ -122,7 +123,7 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Connecting...';
 
-      fetch('/client/connect/' + businessId, { method: 'POST' })
+      fetch('/client/connect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
         .then(r => r.json())
         .then(data => {
           if (data.success) {

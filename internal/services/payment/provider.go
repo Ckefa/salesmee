@@ -1,7 +1,7 @@
 package payment
 
 import (
-	"oneflow/internal/models"
+	"salesmee/internal/models"
 )
 
 type PlanMeta struct {

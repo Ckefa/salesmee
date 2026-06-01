@@ -20,10 +20,7 @@
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
   <div class="slide-in bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-teal-100 rounded-full mb-4">
-        <i class="fas fa-shield-alt text-2xl text-teal-600"></i>
-      </div>
-      <h1 class="text-2xl font-bold text-gray-900">OneFlow</h1>
+      <div class="bg-white rounded-xl p-1.5 inline-block mx-auto mb-4"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-10 sm:h-12"></div>
       <p class="text-gray-600 mt-2">Enter verification code</p>
     </div>
 
@@ -137,7 +134,7 @@
       btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
       var formData = new FormData();
       formData.append('email', document.querySelector('input[name="email"]').value);
-      fetch('/client/send-otp', { method: 'POST', body: formData })
+      fetch('/client/send-otp', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: formData })
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.redirect) { window.location.href = data.redirect; return; }

@@ -33,11 +33,8 @@
   <!-- Header -->
   <div class="navbar-glass">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-      <a href="/" class="flex items-center space-x-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center">
-          <i class="fas fa-comments text-white text-xs"></i>
-        </div>
-        <span class="font-bold text-teal-700">OneFlow</span>
+      <a href="/business" class="flex items-center space-x-2">
+        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
       </a>
       <div class="flex items-center gap-3">
         <a href="/client/login" class="text-sm text-gray-600 hover:text-teal-600">
@@ -208,9 +205,9 @@
             <div class="mt-4 pt-4 border-t border-gray-100">
               <p class="text-xs text-gray-400 mb-2">Share this business</p>
               <div class="flex items-center justify-center gap-2">
-                <a href="https://wa.me/?text=Check%20out%20{{.Business.Name}}%20on%20OneFlow%20-%20{{.ProfileURL}}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center transition-colors text-sm"><i class="fab fa-whatsapp"></i></a>
-                <a href="https://twitter.com/intent/tweet?text=Check%20out%20{{.Business.Name}}%20on%20OneFlow!&url={{.ProfileURL}}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-black hover:bg-gray-800 text-white flex items-center justify-center transition-colors text-sm"><i class="fab fa-x-twitter"></i></a>
-                <a href="mailto:?subject=Check out {{.Business.Name}} on OneFlow&body=I found this business on OneFlow: {{.ProfileURL}}" class="w-8 h-8 rounded-full bg-gray-500 hover:bg-gray-600 text-white flex items-center justify-center transition-colors text-sm"><i class="fas fa-envelope"></i></a>
+                <a href="https://wa.me/?text=Check%20out%20{{.Business.Name}}%20on%20SalesMee%20-%20{{.ProfileURL}}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center transition-colors text-sm"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://twitter.com/intent/tweet?text=Check%20out%20{{.Business.Name}}%20on%20SalesMee!&url={{.ProfileURL}}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-black hover:bg-gray-800 text-white flex items-center justify-center transition-colors text-sm"><i class="fab fa-x-twitter"></i></a>
+                <a href="mailto:?subject=Check out {{.Business.Name}} on SalesMee&body=I found this business on SalesMee: {{.ProfileURL}}" class="w-8 h-8 rounded-full bg-gray-500 hover:bg-gray-600 text-white flex items-center justify-center transition-colors text-sm"><i class="fas fa-envelope"></i></a>
               </div>
             </div>
           </div>
@@ -230,7 +227,7 @@
   <!-- Footer -->
   <div class="border-t border-gray-200 mt-8 mb-20 lg:mb-0">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm text-gray-500">
-      Powered by <a href="/" class="text-teal-600 font-medium">OneFlow</a>
+      Powered by <a href="/business" class="text-teal-600 font-medium">SalesMee</a>
     </div>
   </div>
   {{end}}

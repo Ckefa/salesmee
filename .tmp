@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 )

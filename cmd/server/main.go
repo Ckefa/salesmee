@@ -6,11 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"oneflow/internal/db"
-	"oneflow/internal/handlers/admin"
-	"oneflow/internal/middleware"
-	"oneflow/internal/models"
-	"oneflow/internal/routes"
+	"salesmee/internal/data"
+	"salesmee/internal/db"
+	"salesmee/internal/handlers/admin"
+	"salesmee/internal/middleware"
+	"salesmee/internal/models"
+	"salesmee/internal/routes"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -123,11 +124,22 @@ func main() {
 		"mul": func(a, b float64) float64 { return a * b },
 		"div": func(a, b float64) float64 { return a / b },
 		"float": func(i int) float64 { return float64(i) },
+		"currencySymbol": func(code string) string {
+			for _, c := range data.Currencies {
+				if c.Code == code {
+					return c.Symbol
+				}
+			}
+			return code
+		},
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)
 
 	// Get Static Path
 	r.Static("/static", "./web/static")
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("./web/static/images/salesmee.ico")
+	})
 
 	routes.Setup(r)
 	routes.SetupBusinessRoutes(r)

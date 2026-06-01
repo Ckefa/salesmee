@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <title>Bookings - OneFlow</title>
+  <title>Bookings - SalesMee</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
@@ -67,7 +67,7 @@
           <i class="fas fa-ellipsis-v text-lg"></i>
         </button>
         <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-          <button onclick="OneFlowTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+          <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
             <i class="fas fa-adjust w-5 text-center"></i>
             <span>Toggle Theme</span>
           </button>
@@ -111,14 +111,14 @@
           </div>
 
           <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
             <!-- Pending Bookings -->
-            <div class="card p-6">
+            <div class="card p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-3">
+                <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2.5">
                   <i class="fas fa-clock text-[var(--color-warning)]"></i>
                 </div>
-                <div class="ml-4">
+                <div class="ml-3">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
                   <p class="text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
                 </div>
@@ -126,12 +126,12 @@
             </div>
 
             <!-- Confirmed Bookings -->
-            <div class="card p-6">
+            <div class="card p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-3">
+                <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2.5">
                   <i class="fas fa-check-circle text-[var(--color-info)]"></i>
                 </div>
-                <div class="ml-4">
+                <div class="ml-3">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
                   <p class="text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
                 </div>
@@ -139,12 +139,12 @@
             </div>
 
             <!-- Completed Bookings -->
-            <div class="card p-6">
+            <div class="card p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-3">
+                <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2.5">
                   <i class="fas fa-check text-[var(--color-success)]"></i>
                 </div>
-                <div class="ml-4">
+                <div class="ml-3">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
                   <p class="text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
                 </div>
@@ -152,12 +152,12 @@
             </div>
 
             <!-- Canceled Bookings -->
-            <div class="card p-6">
+            <div class="card p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-3">
+                <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2.5">
                   <i class="fas fa-times text-[var(--color-error)]"></i>
                 </div>
-                <div class="ml-4">
+                <div class="ml-3">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
                   <p class="text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
                 </div>
@@ -165,12 +165,12 @@
             </div>
 
             <!-- Total Bookings -->
-            <div class="card p-6">
+            <div class="card p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-3">
+                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2.5">
                   <i class="fas fa-calendar-check text-[var(--color-secondary)]"></i>
                 </div>
-                <div class="ml-4">
+                <div class="ml-3">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
                   <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
                 </div>
@@ -178,14 +178,14 @@
             </div>
 
             <!-- Total Revenue -->
-            <div class="card p-6">
+            <div class="card p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-3">
+                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2.5">
                   <i class="fas fa-dollar-sign text-[var(--color-secondary)]"></i>
                 </div>
-                <div class="ml-4">
+                <div class="ml-3">
                   <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">${{printf "%.2f" .TotalRevenue}}</p>
+                  <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
                 </div>
               </div>
             </div>
@@ -234,7 +234,7 @@
                         {{.Status}}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">${{.TotalAmount}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div class="flex items-center space-x-2">
                         <select onchange="updateBookingStatus(this)" data-booking-id="{{.ID}}"
@@ -322,6 +322,8 @@
   </div>
 
   <script>
+    const CURRENCY_SYMBOL = '{{currencySymbol .Business.Currency}}';
+
     function openQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.remove('hidden');
       document.getElementById('quickBookingModal').classList.add('flex');
@@ -341,7 +343,7 @@
           const select = document.getElementById('bookingService');
           select.innerHTML = '<option value="">Select a service</option>';
           data.services.forEach(service => {
-            select.innerHTML += `<option value="${service.id}">${service.name} - $${service.max_price}</option>`;
+            select.innerHTML += `<option value="${service.id}">${service.name} - ${CURRENCY_SYMBOL}${service.max_price}</option>`;
           });
           return data.services;
         })
@@ -476,6 +478,7 @@
   </script>
 
   {{template "business_profile" .}}
+  {{template "business_profile_script" .}}
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
 </body>

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"oneflow/internal/handlers"
-	"oneflow/internal/handlers/business"
+	"salesmee/internal/handlers"
+	"salesmee/internal/handlers/business"
 
 	"github.com/gin-gonic/gin"
 )

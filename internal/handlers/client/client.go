@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"oneflow/internal/db"
-	"oneflow/internal/models"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +29,7 @@ func ShowDiscover(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "client_discover.html", gin.H{
-		"Title":      "Discover Businesses - OneFlow",
+		"Title":      "Discover Businesses - SalesMee",
 		"Businesses": businesses,
 		"Email":      c.GetString("client_email"),
 		"Client":     client,

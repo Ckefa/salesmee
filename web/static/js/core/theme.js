@@ -1,7 +1,7 @@
 ;(function() {
   'use strict';
 
-  const THEME_KEY = 'oneflow-theme';
+  const THEME_KEY = 'salesmee-theme';
   const DARK_CLASS = 'dark';
 
   function getPreferredTheme() {
@@ -62,7 +62,7 @@
     initTheme();
   }
 
-  window.OneFlowTheme = {
+  window.SalesMeeTheme = {
     toggle: toggleTheme,
     get: function() { return document.documentElement.classList.contains(DARK_CLASS) ? 'dark' : 'light'; },
     set: applyTheme,

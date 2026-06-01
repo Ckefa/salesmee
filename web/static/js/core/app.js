@@ -1,4 +1,4 @@
-class OneFlowApp {
+class SalesMeeApp {
     constructor() {
         this.initProgressBar();
         this.initHTMX();
@@ -148,7 +148,7 @@ class OneFlowApp {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    new OneFlowApp();
+    new SalesMeeApp();
 });
 
-window.OneFlowApp = OneFlowApp;
+window.SalesMeeApp = SalesMeeApp;

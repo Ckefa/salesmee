@@ -1,8 +1,8 @@
 package subscription
 
 import (
-	"oneflow/internal/db"
-	"oneflow/internal/models"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 )
 
 type LimitCheck struct {

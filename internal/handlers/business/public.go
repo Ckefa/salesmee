@@ -3,9 +3,9 @@ package business
 import (
 	"fmt"
 	"net/http"
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +17,7 @@ func GetPublicProfile(c *gin.Context) {
 	var business models.Business
 	if err := db.DB.Where("slug = ? AND is_public = ?", slug, true).Preload("Clients").First(&business).Error; err != nil {
 		c.HTML(http.StatusNotFound, "public_profile.html", gin.H{
-			"Title": "Business Not Found - OneFlow",
+			"Title": "Business Not Found - SalesMee",
 			"Error": "Business not found or not available",
 		})
 		return
@@ -34,7 +34,7 @@ func GetPublicProfile(c *gin.Context) {
 	db.DB.Model(&models.Client{}).Where("business_id = ?", business.ID).Count(&totalClients)
 
 	c.HTML(http.StatusOK, "public_profile.html", gin.H{
-		"Title":          business.Name + " - OneFlow",
+		"Title":          business.Name + " - SalesMee",
 		"Business":       business,
 		"Products":       products,
 		"Services":       services,
@@ -58,7 +58,7 @@ func ShowConnect(c *gin.Context) {
 	var business models.Business
 	if err := db.DB.Where("slug = ?", slug).First(&business).Error; err != nil {
 		c.HTML(http.StatusNotFound, "public_profile.html", gin.H{
-			"Title": "Business Not Found - OneFlow",
+			"Title": "Business Not Found - SalesMee",
 			"Error": "Business not found",
 		})
 		return
@@ -82,7 +82,7 @@ func SendConnectOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
 		c.HTML(http.StatusBadRequest, "client_connect.html", gin.H{
-			"Title":    "Connect - OneFlow",
+			"Title":    "Connect - SalesMee",
 			"Business": business,
 			"Error":    "Email is required",
 		})
@@ -101,7 +101,7 @@ func SendConnectOTP(c *gin.Context) {
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_connect.html", gin.H{
-				"Title":    "Connect - OneFlow",
+				"Title":    "Connect - SalesMee",
 				"Business": business,
 				"Error":    "Failed to create client",
 			})
@@ -112,7 +112,7 @@ func SendConnectOTP(c *gin.Context) {
 	_, err = services.SendClientOTP(email)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "client_connect.html", gin.H{
-			"Title":    "Connect - OneFlow",
+			"Title":    "Connect - SalesMee",
 			"Business": business,
 			"Error":    "Failed to send OTP",
 		})
@@ -120,7 +120,7 @@ func SendConnectOTP(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "client_connect_otp.html", gin.H{
-		"Title":    "Verify OTP - OneFlow",
+		"Title":    "Verify OTP - SalesMee",
 		"Business": business,
 		"Email":    email,
 	})
@@ -140,7 +140,7 @@ func VerifyConnectOTP(c *gin.Context) {
 
 	if email == "" || otpCode == "" {
 		c.HTML(http.StatusBadRequest, "client_connect_otp.html", gin.H{
-			"Title":    "Verify OTP - OneFlow",
+			"Title":    "Verify OTP - SalesMee",
 			"Business": business,
 			"Email":    email,
 			"Error":    "Email and OTP are required",
@@ -151,7 +151,7 @@ func VerifyConnectOTP(c *gin.Context) {
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "client_connect_otp.html", gin.H{
-			"Title":    "Verify OTP - OneFlow",
+			"Title":    "Verify OTP - SalesMee",
 			"Business": business,
 			"Email":    email,
 			"Error":    "Invalid or expired OTP",
@@ -172,7 +172,7 @@ func VerifyConnectOTP(c *gin.Context) {
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "client_connect_otp.html", gin.H{
-			"Title": "Verify OTP - OneFlow",
+			"Title": "Verify OTP - SalesMee",
 			"Email": email,
 			"Error": "Failed to generate token",
 		})

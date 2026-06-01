@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -14,7 +14,7 @@ import (
 
 func ShowLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "admin_login.html", gin.H{
-		"Title": "Admin Login - OneFlow",
+		"Title": "Admin Login - SalesMee",
 	})
 }
 
@@ -24,7 +24,7 @@ func Login(c *gin.Context) {
 
 	if email == "" || password == "" {
 		c.HTML(http.StatusOK, "admin_login.html", gin.H{
-			"Title": "Admin Login - OneFlow",
+			"Title": "Admin Login - SalesMee",
 			"Error": "Email and password are required",
 		})
 		return
@@ -33,7 +33,7 @@ func Login(c *gin.Context) {
 	var admin models.Admin
 	if err := db.DB.Where("email = ?", email).First(&admin).Error; err != nil {
 		c.HTML(http.StatusOK, "admin_login.html", gin.H{
-			"Title": "Admin Login - OneFlow",
+			"Title": "Admin Login - SalesMee",
 			"Error": "Invalid credentials",
 		})
 		return
@@ -41,7 +41,7 @@ func Login(c *gin.Context) {
 
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
 		c.HTML(http.StatusOK, "admin_login.html", gin.H{
-			"Title": "Admin Login - OneFlow",
+			"Title": "Admin Login - SalesMee",
 			"Error": "Invalid credentials",
 		})
 		return
@@ -84,7 +84,7 @@ func ShowDashboard(c *gin.Context) {
 	db.DB.Model(&models.BusinessSubscription{}).Count(&totalSubscriptions)
 
 	c.HTML(http.StatusOK, "admin_dashboard.html", gin.H{
-		"Title":            "Admin Dashboard - OneFlow",
+		"Title":            "Admin Dashboard - SalesMee",
 		"TotalBusinesses":  totalBusinesses,
 		"TotalClients":     totalClients,
 		"TotalOrders":      totalOrders,
@@ -97,7 +97,7 @@ func ListBusinesses(c *gin.Context) {
 	db.DB.Preload("Subscription.Plan").Order("created_at desc").Limit(50).Find(&businesses)
 
 	c.HTML(http.StatusOK, "admin_businesses.html", gin.H{
-		"Title":      "Manage Businesses - OneFlow",
+		"Title":      "Manage Businesses - SalesMee",
 		"Businesses": businesses,
 	})
 }
@@ -141,7 +141,7 @@ func ListSubscriptions(c *gin.Context) {
 	db.DB.Preload("Business").Preload("Plan").Order("created_at desc").Limit(50).Find(&subs)
 
 	c.HTML(http.StatusOK, "admin_subscriptions.html", gin.H{
-		"Title":         "Subscriptions - OneFlow",
+		"Title":         "Subscriptions - SalesMee",
 		"Subscriptions": subs,
 	})
 }
@@ -151,7 +151,7 @@ func ShowAuditLog(c *gin.Context) {
 	db.DB.Preload("Admin").Order("created_at desc").Limit(100).Find(&logs)
 
 	c.HTML(http.StatusOK, "admin_audit.html", gin.H{
-		"Title": "Audit Log - OneFlow",
+		"Title": "Audit Log - SalesMee",
 		"Logs":  logs,
 	})
 }

@@ -3,6 +3,6 @@
 .opencode*
 node_modules
 tmp
-oneflow.db
+salesmee.db
 node_modules
 web/static/css/dist/

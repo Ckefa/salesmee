@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"oneflow/internal/data"
-	"oneflow/internal/db"
-	"oneflow/internal/handlers/admin"
-	"oneflow/internal/middleware"
-	"oneflow/internal/models"
-	"oneflow/internal/routes"
+	"salesmee/internal/data"
+	"salesmee/internal/db"
+	"salesmee/internal/handlers/admin"
+	"salesmee/internal/middleware"
+	"salesmee/internal/models"
+	"salesmee/internal/routes"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -137,6 +137,9 @@ func main() {
 
 	// Get Static Path
 	r.Static("/static", "./web/static")
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("./web/static/images/salesmee.ico")
+	})
 
 	routes.Setup(r)
 	routes.SetupBusinessRoutes(r)

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"oneflow/internal/db"
-	"oneflow/internal/models"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 	"time"
 
 	"github.com/gin-gonic/gin"

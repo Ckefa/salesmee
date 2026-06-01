@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"oneflow/internal/db"
-	"oneflow/internal/handlers"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/handlers"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +25,7 @@ func ShowClientLogin(c *gin.Context) {
 		}
 	}
 	c.HTML(200, "client_login.html", gin.H{
-		"Title": "Client Login - OneFlow",
+		"Title": "Client Login - SalesMee",
 	})
 }
 
@@ -33,7 +33,7 @@ func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Email is required",
 		})
 		return
@@ -51,7 +51,7 @@ func SendClientOTP(c *gin.Context) {
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
 			c.HTML(500, "client_login.html", gin.H{
-				"Title": "Client Login - OneFlow",
+				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account",
 			})
 			return
@@ -61,14 +61,14 @@ func SendClientOTP(c *gin.Context) {
 	_, err = services.SendClientOTP(email)
 	if err != nil {
 		c.HTML(400, "client_login.html", gin.H{
-			"Title": "Client Login - OneFlow",
+			"Title": "Client Login - SalesMee",
 			"Error": "Failed to send OTP",
 		})
 		return
 	}
 
 	c.HTML(200, "client_otp.html", gin.H{
-		"Title": "Enter OTP - OneFlow",
+		"Title": "Enter OTP - SalesMee",
 		"Email": email,
 	})
 }
@@ -79,7 +79,7 @@ func VerifyClientOTP(c *gin.Context) {
 
 	if email == "" || otpCode == "" {
 		c.HTML(400, "client_otp.html", gin.H{
-			"Title": "Enter OTP - OneFlow",
+			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Email and OTP are required",
 		})
@@ -89,7 +89,7 @@ func VerifyClientOTP(c *gin.Context) {
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
 		c.HTML(400, "client_otp.html", gin.H{
-			"Title": "Enter OTP - OneFlow",
+			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Invalid or expired OTP",
 		})
@@ -112,7 +112,7 @@ func VerifyClientOTP(c *gin.Context) {
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
 		c.HTML(500, "client_otp.html", gin.H{
-			"Title": "Enter OTP - OneFlow",
+			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Failed to generate token",
 		})
@@ -170,7 +170,7 @@ func ClientDashboard(c *gin.Context) {
 	if err := db.DB.Raw(query, clientID).Scan(&businesses).Error; err != nil {
 		log.Printf("[ClientDashboard] ERROR running businesses query: %v", err)
 		c.HTML(500, "client.html", gin.H{
-			"Title": "Client Dashboard - OneFlow",
+			"Title": "Client Dashboard - SalesMee",
 			"Error": "Failed to load businesses",
 		})
 		return
@@ -191,7 +191,7 @@ func ClientDashboard(c *gin.Context) {
 	}
 
 	c.HTML(200, "client.html", gin.H{
-		"Title":      "Client Dashboard - OneFlow",
+		"Title":      "Client Dashboard - SalesMee",
 		"Email":      email,
 		"Businesses": businesses,
 	})

@@ -1,6 +1,6 @@
-# OneFlow: A Chat-Based CRM System with Business Tools
+# salesmee: A Chat-Based CRM System with Business Tools
 
-OneFlow is a comprehensive customer relationship management (CRM) system built with Go and Gin, featuring real-time chat capabilities similar to WhatsApp, combined with powerful business management tools.
+salesmee is a comprehensive customer relationship management (CRM) system built with Go and Gin, featuring real-time chat capabilities similar to WhatsApp, combined with powerful business management tools.
 
 ## 🏗️ Architecture
 
@@ -282,8 +282,8 @@ OneFlow is a comprehensive customer relationship management (CRM) system built w
 ### **Quick Start**
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/oneflow.git
-cd oneflow
+git clone https://github.com/your-username/salesmee.git
+cd salesmee
 
 # Install dependencies
 go mod download
@@ -298,14 +298,14 @@ go run cmd/server/main.go
 ### **Database Setup**
 ```bash
 # PostgreSQL Setup (Production)
-sudo -u postgres createdb oneflow
-sudo -u postgres createuser oneflow_user
+sudo -u postgres createdb salesmee
+sudo -u postgres createuser salesmee_user
 
 # Configure environment variables
 export DB_HOST=localhost
-export DB_USER=oneflow_user
+export DB_USER=salesmee_user
 export DB_PASSWORD=your_password
-export DB_NAME=oneflow
+export DB_NAME=salesmee
 export DB_PORT=5432
 ```
 
@@ -313,7 +313,7 @@ export DB_PORT=5432
 
 ## 🤝 Contributing & Support
 
-OneFlow is an open-source project designed to help businesses manage customer relationships through modern chat interfaces. We welcome contributions and feedback!
+salesmee is an open-source project designed to help businesses manage customer relationships through modern chat interfaces. We welcome contributions and feedback!
 
 ### **Code Quality**
 - Follow Go best practices and conventions
@@ -373,7 +373,7 @@ Improvements:
 - Loading state — button shows spinner + "Signing in..." during POST
 - Form validation — real-time email format check, min-length for password, inline error messages below fields not at top
 - Register → Auto-login — After registration, auto-login and redirect to dashboard instead of requiring another login
-- Demo credentials hint — subtle "Demo: demo@oneflow.com / password" for quick testing
+- Demo credentials hint — subtle "Demo: demo@salesmee.com / password" for quick testing
 - Business type icons — on register, show a grid of clickable business type cards (automotive, salon, etc.) with icons, not a dropdown
 Registration Flow Redesign:
 Step 1: [Business Name] [Email]
@@ -479,7 +479,7 @@ Responsive Design (Medium Effort, High Impact)
 - Breakpoint targets: desktop (1280+), tablet (768-1279), mobile (<768)
 ---
 Creative Additions for User Retention
-1. "OneFlow Assist" — Floating AI Assistant
+1. "salesmee Assist" — Floating AI Assistant
 A small floating action button (bottom-right) that opens a chat-like assistant panel. Can help with:
 - "How do I create an order?"
 - "Show me my unread conversations"
@@ -491,7 +491,7 @@ A small floating action button (bottom-right) that opens a chat-like assistant p
 3. Sound Design
 - Optional notification sounds for new messages (like Slack)
 - Toggle in settings
-4. "OneFlow Streak" — Daily Active Usage
+4. "salesmee Streak" — Daily Active Usage
 - Shows a streak counter for daily engagement
 - "You've been active 7 days in a row! 🎉"
 5. Conversation Themes
@@ -526,4 +526,4 @@ P3	AI assistant
 P3	PWA / offline
 ---
 
-*OneFlow: Transforming customer relationships through intelligent communication and management tools.*
+*salesmee: Transforming customer relationships through intelligent communication and management tools.*

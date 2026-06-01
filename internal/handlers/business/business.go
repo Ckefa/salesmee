@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"oneflow/internal/data"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/data"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -87,7 +87,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
 		c.HTML(500, "business.html", gin.H{
-			"Title": "OneFlow",
+			"Title": "SalesMee",
 			"Error": "Business not found",
 		})
 		return
@@ -122,7 +122,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 
 	if err := h.db.Raw(query, businessID).Scan(&clientsWithUnread).Error; err != nil {
 		c.HTML(500, "business.html", gin.H{
-			"Title":     "OneFlow",
+			"Title":     "SalesMee",
 			"Error":     "Failed to load clients",
 			"Business":  business,
 			"Countries": data.Countries,
@@ -188,7 +188,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	}
 
 	c.HTML(200, "business.html", gin.H{
-		"Title":               "OneFlow",
+		"Title":               "SalesMee",
 		"Business":            business,
 		"Clients":             clientsWithUnread,
 		"PendingOrderCount":   int(pendingOrderCount),

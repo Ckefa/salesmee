@@ -7,9 +7,9 @@ import (
 	"os"
 	"sync"
 
-	"oneflow/internal/db"
-	"oneflow/internal/models"
-	"oneflow/internal/services"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,7 +53,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("google_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(400, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
 		})
 		return
@@ -63,7 +63,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(400, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "No authorization code provided.",
 		})
 		return
@@ -72,7 +72,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	user, err := getBusinessGoogleAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(500, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Failed to authenticate with Google.",
 		})
 		return
@@ -103,7 +103,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
 		c.HTML(500, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token.",
 		})
 		return
@@ -125,7 +125,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("facebook_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(400, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
 		})
 		return
@@ -135,7 +135,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(400, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "No authorization code provided.",
 		})
 		return
@@ -144,7 +144,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	user, err := getBusinessFacebookAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(500, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Failed to authenticate with Facebook.",
 		})
 		return
@@ -175,7 +175,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
 		c.HTML(500, "business_login.html", gin.H{
-			"Title": "Login - OneFlow",
+			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token.",
 		})
 		return
@@ -194,7 +194,7 @@ func ShowRegisterGoogle(c *gin.Context) {
 	}
 
 	c.HTML(200, "register_google.html", gin.H{
-		"Title":     "Complete Registration - OneFlow",
+		"Title":     "Complete Registration - SalesMee",
 		"Token":     tok,
 		"Name":      data.Name,
 		"Email":     data.Email,
@@ -213,7 +213,7 @@ func CompleteRegisterGoogle(c *gin.Context) {
 	businessType := c.PostForm("business_type")
 	if businessType == "" || !validBusinessTypes[businessType] {
 		c.HTML(200, "register_google.html", gin.H{
-			"Title":     "Complete Registration - OneFlow",
+			"Title":     "Complete Registration - SalesMee",
 			"Token":     tok,
 			"Name":      data.Name,
 			"Email":     data.Email,
@@ -245,7 +245,7 @@ func CompleteRegisterGoogle(c *gin.Context) {
 	if err := db.DB.Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
 		c.HTML(200, "register_google.html", gin.H{
-			"Title":     "Complete Registration - OneFlow",
+			"Title":     "Complete Registration - SalesMee",
 			"Token":     tok,
 			"Name":      data.Name,
 			"Email":     data.Email,

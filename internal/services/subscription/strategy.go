@@ -2,7 +2,7 @@ package subscription
 
 import (
 	"fmt"
-	"oneflow/internal/models"
+	"salesmee/internal/models"
 
 	"gorm.io/gorm"
 )

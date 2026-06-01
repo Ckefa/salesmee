@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"oneflow/internal/services/subscription"
+	"salesmee/internal/services/subscription"
 
 	"github.com/gin-gonic/gin"
 )

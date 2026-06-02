@@ -30,5 +30,59 @@
 </script>
 <script src="/static/js/modules/shared.js"></script>
 <script src="/static/js/modules/client_chat.js"></script>
+<script>
+function clientSubmitOrderPayment(orderId, maxAmount) {
+  var amount = prompt('Enter amount paid ($0 - $' + maxAmount.toFixed(2) + '):', maxAmount.toFixed(2));
+  if (!amount) return;
+  amount = parseFloat(amount);
+  if (isNaN(amount) || amount <= 0 || amount > maxAmount) {
+    if (typeof showNotification === 'function') showNotification('Please enter a valid amount between $0 and $' + maxAmount.toFixed(2), 'error');
+    return;
+  }
+  var method = prompt('Payment method (cash, bank_transfer, mobile_money, card):', 'mobile_money');
+  if (!method) return;
+  var reference = prompt('Reference / Transaction ID (optional):', '');
+  fetch('/client/orders/' + orderId + '/payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+    body: JSON.stringify({ amount: amount, method: method, reference: reference || '' })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      if (typeof showNotification === 'function') showNotification('Payment recorded! Awaiting business confirmation.', 'success');
+      setTimeout(function() { location.reload(); }, 2000);
+    } else {
+      if (typeof showNotification === 'function') showNotification(d.error || 'Failed to record payment', 'error');
+    }
+  });
+}
 
+function clientSubmitBookingPayment(bookingId, maxAmount) {
+  var amount = prompt('Enter amount paid ($0 - $' + maxAmount.toFixed(2) + '):', maxAmount.toFixed(2));
+  if (!amount) return;
+  amount = parseFloat(amount);
+  if (isNaN(amount) || amount <= 0 || amount > maxAmount) {
+    if (typeof showNotification === 'function') showNotification('Please enter a valid amount between $0 and $' + maxAmount.toFixed(2), 'error');
+    return;
+  }
+  var method = prompt('Payment method (cash, bank_transfer, mobile_money, card):', 'mobile_money');
+  if (!method) return;
+  var reference = prompt('Reference / Transaction ID (optional):', '');
+  fetch('/client/bookings/' + bookingId + '/payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+    body: JSON.stringify({ amount: amount, method: method, reference: reference || '' })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      if (typeof showNotification === 'function') showNotification('Payment recorded! Awaiting business confirmation.', 'success');
+      setTimeout(function() { location.reload(); }, 2000);
+    } else {
+      if (typeof showNotification === 'function') showNotification(d.error || 'Failed to record payment', 'error');
+    }
+  });
+}
+</script>
 

@@ -51,6 +51,24 @@
           <i class="fas fa-tag text-xs text-[var(--color-text-muted)]"></i>
           <span>${{printf "%.2f" .Data.total_amount}}</span>
         </p>
+        {{if and (or (eq .Data.status "confirmed") (eq .Data.status "completed")) (not (eq .Data.status "cancelled"))}}
+        <div class="flex items-center justify-between text-[10px] mt-1 pt-1 border-t border-[var(--color-border-light)]">
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">${{printf "%.2f" .Data.paid_amount}}</strong></span>
+          {{if gt .Data.pending_amount 0.0}}
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">${{printf "%.2f" .Data.pending_amount}}</strong></span>
+          {{end}}
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>${{printf "%.2f" .Data.remaining}}</strong></span>
+        </div>
+        {{if .Data.is_fully_paid}}
+        <div class="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-[var(--color-success)]">
+          <i class="fas fa-check-circle"></i> Fully Paid
+        </div>
+        {{else}}
+        <div id="bookingPendingPayments-{{.Data.id}}" class="mt-2 text-[10px] font-medium text-[var(--color-warning)]">
+          <i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation
+        </div>
+        {{end}}
+        {{end}}
         {{end}}
         {{if .Data.notes}}
         <p class="text-xs text-[var(--color-text-secondary)] italic mt-1 border-t border-[var(--color-border)] pt-1">{{.Data.notes}}</p>

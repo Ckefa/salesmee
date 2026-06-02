@@ -20,6 +20,7 @@ type Business struct {
 	SubscriptionPlanID *uint     `gorm:"default:null" json:"subscription_plan_id"`
 	EmailVerified      bool      `gorm:"default:false" json:"email_verified"`
 	VerificationToken  string    `gorm:"default:null" json:"-"`
+	PaymentInstructions string   `gorm:"type:text" json:"payment_instructions"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 

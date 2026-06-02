@@ -339,23 +339,40 @@ func GetClientMessages(c *gin.Context) {
 			actionRequired = "none"
 		}
 
+		remaining := order.TotalAmount - order.PaidAmount
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		var orderPaymentMethods []models.PaymentMethod
+		db.DB.Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
+
+		var orderPendingAmt float64
+		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
+			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
+
 		orderData := map[string]interface{}{
-			"id":                 order.ID,
-			"order_number":       order.OrderNumber,
-			"status":             order.Status,
-			"client_confirmed":   order.ConfirmedByClient,
-			"business_confirmed": order.ConfirmedByBusiness,
-			"action_required":    actionRequired,
-			"editable":           editable,
-			"sender":             order.Sender,
-			"draft":              order.Draft,
-			"items":              items,
-			"total_amount":       order.TotalAmount,
-			"quantity":           order.Quantity,
-			"notes":              order.Notes,
-			"product_names":      productNames,
-			"first_product_name": firstProductName,
-			"created_at":         order.CreatedAt,
+			"id":                   order.ID,
+			"order_number":         order.OrderNumber,
+			"status":               order.Status,
+			"client_confirmed":     order.ConfirmedByClient,
+			"business_confirmed":   order.ConfirmedByBusiness,
+			"action_required":      actionRequired,
+			"editable":             editable,
+			"sender":               order.Sender,
+			"draft":                order.Draft,
+			"items":                items,
+			"total_amount":         order.TotalAmount,
+			"paid_amount":          order.PaidAmount,
+			"pending_amount":       orderPendingAmt,
+			"remaining":            remaining,
+			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+			"quantity":             order.Quantity,
+			"notes":                order.Notes,
+			"product_names":        productNames,
+			"first_product_name":   firstProductName,
+			"created_at":           order.CreatedAt,
+			"payment_methods":      orderPaymentMethods,
 		}
 
 		messageObjs = append(messageObjs, MessageObj{
@@ -386,19 +403,36 @@ func GetClientMessages(c *gin.Context) {
 			}
 		}
 
+		bookingRemaining := booking.TotalAmount - booking.PaidAmount
+		if bookingRemaining < 0 {
+			bookingRemaining = 0
+		}
+
+		var bookingPaymentMethods []models.PaymentMethod
+		db.DB.Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
+
+		var bookingPendingAmt float64
+		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
+			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
+
 		bookingData := map[string]interface{}{
-			"id":                booking.ID,
-			"booking_number":    booking.BookingNumber,
-			"service_id":        firstServiceID,
-			"status":            booking.Status,
-			"scheduled_date":    booking.ScheduledDate.Format("Jan 2, 2006 3:04 PM"),
-			"scheduled_date_iso": booking.ScheduledDate.Format("2006-01-02"),
-			"scheduled_time_iso": booking.ScheduledDate.Format("15:04"),
-			"duration":          booking.Duration,
-			"total_amount":      booking.TotalAmount,
-			"notes":             booking.Notes,
-			"created_at":        booking.CreatedAt,
-			"service_names":     serviceNames,
+			"id":                   booking.ID,
+			"booking_number":       booking.BookingNumber,
+			"service_id":           firstServiceID,
+			"status":               booking.Status,
+			"scheduled_date":       booking.ScheduledDate.Format("Jan 2, 2006 3:04 PM"),
+			"scheduled_date_iso":   booking.ScheduledDate.Format("2006-01-02"),
+			"scheduled_time_iso":   booking.ScheduledDate.Format("15:04"),
+			"duration":             booking.Duration,
+			"total_amount":         booking.TotalAmount,
+			"paid_amount":          booking.PaidAmount,
+			"pending_amount":       bookingPendingAmt,
+			"remaining":            bookingRemaining,
+			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
+			"notes":                booking.Notes,
+			"created_at":           booking.CreatedAt,
+			"service_names":        serviceNames,
+			"payment_methods":      bookingPaymentMethods,
 		}
 
 		messageObjs = append(messageObjs, MessageObj{

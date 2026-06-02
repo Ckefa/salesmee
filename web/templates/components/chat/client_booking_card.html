@@ -80,15 +80,133 @@
       </div>
       {{else if eq .Data.status "confirmed"}}
       <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        {{if .Data.payment_methods}}
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <i class="fas fa-credit-card text-[var(--color-info)] text-[10px]"></i>
+          <span class="text-[10px] font-semibold text-[var(--color-text)]">How to Pay</span>
+        </div>
+        <div class="space-y-1.5 mb-2">
+          {{range .Data.payment_methods}}
+          <div class="bg-[var(--color-surface)] rounded-lg p-1.5 border border-[var(--color-border-light)]">
+            <div class="flex items-center gap-1 mb-0.5">
+              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<span>💳</span>{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else}}<span>✏️</span>{{end}}
+              <span class="text-[10px] font-semibold text-[var(--color-text)]">{{.Label}}</span>
+            </div>
+            {{if eq .MethodType "bank"}}
+              {{if index .Details "bank_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Bank: {{index .Details "bank_name"}}</p>{{end}}
+              {{if index .Details "account_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Name: {{index .Details "account_name"}}</p>{{end}}
+              {{if index .Details "account_number"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Account: {{index .Details "account_number"}}</p>{{end}}
+              {{if index .Details "iban"}}<p class="text-[10px] text-[var(--color-text-secondary)]">IBAN: {{index .Details "iban"}}</p>{{end}}
+              {{if index .Details "sort_code"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Sort Code: {{index .Details "sort_code"}}</p>{{end}}
+              {{if index .Details "branch_code"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Branch: {{index .Details "branch_code"}}</p>{{end}}
+              {{if index .Details "swift_code"}}<p class="text-[10px] text-[var(--color-text-secondary)]">SWIFT/BIC: {{index .Details "swift_code"}}</p>{{end}}
+            {{else if eq .MethodType "mobile_wallet"}}
+              {{if index .Details "provider"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Provider: {{index .Details "provider"}}</p>{{end}}
+              {{if index .Details "phone_number"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Account: {{index .Details "phone_number"}}</p>{{end}}
+              {{if index .Details "upi_id"}}<p class="text-[10px] text-[var(--color-text-secondary)]">UPI: {{index .Details "upi_id"}}</p>{{end}}
+              {{if index .Details "account_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Name: {{index .Details "account_name"}}</p>{{end}}
+            {{else if eq .MethodType "paypal"}}
+              {{if index .Details "email"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Email: {{index .Details "email"}}</p>{{end}}
+              {{if index .Details "link"}}<a href="{{index .Details "link"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">PayPal.Me <i class="fas fa-external-link-alt ml-0.5"></i></a>{{end}}
+            {{else if eq .MethodType "link"}}
+              {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">Click to Pay <i class="fas fa-external-link-alt ml-0.5"></i></a>{{end}}
+            {{else if eq .MethodType "crypto"}}
+              {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}
+              {{if index .Details "wallet_address"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Address: {{index .Details "wallet_address"}}</p>{{end}}
+            {{else if eq .MethodType "custom"}}
+              {{if index .Details "content"}}<p class="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap">{{index .Details "content"}}</p>{{end}}
+            {{end}}
+          </div>
+          {{end}}
+        </div>
+        <div class="flex items-center justify-between text-[10px]">
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">${{printf "%.2f" .Data.paid_amount}}</strong></span>
+          {{if gt .Data.pending_amount 0.0}}
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">${{printf "%.2f" .Data.pending_amount}}</strong></span>
+          {{end}}
+          {{if not .Data.is_fully_paid}}
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>${{printf "%.2f" .Data.remaining}}</strong></span>
+          {{end}}
+        </div>
+        {{if not .Data.is_fully_paid}}
+        <button onclick="clientSubmitBookingPayment({{.Data.id}}, {{.Data.remaining}})" class="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-[var(--color-info)] hover:brightness-110 text-white text-[10px] font-medium transition shadow-sm">
+          <i class="fas fa-check-circle mr-1"></i>I've Paid
+        </button>
+        {{else}}
+        <div class="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-[var(--color-success-light)] text-[var(--color-success)] text-[10px] font-medium text-center">
+          <i class="fas fa-check-circle mr-1"></i>Fully Paid
+        </div>
+        {{end}}
+        {{else}}
         <p class="text-[10px] sm:text-xs text-center text-[var(--color-success)] font-medium">
           <i class="fas fa-check-circle mr-1"></i>Your booking is confirmed
         </p>
+        {{end}}
       </div>
       {{else if eq .Data.status "completed"}}
       <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        {{if .Data.payment_methods}}
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <i class="fas fa-credit-card text-[var(--color-info)] text-[10px]"></i>
+          <span class="text-[10px] font-semibold text-[var(--color-text)]">How to Pay</span>
+        </div>
+        <div class="space-y-1.5 mb-2">
+          {{range .Data.payment_methods}}
+          <div class="bg-[var(--color-surface)] rounded-lg p-1.5 border border-[var(--color-border-light)]">
+            <div class="flex items-center gap-1 mb-0.5">
+              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<span>💳</span>{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else}}<span>✏️</span>{{end}}
+              <span class="text-[10px] font-semibold text-[var(--color-text)]">{{.Label}}</span>
+            </div>
+            {{if eq .MethodType "bank"}}
+              {{if index .Details "bank_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Bank: {{index .Details "bank_name"}}</p>{{end}}
+              {{if index .Details "account_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Name: {{index .Details "account_name"}}</p>{{end}}
+              {{if index .Details "account_number"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Account: {{index .Details "account_number"}}</p>{{end}}
+              {{if index .Details "iban"}}<p class="text-[10px] text-[var(--color-text-secondary)]">IBAN: {{index .Details "iban"}}</p>{{end}}
+              {{if index .Details "sort_code"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Sort Code: {{index .Details "sort_code"}}</p>{{end}}
+              {{if index .Details "branch_code"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Branch: {{index .Details "branch_code"}}</p>{{end}}
+              {{if index .Details "swift_code"}}<p class="text-[10px] text-[var(--color-text-secondary)]">SWIFT/BIC: {{index .Details "swift_code"}}</p>{{end}}
+            {{else if eq .MethodType "mobile_wallet"}}
+              {{if index .Details "provider"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Provider: {{index .Details "provider"}}</p>{{end}}
+              {{if index .Details "phone_number"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Account: {{index .Details "phone_number"}}</p>{{end}}
+              {{if index .Details "upi_id"}}<p class="text-[10px] text-[var(--color-text-secondary)]">UPI: {{index .Details "upi_id"}}</p>{{end}}
+              {{if index .Details "account_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Name: {{index .Details "account_name"}}</p>{{end}}
+            {{else if eq .MethodType "paypal"}}
+              {{if index .Details "email"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Email: {{index .Details "email"}}</p>{{end}}
+              {{if index .Details "link"}}<a href="{{index .Details "link"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">PayPal.Me <i class="fas fa-external-link-alt ml-0.5"></i></a>{{end}}
+            {{else if eq .MethodType "link"}}
+              {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">Click to Pay <i class="fas fa-external-link-alt ml-0.5"></i></a>{{end}}
+            {{else if eq .MethodType "crypto"}}
+              {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}
+              {{if index .Details "wallet_address"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Address: {{index .Details "wallet_address"}}</p>{{end}}
+            {{else if eq .MethodType "custom"}}
+              {{if index .Details "content"}}<p class="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap">{{index .Details "content"}}</p>{{end}}
+            {{end}}
+          </div>
+          {{end}}
+        </div>
+        <div class="flex items-center justify-between text-[10px]">
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">${{printf "%.2f" .Data.paid_amount}}</strong></span>
+          {{if gt .Data.pending_amount 0.0}}
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">${{printf "%.2f" .Data.pending_amount}}</strong></span>
+          {{end}}
+          {{if not .Data.is_fully_paid}}
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>${{printf "%.2f" .Data.remaining}}</strong></span>
+          {{end}}
+        </div>
+        {{if not .Data.is_fully_paid}}
+        <button onclick="clientSubmitBookingPayment({{.Data.id}}, {{.Data.remaining}})" class="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-[var(--color-info)] hover:brightness-110 text-white text-[10px] font-medium transition shadow-sm">
+          <i class="fas fa-check-circle mr-1"></i>I've Paid
+        </button>
+        {{else}}
+        <div class="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-[var(--color-success-light)] text-[var(--color-success)] text-[10px] font-medium text-center">
+          <i class="fas fa-check-circle mr-1"></i>Fully Paid
+        </div>
+        {{end}}
+        {{else}}
         <p class="text-[10px] sm:text-xs text-center text-[var(--color-info)] font-medium">
           <i class="fas fa-check-double mr-1"></i>Service completed
         </p>
+        {{end}}
       </div>
       {{else if eq .Data.status "cancelled"}}
       <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">

@@ -10,6 +10,22 @@
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
   <script src="/static/js/modules/shared.js?v=1"></script>
+  <style>
+    .table-row-hover:hover {
+      background-color: var(--color-surface-secondary);
+    }
+    .badge-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .method-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; }
+    .pm-track { background: var(--color-surface-tertiary); transition: background 0.2s; }
+    .pm-toggle:checked + .pm-track { background: var(--color-success); }
+    .pm-dot { transition: transform 0.2s; transform: translateX(2px); }
+    .pm-toggle:checked ~ .pm-dot { transform: translateX(18px); }
+  </style>
 </head>
 <body class="bg-[var(--color-bg)]">
   <header class="navbar-glass">
@@ -25,7 +41,6 @@
           <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Payments</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <!-- Desktop: action items shown inline -->
           <div class="hidden lg:flex items-center space-x-4">
             <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
               <i class="fas fa-sun theme-sun"></i>
@@ -43,8 +58,6 @@
             </button>
             <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
           </div>
-
-          <!-- Mobile: overflow menu trigger -->
           <div class="relative lg:hidden">
             <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
               <i class="fas fa-ellipsis-v"></i>
@@ -73,20 +86,560 @@
 
   <div class="flex h-screen pt-16">
 {{template "dashboard_sidebar" .}}
-    <main class="flex-1 overflow-y-auto flex items-center justify-center pb-16">
-      <div class="text-center px-4">
-        <div class="w-16 sm:w-20 h-16 sm:h-20 mx-auto rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center mb-4 sm:mb-6 shadow-lg shadow-teal-500/20">
-          <i class="fas fa-credit-card text-white text-2xl sm:text-3xl"></i>
+    <main class="flex-1 overflow-y-auto pb-16">
+      <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+          <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Payments</h2>
+          <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-2">Manage payment methods and track client payments</p>
         </div>
-        <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mb-2">Coming Soon</h2>
-        <p class="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md">Payments management is under development. You'll be able to track transactions, manage invoices, and view payment history here.</p>
+
+        <!-- Payment Methods Section -->
+        <div class="bg-[var(--color-surface)] rounded-xl card mb-6">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)] flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]"><i class="fas fa-credit-card mr-2"></i>Payment Methods</h3>
+            <button onclick="openAddPaymentMethod()" class="text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+              <i class="fas fa-plus"></i> Add Method
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-[var(--color-border)]">
+              <thead class="bg-[var(--color-surface-secondary)]">
+                <tr>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Method</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Details</th>
+                  <th class="px-3 sm:px-6 py-3 text-center text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Active</th>
+                  <th class="px-3 sm:px-6 py-3 text-right text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
+                {{if .PaymentMethods}}
+                {{range .PaymentMethods}}
+                <tr class="table-row-hover" id="pm-row-{{.ID}}">
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <span class="method-icon" style="background:var(--color-{{if eq .MethodType "bank"}}primary{{else if eq .MethodType "mobile_wallet"}}success{{else if eq .MethodType "paypal"}}info{{else if eq .MethodType "link"}}warning{{else if eq .MethodType "crypto"}}secondary{{else}}surface-tertiary{{end}}-light)">
+                        {{if eq .MethodType "bank"}}🏦{{else if eq .MethodType "mobile_wallet"}}📱{{else if eq .MethodType "paypal"}}💳{{else if eq .MethodType "link"}}🔗{{else if eq .MethodType "crypto"}}₿{{else}}✏️{{end}}
+                      </span>
+                      <div>
+                        <span class="text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.Label}}</span>
+                        <span class="text-[10px] text-[var(--color-text-muted)] block capitalize">{{.MethodType}}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-[var(--color-text-secondary)] max-w-[200px] truncate">
+                    {{if eq .MethodType "bank"}}
+                      {{if index .Details "account_name"}}{{index .Details "account_name"}}{{end}}{{if index .Details "bank_name"}} · {{index .Details "bank_name"}}{{end}}{{if index .Details "iban"}} · IBAN {{index .Details "iban"}}{{end}}
+                    {{else if eq .MethodType "mobile_wallet"}}
+                      {{if index .Details "provider"}}{{index .Details "provider"}}{{end}}{{if index .Details "phone_number"}} · {{index .Details "phone_number"}}{{end}}{{if index .Details "upi_id"}} · {{index .Details "upi_id"}}{{end}}
+                    {{else if eq .MethodType "paypal"}}
+                      {{if index .Details "email"}}{{index .Details "email"}}{{end}}
+                    {{else if eq .MethodType "link"}}
+                      {{if index .Details "url"}}{{index .Details "url"}}{{end}}
+                    {{else if eq .MethodType "crypto"}}
+                      {{if index .Details "network"}}{{index .Details "network"}}{{end}}{{if index .Details "wallet_address"}} · {{printf "%.12s" (index .Details "wallet_address")}}...{{end}}
+                    {{else if eq .MethodType "custom"}}
+                      {{if index .Details "content"}}{{printf "%.40s" (index .Details "content")}}{{end}}
+                    {{end}}
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" class="pm-toggle sr-only" data-id="{{.ID}}" {{if .IsActive}}checked{{end}} onchange="togglePaymentMethodActive(this)">
+                      <div class="pm-track w-9 h-5 rounded-full"></div>
+                      <div class="pm-dot absolute left-0.5 top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow"></div>
+                    </label>
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right">
+                    <button onclick="openEditPaymentMethod({{.ID}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-sm p-1" title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deletePaymentMethod({{.ID}}, '{{.Label}}')" class="text-[var(--color-text-muted)] hover:text-[var(--color-error)] text-sm p-1 ml-1" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                {{end}}
+                {{else}}
+                <tr>
+                  <td colspan="4" class="px-3 sm:px-6 py-8 sm:py-10 text-center text-[var(--color-text-muted)]">
+                    <i class="fas fa-credit-card text-3xl sm:text-4xl mb-3"></i>
+                    <p class="text-base sm:text-lg">No payment methods yet</p>
+                    <p class="text-xs sm:text-sm mt-2">Add bank accounts, mobile wallets, PayPal, crypto wallets, or custom instructions so clients know how to pay.</p>
+                    <button onclick="openAddPaymentMethod()" class="mt-3 text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded-lg transition">
+                      <i class="fas fa-plus mr-1"></i> Add Your First Method
+                    </button>
+                  </td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
+                <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalCompleted}}</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-warning-light)] rounded-full">
+                <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPending}}</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
+                <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Failed</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalFailed}}</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-primary-light)] rounded-full">
+                <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPaidRevenue}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="bg-[var(--color-surface)] rounded-xl card">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
+            <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">Payment History</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-[var(--color-border)]">
+              <thead class="bg-[var(--color-surface-secondary)]">
+                <tr>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Client</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Source</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Amount</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Method</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Reference</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
+                </tr>
+              </thead>
+              <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
+                {{if .Payments}}
+                {{range .Payments}}
+                <tr class="table-row-hover">
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">{{.ClientName}}</td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
+                    <span class="font-medium text-[var(--color-text)]">{{if eq .SourceType "order"}}📦 {{.SourceNumber}}{{else}}📅 {{.SourceNumber}}{{end}}</span>
+                    <span class="text-[var(--color-text-muted)] ml-1">({{.SourceType}})</span>
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-semibold text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{printf "%.2f" .Amount}}</td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)] capitalize">{{.Method}}</td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{if .Reference}}{{.Reference}}{{else}}—{{end}}</td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <span class="badge-status
+                      {{if eq .Status "completed"}}bg-[var(--color-success-light)] text-[var(--color-success)]
+                      {{else if eq .Status "pending"}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
+                      {{else if eq .Status "failed"}}bg-[var(--color-error-light)] text-[var(--color-error)]
+                      {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]{{end}}">
+                      {{.Status}}
+                    </span>
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{.CreatedAt.Format "Jan 02"}}</td>
+                </tr>
+                {{end}}
+                {{else}}
+                <tr>
+                  <td colspan="7" class="px-3 sm:px-6 py-8 sm:py-12 text-center text-[var(--color-text-muted)]">
+                    <i class="fas fa-credit-card text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
+                    <p class="text-base sm:text-lg">No payments yet</p>
+                    <p class="text-xs sm:text-sm mt-2">Payments will appear here when clients submit payment claims for confirmed orders and bookings.</p>
+                  </td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+    </div>
     </main>
   </div>
 
   {{template "business_profile" .}}
   {{template "business_profile_script" .}}
+  {{template "payment_method_modal" .}}
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
+
+  <script>
+  var paymentMethodsData = {{.PaymentMethods | json}};
+
+  // ── Payment Methods CRUD ──
+
+  function onPaymentMethodTypeChange() {
+    var t = document.getElementById('pmType').value;
+    document.getElementById('pmBankFields').classList.toggle('hidden', t !== 'bank');
+    document.getElementById('pmMobileWalletFields').classList.toggle('hidden', t !== 'mobile_wallet');
+    document.getElementById('pmPaypalFields').classList.toggle('hidden', t !== 'paypal');
+    document.getElementById('pmLinkFields').classList.toggle('hidden', t !== 'link');
+    document.getElementById('pmCryptoFields').classList.toggle('hidden', t !== 'crypto');
+    document.getElementById('pmCustomFields').classList.toggle('hidden', t !== 'custom');
+  }
+
+  function onMobileWalletProviderChange() {
+    var sel = document.getElementById('pmMobileWalletProvider');
+    document.getElementById('pmMobileWalletCustomWrap').classList.toggle('hidden', sel.value !== 'Other');
+  }
+
+  function hidePaymentMethodModal() {
+    document.getElementById('paymentMethodModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function openAddPaymentMethod() {
+    document.getElementById('paymentMethodModalTitle').textContent = 'Add Payment Method';
+    document.getElementById('pmSubmitBtn').innerHTML = '<i class="fas fa-save mr-1"></i> Save Method';
+    document.getElementById('pmEditId').value = '';
+    document.getElementById('paymentMethodForm').reset();
+    document.getElementById('pmSortOrder').value = '0';
+    onPaymentMethodTypeChange();
+    document.getElementById('pmFormError').classList.add('hidden');
+    document.getElementById('paymentMethodModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function getMethodDetails() {
+    var t = document.getElementById('pmType').value;
+    var d = {};
+    switch (t) {
+      case 'bank':
+        d.account_name = document.getElementById('pmBankAccountName').value;
+        d.account_number = document.getElementById('pmBankAccountNumber').value;
+        d.iban = document.getElementById('pmBankIban').value;
+        d.bank_name = document.getElementById('pmBankName').value;
+        d.branch_code = document.getElementById('pmBankBranchCode').value;
+        d.swift_code = document.getElementById('pmBankSwiftCode').value;
+        d.sort_code = document.getElementById('pmBankSortCode').value;
+        break;
+      case 'mobile_wallet':
+        var sel = document.getElementById('pmMobileWalletProvider');
+        d.provider = sel.value === 'Other' ? document.getElementById('pmMobileWalletCustomProvider').value : sel.value;
+        d.phone_number = document.getElementById('pmMobileWalletPhone').value;
+        d.upi_id = document.getElementById('pmMobileWalletUpi').value;
+        d.account_name = document.getElementById('pmMobileWalletName').value;
+        break;
+      case 'paypal':
+        d.email = document.getElementById('pmPaypalEmail').value;
+        d.link = document.getElementById('pmPaypalLink').value;
+        d.description = document.getElementById('pmPaypalDescription').value;
+        break;
+      case 'link':
+        d.url = document.getElementById('pmLinkUrl').value;
+        d.description = document.getElementById('pmLinkDescription').value;
+        break;
+      case 'crypto':
+        d.network = document.getElementById('pmCryptoNetwork').value;
+        d.wallet_address = document.getElementById('pmCryptoAddress').value;
+        d.description = document.getElementById('pmCryptoDescription').value;
+        break;
+      case 'custom':
+        d.content = document.getElementById('pmCustomContent').value;
+        break;
+    }
+    return d;
+  }
+
+  function setMethodDetails(t, details) {
+    switch (t) {
+      case 'bank':
+        document.getElementById('pmBankAccountName').value = details.account_name || '';
+        document.getElementById('pmBankAccountNumber').value = details.account_number || '';
+        document.getElementById('pmBankIban').value = details.iban || '';
+        document.getElementById('pmBankName').value = details.bank_name || '';
+        document.getElementById('pmBankBranchCode').value = details.branch_code || '';
+        document.getElementById('pmBankSwiftCode').value = details.swift_code || '';
+        document.getElementById('pmBankSortCode').value = details.sort_code || '';
+        break;
+      case 'mobile_wallet':
+        var sel = document.getElementById('pmMobileWalletProvider');
+        var knownProvider = false;
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === (details.provider || '')) { knownProvider = true; break; }
+        }
+        if (knownProvider) {
+          sel.value = details.provider || '';
+          document.getElementById('pmMobileWalletCustomProvider').value = '';
+          document.getElementById('pmMobileWalletCustomWrap').classList.add('hidden');
+        } else {
+          sel.value = 'Other';
+          document.getElementById('pmMobileWalletCustomProvider').value = details.provider || '';
+          document.getElementById('pmMobileWalletCustomWrap').classList.remove('hidden');
+        }
+        document.getElementById('pmMobileWalletPhone').value = details.phone_number || '';
+        document.getElementById('pmMobileWalletUpi').value = details.upi_id || '';
+        document.getElementById('pmMobileWalletName').value = details.account_name || '';
+        break;
+      case 'paypal':
+        document.getElementById('pmPaypalEmail').value = details.email || '';
+        document.getElementById('pmPaypalLink').value = details.link || '';
+        document.getElementById('pmPaypalDescription').value = details.description || '';
+        break;
+      case 'link':
+        document.getElementById('pmLinkUrl').value = details.url || '';
+        document.getElementById('pmLinkDescription').value = details.description || '';
+        break;
+      case 'crypto':
+        document.getElementById('pmCryptoNetwork').value = details.network || '';
+        document.getElementById('pmCryptoAddress').value = details.wallet_address || '';
+        document.getElementById('pmCryptoDescription').value = details.description || '';
+        break;
+      case 'custom':
+        document.getElementById('pmCustomContent').value = details.content || '';
+        break;
+    }
+  }
+
+  function openEditPaymentMethod(id) {
+    var m = paymentMethodsData.find(function(p) { return p.id === id; });
+    if (!m) { if (typeof showNotification === 'function') showNotification('Method not found', 'error'); return; }
+    document.getElementById('paymentMethodModalTitle').textContent = 'Edit Payment Method';
+    document.getElementById('pmSubmitBtn').innerHTML = '<i class="fas fa-save mr-1"></i> Update Method';
+    document.getElementById('pmEditId').value = id;
+    document.getElementById('pmType').value = m.method_type;
+    document.getElementById('pmLabel').value = m.label;
+    document.getElementById('pmSortOrder').value = m.sort_order || 0;
+    onPaymentMethodTypeChange();
+    if (m.details) setMethodDetails(m.method_type, m.details);
+    document.getElementById('pmFormError').classList.add('hidden');
+    document.getElementById('paymentMethodModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  document.getElementById('paymentMethodForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var errEl = document.getElementById('pmFormError');
+    errEl.classList.add('hidden');
+
+    var type = document.getElementById('pmType').value;
+    var label = document.getElementById('pmLabel').value.trim();
+    var sortOrder = parseInt(document.getElementById('pmSortOrder').value) || 0;
+    var editId = document.getElementById('pmEditId').value;
+
+    if (!type) { errEl.textContent = 'Please select a method type'; errEl.classList.remove('hidden'); return; }
+    if (!label) { errEl.textContent = 'Please enter a label'; errEl.classList.remove('hidden'); return; }
+
+    var details = getMethodDetails();
+    var btn = document.getElementById('pmSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
+
+    var url = editId ? '/business/payment-methods/' + editId : '/business/payment-methods';
+    var method = editId ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+      body: JSON.stringify({ method_type: type, label: label, details: details, sort_order: sortOrder })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        btn.disabled = false;
+        btn.innerHTML = editId ? '<i class="fas fa-save mr-1"></i> Update Method' : '<i class="fas fa-save mr-1"></i> Save Method';
+        if (d.success) {
+          if (typeof showNotification === 'function') showNotification(editId ? 'Payment method updated' : 'Payment method added', 'success');
+          hidePaymentMethodModal();
+          location.reload();
+        } else {
+          errEl.textContent = d.error || 'Failed to save payment method';
+          errEl.classList.remove('hidden');
+        }
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.innerHTML = editId ? '<i class="fas fa-save mr-1"></i> Update Method' : '<i class="fas fa-save mr-1"></i> Save Method';
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.classList.remove('hidden');
+      });
+  });
+
+  function deletePaymentMethod(id, label) {
+    if (!confirm('Delete "' + label + '" payment method?')) return;
+    fetch('/business/payment-methods/' + id, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          if (typeof showNotification === 'function') showNotification('Payment method deleted', 'info');
+          var row = document.getElementById('pm-row-' + id);
+          if (row) row.remove();
+        } else {
+          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to delete', 'error');
+        }
+      });
+  }
+
+  function togglePaymentMethodActive(cb) {
+    var id = cb.getAttribute('data-id');
+    cb.disabled = true;
+    fetch('/business/payment-methods/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+      body: JSON.stringify({ is_active: cb.checked })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        cb.disabled = false;
+        if (!d.success) {
+          cb.checked = !cb.checked;
+          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to toggle', 'error');
+        }
+      })
+      .catch(function() {
+        cb.checked = !cb.checked;
+        cb.disabled = false;
+        if (typeof showNotification === 'function') showNotification('Network error', 'error');
+      });
+  }
+
+  // ── Payment Confirm/Reject (refresh from chat cards) ──
+
+  function refreshPendingPayments() {
+    document.querySelectorAll('[id^="orderPendingPayments-"]').forEach(function(el) {
+      var orderId = el.id.replace('orderPendingPayments-', '');
+      fetch('/business/orders/' + orderId + '/payments')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success && d.payments) {
+            var pending = d.payments.filter(function(p) { return p.status === 'pending'; });
+            if (pending.length > 0) {
+              el.innerHTML = pending.map(function(p) {
+                return '<div class="flex items-center justify-between text-[10px] mt-1 bg-[var(--color-warning-light)] rounded p-1.5">' +
+                  '<span><i class="fas fa-clock mr-0.5"></i>$' + p.amount.toFixed(2) + ' via ' + p.method + '</span>' +
+                  '<div class="flex gap-1">' +
+                  '<button onclick="confirmOrderPayment(' + orderId + ',' + p.id + ')" class="text-[var(--color-success)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-success-light)] text-[10px] font-medium">✓</button>' +
+                  '<button onclick="rejectOrderPayment(' + orderId + ',' + p.id + ')" class="text-[var(--color-error)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-error-light)] text-[10px] font-medium">✗</button>' +
+                  '</div></div>';
+              }).join('');
+            } else {
+              el.innerHTML = '';
+            }
+          }
+        });
+    });
+
+    document.querySelectorAll('[id^="bookingPendingPayments-"]').forEach(function(el) {
+      var bookingId = el.id.replace('bookingPendingPayments-', '');
+      fetch('/business/bookings/' + bookingId + '/payments')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success && d.payments) {
+            var pending = d.payments.filter(function(p) { return p.status === 'pending'; });
+            if (pending.length > 0) {
+              el.innerHTML = pending.map(function(p) {
+                return '<div class="flex items-center justify-between text-[10px] mt-1 bg-[var(--color-warning-light)] rounded p-1.5">' +
+                  '<span><i class="fas fa-clock mr-0.5"></i>$' + p.amount.toFixed(2) + ' via ' + p.method + (p.reference ? ' (Ref: ' + p.reference + ')' : '') + '</span>' +
+                  '<div class="flex gap-1">' +
+                  '<button onclick="confirmBookingPayment(' + bookingId + ',' + p.id + ')" class="text-[var(--color-success)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-success-light)] text-[10px] font-medium">✓</button>' +
+                  '<button onclick="rejectBookingPayment(' + bookingId + ',' + p.id + ')" class="text-[var(--color-error)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-error-light)] text-[10px] font-medium">✗</button>' +
+                  '</div></div>';
+              }).join('');
+            } else {
+              el.innerHTML = '<div class="text-[10px] text-[var(--color-success)] font-medium"><i class="fas fa-check-circle mr-0.5"></i>All payments confirmed</div>';
+            }
+          }
+        });
+    });
+  }
+
+  function confirmOrderPayment(orderId, paymentId) {
+    fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/confirm', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
+          location.reload();
+        } else {
+          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
+        }
+      });
+  }
+
+  function rejectOrderPayment(orderId, paymentId) {
+    fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/reject', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
+          location.reload();
+        } else {
+          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
+        }
+      });
+  }
+
+  function confirmBookingPayment(bookingId, paymentId) {
+    fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/confirm', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
+          location.reload();
+        } else {
+          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
+        }
+      });
+  }
+
+  function rejectBookingPayment(bookingId, paymentId) {
+    fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/reject', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
+          location.reload();
+        } else {
+          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
+        }
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    refreshPendingPayments();
+    setInterval(refreshPendingPayments, 30000);
+  });
+  </script>
 </body>
 </html>

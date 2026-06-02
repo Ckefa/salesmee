@@ -733,8 +733,44 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	})
 }
 
+// FulfillOrder transitions confirmed → fulfilled
+func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	orderIDStr := c.Param("id")
+
+	orderID, err := strconv.ParseUint(orderIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+		return
+	}
+
+	var order models.Order
+	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return
+	}
+
+	if order.Status != "confirmed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before fulfillment"})
+		return
+	}
+
+	now := time.Now()
+	order.Status = "fulfilled"
+	order.UpdatedAt = now
+	if err := h.db.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fulfill order"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Order fulfilled successfully",
+	})
+}
+
 // buildOrderData creates the rich order data map for templates
-func buildOrderData(order models.Order, orderItems []models.OrderItem, productNames []string, firstProductName string) map[string]interface{} {
+func buildOrderData(order models.Order, orderItems []models.OrderItem, productNames []string, firstProductName string, paymentMethods []models.PaymentMethod) map[string]interface{} {
 	var items []map[string]interface{}
 	for _, item := range orderItems {
 		itemMap := map[string]interface{}{
@@ -790,22 +826,31 @@ func buildOrderData(order models.Order, orderItems []models.OrderItem, productNa
 		firstProductName = productNames[0]
 	}
 
+	remaining := order.TotalAmount - order.PaidAmount
+	if remaining < 0 {
+		remaining = 0
+	}
+
 	return map[string]interface{}{
-		"id":                 order.ID,
-		"order_number":       order.OrderNumber,
-		"status":             order.Status,
-		"client_confirmed":   order.ConfirmedByClient,
-		"business_confirmed": order.ConfirmedByBusiness,
-		"action_required":    actionRequired,
-		"editable":           editable,
-		"sender":             order.Sender,
-		"draft":              order.Draft,
-		"items":              items,
-		"total_amount":       order.TotalAmount,
-		"quantity":           order.Quantity,
-		"notes":              order.Notes,
-		"product_names":      productNames,
-		"first_product_name": firstProductName,
-		"created_at":         order.CreatedAt,
+		"id":                   order.ID,
+		"order_number":         order.OrderNumber,
+		"status":               order.Status,
+		"client_confirmed":     order.ConfirmedByClient,
+		"business_confirmed":   order.ConfirmedByBusiness,
+		"action_required":      actionRequired,
+		"editable":             editable,
+		"sender":               order.Sender,
+		"draft":                order.Draft,
+		"items":                items,
+		"total_amount":         order.TotalAmount,
+		"paid_amount":          order.PaidAmount,
+		"remaining":            remaining,
+		"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+		"quantity":             order.Quantity,
+		"notes":                order.Notes,
+		"product_names":        productNames,
+		"first_product_name":   firstProductName,
+		"created_at":           order.CreatedAt,
+		"payment_methods":      paymentMethods,
 	}
 }

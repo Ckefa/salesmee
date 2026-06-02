@@ -288,8 +288,9 @@ function addBookingMessageToChat(booking) {
 }
 
 function clientConfirmOrder(orderId) {
-  if (!confirm('Confirm this order?')) return;
-  fetch(`/client/orders/${orderId}/confirm`, {
+  showConfirmModal({ title: 'Confirm Order', message: 'Confirm this order?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/client/orders/${orderId}/confirm`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify({ items: [] })
@@ -317,19 +318,6 @@ function clientConfirmOrder(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to confirm order', 'error'); });
-}
-
-function clientRequestChanges(orderId) {
-  const message = prompt('Describe the changes you need:');
-  if (!message) return;
-  // For now, just send a text message requesting changes
-  const formData = new FormData();
-  formData.append('content', 'Request changes for order #' + orderId + ': ' + message);
-  formData.append('sender', 'client');
-  htmx.ajax('POST', `/client/businesses/${businessId}/messages`, {
-    values: formData,
-    target: '#messages-container',
-    swap: 'beforeend'
   });
 }
 
@@ -364,8 +352,9 @@ function updateClientOrderTotal(orderId) {
 }
 
 function cancelOrder(orderId) {
-  if (!confirm('Are you sure you want to cancel this order?')) return;
-  fetch(`/client/orders/${orderId}/cancel`, {
+  showConfirmModal({ title: 'Cancel Order', message: 'Are you sure you want to cancel this order?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Cancel Order' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/client/orders/${orderId}/cancel`, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
   })
@@ -378,10 +367,12 @@ function cancelOrder(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to cancel order', 'error'); });
+  });
 }
 
 function cancelBooking(bookingId) {
-  if (!confirm('Are you sure you want to cancel this booking?')) return;
+  showConfirmModal({ title: 'Cancel Booking', message: 'Are you sure you want to cancel this booking?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Cancel Booking' }).then(function(confirmed) {
+    if (!confirmed) return;
   fetch(`/client/bookings/${bookingId}/cancel`, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
@@ -395,6 +386,7 @@ function cancelBooking(bookingId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to cancel booking', 'error'); });
+  });
 }
 
 function toggleMediaTray() {

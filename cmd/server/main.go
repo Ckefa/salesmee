@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"html/template"
 	"log"
 	"os"
@@ -124,6 +125,10 @@ func main() {
 		"mul": func(a, b float64) float64 { return a * b },
 		"div": func(a, b float64) float64 { return a / b },
 		"float": func(i int) float64 { return float64(i) },
+		"json": func(v interface{}) string {
+			b, _ := json.Marshal(v)
+			return string(b)
+		},
 		"currencySymbol": func(code string) string {
 			for _, c := range data.Currencies {
 				if c.Code == code {

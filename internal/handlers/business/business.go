@@ -227,10 +227,10 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	h.db.Model(&models.Booking{}).Where("business_id = ?", businessID).Count(&totalBookings)
 	h.db.Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&activeClients)
 
-	// Calculate total revenue from completed orders and bookings
+	// Calculate total revenue from paid amounts
 	var ordersRevenue, bookingsRevenue float64
-	h.db.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Scan(&ordersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "completed"}).Scan(&bookingsRevenue)
+	h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&ordersRevenue)
+	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&bookingsRevenue)
 	totalRevenue = ordersRevenue + bookingsRevenue
 
 	// Get recent orders with client info
@@ -428,8 +428,8 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	h.db.Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&activeClients)
 
 	var ordersRevenue, bookingsRevenue float64
-	h.db.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Scan(&ordersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "completed"}).Scan(&bookingsRevenue)
+	h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&ordersRevenue)
+	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&bookingsRevenue)
 	totalRevenue = ordersRevenue + bookingsRevenue
 
 	var recentOrders []models.Order
@@ -459,21 +459,6 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "dashboard.html", data)
-}
-
-func (h *BusinessHandler) GetPayments(c *gin.Context) {
-	businessID := c.GetUint("business_id")
-	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
-		return
-	}
-	c.HTML(http.StatusOK, "payments.html", gin.H{
-		"Business":   business,
-		"ActivePage": "payments",
-		"Countries":  data.Countries,
-		"Currencies": data.Currencies,
-	})
 }
 
 func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {

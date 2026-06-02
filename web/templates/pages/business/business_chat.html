@@ -36,4 +36,122 @@
   const conversationId = '{{.Customer.ConversationID}}';
 </script>
 <script src="/static/js/modules/business_chat.js"></script>
+<script>
+function refreshPendingPayments() {
+  document.querySelectorAll('[id^="orderPendingPayments-"]').forEach(function(el) {
+    var orderId = el.id.replace('orderPendingPayments-', '');
+    fetch('/business/orders/' + orderId + '/payments')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success && d.payments) {
+          var pending = d.payments.filter(function(p) { return p.status === 'pending'; });
+          if (pending.length > 0) {
+            el.innerHTML = pending.map(function(p) {
+              return '<div class="flex items-center justify-between text-[10px] mt-1 bg-[var(--color-warning-light)] rounded p-1.5">' +
+                '<span><i class="fas fa-clock mr-0.5"></i>$' + p.amount.toFixed(2) + ' via ' + p.method + '</span>' +
+                '<div class="flex gap-1">' +
+                '<button onclick="confirmOrderPayment(' + orderId + ',' + p.id + ')" class="text-[var(--color-success)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-success-light)] text-[10px] font-medium">✓</button>' +
+                '<button onclick="rejectOrderPayment(' + orderId + ',' + p.id + ')" class="text-[var(--color-error)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-error-light)] text-[10px] font-medium">✗</button>' +
+                '</div></div>';
+            }).join('');
+          } else {
+            el.innerHTML = '';
+          }
+        }
+      });
+  });
+
+  document.querySelectorAll('[id^="bookingPendingPayments-"]').forEach(function(el) {
+    var bookingId = el.id.replace('bookingPendingPayments-', '');
+    fetch('/business/bookings/' + bookingId + '/payments')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success && d.payments) {
+          var pending = d.payments.filter(function(p) { return p.status === 'pending'; });
+          if (pending.length > 0) {
+            el.innerHTML = pending.map(function(p) {
+              return '<div class="flex items-center justify-between text-[10px] mt-1 bg-[var(--color-warning-light)] rounded p-1.5">' +
+                '<span><i class="fas fa-clock mr-0.5"></i>$' + p.amount.toFixed(2) + ' via ' + p.method + (p.reference ? ' (Ref: ' + p.reference + ')' : '') + '</span>' +
+                '<div class="flex gap-1">' +
+                '<button onclick="confirmBookingPayment(' + bookingId + ',' + p.id + ')" class="text-[var(--color-success)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-success-light)] text-[10px] font-medium">✓</button>' +
+                '<button onclick="rejectBookingPayment(' + bookingId + ',' + p.id + ')" class="text-[var(--color-error)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-error-light)] text-[10px] font-medium">✗</button>' +
+                '</div></div>';
+            }).join('');
+          } else {
+            el.innerHTML = '<div class="text-[10px] text-[var(--color-success)] font-medium"><i class="fas fa-check-circle mr-0.5"></i>All payments confirmed</div>';
+          }
+        }
+      });
+  });
+}
+
+function confirmOrderPayment(orderId, paymentId) {
+  fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/confirm', {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
+        fetchMessages();
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
+      }
+    });
+}
+
+function rejectOrderPayment(orderId, paymentId) {
+  fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/reject', {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
+        fetchMessages();
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
+      }
+    });
+}
+
+function confirmBookingPayment(bookingId, paymentId) {
+  fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/confirm', {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
+        fetchMessages();
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
+      }
+    });
+}
+
+function rejectBookingPayment(bookingId, paymentId) {
+  fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/reject', {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
+        fetchMessages();
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
+      }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  refreshPendingPayments();
+  setInterval(refreshPendingPayments, 30000);
+});
+</script>
 

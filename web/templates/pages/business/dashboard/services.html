@@ -159,8 +159,8 @@
                 {{if .ImageURL}}
                 <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
                 {{else}}
-                <div class="w-full h-48 bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center">
-                  <i class="fas fa-concierge-bell text-white text-3xl"></i>
+                <div class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
+                  <i class="fas fa-concierge-bell text-[var(--color-primary)] text-4xl"></i>
                 </div>
                 {{end}}
                 {{if not .IsActive}}

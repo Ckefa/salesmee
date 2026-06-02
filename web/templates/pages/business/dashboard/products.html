@@ -163,8 +163,8 @@
                 {{if .ImageURL}}
                 <img id="productImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
                 {{else}}
-                <div id="productImg-{{.ID}}" class="w-full h-48 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
-                  <i class="fas fa-box text-[var(--color-text-muted)] text-3xl"></i>
+                <div id="productImg-{{.ID}}" class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
+                  <i class="fas fa-box text-[var(--color-primary)] text-4xl"></i>
                 </div>
                 {{end}}
                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

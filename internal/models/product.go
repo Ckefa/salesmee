@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Product struct {
@@ -15,8 +17,9 @@ type Product struct {
 	MinStock    int       `gorm:"default:0" json:"min_stock"`
 	ImageURL    string    `json:"image_url"`
 	IsActive    bool      `gorm:"default:true" json:"is_active"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 
 	// Relationships
 	Business   Business       `gorm:"foreignKey:BusinessID" json:"business,omitempty"`

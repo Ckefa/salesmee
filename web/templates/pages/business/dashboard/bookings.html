@@ -26,13 +26,13 @@
   <!-- Header -->
   <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
     <div class="flex items-center space-x-4">
-      <a href="/business/bookings" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
+      <a href="/business/bookings" class="hover:bg-[var(--color-primary-hover)] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
         <i class="fas fa-arrow-left"></i>
       </a>
       <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden hover:bg-[var(--color-primary-hover)] text-white">
         <i class="fas fa-bars text-lg"></i>
       </button>
-      <h1 class="text-xl font-semibold">Bookings</h1>
+      <h1 class="text-lg sm:text-xl font-semibold">Bookings</h1>
     </div>
     <div class="flex items-center space-x-4">
       <!-- Desktop: action items shown inline -->
@@ -42,7 +42,7 @@
           <i class="fas fa-moon theme-moon hidden"></i>
         </button>
         <a href="/business/dashboard"
-          class="bg-[var(--color-secondary)] hover:brightness-110 px-4 py-2 rounded-lg flex items-center space-x-2">
+          class="bg-[var(--color-secondary)] hover:brightness-110 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base">
           <i class="fas fa-chart-line"></i>
           <span>Dashboard</span>
         </a>
@@ -56,7 +56,7 @@
           {{end}}
           <span class="text-sm font-medium">{{.Business.Name}}</span>
         </button>
-        <a href="/business/logout" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
+        <a href="/business/logout" class="hover:bg-[var(--color-primary-hover)] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
           <i class="fas fa-sign-out-alt"></i>
         </a>
       </div>
@@ -98,13 +98,13 @@
       <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Page Header -->
-          <div class="mb-8 flex justify-between items-center">
+          <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Bookings Management</h2>
               <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">View and manage your service bookings</p>
             </div>
             <button onclick="openQuickBookingModal()"
-              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
               <i class="fas fa-plus"></i>
               <span>New Booking</span>
             </button>
@@ -310,10 +310,10 @@
         </div>
         <div class="flex justify-end space-x-3 pt-4">
           <button type="button" onclick="hideQuickBookingModal()"
-            class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
+            class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
             Cancel
           </button>
-          <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded">
+          <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
             Create Booking
           </button>
         </div>

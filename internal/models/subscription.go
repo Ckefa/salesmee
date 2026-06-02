@@ -19,11 +19,11 @@ type SubscriptionPlan struct {
 	HasPrioritySupport    bool      `gorm:"default:false" json:"has_priority_support"`
 	HasOrdersAndBookings  bool      `gorm:"default:false" json:"has_orders_and_bookings"`
 	SortOrder             int       `gorm:"default:0" json:"sort_order"`
-	StripeMonthlyPriceID  string    `json:"stripe_monthly_price_id"`
-	StripeYearlyPriceID   string    `json:"stripe_yearly_price_id"`
-	PayPalProductID       string    `json:"paypal_product_id"`
-	PayPalMonthlyPlanID   string    `json:"paypal_monthly_plan_id"`
-	PayPalYearlyPlanID    string    `json:"paypal_yearly_plan_id"`
+	StripeMonthlyPriceID  string    `gorm:"column:stripe_monthly_price_id" json:"stripe_monthly_price_id"`
+	StripeYearlyPriceID   string    `gorm:"column:stripe_yearly_price_id" json:"stripe_yearly_price_id"`
+	PayPalProductID       string    `gorm:"column:paypal_product_id" json:"paypal_product_id"`
+	PayPalMonthlyPlanID   string    `gorm:"column:paypal_monthly_plan_id" json:"paypal_monthly_plan_id"`
+	PayPalYearlyPlanID    string    `gorm:"column:paypal_yearly_plan_id" json:"paypal_yearly_plan_id"`
 	IsActive              bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`

@@ -46,23 +46,23 @@
           <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
             <i class="fas fa-bars text-lg"></i>
           </button>
-          <h1 class="text-xl font-semibold text-[var(--color-text)]">Orders Management</h1>
+          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Orders Management</h1>
         </div>
         <div class="flex items-center space-x-4">
           <!-- Desktop: action items shown inline -->
           <div class="hidden lg:flex items-center space-x-4">
             <a href="/business"
-              class="btn btn-secondary px-4 py-2 rounded-lg flex items-center space-x-2">
+              class="btn btn-secondary px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base">
               <i class="fas fa-users"></i>
               <span>Clients</span>
             </a>
             <button onclick="showQuickOrderModal()"
-              class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              class="bg-[var(--color-info)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base">
               <i class="fas fa-shopping-cart"></i>
               <span>Quick Order</span>
             </button>
             <button onclick="showQuickBookingModal()"
-              class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+              class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base">
               <i class="fas fa-calendar-plus"></i>
               <span>Quick Booking</span>
             </button>
@@ -134,8 +134,9 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 p-6 pb-16">
-      <div class="max-w-7xl mx-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
+      <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Page Header -->
         <div class="mb-8">
           <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Orders Management</h2>
@@ -277,7 +278,7 @@
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                     <div class="flex space-x-2">
                       <select data-order-id="{{.ID}}" onchange="updateOrderStatus(this)"
-                        class="input text-sm">
+                        class="input text-xs sm:text-sm">
                         <option value="pending" {{if eq .Status "pending" }}selected{{end}}>Pending</option>
                         <option value="confirmed" {{if eq .Status "confirmed" }}selected{{end}}>Confirmed</option>
                         <option value="completed" {{if eq .Status "completed" }}selected{{end}}>Completed</option>
@@ -300,6 +301,7 @@
           </div>
         </div>
       </div>
+    </div>
     </main>
   </div>
 
@@ -348,10 +350,10 @@
           </div>
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" onclick="hideQuickOrderModal()"
-              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm">
+              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Cancel
             </button>
-            <button type="submit" class="bg-[var(--color-info)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm">
+            <button type="submit" class="bg-[var(--color-info)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Create Order
             </button>
           </div>
@@ -400,10 +402,10 @@
           </div>
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" onclick="hideQuickBookingModal()"
-              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm">
+              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Cancel
             </button>
-            <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm">
+            <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Create Booking
             </button>
           </div>

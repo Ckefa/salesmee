@@ -3,58 +3,58 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Page Header -->
     <div class="mb-8">
-      <h2 class="text-2xl font-bold text-[var(--color-text)]">Dashboard Overview</h2>
-      <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Manage your business operations and track performance</p>
+      <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Dashboard Overview</h2>
+      <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">Manage your business operations and track performance</p>
     </div>
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="stat-card bg-[var(--color-surface)] p-6 rounded-xl border border-[var(--color-border)] shadow-sm">
+      <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
         <div class="flex items-center">
-          <div class="flex-shrink-0 bg-[var(--color-primary-light)] rounded-md p-3">
-            <i class="fas fa-dollar-sign text-[var(--color-primary)]"></i>
+          <div class="flex-shrink-0 bg-[var(--color-primary-light)] rounded-md p-2 sm:p-3">
+            <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
           </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
-            <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{.TotalRevenue}}</p>
+          <div class="ml-3 sm:ml-4">
+            <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
+            <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{.TotalRevenue}}</p>
           </div>
         </div>
       </div>
 
       <a href="orders"
-        class="stat-card bg-[var(--color-surface)] p-6 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
+        class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
         <div class="flex items-center">
-          <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-3">
-            <i class="fas fa-shopping-bag text-[var(--color-info)]"></i>
+          <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-3">
+            <i class="fas fa-shopping-bag text-[var(--color-info)] text-sm sm:text-base"></i>
           </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Orders</p>
-            <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalOrders}}</p>
+          <div class="ml-3 sm:ml-4">
+            <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Orders</p>
+            <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">{{.TotalOrders}}</p>
           </div>
         </div>
       </a>
 
       <a href="bookings"
-        class="stat-card bg-[var(--color-surface)] p-6 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
+        class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
         <div class="flex items-center">
-          <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-3">
-            <i class="fas fa-calendar text-[var(--color-success)]"></i>
+          <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-3">
+            <i class="fas fa-calendar text-[var(--color-success)] text-sm sm:text-base"></i>
           </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
-            <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
+          <div class="ml-3 sm:ml-4">
+            <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
+            <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
           </div>
         </div>
       </a>
 
-      <div class="stat-card bg-[var(--color-surface)] p-6 rounded-xl border border-[var(--color-border)] shadow-sm">
+      <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
         <div class="flex items-center">
-          <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-3">
-            <i class="fas fa-users text-[var(--color-secondary)]"></i>
+          <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-3">
+            <i class="fas fa-users text-[var(--color-secondary)] text-sm sm:text-base"></i>
           </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-[var(--color-text-secondary)]">Active Clients</p>
-            <p class="text-2xl font-bold text-[var(--color-text)]">{{.ActiveClients}}</p>
+          <div class="ml-3 sm:ml-4">
+            <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Active Clients</p>
+            <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">{{.ActiveClients}}</p>
           </div>
         </div>
       </div>
@@ -64,54 +64,54 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Recent Orders -->
       <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
-        <div class="px-6 py-4 border-b border-[var(--color-border)]">
-          <h3 class="text-lg font-medium text-[var(--color-text)]">Recent Orders</h3>
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
+          <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">Recent Orders</h3>
         </div>
         <div class="divide-y divide-[var(--color-border)]">
           {{range .RecentOrders}}
-          <div class="px-6 py-4 table-row-hover">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 table-row-hover">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-[var(--color-text)]">#{{.OrderNumber}}</p>
-                <p class="text-sm text-[var(--color-text-secondary)]">{{.Client.Name}}</p>
+                <p class="text-xs sm:text-sm font-medium text-[var(--color-text)]">#{{.OrderNumber}}</p>
+                <p class="text-xs sm:text-sm text-[var(--color-text-secondary)]">{{.Client.Name}}</p>
               </div>
               <div class="text-right">
-                <p class="text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
+                <p class="text-xs sm:text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
                 <span
-                  class="badge-status {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]{{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]{{else if eq .Status `completed` }}bg-[var(--color-success-light)] text-[var(--color-success)]{{else}}bg-[var(--color-error-light)] text-[var(--color-error)]{{end}}">
+                  class="badge-status text-[10px] sm:text-xs {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]{{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]{{else if eq .Status `completed` }}bg-[var(--color-success-light)] text-[var(--color-success)]{{else}}bg-[var(--color-error-light)] text-[var(--color-error)]{{end}}">
                   {{.Status}}
                 </span>
               </div>
             </div>
           </div>
           {{else}}
-          <div class="px-6 py-4 text-center text-[var(--color-text-muted)]">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 text-center text-[var(--color-text-muted)] text-xs sm:text-sm">
             <p>No recent orders</p>
           </div>
           {{end}}
         </div>
-        <div class="px-6 py-4 border-t border-[var(--color-border)]">
-          <a href="orders" class="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">View all orders →</a>
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-[var(--color-border)]">
+          <a href="orders" class="text-xs sm:text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">View all orders →</a>
         </div>
       </div>
 
       <!-- Recent Bookings -->
       <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
-        <div class="px-6 py-4 border-b border-[var(--color-border)]">
-          <h3 class="text-lg font-medium text-[var(--color-text)]">Recent Bookings</h3>
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
+          <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">Recent Bookings</h3>
         </div>
         <div class="divide-y divide-[var(--color-border)]">
           {{range .RecentBookings}}
-          <div class="px-6 py-4 table-row-hover">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 table-row-hover">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-[var(--color-text)]">#{{.BookingNumber}}</p>
-                <p class="text-sm text-[var(--color-text-secondary)]">{{.Client.Name}}</p>
-                <p class="text-xs text-[var(--color-text-muted)]">{{.ScheduledDate.Format "Jan 2, 2006"}}</p>
+                <p class="text-xs sm:text-sm font-medium text-[var(--color-text)]">#{{.BookingNumber}}</p>
+                <p class="text-xs sm:text-sm text-[var(--color-text-secondary)]">{{.Client.Name}}</p>
+                <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">{{.ScheduledDate.Format "Jan 2, 2006"}}</p>
               </div>
               <div class="text-right">
-                <p class="text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
-                <span class="badge-status 
+                <p class="text-xs sm:text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
+                <span class="badge-status text-[10px] sm:text-xs
                   {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
                   {{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]
                   {{else if eq .Status `completed` }}bg-[var(--color-success-light)]
@@ -123,13 +123,13 @@
             </div>
           </div>
           {{else}}
-          <div class="px-6 py-4 text-center text-[var(--color-text-muted)]">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 text-center text-[var(--color-text-muted)] text-xs sm:text-sm">
             <p>No recent bookings</p>
           </div>
           {{end}}
         </div>
-        <div class="px-6 py-4 border-t border-[var(--color-border)]">
-          <a href="bookings" class="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">View all bookings →</a>
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-[var(--color-border)]">
+          <a href="bookings" class="text-xs sm:text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">View all bookings →</a>
         </div>
       </div>
     </div>

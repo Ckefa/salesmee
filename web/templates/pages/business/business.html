@@ -62,13 +62,13 @@
               {{if gt .PendingOrderCount 0}}
               <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 dark:bg-amber-900/30"><i class="fas fa-shopping-cart text-amber-600 dark:text-amber-400 text-xs"></i></div>
-                <div><p class="text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingOrderCount}}</span> pending orders</p><p class="text-xs text-[var(--color-text-muted)]">Awaiting your action</p></div>
+                <div><p class="text-xs sm:text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingOrderCount}}</span> pending orders</p><p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">Awaiting your action</p></div>
               </div>
               {{end}}
               {{if gt .PendingBookingCount 0}}
               <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 dark:bg-purple-900/30"><i class="fas fa-calendar text-purple-600 dark:text-purple-400 text-xs"></i></div>
-                <div><p class="text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingBookingCount}}</span> pending bookings</p><p class="text-xs text-[var(--color-text-muted)]">Need confirmation</p></div>
+                <div><p class="text-xs sm:text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingBookingCount}}</span> pending bookings</p><p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">Need confirmation</p></div>
               </div>
               {{end}}
               <div class="px-4 py-3 text-center text-xs text-[var(--color-text-muted)]">
@@ -166,7 +166,7 @@
         </div>
         <div>
           <p class="text-xs font-medium" style="color: var(--color-primary);">Conversations</p>
-          <p class="text-lg font-bold stat-counter" data-target="{{len .Clients}}" style="color: var(--color-primary-dark);">0</p>
+          <p class="text-base sm:text-lg font-bold stat-counter" data-target="{{len .Clients}}" style="color: var(--color-primary-dark);">0</p>
         </div>
       </div>
       <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 8%, transparent);">
@@ -175,7 +175,7 @@
         </div>
         <div>
           <p class="text-xs font-medium" style="color: var(--color-warning);">Orders</p>
-          <p class="text-lg font-bold" style="color: #b45309;">{{.PendingOrderCount}}</p>
+          <p class="text-base sm:text-lg font-bold" style="color: #b45309;">{{.PendingOrderCount}}</p>
         </div>
       </div>
       <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-info); background: color-mix(in srgb, var(--color-info) 8%, transparent);">
@@ -184,7 +184,7 @@
         </div>
         <div>
           <p class="text-xs font-medium" style="color: var(--color-info);">Bookings</p>
-          <p class="text-lg font-bold" style="color: #0369a1;">{{.PendingBookingCount}}</p>
+          <p class="text-base sm:text-lg font-bold" style="color: #0369a1;">{{.PendingBookingCount}}</p>
         </div>
       </div>
       <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 8%, transparent);">
@@ -193,7 +193,7 @@
         </div>
         <div>
           <p class="text-xs font-medium" style="color: var(--color-success);">Online</p>
-          <p class="text-lg font-bold" style="color: #047857;">{{.OnlineCount}}</p>
+          <p class="text-base sm:text-lg font-bold" style="color: #047857;">{{.OnlineCount}}</p>
         </div>
       </div>
       <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-info); background: color-mix(in srgb, var(--color-info) 8%, transparent);">
@@ -202,7 +202,7 @@
         </div>
         <div>
           <p class="text-xs font-medium" style="color: var(--color-info);">Total Clients</p>
-          <p class="text-lg font-bold stat-counter" data-target="{{len .Clients}}" style="color: #0369a1;">0</p>
+          <p class="text-base sm:text-lg font-bold stat-counter" data-target="{{len .Clients}}" style="color: #0369a1;">0</p>
         </div>
       </div>
     </div>
@@ -240,7 +240,7 @@
         <i class="fas fa-shield-halved text-amber-600 dark:text-amber-400 text-2xl"></i>
       </div>
       <h2 class="text-xl font-bold text-[var(--color-text)] mb-2">Verify Your Email</h2>
-      <p class="text-sm text-[var(--color-text-secondary)] mb-6 leading-relaxed">
+      <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-6 leading-relaxed">
         A verification link was sent to <strong class="text-[var(--color-text)]">{{.Business.Email}}</strong>.
         Please verify your email to unlock full account security and all platform features.
       </p>

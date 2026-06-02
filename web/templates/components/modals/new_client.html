@@ -2,7 +2,7 @@
 
 <!-- New Client Modal -->
 <div id="new-client-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-[var(--color-surface)] rounded-lg p-6 w-full max-w-md mx-4">
+  <div class="bg-[var(--color-surface)] rounded-lg p-4 sm:p-5 w-full max-w-md mx-3 sm:mx-4">
     <h2 class="text-xl font-semibold mb-4 text-[var(--color-text)]">Add New Customer</h2>
     <form id="new-client-form">
       <div class="mb-4">
@@ -22,8 +22,8 @@
       </div>
       <div class="flex justify-end space-x-3">
         <button type="button" onclick="hideNewClientModal()"
-          class="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text)]">Cancel</button>
-        <button type="submit" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90">Add
+          class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)]">Cancel</button>
+        <button type="submit" class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90">Add
           Customer</button>
       </div>
     </form>

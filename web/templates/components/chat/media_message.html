@@ -6,7 +6,7 @@
       <img src="/static/{{.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .MediaType "document"}}
       <div class="px-4 py-3">
-        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-3 text-xs sm:text-sm hover:underline">
           <i class="fas fa-file-alt text-lg {{if eq .Sender "business"}}text-white/80{{else}}text-blue-500{{end}}"></i>
           <span class="font-medium">{{if .Value}}{{.Value}}{{else}}Document{{end}}</span>
           <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
@@ -22,7 +22,7 @@
     </div>
     {{if .Value}}
     <div class="{{if eq .Sender "business"}}bg-[var(--color-primary)] text-white{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text)]{{end}} rounded-lg px-4 py-2 -mt-1">
-      <p class="text-sm">{{.Value}}</p>
+      <p class="text-xs sm:text-sm">{{.Value}}</p>
     </div>
     {{end}}
     <div class="flex items-center justify-end gap-1 mt-1">

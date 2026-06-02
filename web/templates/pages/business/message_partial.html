@@ -6,7 +6,7 @@
       <img src="/static/{{.Message.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .Message.MediaType "document"}}
       <div class="px-4 py-3">
-        <a href="/static/{{.Message.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+        <a href="/static/{{.Message.MediaURL}}" target="_blank" class="flex items-center gap-3 text-xs sm:text-sm hover:underline">
           <i class="fas fa-file-alt text-lg {{if eq .Message.Sender "business"}}text-white/80{{else}}text-blue-500{{end}}"></i>
           <span class="font-medium">{{if .Message.Content}}{{.Message.Content}}{{else}}Document{{end}}</span>
           <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
@@ -22,12 +22,12 @@
     </div>
     {{if .Message.Content}}
     <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg px-4 py-2 -mt-1">
-      <p class="text-sm">{{.Message.Content}}</p>
+      <p class="text-xs sm:text-sm">{{.Message.Content}}</p>
     </div>
     {{end}}
     {{else}}
     <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg px-4 py-2">
-      <p class="text-sm">{{.Message.Content}}</p>
+      <p class="text-xs sm:text-sm">{{.Message.Content}}</p>
     </div>
     {{end}}
     <div class="flex items-center justify-between mt-1">
@@ -35,20 +35,20 @@
       {{if eq .Message.Sender "client"}}
       <div class="flex space-x-1">
         <button data-message-id="{{.Message.ID}}"
-          class="enhanced-action-btn text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+          class="enhanced-action-btn text-xs sm:text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
           title="Create Detailed Action">
           <i class="fas fa-plus mr-1"></i>Action
         </button>
         <button data-message-id="{{.Message.ID}}" data-action-type="task"
-          class="quick-action-btn text-xs text-blue-600 hover:text-blue-800" title="Quick Task">
+          class="quick-action-btn text-xs sm:text-xs text-blue-600 hover:text-blue-800" title="Quick Task">
           <i class="fas fa-tasks"></i>
         </button>
         <button data-message-id="{{.Message.ID}}" data-action-type="reminder"
-          class="quick-action-btn text-xs text-yellow-600 hover:text-yellow-800" title="Quick Reminder">
+          class="quick-action-btn text-xs sm:text-xs text-yellow-600 hover:text-yellow-800" title="Quick Reminder">
           <i class="fas fa-bell"></i>
         </button>
         <button data-message-id="{{.Message.ID}}" data-action-type="booking"
-          class="quick-action-btn text-xs text-green-600 hover:text-green-800" title="Quick Booking">
+          class="quick-action-btn text-xs sm:text-xs text-green-600 hover:text-green-800" title="Quick Booking">
           <i class="fas fa-calendar"></i>
         </button>
       </div>

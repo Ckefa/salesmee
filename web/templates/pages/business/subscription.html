@@ -109,7 +109,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2.5">
-              <h2 class="text-2xl font-bold">{{$planName}}</h2>
+              <h2 class="text-xl sm:text-2xl font-bold">{{$planName}}</h2>
               <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold
                 {{if eq $status "active"}}bg-emerald-400/30 text-emerald-50
                 {{else if eq $status "trialing"}}bg-blue-400/30 text-blue-50
@@ -118,7 +118,7 @@
                 {{$status}}
               </span>
             </div>
-            <p class="text-white/80 text-sm mt-0.5">{{.Plan.Description}}</p>
+            <p class="text-white/80 text-xs sm:text-sm mt-0.5">{{.Plan.Description}}</p>
           </div>
         </div>
       </div>
@@ -126,12 +126,12 @@
       <div class="mt-6 flex flex-wrap items-end gap-x-8 gap-y-2">
         {{if eq $priceM 0.0}}
         <div>
-          <span class="text-4xl font-extrabold">Free</span>
+          <span class="text-3xl sm:text-4xl font-extrabold">Free</span>
         </div>
         {{else}}
         <div>
           <div class="flex items-baseline gap-1.5 flex-wrap">
-            <span class="text-3xl font-extrabold" id="hero-price"
+            <span class="text-2xl sm:text-3xl font-extrabold" id="hero-price"
               data-monthly="{{$priceM}}" data-yearly="{{$priceY}}"
               data-savings="{{.YearlySavings}}">${{printf "%.0f" $priceM}}</span>
             <span class="text-white/70" id="hero-interval">/month</span>
@@ -247,10 +247,10 @@
 
           <div class="mt-4">
             {{if eq $planPriceM 0.0}}
-            <div class="text-3xl font-extrabold text-[var(--color-text)]">Free</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text)]">Free</div>
             {{else}}
             <div class="flex items-baseline gap-1">
-              <span class="text-3xl font-extrabold text-[var(--color-text)] plan-price">${{printf "%.0f" $planPriceM}}</span>
+              <span class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text)] plan-price">${{printf "%.0f" $planPriceM}}</span>
               <span class="text-[var(--color-text-muted)] plan-interval">/mo</span>
             </div>
             <div class="text-xs text-[var(--color-text-muted)] mt-0.5 plan-yearly-note {{if not $.IsYearly}}hidden{{end}}">
@@ -261,51 +261,51 @@
 
           <ul class="mt-5 space-y-2.5">
             {{if or (eq $plan.MaxConversations 0) (lt $plan.MaxConversations 0)}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited conversations</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited conversations</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxConversations}} conversations</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxConversations}} conversations</li>
             {{end}}
             {{if or (eq $plan.MaxProducts 0) (lt $plan.MaxProducts 0)}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited products</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited products</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxProducts}} products</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxProducts}} products</li>
             {{end}}
             {{if or (eq $plan.MaxServices 0) (lt $plan.MaxServices 0)}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited services</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited services</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxServices}} services</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxServices}} services</li>
             {{end}}
             {{if or (eq $plan.MaxClients 0) (lt $plan.MaxClients 0)}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited clients</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited clients</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxClients}} clients</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxClients}} clients</li>
             {{end}}
-            {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
-            {{if $plan.HasAnalytics}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
-            {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media & file sharing</li>{{end}}
-            {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
+            {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
+            {{if $plan.HasAnalytics}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
+            {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media & file sharing</li>{{end}}
+            {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
           </ul>
         </div>
 
         <div class="mt-auto pt-5">
           {{if $isCurrent}}
-          <div class="w-full py-2.5 rounded-xl text-center text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+          <div class="w-full py-2.5 rounded-xl text-center text-xs sm:text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
             <i class="fas fa-check mr-1.5"></i>Current Plan
           </div>
           {{else if eq $planPriceM 0.0}}
-          <button onclick="confirmDowngrade('{{$plan.Code}}', '{{$plan.Name}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-sm">
+          <button onclick="confirmDowngrade('{{$plan.Code}}', '{{$plan.Name}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-xs sm:text-sm">
             Downgrade to {{$plan.Name}}
           </button>
           {{else if gt $planPriceM $priceM}}
           <button onclick="startCheckout('{{$plan.Code}}')" class="w-full py-2.5 rounded-xl
             {{if eq $plan.Code "gold"}}bg-gradient-to-r from-amber-600 to-yellow-700 text-white shadow-lg shadow-amber-700/25{{else if eq $plan.Code "diamond"}}bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-violet-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}}
-            font-medium hover:opacity-90 transition-all text-sm">
+            font-medium hover:opacity-90 transition-all text-xs sm:text-sm">
             Upgrade to {{$plan.Name}}
           </button>
           {{else}}
           <button onclick="startCheckout('{{$plan.Code}}')" class="w-full py-2.5 rounded-xl
             {{if eq $plan.Code "gold"}}bg-gradient-to-r from-amber-600 to-yellow-700 text-white shadow-lg shadow-amber-700/25{{else if eq $plan.Code "diamond"}}bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-violet-500/25{{else}}bg-[var(--color-text)] text-[var(--color-text-inverse)]{{end}}
-            font-medium hover:opacity-90 transition-all text-sm">
+            font-medium hover:opacity-90 transition-all text-xs sm:text-sm">
             Switch to {{$plan.Name}}
           </button>
           {{end}}

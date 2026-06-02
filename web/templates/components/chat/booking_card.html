@@ -26,15 +26,15 @@
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2 min-w-0">
           <i class="fas fa-calendar-check {{$iconColor}}"></i>
-          <span class="font-semibold text-sm {{$iconColor}}">#{{.Data.booking_number}}</span>
-          <span class="text-[var(--color-text)] text-sm truncate">{{.Data.service_name}}</span>
+          <span class="font-semibold text-xs sm:text-sm {{$iconColor}}">#{{.Data.booking_number}}</span>
+          <span class="text-[var(--color-text)] text-xs sm:text-sm truncate">{{.Data.service_name}}</span>
         </div>
           <button onclick="openBusinessEditBookingPicker({{.Data.id}})" class="{{$iconColor}} hover:opacity-80 text-xs ml-2 flex-shrink-0"
             title="Edit Booking">
             <i class="fas fa-edit"></i>
           </button>
       </div>
-      <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
+      <div class="booking-details text-xs sm:text-sm text-[var(--color-text)] space-y-1">
         {{if .Data}}
         <p class="flex items-center space-x-1">
           <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
@@ -69,22 +69,22 @@
       {{if eq .Data.status "pending"}}
       <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-[var(--color-border)] border-opacity-50">
         <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'confirmed')"
-          class="flex-1 text-xs bg-[var(--color-success-light)] text-[var(--color-success)] hover:bg-[var(--color-success-light)] px-2 py-1 rounded font-medium">
+          class="flex-1 text-xs sm:text-sm bg-[var(--color-success-light)] text-[var(--color-success)] hover:bg-[var(--color-success-light)] px-2 py-1 rounded font-medium">
           <i class="fas fa-check mr-1"></i>Confirm
         </button>
         <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'cancelled')"
-          class="flex-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] hover:bg-[var(--color-error-light)] px-2 py-1 rounded font-medium">
+          class="flex-1 text-xs sm:text-sm bg-[var(--color-error-light)] text-[var(--color-error)] hover:bg-[var(--color-error-light)] px-2 py-1 rounded font-medium">
           <i class="fas fa-times mr-1"></i>Cancel
         </button>
       </div>
       {{else if eq .Data.status "confirmed"}}
       <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-[var(--color-border)] border-opacity-50">
         <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'completed')"
-          class="flex-1 text-xs bg-[var(--color-info-light)] text-[var(--color-info)] hover:bg-[var(--color-info-light)] px-2 py-1 rounded font-medium">
+          class="flex-1 text-xs sm:text-sm bg-[var(--color-info-light)] text-[var(--color-info)] hover:bg-[var(--color-info-light)] px-2 py-1 rounded font-medium">
           <i class="fas fa-check-double mr-1"></i>Complete
         </button>
         <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'cancelled')"
-          class="flex-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] hover:bg-[var(--color-error-light)] px-2 py-1 rounded font-medium">
+          class="flex-1 text-xs sm:text-sm bg-[var(--color-error-light)] text-[var(--color-error)] hover:bg-[var(--color-error-light)] px-2 py-1 rounded font-medium">
           <i class="fas fa-times mr-1"></i>Cancel
         </button>
       </div>

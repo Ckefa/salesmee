@@ -327,9 +327,6 @@
         .catch(function() { showNotification('Failed to create booking', 'error'); });
     });
 
-    function showBusinessProfile() { var el = document.getElementById('businessProfileModal'); if (el) el.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-    function hideBusinessProfile() { var el = document.getElementById('businessProfileModal'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; }
-
     function resendVerification() {
       var btn = event.target.closest('button');
       if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Sending'; }

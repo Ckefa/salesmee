@@ -1,5 +1,14 @@
 {{define "business_profile_script"}}
 <script>
+function showBusinessProfile() {
+  var el = document.getElementById('businessProfileModal');
+  if (el) { el.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+}
+function hideBusinessProfile() {
+  var el = document.getElementById('businessProfileModal');
+  if (el) { el.classList.add('hidden'); document.body.style.overflow = ''; }
+}
+
 var profileChangeToken = '';
 var otpTimerInterval = null;
 

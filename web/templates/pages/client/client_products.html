@@ -142,12 +142,12 @@
           renderClientGallery();
           document.getElementById('clientGalleryModal').classList.remove('hidden');
         } else {
-          alert('No images to preview');
+          showNotification('No images to preview', 'warning');
         }
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Failed to load images');
+        showNotification('Failed to load images', 'error');
       });
   }
 

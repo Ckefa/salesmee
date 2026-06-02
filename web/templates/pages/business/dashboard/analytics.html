@@ -93,8 +93,8 @@
                   <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Total Revenue</p>
                   <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                  <i class="fas fa-dollar-sign text-emerald-600 dark:text-emerald-400"></i>
+                <div class="w-10 h-10 rounded-lg bg-[var(--color-success-light)] flex items-center justify-center">
+                  <i class="fas fa-dollar-sign text-[var(--color-success)]"></i>
                 </div>
               </div>
               <div class="mt-3 flex items-center gap-4 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
@@ -109,13 +109,13 @@
                   <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Orders</p>
                   <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{.TotalOrders}}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <i class="fas fa-shopping-cart text-blue-600 dark:text-blue-400"></i>
+                <div class="w-10 h-10 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center">
+                  <i class="fas fa-shopping-cart text-[var(--color-primary)]"></i>
                 </div>
               </div>
               <div class="mt-3 flex items-center gap-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
-                <span class="text-yellow-600 dark:text-yellow-400">{{.PendingOrders}} pending</span>
-                <span class="text-green-600 dark:text-green-400">{{.FulfilledOrders}} fulfilled</span>
+                <span class="text-[var(--color-warning)]">{{.PendingOrders}} pending</span>
+                <span class="text-[var(--color-success)]">{{.FulfilledOrders}} fulfilled</span>
               </div>
             </div>
 
@@ -125,13 +125,13 @@
                   <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Bookings</p>
                   <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{.TotalBookings}}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                  <i class="fas fa-calendar-check text-purple-600 dark:text-purple-400"></i>
+                <div class="w-10 h-10 rounded-lg bg-[var(--color-secondary-light)] flex items-center justify-center">
+                  <i class="fas fa-calendar-check text-[var(--color-secondary)]"></i>
                 </div>
               </div>
               <div class="mt-3 flex items-center gap-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
-                <span class="text-yellow-600 dark:text-yellow-400">{{.PendingBookings}} pending</span>
-                <span class="text-green-600 dark:text-green-400">{{.CompletedBookings}} completed</span>
+                <span class="text-[var(--color-warning)]">{{.PendingBookings}} pending</span>
+                <span class="text-[var(--color-success)]">{{.CompletedBookings}} completed</span>
               </div>
             </div>
 
@@ -141,8 +141,8 @@
                   <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Active Clients</p>
                   <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{.ActiveClients}}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                  <i class="fas fa-users text-amber-600 dark:text-amber-400"></i>
+                <div class="w-10 h-10 rounded-lg bg-[var(--color-warning-light)] flex items-center justify-center">
+                  <i class="fas fa-users text-[var(--color-warning)]"></i>
                 </div>
               </div>
               <p class="mt-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">Businesses with conversations</p>
@@ -163,7 +163,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.PendingOrders}} ({{printf "%.0f" (div (mul (float .PendingOrders) 100) (float $totalOrders))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-yellow-500" style="width: {{printf "%.0f" (div (mul (float .PendingOrders) 100) (float $totalOrders))}}%"></div>
+                    <div class="bar bg-[var(--color-warning)]" style="width: {{printf "%.0f" (div (mul (float .PendingOrders) 100) (float $totalOrders))}}%"></div>
                   </div>
                 </div>
                 <div>
@@ -172,7 +172,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.ConfirmedOrders}} ({{printf "%.0f" (div (mul (float .ConfirmedOrders) 100) (float $totalOrders))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-blue-500" style="width: {{printf "%.0f" (div (mul (float .ConfirmedOrders) 100) (float $totalOrders))}}%"></div>
+                    <div class="bar bg-[var(--color-primary)]" style="width: {{printf "%.0f" (div (mul (float .ConfirmedOrders) 100) (float $totalOrders))}}%"></div>
                   </div>
                 </div>
                 <div>
@@ -181,7 +181,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.FulfilledOrders}} ({{printf "%.0f" (div (mul (float .FulfilledOrders) 100) (float $totalOrders))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-green-500" style="width: {{printf "%.0f" (div (mul (float .FulfilledOrders) 100) (float $totalOrders))}}%"></div>
+                    <div class="bar bg-[var(--color-success)]" style="width: {{printf "%.0f" (div (mul (float .FulfilledOrders) 100) (float $totalOrders))}}%"></div>
                   </div>
                 </div>
                 <div>
@@ -190,7 +190,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.CancelledOrders}} ({{printf "%.0f" (div (mul (float .CancelledOrders) 100) (float $totalOrders))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-red-500" style="width: {{printf "%.0f" (div (mul (float .CancelledOrders) 100) (float $totalOrders))}}%"></div>
+                    <div class="bar bg-[var(--color-error)]" style="width: {{printf "%.0f" (div (mul (float .CancelledOrders) 100) (float $totalOrders))}}%"></div>
                   </div>
                 </div>
                 {{else}}
@@ -211,7 +211,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.PendingBookings}} ({{printf "%.0f" (div (mul (float .PendingBookings) 100) (float $totalBookings))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-yellow-500" style="width: {{printf "%.0f" (div (mul (float .PendingBookings) 100) (float $totalBookings))}}%"></div>
+                    <div class="bar bg-[var(--color-warning)]" style="width: {{printf "%.0f" (div (mul (float .PendingBookings) 100) (float $totalBookings))}}%"></div>
                   </div>
                 </div>
                 <div>
@@ -220,7 +220,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.ConfirmedBookings}} ({{printf "%.0f" (div (mul (float .ConfirmedBookings) 100) (float $totalBookings))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-blue-500" style="width: {{printf "%.0f" (div (mul (float .ConfirmedBookings) 100) (float $totalBookings))}}%"></div>
+                    <div class="bar bg-[var(--color-primary)]" style="width: {{printf "%.0f" (div (mul (float .ConfirmedBookings) 100) (float $totalBookings))}}%"></div>
                   </div>
                 </div>
                 <div>
@@ -229,7 +229,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.CompletedBookings}} ({{printf "%.0f" (div (mul (float .CompletedBookings) 100) (float $totalBookings))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-green-500" style="width: {{printf "%.0f" (div (mul (float .CompletedBookings) 100) (float $totalBookings))}}%"></div>
+                    <div class="bar bg-[var(--color-success)]" style="width: {{printf "%.0f" (div (mul (float .CompletedBookings) 100) (float $totalBookings))}}%"></div>
                   </div>
                 </div>
                 <div>
@@ -238,7 +238,7 @@
                     <span class="text-[var(--color-text-muted)]">{{.CancelledBookings}} ({{printf "%.0f" (div (mul (float .CancelledBookings) 100) (float $totalBookings))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">
-                    <div class="bar bg-red-500" style="width: {{printf "%.0f" (div (mul (float .CancelledBookings) 100) (float $totalBookings))}}%"></div>
+                    <div class="bar bg-[var(--color-error)]" style="width: {{printf "%.0f" (div (mul (float .CancelledBookings) 100) (float $totalBookings))}}%"></div>
                   </div>
                 </div>
                 {{else}}
@@ -316,17 +316,6 @@
   {{template "business_profile_script" .}}
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
-
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </body>
 
 </html>

@@ -41,16 +41,6 @@
       font-weight: 600;
     }
   </style>
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </head>
 
 <body class="bg-[var(--color-bg)]">
@@ -377,12 +367,12 @@
             document.getElementById('productModal').classList.remove('hidden');
             document.getElementById('productModal').classList.add('flex');
           } else {
-            alert('Failed to load product data');
+            showNotification('Failed to load product data', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to load product data');
+          showNotification('Failed to load product data', 'error');
         });
     }
 
@@ -400,12 +390,12 @@
             if (data.success) {
               location.reload();
             } else {
-              alert('Failed to delete product');
+              showNotification('Failed to delete product', 'error');
             }
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('Failed to delete product');
+            showNotification('Failed to delete product', 'error');
           });
       }
     }
@@ -445,12 +435,12 @@
             // Update or add count badge
             updateImageCountBadge(productId);
           } else {
-            alert('Failed to upload image');
+            showNotification('Failed to upload image', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to upload image');
+          showNotification('Failed to upload image', 'error');
         });
 
       input.value = '';
@@ -478,12 +468,12 @@
             document.getElementById('imagePreviewModal').classList.remove('hidden');
             document.getElementById('imagePreviewModal').classList.add('flex');
           } else {
-            alert('No images to preview');
+            showNotification('No images to preview', 'warning');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to load images');
+          showNotification('Failed to load images', 'error');
         });
     }
 
@@ -579,7 +569,7 @@
             // Refresh gallery data
             return fetch(`/business/products/${galleryData.productId}/images`);
           } else {
-            alert('Failed to upload image');
+            showNotification('Failed to upload image', 'error');
           }
         })
         .then(response => {
@@ -593,7 +583,7 @@
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to upload image');
+          showNotification('Failed to upload image', 'error');
         });
 
       input.value = '';
@@ -652,12 +642,12 @@
             hideProductModal();
             location.reload();
           } else {
-            alert('Failed to save product');
+            showNotification('Failed to save product', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to save product');
+          showNotification('Failed to save product', 'error');
         });
     });
 

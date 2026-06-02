@@ -218,9 +218,9 @@
     .then(r => r.json())
     .then(d => {
       if (d.success) { window.location.href = '/business/subscription'; }
-      else { alert(d.error || 'Failed to switch plan'); }
+      else { showNotification(d.error || 'Failed to switch plan', 'error'); }
     })
-    .catch(() => alert('An error occurred'));
+    .catch(() => showNotification('An error occurred', 'error'));
   }
 
   // Restore toggle state

@@ -41,16 +41,6 @@
       font-weight: 600;
     }
   </style>
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </head>
 
 <body class="bg-[var(--color-bg)]">
@@ -363,12 +353,12 @@
             document.getElementById('serviceModal').classList.remove('hidden');
             document.getElementById('serviceModal').classList.add('flex');
           } else {
-            alert('Failed to load service data');
+            showNotification('Failed to load service data', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to load service data');
+          showNotification('Failed to load service data', 'error');
         });
     }
 
@@ -386,12 +376,12 @@
             if (data.success) {
               location.reload();
             } else {
-              alert('Failed to delete service');
+              showNotification('Failed to delete service', 'error');
             }
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('Failed to delete service');
+            showNotification('Failed to delete service', 'error');
           });
       }
     }
@@ -522,12 +512,12 @@
             hideServiceModal();
             location.reload();
           } else {
-            alert('Failed to save service');
+            showNotification('Failed to save service', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to save service');
+          showNotification('Failed to save service', 'error');
         });
     });
 

@@ -295,13 +295,13 @@
           if (data.success) {
             location.reload();
           } else {
-            alert(data.error || 'Failed to regenerate');
+            showNotification(data.error || 'Failed to regenerate', 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-sync-alt mr-1.5"></i> Regenerate Links & QR Code';
           }
         })
         .catch(() => {
-          alert('Failed to regenerate');
+          showNotification('Failed to regenerate', 'error');
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-sync-alt mr-1.5"></i> Regenerate Links & QR Code';
         });
@@ -325,7 +325,7 @@
           btn.innerHTML = '<i class="fas fa-download mr-1"></i> Download PNG';
         })
         .catch(function() {
-          alert('Failed to download QR code. The image might be from a cross-origin source.');
+          showNotification('Failed to download QR code. The image might be from a cross-origin source.', 'error');
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-download mr-1"></i> Download PNG';
         });

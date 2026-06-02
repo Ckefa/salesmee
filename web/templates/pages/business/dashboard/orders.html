@@ -22,16 +22,6 @@
       font-weight: 600;
     }
   </style>
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </head>
 
 <body class="bg-[var(--color-bg)]">
@@ -507,12 +497,12 @@
             // Reload the page to show updated status
             location.reload();
           } else {
-            alert('Failed to update order status');
+            showNotification('Failed to update order status', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to update order status');
+          showNotification('Failed to update order status', 'error');
         });
     }
 
@@ -542,15 +532,15 @@
         .then(data => {
           if (data.success) {
             hideQuickOrderModal();
-            alert(data.message || 'Order created successfully!');
+            showNotification(data.message || 'Order created successfully!', 'success');
             location.reload();
           } else {
-            alert(data.error || 'Failed to create order');
+            showNotification(data.error || 'Failed to create order', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to create order');
+          showNotification('Failed to create order', 'error');
         });
     });
 
@@ -578,15 +568,15 @@
         .then(data => {
           if (data.success) {
             hideQuickBookingModal();
-            alert(data.message || 'Booking created successfully!');
+            showNotification(data.message || 'Booking created successfully!', 'success');
             location.reload();
           } else {
-            alert(data.error || 'Failed to create booking');
+            showNotification(data.error || 'Failed to create booking', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to create booking');
+          showNotification('Failed to create booking', 'error');
         });
     });
   </script>

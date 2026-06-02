@@ -10,60 +10,45 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   <script src="/static/js/modules/shared.js?v=1"></script>
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </head>
 
 <body class="bg-[var(--color-bg)] h-screen">
   <!-- Header -->
-  <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <a href="/business/bookings" class="hover:bg-[var(--color-primary-hover)] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden hover:bg-[var(--color-primary-hover)] text-white">
-        <i class="fas fa-bars text-lg"></i>
-      </button>
-      <h1 class="text-lg sm:text-xl font-semibold">Bookings</h1>
-    </div>
-    <div class="flex items-center space-x-4">
-      <!-- Desktop: action items shown inline -->
-      <div class="hidden lg:flex items-center space-x-4">
-        <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-primary-hover)]" title="Toggle theme">
-          <i class="fas fa-sun theme-sun"></i>
-          <i class="fas fa-moon theme-moon hidden"></i>
-        </button>
-        <a href="/business/dashboard"
-          class="bg-[var(--color-secondary)] hover:brightness-110 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base">
-          <i class="fas fa-chart-line"></i>
-          <span>Dashboard</span>
-        </a>
-        <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
-          {{if .Business.Logo}}
-          <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-          {{else}}
-          <div class="w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
-            <i class="fas fa-store text-white text-sm"></i>
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Bookings</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Desktop: action items shown inline -->
+          <div class="hidden lg:flex items-center space-x-4">
+            <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+              {{if .Business.Logo}}
+              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+              {{else}}
+              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+              </div>
+              {{end}}
+              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+            </button>
+            <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
           </div>
-          {{end}}
-          <span class="text-sm font-medium">{{.Business.Name}}</span>
-        </button>
-        <a href="/business/logout" class="hover:bg-[var(--color-primary-hover)] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
-          <i class="fas fa-sign-out-alt"></i>
-        </a>
-      </div>
 
       <!-- Mobile: overflow menu trigger -->
       <div class="relative lg:hidden">
-        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost text-white">
+        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost text-[var(--color-text-muted)]">
           <i class="fas fa-ellipsis-v text-lg"></i>
         </button>
         <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
@@ -249,8 +234,12 @@
                   </tr>
                   {{else}}
                   <tr>
-                    <td colspan="7" class="px-3 sm:px-6 py-4 text-center text-xs sm:text-sm text-[var(--color-text-muted)]">
-                      No bookings found. Create your first booking to get started.
+                    <td colspan="7" class="px-3 sm:px-6 py-12 text-center">
+                      <i class="fas fa-calendar-alt text-[var(--color-text-muted)] text-5xl mb-4 block"></i>
+                      <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
+                      <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
+                        <i class="fas fa-plus mr-2"></i>Create your first booking
+                      </button>
                     </td>
                   </tr>
                   {{end}}
@@ -370,7 +359,7 @@
           if (data.success) {
             location.reload();
           } else {
-            alert('Failed to update booking status');
+            showNotification('Failed to update booking status', 'error');
           }
         })
         .catch(error => console.error('Error:', error));
@@ -417,12 +406,12 @@
             document.getElementById('quickBookingModal').classList.remove('hidden');
             document.getElementById('quickBookingModal').classList.add('flex');
           } else {
-            alert('Failed to load booking data');
+            showNotification('Failed to load booking data', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to load booking data');
+          showNotification('Failed to load booking data', 'error');
         });
     }
 
@@ -469,12 +458,12 @@
             this.removeAttribute('data-booking-id');
             location.reload();
           } else {
-            alert(data.error || `Failed to ${isEdit ? 'update' : 'create'} booking`);
+            showNotification(data.error || `Failed to ${isEdit ? 'update' : 'create'} booking`, 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert(`Failed to ${isEdit ? 'update' : 'create'} booking`);
+          showNotification(`Failed to ${isEdit ? 'update' : 'create'} booking`, 'error');
         });
     });
   </script>

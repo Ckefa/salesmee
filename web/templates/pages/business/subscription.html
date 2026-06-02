@@ -544,7 +544,7 @@
     fetch('/business/subscription/portal')
       .then(r => r.json())
       .then(d => { if (d.url) window.location.href = d.url; })
-      .catch(() => alert('Failed to open billing portal'));
+      .catch(() => showNotification('Failed to open billing portal', 'error'));
   }
 
   function fmtPrice(n) {
@@ -615,9 +615,9 @@
       .then(r => r.json())
       .then(d => {
         if (d.success) { window.location.href = '/business/subscription'; }
-        else { alert(d.error || 'Failed to switch plan'); }
+        else { showNotification(d.error || 'Failed to switch plan', 'error'); }
       })
-      .catch(() => alert('An error occurred'));
+      .catch(() => showNotification('An error occurred', 'error'));
     }
   }
 
@@ -636,9 +636,9 @@
       .then(r => r.json())
       .then(d => {
         if (d.success) { window.location.href = '/business/subscription'; }
-        else { alert(d.error || 'Failed to cancel'); }
+        else { showNotification(d.error || 'Failed to cancel', 'error'); }
       })
-      .catch(() => alert('An error occurred'));
+      .catch(() => showNotification('An error occurred', 'error'));
   }
 
   // Close modal on overlay click

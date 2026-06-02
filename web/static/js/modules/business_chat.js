@@ -233,20 +233,6 @@ function saveChatProgress(conversationId, stage) {
 
 
 
-function showNotification(message, type) {
-  const notification = document.createElement('div');
-  notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
-  notification.textContent = message;
-
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
-}
-
-
-
 // ========== Order Lifecycle Functions ==========
 
 function sendOrderToClient(orderId) {

@@ -1,51 +1,51 @@
 {{define "client_message_input"}}
-<div class="bg-[var(--color-surface)] border-t border-[var(--color-border)] p-4">
-  <div class="flex space-x-2 mb-3">
+<div class="bg-[var(--color-surface)] border-t border-[var(--color-border)] p-3 sm:p-4">
+  <div class="flex flex-wrap gap-2 mb-3">
     <button onclick="openClientProductPicker()"
-      class="bg-[var(--color-info)] hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
-      <i class="fas fa-shopping-cart"></i>
+      class="bg-[var(--color-info)] hover:opacity-90 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm flex items-center space-x-1 flex-1 sm:flex-none">
+      <i class="fas fa-shopping-cart text-xs sm:text-sm"></i>
       <span>Place Order</span>
     </button>
     <button onclick="openClientServicePicker()"
-      class="bg-[var(--color-secondary)] hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
-      <i class="fas fa-concierge-bell"></i>
+      class="bg-[var(--color-secondary)] hover:opacity-90 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm flex items-center space-x-1 flex-1 sm:flex-none">
+      <i class="fas fa-concierge-bell text-xs sm:text-sm"></i>
       <span>Request Service</span>
     </button>
   </div>
 
   <form id="message-form" hx-post="/client/businesses/{{.Business.ID}}/messages" hx-target="#messages-container"
     hx-swap="beforeend" hx-on::after-request="this.reset()" hx-encoding="multipart/form-data">
-    <div class="flex space-x-3">
+    <div class="flex space-x-2 sm:space-x-3">
       <div class="relative" id="media-tray-container">
         <button type="button" onclick="toggleMediaTray()"
-          class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-text-muted)] text-[var(--color-text-secondary)] w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0">
-          <i class="fas fa-paperclip" id="media-icon"></i>
+          class="bg-[var(--color-surface-tertiary)] hover:bg-[var(--color-text-muted)] text-[var(--color-text-secondary)] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shrink-0">
+          <i class="fas fa-paperclip text-sm sm:text-base" id="media-icon"></i>
         </button>
         <div id="media-tray" class="absolute bottom-12 left-0 space-y-2 hidden">
-          <div class="flex gap-2 bg-[var(--color-surface)] p-2 rounded-xl shadow-xl border border-[var(--color-border)]">
+          <div class="flex gap-2 bg-[var(--color-surface)] p-1.5 sm:p-2 rounded-xl shadow-xl border border-[var(--color-border)]">
             <button type="button" onclick="triggerMediaUpload('image')"
-              class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
-              <i class="fas fa-image text-blue-500 text-xl"></i>
-              <span class="text-xs text-[var(--color-text-secondary)]">Images</span>
+              class="flex flex-col items-center gap-1 p-2 sm:p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[60px] sm:min-w-[80px]">
+              <i class="fas fa-image text-blue-500 text-lg sm:text-xl"></i>
+              <span class="text-[10px] sm:text-xs text-[var(--color-text-secondary)]">Images</span>
             </button>
             <button type="button" onclick="triggerMediaUpload('document')"
-              class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
-              <i class="fas fa-file-alt text-amber-500 text-xl"></i>
-              <span class="text-xs text-[var(--color-text-secondary)]">Documents</span>
+              class="flex flex-col items-center gap-1 p-2 sm:p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[60px] sm:min-w-[80px]">
+              <i class="fas fa-file-alt text-amber-500 text-lg sm:text-xl"></i>
+              <span class="text-[10px] sm:text-xs text-[var(--color-text-secondary)]">Documents</span>
             </button>
             <button type="button" onclick="triggerMediaUpload('audio')"
-              class="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[80px]">
-              <i class="fas fa-microphone text-rose-500 text-xl"></i>
-              <span class="text-xs text-[var(--color-text-secondary)]">Voice Note</span>
+              class="flex flex-col items-center gap-1 p-2 sm:p-3 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors min-w-[60px] sm:min-w-[80px]">
+              <i class="fas fa-microphone text-rose-500 text-lg sm:text-xl"></i>
+              <span class="text-[10px] sm:text-xs text-[var(--color-text-secondary)]">Voice Note</span>
             </button>
           </div>
         </div>
       </div>
       <input type="text" name="content" placeholder="Type a message..."
-        class="input flex-1"
+        class="input flex-1 text-sm"
         required>
       <input type="hidden" name="sender" value="client">
-      <button type="submit" class="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg hover:opacity-90">
+      <button type="submit" class="bg-[var(--color-primary)] text-white px-4 sm:px-6 py-2 rounded-lg hover:opacity-90 text-sm">
         <i class="fas fa-paper-plane"></i> Send
       </button>
     </div>

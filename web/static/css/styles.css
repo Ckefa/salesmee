@@ -684,6 +684,11 @@
       transform: translateX(0);
     }
   }
+  @media (max-width: 480px) {
+    .sidebar {
+      width: 100%;
+    }
+  }
 
   /* --- Collapsible Stats (Mobile) --- */
   #statsGrid {
@@ -739,6 +744,7 @@
     padding: 0.5rem 0;
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     backdrop-filter: blur(12px);
+    overflow: hidden;
   }
   .bottom-nav-item {
     display: flex;
@@ -753,6 +759,9 @@
     cursor: pointer;
     border: none;
     background: transparent;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
   }
   .bottom-nav-item i {
     font-size: 1.25rem;
@@ -776,6 +785,27 @@
   }
   .bottom-nav-item:hover {
     color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 480px) {
+    .bottom-nav {
+      padding: 0.375rem 0;
+      padding-bottom: calc(0.375rem + env(safe-area-inset-bottom));
+    }
+    .bottom-nav-item {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.5625rem;
+    }
+    .bottom-nav-item i {
+      font-size: 1.1rem;
+    }
+    .bottom-nav-item.active {
+      border-radius: 6px;
+    }
+    .bottom-nav-item.active::before {
+      width: 16px;
+      height: 2px;
+    }
   }
 
   /* --- Theme Toggle --- */
@@ -1018,4 +1048,32 @@
 @media (min-width: 1280px) {
   .hide-desktop { display: none !important; }
   .show-desktop { display: block !important; }
+}
+
+/* ============================================
+   Tiny Screens (≤480px)
+   ============================================ */
+@media (max-width: 480px) {
+  .empty-state {
+    padding: 2rem 1.25rem;
+    min-height: 12rem;
+  }
+  .empty-state-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .empty-state-title {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .empty-state-text {
+    font-size: 0.8125rem;
+    max-width: 18rem;
+    margin-bottom: 1rem;
+  }
+  .card {
+    border-radius: var(--radius-lg);
+  }
 }

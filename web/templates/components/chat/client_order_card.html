@@ -10,22 +10,22 @@
 {{$actionRequired := $order.action_required}}
 <div class="flex {{if eq .Sender "client"}}justify-end{{else}}justify-start{{end}}">
   <div class="max-w-sm lg:max-w-md w-full">
-    <div class="rounded-xl border-2 p-4 shadow-sm transition-all duration-200
+    <div class="rounded-xl border-2 p-3 sm:p-4 shadow-sm transition-all duration-200
       {{if $isDraft}}border-dashed border-[var(--color-border)] bg-[var(--color-surface-secondary)]{{else if $isCancelled}}border-[var(--color-error-light)] bg-[var(--color-error-light)]{{else if $isConfirmed}}border-[var(--color-success)] bg-[var(--color-success-light)]{{else if $isFulfilled}}border-[var(--color-primary)] bg-[var(--color-primary-light)]{{else if $isClientConfirmed}}border-[var(--color-warning)] bg-[var(--color-warning-light)]{{else}}border-[var(--color-info)] bg-[var(--color-info-light)]{{end}}"
       data-message-id="{{.ID}}"
       data-order-id="{{$order.id}}"
       data-order-status="{{$status}}">
       <!-- Header -->
-      <div class="flex items-start justify-between mb-3">
+      <div class="flex items-start justify-between mb-2 sm:mb-3">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="w-8 h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center shadow-sm flex-shrink-0">
-            <i class="fas fa-shopping-cart {{if $isDraft}}text-[var(--color-text-muted)]{{else if $isCancelled}}text-[var(--color-error)]{{else}}text-[var(--color-info)]{{end}}"></i>
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center shadow-sm flex-shrink-0">
+            <i class="fas fa-shopping-cart text-xs sm:text-sm {{if $isDraft}}text-[var(--color-text-muted)]{{else if $isCancelled}}text-[var(--color-error)]{{else}}text-[var(--color-info)]{{end}}"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="font-semibold text-sm text-[var(--color-text)] truncate">
+            <h4 class="font-semibold text-xs sm:text-sm text-[var(--color-text)] truncate">
               {{if $order.order_number}}Order {{$order.order_number}}{{else}}New Order{{end}}
             </h4>
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full
+            <span class="text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full
               {{if $isDraft}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]
               {{else if $isPending}}bg-[var(--color-info-light)] text-[var(--color-info)]
               {{else if $isClientConfirmed}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
@@ -37,9 +37,9 @@
             </span>
           </div>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+        <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
           {{if eq $actionRequired "client"}}
-          <span class="text-xs font-bold text-[var(--color-warning)] animate-pulse">REQUIRES ACTION</span>
+          <span class="text-[10px] sm:text-xs font-bold text-[var(--color-warning)] animate-pulse hide-mobile">REQUIRES ACTION</span>
           {{end}}
           <button onclick="openClientEditOrderPicker({{$order.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Order">
             <i class="fas fa-edit"></i>
@@ -48,34 +48,34 @@
       </div>
 
       <!-- Items -->
-      <div class="space-y-2 mb-3">
+      <div class="space-y-1 sm:space-y-2 mb-2 sm:mb-3">
         {{range $order.items}}
-        <div class="flex items-center justify-between py-2 border-b border-[var(--color-border-light)] last:border-0"
+        <div class="flex items-center justify-between py-1.5 sm:py-2 border-b border-[var(--color-border-light)] last:border-0"
           data-item-product-id="{{.product_id}}" data-item-unit-price="{{printf "%.2f" .unit_price}}">
-          <div class="flex items-center gap-2 min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
             {{if .image_url}}
-            <img src="{{.image_url}}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0" alt="">
+            <img src="{{.image_url}}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover flex-shrink-0" alt="">
             {{else}}
-            <div class="w-8 h-8 rounded-lg bg-[var(--color-surface-tertiary)] flex items-center justify-center flex-shrink-0 text-xs">📦</div>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--color-surface-tertiary)] flex items-center justify-center flex-shrink-0 text-[10px] sm:text-xs">📦</div>
             {{end}}
             <div class="min-w-0">
-              <p class="font-medium text-sm text-[var(--color-text)] truncate">{{.name}}</p>
-              <p class="text-xs text-[var(--color-text-muted)]">${{printf "%.2f" .unit_price}} each</p>
+              <p class="font-medium text-xs sm:text-sm text-[var(--color-text)] truncate">{{.name}}</p>
+              <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">${{printf "%.2f" .unit_price}} each</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+          <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
             {{if and $order.editable (eq $actionRequired "client")}}
             <div class="flex items-center gap-1 bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)]" data-item-product-id="{{.product_id}}">
-              <button class="qty-btn w-6 h-6 rounded-l flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] text-xs"
+              <button class="qty-btn w-5 h-5 sm:w-6 sm:h-6 rounded-l flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] text-[10px] sm:text-xs"
                 onclick="clientOrderItemDecrement({{$order.id}}, {{.product_id}}, this)">−</button>
-              <span class="w-6 text-center text-xs font-semibold qty-value text-[var(--color-text)]">{{.quantity}}</span>
-              <button class="qty-btn w-6 h-6 rounded-r flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] text-xs"
+              <span class="w-5 sm:w-6 text-center text-[10px] sm:text-xs font-semibold qty-value text-[var(--color-text)]">{{.quantity}}</span>
+              <button class="qty-btn w-5 h-5 sm:w-6 sm:h-6 rounded-r flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] text-[10px] sm:text-xs"
                 onclick="clientOrderItemIncrement({{$order.id}}, {{.product_id}}, this)">+</button>
             </div>
             {{else}}
-            <span class="text-sm font-semibold text-[var(--color-text)]">x{{.quantity}}</span>
+            <span class="text-xs sm:text-sm font-semibold text-[var(--color-text)]">x{{.quantity}}</span>
             {{end}}
-            <span class="text-sm font-bold text-[var(--color-text)] w-14 text-right">${{printf "%.2f" .total_price}}</span>
+            <span class="text-xs sm:text-sm font-bold text-[var(--color-text)] whitespace-nowrap text-right">${{printf "%.2f" .total_price}}</span>
           </div>
         </div>
         {{end}}
@@ -85,52 +85,52 @@
       <p class="hidden order-quantity-data">{{$order.quantity}}</p>
 
       <!-- Total & Notes -->
-      <div class="border-t border-[var(--color-border)] pt-3 mb-3">
+      <div class="border-t border-[var(--color-border)] pt-2 sm:pt-3 mb-2 sm:mb-3">
         <div class="flex justify-between items-center mb-2">
-          <span class="text-sm text-[var(--color-text-secondary)] font-medium">Total</span>
-          <span class="text-lg font-bold text-[var(--color-text)]">${{printf "%.2f" $order.total_amount}}</span>
+          <span class="text-xs sm:text-sm text-[var(--color-text-secondary)] font-medium">Total</span>
+          <span class="text-base sm:text-lg font-bold text-[var(--color-text)]">${{printf "%.2f" $order.total_amount}}</span>
         </div>
         {{if $order.notes}}
-        <div class="bg-[var(--color-surface)]/60 rounded-lg p-2 text-xs text-[var(--color-text-secondary)] italic">
+        <div class="bg-[var(--color-surface)]/60 rounded-lg p-1.5 sm:p-2 text-[10px] sm:text-xs text-[var(--color-text-secondary)] italic">
           <i class="far fa-sticky-note mr-1"></i>{{$order.notes}}
         </div>
         {{end}}
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex gap-2">
+      <div class="flex gap-1.5 sm:gap-2">
         {{if eq $actionRequired "client"}}
-        <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-sm font-medium transition"
+        <button class="flex-1 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-medium transition"
           onclick="clientRequestChanges({{$order.id}})">
           <i class="fas fa-comment mr-1"></i>Request Changes
         </button>
-        <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-sm font-medium transition shadow-sm"
+        <button class="flex-1 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="clientConfirmOrder({{$order.id}})">
           <i class="fas fa-check mr-1"></i>Confirm Order
         </button>
 
         {{else if $isClientConfirmed}}
-        <div class="w-full text-center py-2 bg-[var(--color-warning-light)] rounded-lg text-[var(--color-warning)] text-sm font-medium">
+        <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-warning-light)] rounded-lg text-[var(--color-warning)] text-xs sm:text-sm font-medium">
           <i class="fas fa-clock mr-1"></i>Waiting for business approval
         </div>
 
         {{else if $isConfirmed}}
-        <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-sm font-medium">
+        <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
           <i class="fas fa-check-circle mr-1"></i>Order confirmed
         </div>
 
         {{else if $isFulfilled}}
-        <div class="w-full text-center py-2 bg-[var(--color-primary-light)] rounded-lg text-[var(--color-primary)] text-sm font-medium">
+        <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-primary-light)] rounded-lg text-[var(--color-primary)] text-xs sm:text-sm font-medium">
           <i class="fas fa-check-double mr-1"></i>Order fulfilled
         </div>
 
         {{else if $isCancelled}}
-        <div class="w-full text-center py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-sm font-medium">
+        <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-xs sm:text-sm font-medium">
           <i class="fas fa-ban mr-1"></i>Order cancelled
         </div>
 
         {{else}}
-        <div class="w-full text-center py-2 bg-[var(--color-surface-tertiary)] rounded-lg text-[var(--color-text-secondary)] text-sm font-medium">
+        <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-surface-tertiary)] rounded-lg text-[var(--color-text-secondary)] text-xs sm:text-sm font-medium">
           {{$status}}
         </div>
         {{end}}

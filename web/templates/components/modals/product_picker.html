@@ -1,102 +1,102 @@
 {{define "product_picker"}}
-<div id="productPickerModal" class="fixed inset-0 bg-gray-900/50 hidden overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
-  <div class="relative top-8 mx-auto p-0 border w-full max-w-3xl shadow-2xl rounded-2xl bg-[var(--color-surface)] max-h-[90vh] flex flex-col">
+<div id="productPickerModal" class="fixed inset-0 bg-gray-900/50 hidden overflow-y-auto h-full w-full z-[60] backdrop-blur-sm">
+  <div class="relative top-0 sm:top-8 mx-auto p-0 border w-full max-w-3xl shadow-2xl rounded-2xl bg-[var(--color-surface)] max-h-[calc(100dvh-64px)] sm:max-h-[90vh] flex flex-col">
 
     <!-- ====== HEADER ====== -->
-    <div class="p-5 border-b border-[var(--color-border)] flex items-center justify-between bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-2xl text-white flex-shrink-0">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-          <i class="fas fa-box-open text-lg"></i>
+    <div class="p-3 sm:p-5 border-b border-[var(--color-border)] flex items-center justify-between bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-2xl text-white flex-shrink-0">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-box-open text-sm sm:text-lg"></i>
         </div>
         <div class="min-w-0">
-          <h3 class="text-lg font-bold flex items-center gap-2">
+          <h3 class="text-base sm:text-lg font-bold flex items-center gap-2">
             <span id="pickerTitle">Product Catalog</span>
           </h3>
-          <p class="text-xs text-white/80 mt-0.5" id="pickerProductCount">Loading products...</p>
+          <p class="text-[10px] sm:text-xs text-white/80 mt-0.5" id="pickerProductCount">Loading products...</p>
         </div>
       </div>
-      <button onclick="hideProductPicker()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition hover:scale-110 active:scale-95 flex-shrink-0">
-        <i class="fas fa-times"></i>
+      <button onclick="hideProductPicker()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition hover:scale-110 active:scale-95 flex-shrink-0">
+        <i class="fas fa-times text-xs sm:text-sm"></i>
       </button>
     </div>
 
     <!-- ====== STEP INDICATOR ====== -->
-    <div class="flex items-center justify-center gap-0 px-6 py-3 bg-[var(--color-surface-secondary)] border-b border-[var(--color-border)] flex-shrink-0">
-      <div class="flex items-center gap-2">
-        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-emerald-500 text-white" id="step1Indicator">1</span>
-        <span class="text-xs font-medium text-emerald-600" id="step1Label">Browse</span>
+    <div class="flex items-center justify-center gap-0 px-3 sm:px-6 py-2 sm:py-3 bg-[var(--color-surface-secondary)] border-b border-[var(--color-border)] flex-shrink-0">
+      <div class="flex items-center gap-1 sm:gap-2">
+        <span class="step-indicator w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-colors duration-300 bg-emerald-500 text-white" id="step1Indicator">1</span>
+        <span class="text-[10px] sm:text-xs font-medium text-emerald-600 hide-mobile" id="step1Label">Browse</span>
       </div>
-      <div class="w-12 h-px mx-2 transition-colors duration-300 bg-emerald-300" id="step1to2"></div>
-      <div class="flex items-center gap-2">
-        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]" id="step2Indicator">2</span>
-        <span class="text-xs font-medium text-[var(--color-text-muted)]" id="step2Label">Review</span>
+      <div class="w-6 sm:w-12 h-px mx-1 sm:mx-2 transition-colors duration-300 bg-emerald-300" id="step1to2"></div>
+      <div class="flex items-center gap-1 sm:gap-2">
+        <span class="step-indicator w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-colors duration-300 bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]" id="step2Indicator">2</span>
+        <span class="text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] hide-mobile" id="step2Label">Review</span>
       </div>
-      <div class="w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300" id="step2to3"></div>
-      <div class="flex items-center gap-2">
-        <span class="step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]" id="step3Indicator">3</span>
-        <span class="text-xs font-medium text-[var(--color-text-muted)]" id="step3Label">Details</span>
+      <div class="w-6 sm:w-12 h-px mx-1 sm:mx-2 bg-[var(--color-border)] transition-colors duration-300" id="step2to3"></div>
+      <div class="flex items-center gap-1 sm:gap-2">
+        <span class="step-indicator w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-colors duration-300 bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]" id="step3Indicator">3</span>
+        <span class="text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] hide-mobile" id="step3Label">Details</span>
       </div>
     </div>
 
     <!-- ====== STEP 1: PRODUCT GALLERY ====== -->
     <div id="pickerStep1" class="flex flex-col flex-1 min-h-0">
       <!-- Search -->
-      <div class="p-4 border-b border-[var(--color-border-light)] flex-shrink-0">
+      <div class="p-3 sm:p-4 border-b border-[var(--color-border-light)] flex-shrink-0">
         <div class="relative">
-          <i class="fas fa-search absolute left-3 top-3 text-[var(--color-text-muted)]"></i>
+          <i class="fas fa-search absolute left-3 top-2.5 sm:top-3 text-[var(--color-text-muted)] text-sm sm:text-base"></i>
           <input type="text" id="pickerSearch" placeholder="Search by name or SKU..."
-            class="input pl-10"
+            class="input pl-9 sm:pl-10 text-sm"
             oninput="filterPickerProducts()">
-          <button onclick="document.getElementById('pickerSearch').value='';filterPickerProducts()" class="absolute right-3 top-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hidden" id="pickerSearchClear">
+          <button onclick="document.getElementById('pickerSearch').value='';filterPickerProducts()" class="absolute right-3 top-2.5 sm:top-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hidden" id="pickerSearchClear">
             <i class="fas fa-times-circle"></i>
           </button>
         </div>
       </div>
 
       <!-- Inline Cart Notice (visible when items in cart) -->
-      <div id="pickerCartNotice" class="hidden mx-4 mt-2 px-4 py-2.5 bg-[var(--color-success-light)] border border-[var(--color-success)]/40 rounded-xl flex-shrink-0">
+      <div id="pickerCartNotice" class="hidden mx-3 sm:mx-4 mt-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[var(--color-success-light)] border border-[var(--color-success)]/40 rounded-xl flex-shrink-0">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0">
-            <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-shopping-cart text-emerald-600 text-xs"></i>
+            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-shopping-cart text-emerald-600 text-[10px] sm:text-xs"></i>
             </div>
-            <span class="text-sm text-[var(--color-success)] font-medium truncate">
+            <span class="text-xs sm:text-sm text-[var(--color-success)] font-medium truncate">
               <span id="pickerNoticeCount">0</span> item<span id="pickerNoticePlural">s</span> selected
             </span>
-            <span class="text-xs text-[var(--color-success)] font-semibold flex-shrink-0">— $<span id="pickerNoticeTotal">0.00</span></span>
+            <span class="text-[10px] sm:text-xs text-[var(--color-success)] font-semibold flex-shrink-0 hide-mobile">— $<span id="pickerNoticeTotal">0.00</span></span>
           </div>
-          <button onclick="pickerGoToStep(2)" class="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition flex-shrink-0 ml-2">
-            Review Order <i class="fas fa-arrow-right ml-0.5"></i>
+          <button onclick="pickerGoToStep(2)" class="text-[10px] sm:text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-100 hover:bg-emerald-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition flex-shrink-0 ml-2">
+            Review <i class="fas fa-arrow-right ml-0.5"></i>
           </button>
         </div>
       </div>
 
       <!-- Product Grid -->
-      <div class="flex-1 overflow-y-auto p-4" id="pickerProductsGrid">
-        <div class="text-center py-16 text-[var(--color-text-muted)]">
-          <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
-          <p class="text-sm">Loading products...</p>
+      <div class="flex-1 overflow-y-auto p-3 sm:p-4" id="pickerProductsGrid">
+        <div class="text-center py-10 sm:py-16 text-[var(--color-text-muted)]">
+          <i class="fas fa-spinner fa-spin text-2xl sm:text-3xl mb-2 sm:mb-3"></i>
+          <p class="text-xs sm:text-sm">Loading products...</p>
         </div>
       </div>
 
       <!-- Floating Cart Bar -->
-      <div id="pickerCartBar" class="hidden flex-shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-        <div class="flex items-center gap-3">
-          <div class="relative flex-shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <i class="fas fa-shopping-cart text-emerald-600"></i>
+      <div id="pickerCartBar" class="hidden flex-shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-3 sm:px-4 py-2 sm:py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="relative flex-shrink-0 hide-mobile">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <i class="fas fa-shopping-cart text-emerald-600 text-xs sm:text-sm"></i>
             </div>
             <span id="pickerCartBadge" class="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm hidden">0</span>
           </div>
           <div class="min-w-0 flex-1">
-            <span class="text-sm font-semibold text-[var(--color-text)]">
+            <span class="text-xs sm:text-sm font-semibold text-[var(--color-text)]">
               <span id="pickerCartItemsLabel">0 items</span>
             </span>
-            <span class="text-xs text-[var(--color-text-secondary)] ml-2">· $<span id="pickerCartTotal">0.00</span></span>
+            <span class="text-[10px] sm:text-xs text-[var(--color-text-secondary)] ml-1 sm:ml-2">· $<span id="pickerCartTotal">0.00</span></span>
           </div>
           <button id="pickerReviewBtn" onclick="pickerGoToStep(2)"
-            class="flex-shrink-0 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-            Review Order <i class="fas fa-arrow-right ml-1"></i>
+            class="flex-shrink-0 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+            Review <i class="fas fa-arrow-right ml-1"></i>
           </button>
         </div>
       </div>
@@ -104,34 +104,34 @@
 
     <!-- ====== STEP 2: REVIEW ORDER ====== -->
     <div id="pickerStep2" class="hidden flex flex-col flex-1 min-h-0">
-      <div class="flex-1 overflow-y-auto p-5">
-        <button onclick="pickerGoToStep(1)" class="text-sm text-emerald-600 hover:text-emerald-800 flex items-center gap-1.5 mb-5 group">
-          <span class="w-6 h-6 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition">
-            <i class="fas fa-arrow-left text-xs"></i>
+      <div class="flex-1 overflow-y-auto p-3 sm:p-5">
+        <button onclick="pickerGoToStep(1)" class="text-xs sm:text-sm text-emerald-600 hover:text-emerald-800 flex items-center gap-1.5 mb-3 sm:mb-5 group">
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition">
+            <i class="fas fa-arrow-left text-[10px] sm:text-xs"></i>
           </span>
           <span class="font-medium">Continue Browsing</span>
         </button>
 
-        <div class="flex items-center justify-between mb-4">
-          <h4 class="text-base font-bold text-[var(--color-text)] flex items-center gap-2">
-            <i class="fas fa-clipboard-list text-emerald-500"></i>
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+          <h4 class="text-sm sm:text-base font-bold text-[var(--color-text)] flex items-center gap-1 sm:gap-2">
+            <i class="fas fa-clipboard-list text-emerald-500 text-xs sm:text-sm"></i>
             Review Your Order
           </h4>
-          <span id="pickerReviewCount" class="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium"></span>
+          <span id="pickerReviewCount" class="text-[10px] sm:text-xs bg-emerald-100 text-emerald-700 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium"></span>
         </div>
 
         <!-- Cart Items List -->
-        <div id="pickerCartItems" class="space-y-3">
-          <div class="text-center py-12 text-[var(--color-text-muted)]">
-            <i class="fas fa-shopping-cart text-4xl mb-3"></i>
-            <p class="text-sm">Your cart is empty</p>
+        <div id="pickerCartItems" class="space-y-2 sm:space-y-3">
+          <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
+            <i class="fas fa-shopping-cart text-3xl sm:text-4xl mb-2 sm:mb-3"></i>
+            <p class="text-xs sm:text-sm">Your cart is empty</p>
           </div>
         </div>
 
         <!-- Cart Subtotal -->
-        <div id="pickerCartSummary" class="hidden mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
-          <div class="space-y-2">
-            <div class="flex items-center justify-between text-sm">
+        <div id="pickerCartSummary" class="hidden mt-3 sm:mt-4 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+          <div class="space-y-1 sm:space-y-2">
+            <div class="flex items-center justify-between text-xs sm:text-sm">
               <span class="text-[var(--color-text-secondary)]">Subtotal (<span id="pickerSubtotalItems">0</span> items)</span>
               <span class="font-semibold text-[var(--color-text)]">$<span id="pickerSubtotalAmount">0.00</span></span>
             </div>
@@ -140,14 +140,14 @@
       </div>
 
       <!-- Footer -->
-      <div class="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
-        <div class="flex gap-3">
-          <button onclick="pickerGoToStep(1)" class="flex-1 py-3 px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-sm font-semibold transition active:scale-[0.98]">
+      <div class="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
+        <div class="flex gap-2 sm:gap-3">
+          <button onclick="pickerGoToStep(1)" class="flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-semibold transition active:scale-[0.98]">
             <i class="fas fa-arrow-left mr-1"></i> Add More Items
           </button>
           <button id="pickerToDetailsBtn" onclick="pickerGoToStep(3)" disabled
-            class="flex-[2] py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-            Continue to Details <i class="fas fa-arrow-right ml-1"></i>
+            class="flex-[2] py-2 sm:py-3 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+            Continue <i class="fas fa-arrow-right ml-1"></i>
           </button>
         </div>
       </div>
@@ -155,58 +155,58 @@
 
     <!-- ====== STEP 3: DELIVERY DETAILS ====== -->
     <div id="pickerStep3" class="hidden flex flex-col flex-1 min-h-0">
-      <div class="flex-1 overflow-y-auto p-5">
-        <button onclick="pickerGoToStep(2)" class="text-sm text-emerald-600 hover:text-emerald-800 flex items-center gap-1.5 mb-5 group">
-          <span class="w-6 h-6 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition">
-            <i class="fas fa-arrow-left text-xs"></i>
+      <div class="flex-1 overflow-y-auto p-3 sm:p-5">
+        <button onclick="pickerGoToStep(2)" class="text-xs sm:text-sm text-emerald-600 hover:text-emerald-800 flex items-center gap-1.5 mb-3 sm:mb-5 group">
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition">
+            <i class="fas fa-arrow-left text-[10px] sm:text-xs"></i>
           </span>
           <span class="font-medium">Back to Review</span>
         </button>
 
         <!-- Order Summary Compact -->
-        <div id="pickerCheckoutSummary" class="bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-xl border border-emerald-200 p-4 mb-6">
-          <div class="flex items-center justify-between mb-3">
-            <h5 class="text-sm font-bold text-[var(--color-text)] flex items-center gap-1.5">
-              <i class="fas fa-receipt text-emerald-500"></i> Order Summary
+        <div id="pickerCheckoutSummary" class="bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-xl border border-emerald-200 p-3 sm:p-4 mb-4 sm:mb-6">
+          <div class="flex items-center justify-between mb-2 sm:mb-3">
+            <h5 class="text-xs sm:text-sm font-bold text-[var(--color-text)] flex items-center gap-1 sm:gap-1.5">
+              <i class="fas fa-receipt text-emerald-500 text-[10px] sm:text-xs"></i> Order Summary
             </h5>
-            <span class="text-xs text-[var(--color-text-muted)]" id="pickerCheckoutCount">0 items</span>
+            <span class="text-[10px] sm:text-xs text-[var(--color-text-muted)]" id="pickerCheckoutCount">0 items</span>
           </div>
-          <div id="pickerCheckoutItems" class="space-y-1.5 max-h-24 overflow-y-auto text-sm text-[var(--color-text-secondary)]">
+          <div id="pickerCheckoutItems" class="space-y-1 sm:space-y-1.5 max-h-20 sm:max-h-24 overflow-y-auto text-xs sm:text-sm text-[var(--color-text-secondary)]">
             <!-- Filled by JS -->
           </div>
-          <div class="border-t border-emerald-200 mt-2 pt-2 flex items-center justify-between">
-            <span class="font-bold text-[var(--color-text)] text-sm">Total</span>
-            <span class="text-xl font-extrabold text-emerald-700">$<span id="pickerCheckoutTotal">0.00</span></span>
+          <div class="border-t border-emerald-200 mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 flex items-center justify-between">
+            <span class="font-bold text-[var(--color-text)] text-xs sm:text-sm">Total</span>
+            <span class="text-lg sm:text-xl font-extrabold text-emerald-700">$<span id="pickerCheckoutTotal">0.00</span></span>
           </div>
         </div>
 
         <!-- Delivery Form -->
-        <form id="productOrderForm" class="space-y-4">
+        <form id="productOrderForm" class="space-y-3 sm:space-y-4">
           <!-- Delivery Address -->
           <div>
-            <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+            <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
               <i class="fas fa-location-dot text-emerald-500 mr-1"></i> Delivery Address <span class="text-red-400">*</span>
             </label>
             <input type="text" id="pickerDeliveryAddress" placeholder="e.g. 123 Main St, City, State"
-              class="input"
+              class="input text-sm"
               required>
           </div>
 
           <!-- Delivery Date & Time -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+              <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
                 <i class="fas fa-calendar-day text-emerald-500 mr-1"></i> Delivery Date
               </label>
               <input type="date" id="pickerDeliveryDate"
-                class="input">
+                class="input text-sm">
             </div>
             <div>
-              <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+              <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
                 <i class="fas fa-clock text-emerald-500 mr-1"></i> Time Slot
               </label>
               <select id="pickerDeliveryTimeSlot"
-                class="input">
+                class="input text-sm">
                 <option value="">Anytime</option>
                 <option value="morning">Morning (8AM - 12PM)</option>
                 <option value="afternoon">Afternoon (12PM - 5PM)</option>
@@ -217,36 +217,36 @@
 
           <!-- Contact Phone -->
           <div>
-            <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+            <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
               <i class="fas fa-phone text-emerald-500 mr-1"></i> Contact Phone <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
             </label>
             <input type="tel" id="pickerContactPhone" placeholder="e.g. +1 (555) 123-4567"
-              class="input">
+              class="input text-sm">
           </div>
 
           <!-- Notes -->
           <div>
-            <label class="block text-sm font-semibold text-[var(--color-text)] mb-1.5">
+            <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
               <i class="fas fa-pen text-emerald-500 mr-1"></i> Additional Notes <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
             </label>
             <textarea id="pickerNotes" rows="2" placeholder="Special instructions, gate codes, landmarks..."
-              class="input resize-none"></textarea>
+              class="input resize-none text-sm"></textarea>
           </div>
         </form>
       </div>
 
       <!-- Footer -->
-      <div class="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
-        <div class="flex gap-3">
-          <button onclick="pickerGoToStep(2)" class="flex-1 py-3 px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-sm font-semibold transition active:scale-[0.98]">
+      <div class="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
+        <div class="flex gap-2 sm:gap-3">
+          <button onclick="pickerGoToStep(2)" class="flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-semibold transition active:scale-[0.98]">
             <i class="fas fa-arrow-left mr-1"></i> Back
           </button>
           <button id="pickerSubmitOrderBtn" onclick="submitProductOrder()"
-            class="flex-[2] py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+            class="flex-[2] py-2 sm:py-3 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
             <i class="fas fa-paper-plane mr-1"></i> <span id="pickerSubmitBtnText">Create Order</span>
           </button>
         </div>
-        <p class="text-[10px] text-[var(--color-text-muted)] text-center mt-2">
+        <p class="text-[10px] text-[var(--color-text-muted)] text-center mt-1.5 sm:mt-2">
           <i class="fas fa-info-circle mr-0.5"></i>
           <span id="pickerSubmitHint">The order will be sent as a draft to the client</span>
         </p>

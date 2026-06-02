@@ -13,63 +13,63 @@
 </head>
 
 <body class="bg-[var(--color-bg)] h-screen overflow-hidden">
-  <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <i class="fas fa-compass text-2xl"></i>
-      <h1 class="text-xl font-semibold">Discover Businesses</h1>
+  <header class="bg-[var(--color-primary)] text-white p-3 sm:p-4 flex items-center justify-between">
+    <div class="flex items-center space-x-2 sm:space-x-4">
+      <i class="fas fa-compass text-lg sm:text-2xl"></i>
+      <h1 class="text-base sm:text-xl font-semibold">Discover Businesses</h1>
     </div>
-    <div class="flex items-center space-x-3">
-      <span class="text-sm text-white/80">{{.Email}}</span>
-      <button class="theme-toggle w-9 h-9 rounded-xl hover:bg-white/20 flex items-center justify-center" title="Toggle theme">
-        <i class="fas fa-sun theme-sun text-white"></i>
-        <i class="fas fa-moon theme-moon hidden text-white"></i>
+    <div class="flex items-center space-x-2 sm:space-x-3">
+      <span class="text-xs sm:text-sm text-white/80 hide-mobile">{{.Email}}</span>
+      <button class="theme-toggle w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-white/20 flex items-center justify-center" title="Toggle theme">
+        <i class="fas fa-sun theme-sun text-white text-sm sm:text-base"></i>
+        <i class="fas fa-moon theme-moon hidden text-white text-sm sm:text-base"></i>
       </button>
-      <a href="/client" class="hover:bg-white/20 px-3 py-2 rounded-lg text-sm">
+      <a href="/client" class="hover:bg-white/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm">
         <i class="fas fa-arrow-left mr-1"></i> Back
       </a>
     </div>
   </header>
 
-  <div class="max-w-4xl mx-auto p-4 sm:p-6">
+  <div class="max-w-4xl mx-auto p-3 sm:p-6">
     <!-- Search -->
-    <div class="mb-6">
+    <div class="mb-4 sm:mb-6">
       <div class="relative">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <i class="fas fa-search text-[var(--color-text-muted)]"></i>
+        <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+          <i class="fas fa-search text-[var(--color-text-muted)] text-sm sm:text-base"></i>
         </div>
         <input type="text" id="searchInput" placeholder="Search businesses by name, type, or slug..."
-          class="input pl-12">
+          class="input pl-9 sm:pl-12 text-sm">
       </div>
     </div>
 
     <!-- Results -->
-    <div id="business-results" class="space-y-3">
+    <div id="business-results" class="space-y-2 sm:space-y-3">
       {{range .Businesses}}
-      <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-        <div class="flex items-center space-x-4">
-          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
+      <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between hover:shadow-md transition-shadow gap-2 sm:gap-3">
+        <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+          <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
             {{if .Logo}}
             <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-full h-full object-cover">
             {{else}}
-            <i class="fas fa-store text-[var(--color-primary)] text-xl"></i>
+            <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>
             {{end}}
           </div>
-          <div>
-            <h3 class="font-semibold text-[var(--color-text)]">{{.Name}}</h3>
-            <p class="text-sm text-[var(--color-text-muted)] capitalize">{{.BusinessType}}</p>
-            <p class="text-xs text-[var(--color-text-muted)]">/b/{{.Slug}}</p>
+          <div class="min-w-0">
+            <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">{{.Name}}</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-muted)] capitalize truncate">{{.BusinessType}}</p>
+            <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">/b/{{.Slug}}</p>
           </div>
         </div>
         <button onclick="connectToBusiness({{.ID}})"
-          class="connect-btn px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-sm font-medium">
+          class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
           <i class="fas fa-plus mr-1"></i> Connect
         </button>
       </div>
       {{else}}
-      <div class="text-center py-12 text-[var(--color-text-muted)]">
-        <i class="fas fa-store text-5xl mb-4"></i>
-        <p class="text-lg">No businesses available</p>
-        <p class="text-sm mt-1">Check back later for new businesses to connect with</p>
+      <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
+        <i class="fas fa-store text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+        <p class="text-base sm:text-lg">No businesses available</p>
+        <p class="text-xs sm:text-sm mt-1">Check back later for new businesses to connect with</p>
       </div>
       {{end}}
     </div>
@@ -89,27 +89,27 @@
             const container = document.getElementById('business-results');
             if (businesses.length === 0) {
               container.innerHTML = `
-                <div class="text-center py-12 text-[var(--color-text-muted)]">
-                  <i class="fas fa-search text-5xl mb-4"></i>
-                  <p class="text-lg">No businesses found</p>
-                  <p class="text-sm mt-1">Try a different search term</p>
+                <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
+                  <i class="fas fa-search text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+                  <p class="text-base sm:text-lg">No businesses found</p>
+                  <p class="text-xs sm:text-sm mt-1">Try a different search term</p>
                 </div>`;
               return;
             }
             container.innerHTML = businesses.map(b => `
-              <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-                <div class="flex items-center space-x-4">
-                  <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
-                    ${b.logo ? `<img src="/static/${b.logo}" alt="${b.name}" class="w-full h-full object-cover">` : `<i class="fas fa-store text-[var(--color-primary)] text-xl"></i>`}
+              <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between hover:shadow-md transition-shadow gap-2 sm:gap-3">
+                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                  <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
+                    ${b.logo ? `<img src="/static/${b.logo}" alt="${b.name}" class="w-full h-full object-cover">` : `<i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>`}
                   </div>
-                  <div>
-                    <h3 class="font-semibold text-[var(--color-text)]">${b.name}</h3>
-                    <p class="text-sm text-[var(--color-text-muted)] capitalize">${b.business_type || ''}</p>
-                    <p class="text-xs text-[var(--color-text-muted)]">/b/${b.slug}</p>
+                  <div class="min-w-0">
+                    <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">${b.name}</h3>
+                    <p class="text-xs sm:text-sm text-[var(--color-text-muted)] capitalize truncate">${b.business_type || ''}</p>
+                    <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">/b/${b.slug}</p>
                   </div>
                 </div>
                 <button onclick="connectToBusiness(${b.id})"
-                  class="connect-btn px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-sm font-medium">
+                  class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
                   <i class="fas fa-plus mr-1"></i> Connect
                 </button>
               </div>

@@ -6,23 +6,23 @@
       {{if eq .MediaType "image"}}
       <img src="/static/{{.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .MediaType "document"}}
-      <div class="px-4 py-3">
-        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+      <div class="px-3 sm:px-4 py-2 sm:py-3">
+        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:underline">
           <i class="fas fa-file-alt text-lg text-white/80"></i>
-          <span class="font-medium">{{if .Value}}{{.Value}}{{else}}Document{{end}}</span>
+          <span class="font-medium truncate">{{if .Value}}{{.Value}}{{else}}Document{{end}}</span>
           <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
         </a>
       </div>
       {{else if eq .MediaType "audio"}}
-      <div class="px-2 py-2">
-        <audio controls class="w-full h-10" preload="metadata">
+      <div class="px-1.5 sm:px-2 py-1.5 sm:py-2">
+        <audio controls class="w-full h-8 sm:h-10" preload="metadata">
           <source src="/static/{{.MediaURL}}">
         </audio>
       </div>
       {{end}}
     </div>
     {{if .Value}}
-    <div class="bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg px-4 py-2 -mt-1">
+    <div class="bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 -mt-1">
       <p class="text-sm">{{.Value}}</p>
     </div>
     {{end}}
@@ -38,23 +38,23 @@
       {{if eq .MediaType "image"}}
       <img src="/static/{{.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .MediaType "document"}}
-      <div class="px-4 py-3">
-        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-3 text-sm hover:underline">
+      <div class="px-3 sm:px-4 py-2 sm:py-3">
+        <a href="/static/{{.MediaURL}}" target="_blank" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:underline">
           <i class="fas fa-file-alt text-lg text-blue-500"></i>
-          <span class="font-medium">{{if .Value}}{{.Value}}{{else}}Document{{end}}</span>
+          <span class="font-medium truncate">{{if .Value}}{{.Value}}{{else}}Document{{end}}</span>
           <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
         </a>
       </div>
       {{else if eq .MediaType "audio"}}
-      <div class="px-2 py-2">
-        <audio controls class="w-full h-10" preload="metadata">
+      <div class="px-1.5 sm:px-2 py-1.5 sm:py-2">
+        <audio controls class="w-full h-8 sm:h-10" preload="metadata">
           <source src="/static/{{.MediaURL}}">
         </audio>
       </div>
       {{end}}
     </div>
     {{if .Value}}
-    <div class="bg-[var(--color-surface-tertiary)] text-[var(--color-text)] rounded-lg px-4 py-2 -mt-1">
+    <div class="bg-[var(--color-surface-tertiary)] text-[var(--color-text)] rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 -mt-1">
       <p class="text-sm">{{.Value}}</p>
     </div>
     {{end}}

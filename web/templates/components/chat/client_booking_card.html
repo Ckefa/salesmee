@@ -20,14 +20,14 @@
   {{$iconColor = "text-[var(--color-error)]"}}
 {{end}}
 <div class='flex {{if eq .Sender "client"}}justify-end{{else}}justify-start{{end}}'>
-  <div class="max-w-[85%] lg:max-w-md w-full">
-    <div class="{{$statusBg}} border rounded-lg px-4 py-3" data-message-id="{{.ID}}"
+  <div class="max-w-sm lg:max-w-md w-full">
+    <div class="{{$statusBg}} rounded-xl border-2 px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm transition-all duration-200" data-message-id="{{.ID}}"
       data-booking-id="{{if .Data}}{{.Data.id}}{{end}}" data-service-id="{{if .Data}}{{.Data.service_id}}{{end}}">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center space-x-2 min-w-0">
-          <i class="fas fa-calendar-plus {{$iconColor}}"></i>
-          <span class="font-semibold text-sm {{$iconColor}}">#{{.Data.booking_number}}</span>
-          <span class="text-[var(--color-text)] text-sm truncate">{{index .Data.service_names 0}}</span>
+      <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+        <div class="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
+          <i class="fas fa-calendar-plus text-xs sm:text-sm {{$iconColor}}"></i>
+          <span class="font-semibold text-xs sm:text-sm {{$iconColor}} truncate">#{{.Data.booking_number}}</span>
+          <span class="text-[var(--color-text)] text-xs sm:text-sm truncate">{{index .Data.service_names 0}}</span>
         </div>
         <div class="flex items-center space-x-1 flex-shrink-0 ml-2">
           {{if and .Data (eq .Data.status "pending")}}
@@ -40,7 +40,7 @@
           </button>
         </div>
       </div>
-      <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
+      <div class="booking-details text-xs sm:text-sm text-[var(--color-text)] space-y-0.5 sm:space-y-1">
         {{if .Data}}
         <p class="flex items-center space-x-1">
           <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
@@ -68,31 +68,31 @@
         <p class="hidden booking-time-data">{{.Data.scheduled_time_iso}}</p>
         {{end}}
       </div>
-      <div class="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]/50">
-        <p class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</p>
-        <span class="text-xs font-medium {{$statusColor}} px-2 py-0.5 rounded-full booking-status">{{.Data.status}}</span>
+      <div class="flex items-center justify-between mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</p>
+        <span class="text-[10px] sm:text-xs font-medium {{$statusColor}} px-1.5 sm:px-2 py-0.5 rounded-full booking-status">{{.Data.status}}</span>
       </div>
       {{if eq .Data.status "pending"}}
-      <div class="mt-2 pt-2 border-t border-[var(--color-border)]/50">
-        <p class="text-xs text-center text-[var(--color-warning)] font-medium">
+      <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        <p class="text-[10px] sm:text-xs text-center text-[var(--color-warning)] font-medium">
           <i class="fas fa-clock mr-1"></i>Awaiting business confirmation
         </p>
       </div>
       {{else if eq .Data.status "confirmed"}}
-      <div class="mt-2 pt-2 border-t border-[var(--color-border)]/50">
-        <p class="text-xs text-center text-[var(--color-success)] font-medium">
+      <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        <p class="text-[10px] sm:text-xs text-center text-[var(--color-success)] font-medium">
           <i class="fas fa-check-circle mr-1"></i>Your booking is confirmed
         </p>
       </div>
       {{else if eq .Data.status "completed"}}
-      <div class="mt-2 pt-2 border-t border-[var(--color-border)]/50">
-        <p class="text-xs text-center text-[var(--color-info)] font-medium">
+      <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        <p class="text-[10px] sm:text-xs text-center text-[var(--color-info)] font-medium">
           <i class="fas fa-check-double mr-1"></i>Service completed
         </p>
       </div>
       {{else if eq .Data.status "cancelled"}}
-      <div class="mt-2 pt-2 border-t border-[var(--color-border)]/50">
-        <p class="text-xs text-center text-[var(--color-error)] font-medium">
+      <div class="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-[var(--color-border)]/50">
+        <p class="text-[10px] sm:text-xs text-center text-[var(--color-error)] font-medium">
           <i class="fas fa-ban mr-1"></i>This booking was cancelled
         </p>
       </div>

@@ -22,16 +22,6 @@
       font-weight: 600;
     }
   </style>
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </head>
 
 <body class="bg-[var(--color-bg)]">
@@ -46,26 +36,16 @@
           <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
             <i class="fas fa-bars text-lg"></i>
           </button>
-          <h1 class="text-xl font-semibold text-[var(--color-text)]">Orders Management</h1>
+          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Orders Management</h1>
         </div>
         <div class="flex items-center space-x-4">
           <!-- Desktop: action items shown inline -->
           <div class="hidden lg:flex items-center space-x-4">
             <a href="/business"
-              class="btn btn-secondary px-4 py-2 rounded-lg flex items-center space-x-2">
+              class="btn btn-secondary px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base">
               <i class="fas fa-users"></i>
               <span>Clients</span>
             </a>
-            <button onclick="showQuickOrderModal()"
-              class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-              <i class="fas fa-shopping-cart"></i>
-              <span>Quick Order</span>
-            </button>
-            <button onclick="showQuickBookingModal()"
-              class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-              <i class="fas fa-calendar-plus"></i>
-              <span>Quick Booking</span>
-            </button>
             <button class="theme-toggle text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
               <i class="fas fa-sun theme-sun"></i>
               <i class="fas fa-moon theme-moon hidden"></i>
@@ -96,15 +76,6 @@
                 <i class="fas fa-users w-5 text-center"></i>
                 <span>Clients</span>
               </a>
-              <button onclick="showQuickOrderModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-shopping-cart w-5 text-center"></i>
-                <span>Quick Order</span>
-              </button>
-              <button onclick="showQuickBookingModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-calendar-plus w-5 text-center"></i>
-                <span>Quick Booking</span>
-              </button>
-              <div class="border-t border-[var(--color-border-light)] my-1"></div>
               <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
                 <i class="fas fa-adjust w-5 text-center"></i>
                 <span>Toggle Theme</span>
@@ -134,226 +105,388 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 p-6">
-      <div class="max-w-7xl mx-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
+      <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Page Header -->
         <div class="mb-8">
-          <h2 class="text-2xl font-bold text-[var(--color-text)]">Orders Management</h2>
-          <p class="text-[var(--color-text-secondary)] mt-2">Track and manage your customer orders</p>
+          <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Orders Management</h2>
+          <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-2">Track and manage your customer orders</p>
+        </div>
+
+        <!-- Quick Action -->
+        <div class="mb-8">
+          <button onclick="showQuickOrderModal()"
+            class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base shadow-sm">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Quick Order</span>
+          </button>
         </div>
 
         <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-          <!-- Pending Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+          <!-- Draft Orders -->
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
-              <div class="p-2.5 bg-[var(--color-warning-light)] rounded-full">
-                <i class="fas fa-clock text-[var(--color-warning)]"></i>
+              <div class="p-2 sm:p-2.5 bg-[var(--color-surface-tertiary)] rounded-full">
+                <i class="fas fa-pen text-[var(--color-text-secondary)] text-sm sm:text-base"></i>
               </div>
-              <div class="ml-3">
-                <p class="text-sm text-[var(--color-text-secondary)]">Pending</p>
-                <p class="text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Draft</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.DraftCount}}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Orders -->
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-warning-light)] rounded-full">
+                <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Client Confirmed Orders -->
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-info-light)] rounded-full">
+                <i class="fas fa-user-check text-[var(--color-info)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Client Confirmed</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.ClientConfirmedCount}}</p>
               </div>
             </div>
           </div>
 
           <!-- Confirmed Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
-              <div class="p-2.5 bg-[var(--color-info-light)] rounded-full">
-                <i class="fas fa-check-circle text-[var(--color-info)]"></i>
+              <div class="p-2 sm:p-2.5 bg-[var(--color-info-light)] rounded-full">
+                <i class="fas fa-check-circle text-[var(--color-info)] text-sm sm:text-base"></i>
               </div>
-              <div class="ml-3">
-                <p class="text-sm text-[var(--color-text-secondary)]">Confirmed</p>
-                <p class="text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Confirmed</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
               </div>
             </div>
           </div>
 
           <!-- Completed Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
-              <div class="p-2.5 bg-[var(--color-success-light)] rounded-full">
-                <i class="fas fa-check text-[var(--color-success)]"></i>
+              <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
+                <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
               </div>
-              <div class="ml-3">
-                <p class="text-sm text-[var(--color-text-secondary)]">Completed</p>
-                <p class="text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.FulfilledCount}}</p>
               </div>
             </div>
           </div>
 
-          <!-- Canceled Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
+          <!-- Cancelled Orders -->
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
-              <div class="p-2.5 bg-[var(--color-error-light)] rounded-full">
-                <i class="fas fa-times text-[var(--color-error)]"></i>
+              <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
+                <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
               </div>
-              <div class="ml-3">
-                <p class="text-sm text-[var(--color-text-secondary)]">Canceled</p>
-                <p class="text-2xl font-bold text-[var(--color-text)]">{{.CanceledCount}}</p>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Cancelled</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
               </div>
             </div>
           </div>
 
           <!-- Total Orders -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
-              <div class="p-2.5 bg-[var(--color-secondary-light)] rounded-full">
-                <i class="fas fa-shopping-cart text-[var(--color-secondary)]"></i>
+              <div class="p-2 sm:p-2.5 bg-[var(--color-secondary-light)] rounded-full">
+                <i class="fas fa-shopping-cart text-[var(--color-secondary)] text-sm sm:text-base"></i>
               </div>
-              <div class="ml-3">
-                <p class="text-sm text-[var(--color-text-secondary)]">Total Orders</p>
-                <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalOrders}}</p>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Orders</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.TotalOrders}}</p>
               </div>
             </div>
           </div>
 
           <!-- Total Revenue -->
-          <div class="bg-[var(--color-surface)] rounded-xl card p-4">
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
-              <div class="p-2.5 bg-[var(--color-secondary-light)] rounded-full">
-                <i class="fas fa-dollar-sign text-[var(--color-secondary)]"></i>
+              <div class="p-2 sm:p-2.5 bg-[var(--color-secondary-light)] rounded-full">
+                <i class="fas fa-dollar-sign text-[var(--color-secondary)] text-sm sm:text-base"></i>
               </div>
-              <div class="ml-3">
-                <p class="text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
-                <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Search & Filter -->
+        <div class="flex flex-col gap-3 mb-4">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-search text-[var(--color-text-muted)] text-xs"></i>
+            </div>
+            <input type="text" id="orderSearch" placeholder="Search by order #, customer, or product..."
+              class="input pl-9 text-sm">
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <select id="orderSearchField" class="input text-sm">
+              <option value="all">All Fields</option>
+              <option value="number">Order #</option>
+              <option value="customerName">Customer Name</option>
+              <option value="customerEmail">Email</option>
+            </select>
+            <select id="orderStatusFilter" class="input text-sm">
+              <option value="">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="pending">Pending</option>
+              <option value="client_confirmed">Confirmed</option>
+              <option value="fulfilled">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button id="clearOrderFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
+              <i class="fas fa-times mr-1"></i>Clear
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mb-2">
+          <span id="orderResultsCount" class="text-xs text-[var(--color-text-muted)]"></span>
+        </div>
+
         <!-- Orders Table -->
         <div class="bg-[var(--color-surface)] rounded-xl card">
-          <div class="px-6 py-4 border-b border-[var(--color-border)]">
-            <h3 class="text-lg font-medium text-[var(--color-text)]">Recent Orders</h3>
+          <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
+            <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">Recent Orders</h3>
           </div>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-[var(--color-border)]">
               <thead class="bg-[var(--color-surface-secondary)]">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Order #
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Order #
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Items</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Total</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Items</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Total</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
+                  <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
                   </th>
+                  <th class="px-3 sm:px-6 py-3 text-center text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Receipt</th>
                 </tr>
               </thead>
-              <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
+                <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]" id="ordersTableBody">
                 {{range .Orders}}
-                <tr class="table-row-hover">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text)]">{{.OrderNumber}}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
-                    <div class="flex items-center">
-                      <img src="https://picsum.photos/seed/customer{{.Client.ID}}/32/32.jpg" alt="{{.Client.Name}}"
-                        class="w-8 h-8 rounded-full mr-3">
-                      <div>
-                        <div class="font-medium">{{.Client.Name}}</div>
-                        <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
+                {{$isDraft := eq .Status "draft"}}
+                {{$isPending := eq .Status "pending"}}
+                {{$isClientConfirmed := eq .Status "client_confirmed"}}
+                {{$isConfirmed := eq .Status "confirmed"}}
+                {{$isFulfilled := or (eq .Status "fulfilled") (eq .Status "completed")}}
+                {{$isCancelled := eq .Status "cancelled"}}
+                {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
+                <tr data-status="{{.Status}}"
+                  data-number="{{.OrderNumber}}"
+                  data-customer-name="{{.Client.Name}}"
+                  data-customer-email="{{.Client.Email}}"
+                  class="table-row-hover">
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.OrderNumber}}</td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
+                    <div class="font-medium">{{.Client.Name}}</div>
+                    <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
+                    {{range .OrderItems}}{{.Quantity}}x {{.Product.Name}}{{end}}
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <span
+                      class="badge-status 
+                      {{if eq .Status `draft`}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]
+                      {{else if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
+                      {{else if or (eq .Status `client_confirmed`) (eq .Status `confirmed`)}}bg-[var(--color-info-light)] text-[var(--color-info)]
+                      {{else if or (eq .Status `fulfilled`) (eq .Status `completed`)}}bg-[var(--color-success-light)] text-[var(--color-success)]
+                      {{else if eq .Status `cancelled`}}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]{{end}}">
+                      {{if eq .Status `draft`}}Draft{{else if eq .Status `pending`}}Pending{{else if eq .Status `client_confirmed`}}Client Confirmed{{else if eq .Status `confirmed`}}Confirmed{{else if or (eq .Status `fulfilled`) (eq .Status `completed`)}}Completed{{else if eq .Status `cancelled`}}Cancelled{{else}}{{.Status}}{{end}}
+                    </span>
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">{{.CreatedAt.Format "Jan 02, 2006"}}
+                  </td>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
+                    <button onclick="toggleDropdown('orderActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
+                      <i class="fas fa-ellipsis-v text-[var(--color-text-muted)]"></i>
+                    </button>
+                    <div id="orderActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
+                      <div class="py-1">
+                        {{if not $isCancelled}}
+                        <span class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold block">Steps</span>
+                        <button onclick="{{if $isDraft}}sendOrderToClient({{.ID}}){{else}};{{end}}"
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isDraft}}text-[var(--color-warning)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-clock w-4 {{if $isDraft}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"></i>Pending
+                        </button>
+                        <button onclick="{{if or $isPending $isClientConfirmed}}businessConfirmOrder({{.ID}}){{else}};{{end}}"
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if or $isPending $isClientConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-check-circle w-4 {{if or $isPending $isClientConfirmed}}text-[var(--color-info)]{{else}}opacity-40{{end}}"></i>Confirmed
+                        </button>
+                        <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markOrderAsPaid({{.ID}}){{else}};{{end}}"
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-credit-card w-4 {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"></i>Paid
+                        </button>
+                        <button onclick="{{if and $isConfirmed $isFullyPaid}}fulfillOrder({{.ID}}){{else}};{{end}}"
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-check-double w-4 {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"></i>Completed
+                        </button>
+                        {{if not $isFulfilled}}
+                        <hr class="border-t border-[var(--color-border)] my-1">
+                        <button onclick="rejectOrder({{.ID}})" class="w-full text-left px-3 py-2 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] flex items-center gap-2">
+                          <i class="fas fa-times w-4"></i>Cancel
+                        </button>
+                        {{end}}
+                        {{else}}
+                        <div class="px-3 py-2 text-xs text-[var(--color-text-muted)]">Cancelled</div>
+                        {{end}}
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">
-                    {{range .OrderItems}}{{.Quantity}}x {{.Product.Name}}{{end}}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class="badge-status 
-                      {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
-                      {{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]
-                      {{else if eq .Status `completed` }}bg-[var(--color-success-light)] text-[var(--color-success)]
-                      {{else if eq .Status `cancelled` }}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]{{end}}">
-                      {{.Status}}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text)]">{{.CreatedAt.Format "Jan 02, 2006"}}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                      <select data-order-id="{{.ID}}" onchange="updateOrderStatus(this)"
-                        class="input text-sm">
-                        <option value="pending" {{if eq .Status "pending" }}selected{{end}}>Pending</option>
-                        <option value="confirmed" {{if eq .Status "confirmed" }}selected{{end}}>Confirmed</option>
-                        <option value="completed" {{if eq .Status "completed" }}selected{{end}}>Completed</option>
-                        <option value="cancelled" {{if eq .Status "cancelled" }}selected{{end}}>Cancelled</option>
-                      </select>
-                    </div>
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                    {{if $isFulfilled}}
+                    <button onclick="window.open('/business/orders/{{.ID}}/receipt', '_blank')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition text-[var(--color-text-muted)] hover:text-[var(--color-success)]" title="Print Receipt">
+                      <i class="fas fa-receipt"></i>
+                    </button>
+                    {{end}}
                   </td>
                 </tr>
                 {{else}}
                 <tr>
-                  <td colspan="7" class="px-6 py-12 text-center text-[var(--color-text-muted)]">
-                    <i class="fas fa-shopping-cart text-4xl mb-4"></i>
-                    <p class="text-lg">No orders yet</p>
-                    <p class="text-sm mt-2">Create your first order using the Quick Order button above</p>
+                  <td colspan="8" class="px-3 sm:px-6 py-8 sm:py-12 text-center text-[var(--color-text-muted)]">
+                    <i class="fas fa-shopping-cart text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
+                    <p class="text-base sm:text-lg">No orders yet</p>
+                    <p class="text-xs sm:text-sm mt-2">Create your first order using the Quick Order button above</p>
                   </td>
                 </tr>
                 {{end}}
+                <tr id="noOrdersMsg" style="display:none">
+                  <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
+                    <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
+                    <p class="text-sm text-[var(--color-text-secondary)]">No orders match your search</p>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
+    </div>
     </main>
   </div>
 
   <!-- Quick Order Modal -->
-  <div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
+  <div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-lg w-full mx-3 sm:mx-4 max-h-[80vh] overflow-y-auto p-4 sm:p-5">
       <div class="mt-3">
-        <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Order</h3>
-        <form id="quickOrderForm" class="mt-4 space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Select Product</label>
-            <select id="orderProduct" required
-              class="input mt-1">
-              <option value="">Choose a product...</option>
-            </select>
+        <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">New Order</h3>
+
+        <!-- Step Indicator -->
+        <div class="flex items-center justify-center gap-0 mt-4 mb-6">
+          <span id="ordStep1Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-warning)] text-white shadow-sm transition-all duration-300">1</span>
+          <span id="ordStep1Label" class="text-xs font-medium text-[var(--color-warning)] ml-1.5 transition-colors duration-300">Browse</span>
+          <div id="ordStep1to2" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-warning)] transition-colors duration-300"></div>
+          <span id="ordStep2Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">2</span>
+          <span id="ordStep2Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Details</span>
+          <div id="ordStep2to3" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300"></div>
+          <span id="ordStep3Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">3</span>
+          <span id="ordStep3Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Confirm</span>
+        </div>
+
+        <form id="quickOrderForm" class="space-y-4">
+          <!-- Step 1: Browse -->
+          <div id="ordStep1">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Product</label>
+              <div class="relative mt-1">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+                <input type="text" id="orderProductSearch" placeholder="Type to search..." class="input pl-10 text-sm">
+              </div>
+              <div id="orderProductResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
+                <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading products...</div>
+              </div>
+              <div id="orderProductCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
+              <div id="orderProductSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
+                <i class="fas fa-check-circle mr-1"></i><span id="orderProductSelectedName"></span>
+              </div>
+              <input type="hidden" id="orderProduct" value="">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Quantity</label>
+              <input type="number" id="orderQuantity" min="1" required class="input mt-1">
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Quantity</label>
-            <input type="number" id="orderQuantity" min="1" required
-              class="input mt-1">
+
+          <!-- Step 2: Details -->
+          <div id="ordStep2" class="hidden">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
+              <input type="text" id="orderCustomerName" required class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
+              <input type="email" id="orderCustomerEmail" class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
+              <input type="tel" id="orderCustomerPhone" class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Delivery Address</label>
+              <textarea id="orderDeliveryAddress" rows="2" class="input mt-1"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
+              <textarea id="orderNotes" rows="2" class="input mt-1"></textarea>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
-            <input type="text" id="orderCustomerName" required
-              class="input mt-1">
+
+          <!-- Step 3: Confirm -->
+          <div id="ordStep3" class="hidden">
+            <div class="bg-[var(--color-surface-secondary)] rounded-lg p-3 sm:p-4 space-y-2">
+              <div class="flex justify-between text-xs sm:text-sm">
+                <span class="text-[var(--color-text-secondary)]">Product</span>
+                <span id="ordConfirmProduct" class="font-medium text-[var(--color-text)] text-right">—</span>
+              </div>
+              <div class="flex justify-between text-xs sm:text-sm">
+                <span class="text-[var(--color-text-secondary)]">Quantity</span>
+                <span id="ordConfirmQty" class="font-medium text-[var(--color-text)]">—</span>
+              </div>
+              <div class="flex justify-between text-xs sm:text-sm">
+                <span class="text-[var(--color-text-secondary)]">Customer</span>
+                <span id="ordConfirmCustomer" class="font-medium text-[var(--color-text)] text-right">—</span>
+              </div>
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer mt-3">
+              <input type="checkbox" id="orderCompleted" class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-success)] focus:ring-[var(--color-success)]">
+              <span class="text-xs sm:text-sm text-[var(--color-text-secondary)]">Mark as paid &amp; completed — for walk-in customers</span>
+            </label>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
-            <input type="email" id="orderCustomerEmail"
-              class="input mt-1">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
-            <input type="tel" id="orderCustomerPhone"
-              class="input mt-1">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Delivery Address</label>
-            <textarea id="orderDeliveryAddress" rows="2"
-              class="input mt-1"></textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
-            <textarea id="orderNotes" rows="2"
-              class="input mt-1"></textarea>
-          </div>
-          <div class="flex justify-end space-x-3 pt-4">
-            <button type="button" onclick="hideQuickOrderModal()"
-              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
-              Cancel
+
+          <!-- Navigation -->
+          <div class="flex justify-between items-center gap-3 pt-4 border-t border-[var(--color-border)]">
+            <button type="button" id="ordBackBtn" onclick="ordGoToStep(ordStep - 1)" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-1.5 rounded text-xs sm:text-sm hidden">
+              <i class="fas fa-arrow-left mr-1"></i>Back
             </button>
-            <button type="submit" class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded">
-              Create Order
-            </button>
+            <div class="flex gap-3 ml-auto">
+              <button type="button" onclick="hideQuickOrderModal()" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">Cancel</button>
+              <button type="button" id="ordNextBtn" class="bg-[var(--color-info)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm" onclick="ordNextStep()">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+              <button type="submit" id="ordSubmitBtn" class="bg-[var(--color-info)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm hidden">Create Order</button>
+            </div>
           </div>
         </form>
       </div>
@@ -361,17 +494,25 @@
   </div>
 
   <!-- Quick Booking Modal -->
-  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border max-w-md w-full shadow-lg rounded-md bg-[var(--color-surface)]">
+  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+      <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-3 sm:mx-4 max-h-[80vh] overflow-y-auto p-4 sm:p-5 pb-16">
       <div class="mt-3">
-        <h3 class="text-lg font-medium text-[var(--color-text)]">Quick Booking</h3>
+        <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">Quick Booking</h3>
         <form id="quickBookingForm" class="mt-4 space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Select Service</label>
-            <select id="bookingService" required
-              class="input mt-1">
-              <option value="">Choose a service...</option>
-            </select>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Service</label>
+            <div class="relative mt-1">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+              <input type="text" id="bookingServiceSearch" placeholder="Type to search..." class="input pl-10 text-sm">
+            </div>
+            <div id="bookingServiceResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
+              <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading services...</div>
+            </div>
+            <div id="bookingServiceCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
+            <div id="bookingServiceSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
+              <i class="fas fa-check-circle mr-1"></i><span id="bookingServiceSelectedName"></span>
+            </div>
+            <input type="hidden" id="bookingService" value="">
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
@@ -400,10 +541,10 @@
           </div>
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" onclick="hideQuickBookingModal()"
-              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
+              class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Cancel
             </button>
-            <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded">
+            <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Create Booking
             </button>
           </div>
@@ -414,99 +555,212 @@
 
   <script>
     // Load products for quick order
+    var orderProductsList = [];
+    var bookingServicesList = [];
+
+    function renderOrderProducts(filter) {
+      const container = document.getElementById('orderProductResults');
+      const countEl = document.getElementById('orderProductCount');
+      const selectedId = document.getElementById('orderProduct').value;
+      const filtered = filter ? orderProductsList.filter(p => p.name.toLowerCase().includes(filter.toLowerCase())) : orderProductsList;
+      container.innerHTML = filtered.length ? filtered.map(p => {
+        const isSelected = String(p.id) === selectedId;
+        return '<div data-id="' + p.id + '" data-name="' + p.name.replace(/'/g, '&#39;') + '" onclick="selectOrderProduct(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + p.name + '</div>';
+      }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No products found</div>';
+      countEl.textContent = filtered.length + ' of ' + orderProductsList.length + ' products';
+    }
+    function selectOrderProduct(el) {
+      const id = el.dataset.id;
+      const name = el.dataset.name;
+      document.getElementById('orderProduct').value = id;
+      document.getElementById('orderProductSelectedName').textContent = name;
+      document.getElementById('orderProductSelected').classList.remove('hidden');
+      renderOrderProducts(document.getElementById('orderProductSearch').value);
+    }
+
+    function renderBookingServices(filter) {
+      const container = document.getElementById('bookingServiceResults');
+      const countEl = document.getElementById('bookingServiceCount');
+      const selectedId = document.getElementById('bookingService').value;
+      const filtered = filter ? bookingServicesList.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())) : bookingServicesList;
+      container.innerHTML = filtered.length ? filtered.map(s => {
+        const isSelected = String(s.id) === selectedId;
+        return '<div data-id="' + s.id + '" data-name="' + s.name.replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + s.name + '</div>';
+      }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No services found</div>';
+      countEl.textContent = filtered.length + ' of ' + bookingServicesList.length + ' services';
+    }
+    function selectBookingService(el) {
+      const id = el.dataset.id;
+      const name = el.dataset.name;
+      document.getElementById('bookingService').value = id;
+      document.getElementById('bookingServiceSelectedName').textContent = name;
+      document.getElementById('bookingServiceSelected').classList.remove('hidden');
+      renderBookingServices(document.getElementById('bookingServiceSearch').value);
+    }
+
     async function loadProductsForOrder() {
       try {
-        const response = await fetch('/products');
+        const response = await fetch('/business/products');
         const data = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(data, 'text/html');
         const productCards = doc.querySelectorAll('[data-product-id]');
-        const select = document.getElementById('orderProduct');
-
-        select.innerHTML = '<option value="">Choose a product...</option>';
+        orderProductsList = [];
         productCards.forEach(card => {
-          const productId = card.dataset.productId;
-          const productName = card.querySelector('h3')?.textContent || 'Unknown Product';
-          const option = document.createElement('option');
-          option.value = productId;
-          option.textContent = productName;
-          select.appendChild(option);
+          orderProductsList.push({
+            id: card.dataset.productId,
+            name: card.querySelector('h3')?.textContent || 'Unknown Product'
+          });
         });
-      } catch (error) {
-        console.error('Failed to load products:', error);
-      }
+        document.getElementById('orderProduct').value = '';
+        document.getElementById('orderProductSelected').classList.add('hidden');
+        document.getElementById('orderProductSearch').value = '';
+        renderOrderProducts('');
+      } catch (error) { console.error('Failed to load products:', error); }
     }
 
-    // Load services for quick booking
     async function loadServicesForBooking() {
       try {
-        const response = await fetch('/services');
+        const response = await fetch('/business/services');
         const data = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(data, 'text/html');
         const serviceCards = doc.querySelectorAll('[data-service-id]');
-        const select = document.getElementById('bookingService');
-
-        select.innerHTML = '<option value="">Choose a service...</option>';
+        bookingServicesList = [];
         serviceCards.forEach(card => {
-          const serviceId = card.dataset.serviceId;
-          const serviceName = card.querySelector('h3')?.textContent || 'Unknown Service';
-          const option = document.createElement('option');
-          option.value = serviceId;
-          option.textContent = serviceName;
-          select.appendChild(option);
+          bookingServicesList.push({
+            id: card.dataset.serviceId,
+            name: card.querySelector('h3')?.textContent || 'Unknown Service'
+          });
         });
-      } catch (error) {
-        console.error('Failed to load services:', error);
-      }
+        document.getElementById('bookingService').value = '';
+        document.getElementById('bookingServiceSelected').classList.add('hidden');
+        document.getElementById('bookingServiceSearch').value = '';
+        renderBookingServices('');
+      } catch (error) { console.error('Failed to load services:', error); }
     }
 
     // Modal functions
+    var ordStep = 1;
+    function ordGoToStep(step) {
+      ordStep = step;
+      document.getElementById('ordStep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('ordStep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('ordStep3').classList.toggle('hidden', step !== 3);
+      document.getElementById('ordBackBtn').classList.toggle('hidden', step === 1);
+      document.getElementById('ordNextBtn').classList.toggle('hidden', step === 3);
+      document.getElementById('ordSubmitBtn').classList.toggle('hidden', step !== 3);
+
+      for (var i = 1; i <= 3; i++) {
+        var ind = document.getElementById('ordStep' + i + 'Indicator');
+        var lbl = document.getElementById('ordStep' + i + 'Label');
+        var active = i <= step;
+        ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-warning)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
+        ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+        if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-muted)]');
+      }
+      document.getElementById('ordStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-border)]');
+      document.getElementById('ordStep2to3').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 3 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-border)]');
+
+      if (step === 3) ordRenderSummary();
+    }
+    function ordNextStep() {
+      if (ordStep === 1) {
+        if (!document.getElementById('orderProduct').value || !document.getElementById('orderQuantity').value) {
+          showNotification('Please select a product and enter quantity', 'warning');
+          return;
+        }
+        ordGoToStep(2);
+      } else if (ordStep === 2) {
+        if (!document.getElementById('orderCustomerName').value) {
+          showNotification('Please enter customer name', 'warning');
+          return;
+        }
+        ordGoToStep(3);
+      }
+    }
+    function ordRenderSummary() {
+      var nameEl = document.getElementById('orderProductSelectedName');
+      document.getElementById('ordConfirmProduct').textContent = nameEl.textContent || '\u2014';
+      document.getElementById('ordConfirmQty').textContent = document.getElementById('orderQuantity').value || '\u2014';
+      document.getElementById('ordConfirmCustomer').textContent = document.getElementById('orderCustomerName').value || '\u2014';
+    }
+
     function showQuickOrderModal() {
       document.getElementById('quickOrderModal').classList.remove('hidden');
+      document.getElementById('quickOrderModal').classList.add('flex');
+      ordGoToStep(1);
       loadProductsForOrder();
     }
 
     function hideQuickOrderModal() {
+      document.getElementById('quickOrderModal').classList.remove('flex');
       document.getElementById('quickOrderModal').classList.add('hidden');
       document.getElementById('quickOrderForm').reset();
     }
 
     function showQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.remove('hidden');
+      document.getElementById('quickBookingModal').classList.add('flex');
       loadServicesForBooking();
     }
 
     function hideQuickBookingModal() {
+      document.getElementById('quickBookingModal').classList.remove('flex');
       document.getElementById('quickBookingModal').classList.add('hidden');
       document.getElementById('quickBookingForm').reset();
     }
 
-    // Update order status
-    function updateOrderStatus(selectElement) {
-      const orderId = selectElement.dataset.orderId;
-      const status = selectElement.value;
-
-      fetch(`orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({status: status})
+    // Order step actions
+    function sendOrderToClient(orderId) {
+      fetch(`orders/${orderId}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
       })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Reload the page to show updated status
-            location.reload();
-          } else {
-            alert('Failed to update order status');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Failed to update order status');
-        });
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to send order', 'error'); })
+        .catch(() => showNotification('Failed to send order', 'error'));
+    }
+
+    function businessConfirmOrder(orderId) {
+      fetch(`orders/${orderId}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to confirm order', 'error'); })
+        .catch(() => showNotification('Failed to confirm order', 'error'));
+    }
+
+    function markOrderAsPaid(orderId) {
+      fetch(`orders/${orderId}/paid`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to mark as paid', 'error'); })
+        .catch(() => showNotification('Failed to mark as paid', 'error'));
+    }
+
+    function fulfillOrder(orderId) {
+      fetch(`orders/${orderId}/fulfill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to complete order', 'error'); })
+        .catch(() => showNotification('Failed to complete order', 'error'));
+    }
+
+    function rejectOrder(orderId) {
+      if (!confirm('Are you sure you want to cancel this order?')) return;
+      fetch(`orders/${orderId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel order', 'error'); })
+        .catch(() => showNotification('Failed to cancel order', 'error'));
     }
 
     // Form submissions
@@ -520,13 +774,15 @@
         customer_email: document.getElementById('orderCustomerEmail').value,
         customer_phone: document.getElementById('orderCustomerPhone').value,
         delivery_address: document.getElementById('orderDeliveryAddress').value,
-        notes: document.getElementById('orderNotes').value
+        notes: document.getElementById('orderNotes').value,
+        mark_completed: document.getElementById('orderCompleted').checked
       };
 
       fetch('orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(orderData)
       })
@@ -534,15 +790,15 @@
         .then(data => {
           if (data.success) {
             hideQuickOrderModal();
-            alert(data.message || 'Order created successfully!');
+            showNotification(data.message || 'Order created successfully!', 'success');
             location.reload();
           } else {
-            alert(data.error || 'Failed to create order');
+            showNotification(data.error || 'Failed to create order', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to create order');
+          showNotification('Failed to create order', 'error');
         });
     });
 
@@ -562,6 +818,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(bookingData)
       })
@@ -569,16 +826,80 @@
         .then(data => {
           if (data.success) {
             hideQuickBookingModal();
-            alert(data.message || 'Booking created successfully!');
+            showNotification(data.message || 'Booking created successfully!', 'success');
             location.reload();
           } else {
-            alert(data.error || 'Failed to create booking');
+            showNotification(data.error || 'Failed to create booking', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to create booking');
+          showNotification('Failed to create booking', 'error');
         });
+    });
+
+    function filterOrders() {
+      const search = document.getElementById('orderSearch').value.toLowerCase().trim();
+      const field = document.getElementById('orderSearchField').value;
+      const status = document.getElementById('orderStatusFilter').value;
+      const totalRows = document.querySelectorAll('#ordersTableBody tr[data-status]');
+      const allRows = document.querySelectorAll('#ordersTableBody tr[data-number]');
+      let visibleCount = 0;
+
+      const hasFilters = search || status;
+      document.getElementById('clearOrderFilters').classList.toggle('hidden', !hasFilters);
+
+      allRows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const matchStatus = !status || rowStatus === status;
+
+        let matchSearch = true;
+        if (search) {
+          let targets = [];
+          if (field === 'all') {
+            targets = [row.getAttribute('data-number'), row.getAttribute('data-customer-name'), row.getAttribute('data-customer-email')];
+          } else if (field === 'number') {
+            targets = [row.getAttribute('data-number')];
+          } else if (field === 'customerName') {
+            targets = [row.getAttribute('data-customer-name')];
+          } else if (field === 'customerEmail') {
+            targets = [row.getAttribute('data-customer-email')];
+          }
+          matchSearch = targets.some(t => t && t.toLowerCase().includes(search));
+        }
+
+        const show = matchSearch && matchStatus;
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+
+      document.getElementById('noOrdersMsg').style.display = visibleCount === 0 && totalRows.length > 0 ? '' : 'none';
+      document.getElementById('orderResultsCount').textContent = hasFilters ? `${visibleCount} of ${allRows.length} results` : '';
+    }
+
+    document.getElementById('orderSearch').addEventListener('input', filterOrders);
+    document.getElementById('orderProductSearch')?.addEventListener('input', function() { renderOrderProducts(this.value); });
+    document.getElementById('bookingServiceSearch')?.addEventListener('input', function() { renderBookingServices(this.value); });
+    document.getElementById('orderSearchField').addEventListener('change', filterOrders);
+    document.getElementById('orderStatusFilter').addEventListener('change', filterOrders);
+    document.getElementById('clearOrderFilters').addEventListener('click', function() {
+      document.getElementById('orderSearch').value = '';
+      document.getElementById('orderSearchField').value = 'all';
+      document.getElementById('orderStatusFilter').value = '';
+      filterOrders();
+    });
+
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      const isHidden = menu.classList.contains('hidden');
+      document.querySelectorAll('[id^="orderActions-"]').forEach(el => el.classList.add('hidden'));
+      if (isHidden) menu.classList.remove('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('[onclick^="toggleDropdown"]') && !e.target.closest('[id^="orderActions-"]')) {
+        document.querySelectorAll('[id^="orderActions-"]').forEach(el => el.classList.add('hidden'));
+      }
     });
   </script>
 

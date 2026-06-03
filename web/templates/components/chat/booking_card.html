@@ -1,94 +1,194 @@
 {{define "booking_card"}}
-{{$statusColor := "bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]"}}
-{{$statusBg := "bg-[var(--color-surface-secondary)] border-[var(--color-border)]"}}
-{{$iconColor := "text-[var(--color-text-secondary)]"}}
-{{if eq .Data.status "pending"}}
-  {{$statusColor = "bg-[var(--color-warning-light)] text-[var(--color-warning)]"}}
-  {{$statusBg = "bg-[var(--color-warning-light)] border-[var(--color-warning)]/40"}}
-  {{$iconColor = "text-[var(--color-warning)]"}}
-{{else if eq .Data.status "confirmed"}}
-  {{$statusColor = "bg-[var(--color-success-light)] text-[var(--color-success)]"}}
-  {{$statusBg = "bg-[var(--color-success-light)] border-[var(--color-success)]/40"}}
-  {{$iconColor = "text-[var(--color-success)]"}}
-{{else if eq .Data.status "completed"}}
-  {{$statusColor = "bg-[var(--color-info-light)] text-[var(--color-info)]"}}
-  {{$statusBg = "bg-[var(--color-info-light)] border-[var(--color-info)]/40"}}
-  {{$iconColor = "text-[var(--color-info)]"}}
-{{else if eq .Data.status "cancelled"}}
-  {{$statusColor = "bg-[var(--color-error-light)] text-[var(--color-error)]"}}
-  {{$statusBg = "bg-[var(--color-error-light)] border-[var(--color-error)]/40"}}
-  {{$iconColor = "text-[var(--color-error)]"}}
+{{$booking := .Data}}
+{{$status := $booking.status}}
+{{$isPending := eq $status "pending"}}
+{{$isConfirmed := eq $status "client_confirmed"}}
+{{$isCompleted := eq $status "completed"}}
+{{$isCancelled := eq $status "cancelled"}}
+{{$actionRequired := $booking.action_required}}
+{{$sym := or (currencySymbol $booking.currency) "$"}}
+{{$s1 := "pending"}}{{$s2 := "pending"}}{{$s3 := "pending"}}{{$s4 := "pending"}}
+{{if $isPending}}{{$s1 = "active"}}
+{{else if $isConfirmed}}{{if $booking.is_fully_paid}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "active"}}{{else}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "active"}}{{end}}
+{{else if $isCompleted}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "completed"}}
 {{end}}
 <div class="flex {{if eq .Sender "business"}}justify-end{{else}}justify-start{{end}}">
-  <div class="max-w-xs lg:max-w-md w-full">
-    <div class="{{$statusBg}} border rounded-lg px-4 py-3"
-      data-message-id="{{.ID}}" data-booking-id="{{.Data.id}}" data-service-id="{{.Data.service_id}}">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center space-x-2 min-w-0">
-          <i class="fas fa-calendar-check {{$iconColor}}"></i>
-          <span class="font-semibold text-sm {{$iconColor}}">#{{.Data.booking_number}}</span>
-          <span class="text-[var(--color-text)] text-sm truncate">{{.Data.service_name}}</span>
+  <div class="max-w-sm lg:max-w-md w-full">
+    <div class="rounded-xl border-2 p-4 shadow-sm transition-all duration-200
+      {{if $isCancelled}}border-[var(--color-error)]/40 bg-[var(--color-error-light)]{{else if $isCompleted}}border-[var(--color-success)]/40 bg-[var(--color-success-light)]{{else if $isConfirmed}}border-[var(--color-info)]/40 bg-[var(--color-info-light)]{{else}}border-[var(--color-warning)]/40 bg-[var(--color-warning-light)]{{end}}"
+      data-message-id="{{.ID}}"
+      data-booking-id="{{$booking.id}}"
+      data-service-id="{{$booking.service_id}}"
+      data-booking-status="{{$status}}">
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center shadow-sm flex-shrink-0">
+            <i class="fas fa-calendar-check {{if $isCancelled}}text-[var(--color-error)]{{else if $isCompleted}}text-[var(--color-success)]{{else if $isConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-warning)]{{end}}"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="font-semibold text-xs sm:text-sm text-[var(--color-text)] truncate">
+              Booking #{{$booking.booking_number}}
+            </h4>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full
+              {{if $isPending}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
+              {{else if $isConfirmed}}bg-[var(--color-info-light)] text-[var(--color-info)]
+              {{else if $isCompleted}}bg-[var(--color-success-light)] text-[var(--color-success)]
+              {{else if $isCancelled}}bg-[var(--color-error-light)] text-[var(--color-error)]
+              {{else}}bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]{{end}}">
+              {{if $isPending}}Pending{{else if $isConfirmed}}Confirmed{{else if $isCompleted}}Completed{{else if $isCancelled}}Cancelled{{else}}{{$status}}{{end}}
+            </span>
+          </div>
         </div>
-          <button onclick="openBusinessEditBookingPicker({{.Data.id}})" class="{{$iconColor}} hover:opacity-80 text-xs ml-2 flex-shrink-0"
-            title="Edit Booking">
+        <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+          {{if eq $actionRequired "business"}}
+          <span class="text-xs font-bold text-[var(--color-warning)] animate-pulse">ACTION NEEDED</span>
+          {{end}}
+          <button onclick="openBusinessEditBookingPicker({{$booking.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Booking">
             <i class="fas fa-edit"></i>
           </button>
+        </div>
       </div>
-      <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
-        {{if .Data}}
-        <p class="flex items-center space-x-1">
-          <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
-          <span>{{.Data.scheduled_date.Format "Mon, Jan 2 at 3:04 PM"}}</span>
+
+      <!-- Service Details -->
+      <div class="space-y-1.5 mb-3 text-xs sm:text-sm text-[var(--color-text)]">
+        {{if $booking.service_name}}
+        <p class="font-medium">{{$booking.service_name}}</p>
+        {{end}}
+        <p class="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+          <i class="fas fa-clock text-xs"></i>
+          <span>{{$booking.scheduled_date.Format "Mon, Jan 2 at 3:04 PM"}}</span>
         </p>
-        {{if .Data.duration}}
-        <p class="flex items-center space-x-1">
-          <i class="fas fa-hourglass-half text-xs text-[var(--color-text-muted)]"></i>
-          <span>{{.Data.duration}} min</span>
+        {{if $booking.duration}}
+        <p class="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+          <i class="fas fa-hourglass-half text-xs"></i>
+          <span>{{$booking.duration}} min</span>
         </p>
         {{end}}
-        {{if .Data.total_amount}}
-        <p class="flex items-center space-x-1">
-          <i class="fas fa-tag text-xs text-[var(--color-text-muted)]"></i>
-          <span>${{printf "%.2f" .Data.total_amount}}</span>
+        {{if $booking.total_amount}}
+        <p class="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+          <i class="fas fa-tag text-xs"></i>
+          <span>{{$sym}}{{printf "%.2f" $booking.total_amount}}</span>
         </p>
         {{end}}
-        {{if .Data.notes}}
-        <p class="text-xs text-[var(--color-text-secondary)] italic mt-1 border-t border-[var(--color-border)] pt-1">{{.Data.notes}}</p>
-        {{end}}
-        <p class="hidden booking-notes-data">{{.Data.notes}}</p>
-        <p class="hidden booking-date-data">{{.Data.scheduled_date.Format "2006-01-02"}}</p>
-        <p class="hidden booking-time-data">{{.Data.scheduled_date.Format "15:04"}}</p>
-        <p class="hidden booking-number-data">{{.Data.booking_number}}</p>
-        <p class="hidden booking-service-id-data">{{.Data.service_id}}</p>
-        {{end}}
       </div>
-      <div class="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)] border-opacity-50">
-        <p class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</p>
-        <span class="text-xs font-medium {{$statusColor}} px-2 py-0.5 rounded-full booking-status">{{.Data.status}}</span>
-      </div>
-      {{if eq .Data.status "pending"}}
-      <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-[var(--color-border)] border-opacity-50">
-        <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'confirmed')"
-          class="flex-1 text-xs bg-[var(--color-success-light)] text-[var(--color-success)] hover:bg-[var(--color-success-light)] px-2 py-1 rounded font-medium">
-          <i class="fas fa-check mr-1"></i>Confirm
-        </button>
-        <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'cancelled')"
-          class="flex-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] hover:bg-[var(--color-error-light)] px-2 py-1 rounded font-medium">
-          <i class="fas fa-times mr-1"></i>Cancel
-        </button>
-      </div>
-      {{else if eq .Data.status "confirmed"}}
-      <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-[var(--color-border)] border-opacity-50">
-        <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'completed')"
-          class="flex-1 text-xs bg-[var(--color-info-light)] text-[var(--color-info)] hover:bg-[var(--color-info-light)] px-2 py-1 rounded font-medium">
-          <i class="fas fa-check-double mr-1"></i>Complete
-        </button>
-        <button onclick="updateBookingStatusFromCard({{.Data.id}}, 'cancelled')"
-          class="flex-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] hover:bg-[var(--color-error-light)] px-2 py-1 rounded font-medium">
-          <i class="fas fa-times mr-1"></i>Cancel
-        </button>
+
+      <p class="hidden booking-notes-data">{{$booking.notes}}</p>
+      <p class="hidden booking-date-data">{{$booking.scheduled_date.Format "2006-01-02"}}</p>
+      <p class="hidden booking-time-data">{{$booking.scheduled_date.Format "15:04"}}</p>
+      <p class="hidden booking-number-data">{{$booking.booking_number}}</p>
+      <p class="hidden booking-service-id-data">{{$booking.service_id}}</p>
+
+      <!-- Notes -->
+      {{if $booking.notes}}
+      <div class="mb-3 bg-[var(--color-surface)]/60 rounded-lg p-2 text-[10px] sm:text-xs text-[var(--color-text-secondary)] italic">
+        <i class="far fa-sticky-note mr-1"></i>{{$booking.notes}}
       </div>
       {{end}}
+
+      <!-- Progress Bar -->
+      <div class="flex items-center justify-center mb-3 px-1">
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s1 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s1 "active"}}bg-[var(--color-warning)] text-white shadow-[0_0_0_3px_rgba(245,158,11,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s1 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}1{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s1 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s1 "active"}}text-[var(--color-warning)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Book</span>
+        </div>
+        <div class="w-8 sm:w-12 h-0.5 mx-1 rounded {{if ne $s2 "pending"}}bg-[var(--color-success)]{{else}}bg-[var(--color-border-light)]{{end}}"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s2 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s2 "active"}}bg-[var(--color-info)] text-white shadow-[0_0_0_3px_rgba(14,165,233,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s2 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}2{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s2 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s2 "active"}}text-[var(--color-info)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Confirm</span>
+        </div>
+        <div class="w-8 sm:w-12 h-0.5 mx-1 rounded {{if ne $s3 "pending"}}bg-[var(--color-success)]{{else}}bg-[var(--color-border-light)]{{end}}"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s3 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s3 "active"}}bg-[var(--color-secondary)] text-white shadow-[0_0_0_3px_rgba(139,92,246,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s3 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}3{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s3 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s3 "active"}}text-[var(--color-secondary)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Pay</span>
+        </div>
+        <div class="w-8 sm:w-12 h-0.5 mx-1 rounded {{if ne $s4 "pending"}}bg-[var(--color-success)]{{else}}bg-[var(--color-border-light)]{{end}}"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s4 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s4 "active"}}bg-[var(--color-success)] text-white shadow-[0_0_0_3px_rgba(16,185,129,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s4 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}4{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s4 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s4 "active"}}text-[var(--color-success)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Complete</span>
+        </div>
+      </div>
+
+      <!-- Step Content -->
+      {{if $isCancelled}}
+      <div class="w-full text-center py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-xs sm:text-sm font-medium">
+        <i class="fas fa-ban mr-1"></i>Booking cancelled
+      </div>
+
+      {{else if $isPending}}
+      <div class="flex gap-2">
+        <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
+          onclick="updateBookingStatusFromCard({{$booking.id}}, 'cancelled')">
+          <i class="fas fa-times mr-1"></i>Cancel
+        </button>
+        <div class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs sm:text-sm font-medium text-center">
+          <i class="fas fa-clock mr-1"></i>Waiting for client
+        </div>
+      </div>
+
+      {{else if eq $s3 "active"}}
+      <div class="mb-3">
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-[var(--color-border-light)]">
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">{{$sym}}{{printf "%.2f" $booking.paid_amount}}</strong></span>
+          {{if gt $booking.pending_amount 0.0}}
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">{{$sym}}{{printf "%.2f" $booking.pending_amount}}</strong></span>
+          {{end}}
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>{{$sym}}{{printf "%.2f" $booking.remaining}}</strong></span>
+        </div>
+      </div>
+      <div id="bookingPendingPayments-{{$booking.id}}" class="mt-2 space-y-1">
+        {{if gt $booking.pending_amount 0.0}}
+        <div class="text-[10px] font-medium text-[var(--color-warning)] mb-2"><i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation</div>
+        <button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm"
+          onclick="confirmAllBookingPayments({{$booking.id}})">
+          <i class="fas fa-check mr-1"></i>Confirm Payment
+        </button>
+        {{else}}
+        <div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>
+        {{end}}
+      </div>
+
+      {{else if eq $s4 "active"}}
+      <div class="space-y-3">
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-success)] bg-[var(--color-success-light)] rounded-lg px-3 py-2">
+          <i class="fas fa-check-circle"></i> Fully Paid
+        </div>
+        <button class="w-full py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
+          onclick="updateBookingStatusFromCard({{$booking.id}}, 'completed')">
+          <i class="fas fa-check-double mr-1"></i>Complete Service
+        </button>
+      </div>
+
+      {{else if $isCompleted}}
+      <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
+        <i class="fas fa-check-double mr-1"></i>Service completed
+      </div>
+      {{end}}
+
+      <!-- Timestamp -->
+      <div class="mt-2 text-right">
+        <span class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</span>
+      </div>
     </div>
   </div>
 </div>

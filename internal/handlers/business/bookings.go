@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"time"
@@ -88,29 +87,6 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking, "service_name": service.Name})
 }
 
-// Helper functions
-func parseBookingDateTime(bookingDateTime string) (time.Time, error) {
-	parts := strings.Split(bookingDateTime, "T")
-	if len(parts) != 2 {
-		return time.Time{}, fmt.Errorf("invalid datetime format, expected dateTtime")
-	}
-
-	date, err := time.Parse("2006-01-02", parts[0])
-	if err != nil {
-		return time.Time{}, fmt.Errorf("invalid date: %v", err)
-	}
-
-	timeOnly, err := time.Parse("15:04", parts[1])
-	if err != nil {
-		return time.Time{}, fmt.Errorf("invalid time: %v", err)
-	}
-
-	result := time.Date(date.Year(), date.Month(), date.Day(),
-		timeOnly.Hour(), timeOnly.Minute(), 0, 0, time.UTC)
-
-	return result, nil
-}
-
 func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
@@ -125,7 +101,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	}
 
 	var bookings []models.Booking
-	h.db.Where("business_id = ?", businessID).Find(&bookings)
+	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ?", businessID).Find(&bookings)
 
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	var totalRevenue float64
@@ -134,7 +110,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		switch booking.Status {
 		case "pending":
 			pendingCount++
-		case "confirmed":
+		case "client_confirmed":
 			confirmedCount++
 		case "completed":
 			completedCount++
@@ -206,10 +182,10 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 
 	newStatus := request.Status
 	validTransitions := map[string][]string{
-		"pending":   {"confirmed", "cancelled"},
-		"confirmed": {"completed", "cancelled"},
-		"completed": {},
-		"cancelled": {},
+		"pending":          {"cancelled"},
+		"client_confirmed": {"completed", "cancelled"},
+		"completed":        {},
+		"cancelled":        {},
 	}
 
 	allowed, ok := validTransitions[booking.Status]
@@ -240,6 +216,79 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
+}
+
+// MarkBookingAsPaid sets the booking's paid amount to the total (quick mark as fully paid)
+func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	bookingIDStr := c.Param("id")
+	bookingID, _ := strconv.ParseUint(bookingIDStr, 10, 32)
+
+	var booking models.Booking
+	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+		return
+	}
+
+	if booking.Status != "client_confirmed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking must be confirmed before marking as paid"})
+		return
+	}
+
+	booking.PaidAmount = booking.TotalAmount
+	booking.UpdatedAt = time.Now()
+	h.db.Save(&booking)
+
+	h.db.Create(&models.Payment{
+		BookingID: &booking.ID,
+		ClientID:  booking.ClientID,
+		Amount:    booking.TotalAmount,
+		Method:    "cash",
+		Status:    "completed",
+		Reference: "quick-paid",
+		Notes:     "Marked as paid from dashboard",
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Booking marked as paid",
+	})
+}
+
+// GetBookingReceipt renders a print-friendly receipt for a completed booking
+func (h *BusinessHandler) GetBookingReceipt(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.Redirect(http.StatusFound, "/business/login")
+		return
+	}
+
+	bookingID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Invalid booking ID"})
+		return
+	}
+
+	var booking models.Booking
+	if err := h.db.Preload("Client").Preload("BookingItems.Service").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Booking not found"})
+		return
+	}
+
+	if booking.Status != "completed" {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Booking is not completed"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "receipt_booking.html", gin.H{
+		"Booking":  booking,
+		"Business": booking.Business,
+	})
 }
 
 func (h *BusinessHandler) UpdateBooking(c *gin.Context) {
@@ -311,13 +360,14 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 	}
 
 	var request struct {
-		ClientID    uint   `json:"client_id" binding:"required"`
-		ServiceID   uint   `json:"service_id" binding:"required"`
-		clientName  string `json:"client_name" binding:"required"`
-		clientEmail string `json:"client_email"`
-		clientPhone string `json:"client_phone"`
-		BookingDate string `json:"booking_date" binding:"required"`
-		Notes       string `json:"notes"`
+		ClientID      uint   `json:"client_id"`
+		ServiceID     uint   `json:"service_id" binding:"required"`
+		CustomerName  string `json:"customer_name"`
+		CustomerEmail string `json:"customer_email"`
+		CustomerPhone string `json:"customer_phone"`
+		BookingDate   string `json:"booking_date" binding:"required"`
+		Notes         string `json:"notes"`
+		MarkCompleted bool   `json:"mark_completed"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -333,18 +383,36 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		return
 	}
 
-	// Create or get client
+	// Get or create client
 	var client models.Client
-	if err := h.db.Where("id = ? AND business_id = ?", request.ClientID, businessID).First(&client).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
-		return
+	if request.ClientID > 0 {
+		if err := h.db.First(&client, request.ClientID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
+			return
+		}
+	} else {
+		client = models.Client{
+			BusinessID: &businessID,
+			Name:       request.CustomerName,
+			Email:      request.CustomerEmail,
+			Phone:      request.CustomerPhone,
+		}
+		if err := h.db.Create(&client).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
+			return
+		}
 	}
 
 	// Parse booking date
-	bookingDate, err := parseBookingDateTime(request.BookingDate)
+	bookingDate, err := time.Parse(time.RFC3339, request.BookingDate)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
 		return
+	}
+
+	status := "pending"
+	if request.MarkCompleted {
+		status = "completed"
 	}
 
 	// Create booking
@@ -352,12 +420,16 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		BusinessID:    businessID,
 		ClientID:      client.ID,
 		BookingNumber: generateBookingNumber(),
-		Status:        "pending",
+		Status:        status,
 		Sender:        "business",
 		ScheduledDate: bookingDate,
 		Duration:      service.Duration,
 		TotalAmount:   service.MaxPrice,
 		Notes:         request.Notes,
+	}
+
+	if request.MarkCompleted {
+		booking.PaidAmount = booking.TotalAmount
 	}
 
 	if err := h.db.Create(&booking).Error; err != nil {
@@ -376,6 +448,18 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 	if err := h.db.Create(&bookingItem).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking item"})
 		return
+	}
+
+	// If mark_completed, create payment record
+	if request.MarkCompleted {
+		payment := models.Payment{
+			BookingID: &booking.ID,
+			Amount:    booking.TotalAmount,
+			Method:    "cash",
+			Status:    "completed",
+			Reference: "Walk-in counter payment",
+		}
+		h.db.Create(&payment)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

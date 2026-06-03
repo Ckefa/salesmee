@@ -50,6 +50,7 @@
       {{end}}
 
       <form method="POST" action="/business/register/step3?token={{.Token}}" id="registerForm">
+        {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
         <input type="hidden" name="name" value="{{.Name}}">
         <input type="hidden" name="username" value="{{.Username}}">
         <input type="hidden" name="email" value="{{.Email}}">

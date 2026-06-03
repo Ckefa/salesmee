@@ -10,6 +10,7 @@ import (
 
 	"salesmee/internal/db"
 	"salesmee/internal/handlers"
+	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 
@@ -24,18 +25,18 @@ func ShowClientLogin(c *gin.Context) {
 			return
 		}
 	}
-	c.HTML(200, "client_login.html", gin.H{
+	c.HTML(200, "client_login.html", middleware.TemplateData(c, gin.H{
 		"Title": "Client Login - SalesMee",
-	})
+	}))
 }
 
 func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
-		c.HTML(400, "client_login.html", gin.H{
+		c.HTML(400, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Login - SalesMee",
 			"Error": "Email is required",
-		})
+		}))
 		return
 	}
 
@@ -50,27 +51,27 @@ func SendClientOTP(c *gin.Context) {
 			Status: models.StatusNew,
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
-			c.HTML(500, "client_login.html", gin.H{
+			c.HTML(500, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account",
-			})
+			}))
 			return
 		}
 	}
 
 	_, err = services.SendClientOTP(email)
 	if err != nil {
-		c.HTML(400, "client_login.html", gin.H{
+		c.HTML(400, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Login - SalesMee",
 			"Error": "Failed to send OTP",
-		})
+		}))
 		return
 	}
 
-	c.HTML(200, "client_otp.html", gin.H{
+	c.HTML(200, "client_otp.html", middleware.TemplateData(c, gin.H{
 		"Title": "Enter OTP - SalesMee",
 		"Email": email,
-	})
+	}))
 }
 
 func VerifyClientOTP(c *gin.Context) {
@@ -78,21 +79,21 @@ func VerifyClientOTP(c *gin.Context) {
 	otpCode := c.PostForm("otp")
 
 	if email == "" || otpCode == "" {
-		c.HTML(400, "client_otp.html", gin.H{
+		c.HTML(400, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Email and OTP are required",
-		})
+		}))
 		return
 	}
 
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
-		c.HTML(400, "client_otp.html", gin.H{
+		c.HTML(400, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Invalid or expired OTP",
-		})
+		}))
 		return
 	}
 
@@ -111,11 +112,11 @@ func VerifyClientOTP(c *gin.Context) {
 	// Generate JWT token
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
-		c.HTML(500, "client_otp.html", gin.H{
+		c.HTML(500, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Failed to generate token",
-		})
+		}))
 		return
 	}
 
@@ -262,6 +263,16 @@ func GetClientMessages(c *gin.Context) {
 		return
 	}
 
+	// Get business info (need currency for order/booking data)
+	var business struct {
+		ID           uint   `json:"id"`
+		Name         string `json:"name"`
+		BusinessType string `json:"business_type"`
+		Logo         string `json:"logo"`
+		Currency     string `json:"currency"`
+	}
+	db.DB.Raw("SELECT id, name, business_type, logo, currency FROM businesses WHERE id = ?", businessID).First(&business)
+
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
 	for _, msg := range messages {
@@ -338,23 +349,41 @@ func GetClientMessages(c *gin.Context) {
 			actionRequired = "none"
 		}
 
+		remaining := order.TotalAmount - order.PaidAmount
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		var orderPaymentMethods []models.PaymentMethod
+		db.DB.Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
+
+		var orderPendingAmt float64
+		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
+			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
+
 		orderData := map[string]interface{}{
-			"id":                 order.ID,
-			"order_number":       order.OrderNumber,
-			"status":             order.Status,
-			"client_confirmed":   order.ConfirmedByClient,
-			"business_confirmed": order.ConfirmedByBusiness,
-			"action_required":    actionRequired,
-			"editable":           editable,
-			"sender":             order.Sender,
-			"draft":              order.Draft,
-			"items":              items,
-			"total_amount":       order.TotalAmount,
-			"quantity":           order.Quantity,
-			"notes":              order.Notes,
-			"product_names":      productNames,
-			"first_product_name": firstProductName,
-			"created_at":         order.CreatedAt,
+			"id":                   order.ID,
+			"order_number":         order.OrderNumber,
+			"status":               order.Status,
+			"client_confirmed":     order.ConfirmedByClient,
+			"business_confirmed":   order.ConfirmedByBusiness,
+			"action_required":      actionRequired,
+			"editable":             editable,
+			"sender":               order.Sender,
+			"draft":                order.Draft,
+			"items":                items,
+			"total_amount":         order.TotalAmount,
+			"paid_amount":          order.PaidAmount,
+			"pending_amount":       orderPendingAmt,
+			"remaining":            remaining,
+			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+			"quantity":             order.Quantity,
+			"notes":                order.Notes,
+			"currency":             business.Currency,
+			"product_names":        productNames,
+			"first_product_name":   firstProductName,
+			"created_at":           order.CreatedAt,
+			"payment_methods":      orderPaymentMethods,
 		}
 
 		messageObjs = append(messageObjs, MessageObj{
@@ -385,19 +414,48 @@ func GetClientMessages(c *gin.Context) {
 			}
 		}
 
+		bookingRemaining := booking.TotalAmount - booking.PaidAmount
+		if bookingRemaining < 0 {
+			bookingRemaining = 0
+		}
+
+		var bookingPaymentMethods []models.PaymentMethod
+		db.DB.Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
+
+		var bookingPendingAmt float64
+		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
+			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
+
+		var bookingActionRequired string
+		if booking.Status == "pending" {
+			bookingActionRequired = "client"
+		} else if booking.Status == "client_confirmed" && booking.PaidAmount < booking.TotalAmount {
+			bookingActionRequired = "client"
+		} else {
+			bookingActionRequired = "none"
+		}
+
 		bookingData := map[string]interface{}{
-			"id":                booking.ID,
-			"booking_number":    booking.BookingNumber,
-			"service_id":        firstServiceID,
-			"status":            booking.Status,
-			"scheduled_date":    booking.ScheduledDate.Format("Jan 2, 2006 3:04 PM"),
-			"scheduled_date_iso": booking.ScheduledDate.Format("2006-01-02"),
-			"scheduled_time_iso": booking.ScheduledDate.Format("15:04"),
-			"duration":          booking.Duration,
-			"total_amount":      booking.TotalAmount,
-			"notes":             booking.Notes,
-			"created_at":        booking.CreatedAt,
-			"service_names":     serviceNames,
+			"id":                   booking.ID,
+			"booking_number":       booking.BookingNumber,
+			"service_id":           firstServiceID,
+			"status":               booking.Status,
+			"scheduled_date":       booking.ScheduledDate.Format("Jan 2, 2006 3:04 PM"),
+			"scheduled_date_iso":   booking.ScheduledDate.Format("2006-01-02"),
+			"scheduled_time_iso":   booking.ScheduledDate.Format("15:04"),
+			"duration":             booking.Duration,
+			"total_amount":         booking.TotalAmount,
+			"paid_amount":          booking.PaidAmount,
+			"pending_amount":       bookingPendingAmt,
+			"remaining":            bookingRemaining,
+			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
+			"notes":                booking.Notes,
+			"sender":               booking.Sender,
+			"action_required":      bookingActionRequired,
+			"currency":             business.Currency,
+			"created_at":           booking.CreatedAt,
+			"service_names":        serviceNames,
+			"payment_methods":      bookingPaymentMethods,
 		}
 
 		messageObjs = append(messageObjs, MessageObj{
@@ -418,15 +476,6 @@ func GetClientMessages(c *gin.Context) {
 			}
 		}
 	}
-
-	// Get business info
-	var business struct {
-		ID           uint   `json:"id"`
-		Name         string `json:"name"`
-		BusinessType string `json:"business_type"`
-		Logo         string `json:"logo"`
-	}
-	db.DB.Raw("SELECT id, name, business_type, logo FROM businesses WHERE id = ?", businessID).First(&business)
 
 	c.HTML(200, "client_chat.html", gin.H{
 		"Business":    business,
@@ -907,5 +956,38 @@ func ClientCancelBooking(c *gin.Context) {
 		"success": true,
 		"booking": booking,
 		"message": "Booking cancelled successfully",
+	})
+}
+
+// ClientConfirmBooking allows a client to confirm/approve a booking
+func ClientConfirmBooking(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	bookingIDStr := c.Param("id")
+
+	bookingID, err := strconv.ParseUint(bookingIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid booking ID"})
+		return
+	}
+
+	var booking models.Booking
+	if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+		return
+	}
+
+	if booking.Status != "pending" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking cannot be confirmed in current status"})
+		return
+	}
+
+	booking.Status = "client_confirmed"
+	booking.UpdatedAt = time.Now()
+	db.DB.Save(&booking)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"booking": booking,
+		"message": "Booking confirmed! Waiting for business to complete.",
 	})
 }

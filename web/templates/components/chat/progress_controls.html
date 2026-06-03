@@ -1,12 +1,12 @@
 {{define "progress_controls"}}
 {{$circ := 301.59}}
 {{$offset := sub $circ (mul $circ (div (float .Progress.ProgressScore) 100))}}
-<div class="bg-[var(--color-surface-secondary)] border-b border-[var(--color-border)] px-6 py-3">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <span class="text-sm font-medium text-[var(--color-text-secondary)]">Conversation Progress:</span>
+<div class="bg-[var(--color-surface-secondary)] border-b border-[var(--color-border)] px-4 sm:px-6 py-2 sm:py-3">
+  <div class="flex items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-3">
+      <span class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)] whitespace-nowrap">Progress:</span>
       <select
-        class="conversation-progress-dropdown px-3 py-1 border border-[var(--color-border)] rounded-lg text-sm bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-teal-500"
+        class="conversation-progress-dropdown px-2 sm:px-3 py-1 border border-[var(--color-border)] rounded-lg text-xs sm:text-sm bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-teal-500 max-w-[120px] sm:max-w-none"
         data-conversation-id="{{.Customer.ConversationID}}">
         <option value="initial" {{if eq .Progress.CurrentStage "initial" }}selected{{end}}>Initial Contact</option>
         <option value="qualification" {{if eq .Progress.CurrentStage "qualification" }}selected{{end}}>Qualification
@@ -18,12 +18,12 @@
         <option value="completed" {{if eq .Progress.CurrentStage "completed" }}selected{{end}}>Completed</option>
         <option value="follow_up" {{if eq .Progress.CurrentStage "follow_up" }}selected{{end}}>Follow Up</option>
       </select>
-      <button class="save-chat-progress-btn px-3 py-1 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
+      <button class="save-chat-progress-btn px-2 sm:px-3 py-1 bg-teal-600 text-white rounded-lg text-xs sm:text-sm hover:bg-teal-700 whitespace-nowrap"
         data-conversation-id="{{.Customer.ConversationID}}">
-        <i class="fas fa-save mr-1"></i>Save Progress
+        <i class="fas fa-save mr-1"></i>Save
       </button>
     </div>
-    <div class="relative w-16 h-16 flex-shrink-0">
+    <div class="relative w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0">
       <svg class="w-full h-full rotate-90" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="48" fill="none" stroke="var(--color-border)" stroke-width="14"/>
         <circle cx="60" cy="60" r="48" fill="none" stroke="var(--color-info)" stroke-width="12"
@@ -35,8 +35,8 @@
         <circle cx="60" cy="60" r="38" fill="none" stroke="var(--color-text-inverse)" stroke-width="3" opacity="0.5"/>
       </svg>
       <div class="absolute inset-0 flex items-center justify-center flex-col">
-        <span class="text-sm font-black text-[var(--color-text)] leading-none">{{.Progress.ProgressScore}}%</span>
-        <span class="text-[9px] font-semibold text-[var(--color-primary)] mt-0.5 tracking-wide">COMPLETE</span>
+        <span class="text-xs sm:text-sm font-black text-[var(--color-text)] leading-none">{{.Progress.ProgressScore}}%</span>
+        <span class="text-[7px] sm:text-[9px] font-semibold text-[var(--color-primary)] mt-0.5 tracking-wide hide-mobile">COMPLETE</span>
       </div>
     </div>
   </div>

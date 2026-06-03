@@ -3,6 +3,8 @@
 .opencode*
 node_modules
 tmp
+*.db
 salesmee.db
 node_modules
 web/static/css/dist/
+web/static/uploads

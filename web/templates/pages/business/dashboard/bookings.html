@@ -10,60 +10,45 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   <script src="/static/js/modules/shared.js?v=1"></script>
-  <script>
-    function showBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.remove('hidden');
-    }
-    function hideBusinessProfile() {
-      var el = document.getElementById('businessProfileModal');
-      if (el) el.classList.add('hidden');
-    }
-  </script>
 </head>
 
 <body class="bg-[var(--color-bg)] h-screen">
   <!-- Header -->
-  <header class="bg-[var(--color-primary)] text-white p-4 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <a href="/business/bookings" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden hover:bg-[var(--color-primary-hover)] text-white">
-        <i class="fas fa-bars text-lg"></i>
-      </button>
-      <h1 class="text-xl font-semibold">Bookings</h1>
-    </div>
-    <div class="flex items-center space-x-4">
-      <!-- Desktop: action items shown inline -->
-      <div class="hidden lg:flex items-center space-x-4">
-        <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-primary-hover)]" title="Toggle theme">
-          <i class="fas fa-sun theme-sun"></i>
-          <i class="fas fa-moon theme-moon hidden"></i>
-        </button>
-        <a href="/business/dashboard"
-          class="bg-[var(--color-secondary)] hover:brightness-110 px-4 py-2 rounded-lg flex items-center space-x-2">
-          <i class="fas fa-chart-line"></i>
-          <span>Dashboard</span>
-        </a>
-        <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
-          {{if .Business.Logo}}
-          <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-          {{else}}
-          <div class="w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
-            <i class="fas fa-store text-white text-sm"></i>
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Bookings</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Desktop: action items shown inline -->
+          <div class="hidden lg:flex items-center space-x-4">
+            <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+              {{if .Business.Logo}}
+              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+              {{else}}
+              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+              </div>
+              {{end}}
+              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+            </button>
+            <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
           </div>
-          {{end}}
-          <span class="text-sm font-medium">{{.Business.Name}}</span>
-        </button>
-        <a href="/business/logout" class="hover:bg-[var(--color-primary-hover)] px-3 py-2 rounded-lg">
-          <i class="fas fa-sign-out-alt"></i>
-        </a>
-      </div>
 
       <!-- Mobile: overflow menu trigger -->
       <div class="relative lg:hidden">
-        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost text-white">
+        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost text-[var(--color-text-muted)]">
           <i class="fas fa-ellipsis-v text-lg"></i>
         </button>
         <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
@@ -94,166 +79,252 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
       <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Page Header -->
-          <div class="mb-8 flex justify-between items-center">
+          <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 class="text-2xl font-bold text-[var(--color-text)]">Bookings Management</h2>
-              <p class="mt-1 text-sm text-[var(--color-text-secondary)]">View and manage your service bookings</p>
+              <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Bookings Management</h2>
+              <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">View and manage your service bookings</p>
             </div>
             <button onclick="openQuickBookingModal()"
-              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-              <i class="fas fa-plus"></i>
-              <span>New Booking</span>
+              class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
+              <i class="fas fa-calendar-plus"></i>
+              <span>Quick Booking</span>
             </button>
           </div>
 
           <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
             <!-- Pending Bookings -->
-            <div class="card p-4">
+            <div class="card p-3 sm:p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2.5">
-                  <i class="fas fa-clock text-[var(--color-warning)]"></i>
+                <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2 sm:p-2.5">
+                  <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
                 </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
+                <div class="ml-2 sm:ml-3">
+                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
+                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Confirmed Bookings -->
-            <div class="card p-4">
+            <div class="card p-3 sm:p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2.5">
-                  <i class="fas fa-check-circle text-[var(--color-info)]"></i>
+                <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-2.5">
+                  <i class="fas fa-check-circle text-[var(--color-info)] text-sm sm:text-base"></i>
                 </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
+                <div class="ml-2 sm:ml-3">
+                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
+                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Completed Bookings -->
-            <div class="card p-4">
+            <div class="card p-3 sm:p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2.5">
-                  <i class="fas fa-check text-[var(--color-success)]"></i>
+                <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-2.5">
+                  <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
                 </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
+                <div class="ml-2 sm:ml-3">
+                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
+                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
                 </div>
               </div>
             </div>
 
-            <!-- Canceled Bookings -->
-            <div class="card p-4">
+            <!-- Cancelled Bookings -->
+            <div class="card p-3 sm:p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2.5">
-                  <i class="fas fa-times text-[var(--color-error)]"></i>
+                <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2 sm:p-2.5">
+                  <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
                 </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
+                <div class="ml-2 sm:ml-3">
+                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
+                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Total Bookings -->
-            <div class="card p-4">
+            <div class="card p-3 sm:p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2.5">
-                  <i class="fas fa-calendar-check text-[var(--color-secondary)]"></i>
+                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
+                  <i class="fas fa-calendar-check text-[var(--color-secondary)] text-sm sm:text-base"></i>
                 </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
+                <div class="ml-2 sm:ml-3">
+                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
+                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
                 </div>
               </div>
             </div>
 
             <!-- Total Revenue -->
-            <div class="card p-4">
+            <div class="card p-3 sm:p-4">
               <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2.5">
-                  <i class="fas fa-dollar-sign text-[var(--color-secondary)]"></i>
+                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
+                  <i class="fas fa-dollar-sign text-[var(--color-secondary)] text-sm sm:text-base"></i>
                 </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
-                  <p class="text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
+                <div class="ml-2 sm:ml-3">
+                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
+                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Search & Filter -->
+          <div class="flex flex-col gap-3 mb-2">
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-[var(--color-text-muted)] text-xs"></i>
+              </div>
+              <input type="text" id="bookingSearch" placeholder="Search by booking #, customer, or service..."
+                class="input pl-9 text-sm">
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <select id="bookingSearchField" class="input text-sm">
+                <option value="all">All Fields</option>
+                <option value="number">Booking #</option>
+                <option value="customerName">Customer Name</option>
+                <option value="customerEmail">Email</option>
+              </select>
+              <select id="bookingStatusFilter" class="input text-sm">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="client_confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
+                <i class="fas fa-times mr-1"></i>Clear
+              </button>
+            </div>
+          </div>
+          <div class="flex justify-between items-center mb-4">
+            <span id="bookingResultsCount" class="text-xs text-[var(--color-text-muted)]"></span>
+          </div>
+
           <!-- Bookings Table -->
           <div class="bg-[var(--color-surface)] card overflow-hidden">
-            <div class="px-6 py-4 border-b border-[var(--color-border)]">
-              <h3 class="text-lg font-medium text-[var(--color-text)]">All Bookings</h3>
+            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
+              <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">All Bookings</h3>
             </div>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-[var(--color-border)]">
                 <thead class="bg-[var(--color-surface-secondary)]">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Booking #
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Booking #
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Service
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Service
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Amount
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Amount
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
+                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
                     </th>
+                    <th class="px-3 sm:px-6 py-3 text-center text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Receipt</th>
                   </tr>
                 </thead>
-                <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
+                <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]" id="bookingsTableBody">
                   {{range .Bookings}}
-                  <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{.Client.Name}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{range
-                      .BookingItems}}{{.Service.Name}}{{end}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">
+                  {{$isPending := eq .Status "pending"}}
+                  {{$isConfirmed := eq .Status "client_confirmed"}}
+                  {{$isCompleted := eq .Status "completed"}}
+                  {{$isCancelled := eq .Status "cancelled"}}
+                  {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
+                  <tr data-status="{{.Status}}"
+                    data-number="{{.BookingNumber}}"
+                    data-customer-name="{{.Client.Name}}"
+                    data-customer-email="{{.Client.Email}}">
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
+                      <div class="font-medium">{{.Client.Name}}</div>
+                      <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
+                      <div class="font-medium">{{range .BookingItems}}{{.Service.Name}}{{end}}</div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">
                       {{.ScheduledDate.Format "2006-01-02 15:04"}}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{if eq
-                        .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "confirmed"
-                        }}bg-[var(--color-success-light)] text-[var(--color-success)] {{else if eq .Status "completed" }}bg-[var(--color-info-light)] text-[var(--color-info)]
+                        .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "client_confirmed"
+                        }}bg-[var(--color-info-light)] text-[var(--color-info)] {{else if eq .Status "completed" }}bg-[var(--color-success-light)] text-[var(--color-success)]
                         {{else if eq .Status "cancelled" }}bg-[var(--color-error-light)] text-[var(--color-error)] {{else}}bg-[var(--color-surface-tertiary)]
                         text-[var(--color-text-secondary)]{{end}}">
-                        {{.Status}}
+                        {{if eq .Status "pending"}}Pending{{else if eq .Status "client_confirmed"}}Confirmed{{else if eq .Status "completed"}}Completed{{else if eq .Status "cancelled"}}Cancelled{{else}}{{.Status}}{{end}}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div class="flex items-center space-x-2">
-                        <select onchange="updateBookingStatus(this)" data-booking-id="{{.ID}}"
-                          class="input text-sm">
-                          <option value="pending" {{if eq .Status "pending" }}selected{{end}}>Pending</option>
-                          <option value="confirmed" {{if eq .Status "confirmed" }}selected{{end}}>Confirmed</option>
-                          <option value="completed" {{if eq .Status "completed" }}selected{{end}}>Completed</option>
-                          <option value="cancelled" {{if eq .Status "cancelled" }}selected{{end}}>Cancelled</option>
-                        </select>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
+                      <button onclick="toggleDropdown('bookingActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
+                        <i class="fas fa-ellipsis-v text-[var(--color-text-muted)]"></i>
+                      </button>
+                      <div id="bookingActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
+                        <div class="py-1">
+                          {{if not $isCancelled}}
+                          <span class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold block">Steps</span>
+                          <button onclick=";" class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-warning)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                            <i class="fas fa-clock w-4 {{if $isPending}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"></i>Pending
+                          </button>
+                          <button onclick="{{if $isPending}}approveBooking({{.ID}}){{else}};{{end}}"
+                            class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-info)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                            <i class="fas fa-check-circle w-4 {{if $isPending}}text-[var(--color-info)]{{else}}opacity-40{{end}}"></i>Confirmed
+                          </button>
+                          <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markBookingAsPaid({{.ID}}){{else}};{{end}}"
+                            class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                            <i class="fas fa-credit-card w-4 {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"></i>Paid
+                          </button>
+                          <button onclick="{{if and $isConfirmed $isFullyPaid}}completeBooking({{.ID}}){{else}};{{end}}"
+                            class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                            <i class="fas fa-check-double w-4 {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"></i>Completed
+                          </button>
+                          {{if not $isCompleted}}
+                          <hr class="border-t border-[var(--color-border)] my-1">
+                          <button onclick="cancelBooking({{.ID}})" class="w-full text-left px-3 py-2 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] flex items-center gap-2">
+                            <i class="fas fa-times w-4"></i>Cancel
+                          </button>
+                          {{end}}
+                          {{else}}
+                          <div class="px-3 py-2 text-xs text-[var(--color-text-muted)]">Cancelled</div>
+                          {{end}}
+                        </div>
                       </div>
+                    </td>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                      {{if $isCompleted}}
+                      <button onclick="window.open('/business/bookings/{{.ID}}/receipt', '_blank')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition text-[var(--color-text-muted)] hover:text-[var(--color-success)]" title="Print Receipt">
+                        <i class="fas fa-receipt"></i>
+                      </button>
+                      {{end}}
                     </td>
                   </tr>
                   {{else}}
                   <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-sm text-[var(--color-text-muted)]">
-                      No bookings found. Create your first booking to get started.
+                    <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
+                      <i class="fas fa-calendar-alt text-[var(--color-text-muted)] text-5xl mb-4 block"></i>
+                      <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
+                      <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
+                        <i class="fas fa-plus mr-2"></i>Create your first booking
+                      </button>
                     </td>
                   </tr>
                   {{end}}
+                  <tr id="noBookingsMsg" style="display:none">
+                    <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
+                      <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
+                      <p class="text-sm text-[var(--color-text-secondary)]">No bookings match your search</p>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -264,69 +335,165 @@
   </div>
 
   <!-- Quick Booking Modal -->
-  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-4">
-      <div class="px-6 py-4 border-b border-[var(--color-border)]">
-        <h3 class="text-lg font-medium text-[var(--color-text)]">Create New Booking</h3>
+  <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
+    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-lg w-full mx-3 sm:mx-4 max-h-[80vh] overflow-y-auto p-4 sm:p-5">
+      <div class="mt-3">
+        <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">New Booking</h3>
+
+        <!-- Step Indicator -->
+        <div class="flex items-center justify-center gap-0 mt-4 mb-6">
+          <span id="bkgStep1Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-secondary)] text-white shadow-sm transition-all duration-300">1</span>
+          <span id="bkgStep1Label" class="text-xs font-medium text-[var(--color-secondary)] ml-1.5 transition-colors duration-300">Choose</span>
+          <div id="bkgStep1to2" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-secondary)] transition-colors duration-300"></div>
+          <span id="bkgStep2Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">2</span>
+          <span id="bkgStep2Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Schedule</span>
+          <div id="bkgStep2to3" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300"></div>
+          <span id="bkgStep3Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">3</span>
+          <span id="bkgStep3Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Confirm</span>
+        </div>
+
+        <form id="quickBookingForm" class="space-y-4">
+          <!-- Step 1: Choose Service -->
+          <div id="bkgStep1">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Service</label>
+              <div class="relative mt-1">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+                <input type="text" id="bookingServiceSearch" placeholder="Type to search..." class="input pl-10 text-sm">
+              </div>
+              <div id="bookingServiceResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
+                <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading services...</div>
+              </div>
+              <div id="bookingServiceCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
+              <div id="bookingServiceSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
+                <i class="fas fa-check-circle mr-1"></i><span id="bookingServiceSelectedName"></span>
+              </div>
+              <input type="hidden" id="bookingService" value="">
+            </div>
+          </div>
+
+          <!-- Step 2: Schedule & Customer -->
+          <div id="bkgStep2" class="hidden">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Date</label>
+              <input type="date" id="bookingDate" required class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Time</label>
+              <input type="time" id="bookingTime" required class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
+              <input type="text" id="bookingCustomerName" required class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
+              <input type="email" id="bookingCustomerEmail" class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
+              <input type="tel" id="bookingCustomerPhone" class="input mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
+              <textarea id="bookingNotes" rows="2" class="input mt-1"></textarea>
+            </div>
+          </div>
+
+          <!-- Step 3: Confirm -->
+          <div id="bkgStep3" class="hidden">
+            <div class="bg-[var(--color-surface-secondary)] rounded-lg p-3 sm:p-4 space-y-2">
+              <div class="flex justify-between text-xs sm:text-sm">
+                <span class="text-[var(--color-text-secondary)]">Service</span>
+                <span id="bkgConfirmService" class="font-medium text-[var(--color-text)] text-right">—</span>
+              </div>
+              <div class="flex justify-between text-xs sm:text-sm">
+                <span class="text-[var(--color-text-secondary)]">Date &amp; Time</span>
+                <span id="bkgConfirmDateTime" class="font-medium text-[var(--color-text)] text-right">—</span>
+              </div>
+              <div class="flex justify-between text-xs sm:text-sm">
+                <span class="text-[var(--color-text-secondary)]">Customer</span>
+                <span id="bkgConfirmCustomer" class="font-medium text-[var(--color-text)] text-right">—</span>
+              </div>
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer mt-3">
+              <input type="checkbox" id="bookingCompleted" class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-success)] focus:ring-[var(--color-success)]">
+              <span class="text-xs sm:text-sm text-[var(--color-text-secondary)]">Mark as paid &amp; completed — for walk-in customers</span>
+            </label>
+          </div>
+
+          <!-- Navigation -->
+          <div class="flex justify-between items-center gap-3 pt-4 border-t border-[var(--color-border)]">
+            <button type="button" id="bkgBackBtn" onclick="bkgGoToStep(bkgStep - 1)" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-1.5 rounded text-xs sm:text-sm hidden">
+              <i class="fas fa-arrow-left mr-1"></i>Back
+            </button>
+            <div class="flex gap-3 ml-auto">
+              <button type="button" onclick="hideQuickBookingModal()" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">Cancel</button>
+              <button type="button" id="bkgNextBtn" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm" onclick="bkgNextStep()">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+              <button type="submit" id="bkgSubmitBtn" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm hidden">Create Booking</button>
+            </div>
+          </div>
+        </form>
       </div>
-      <form id="quickBookingForm" class="px-6 py-4 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Service</label>
-          <select id="bookingService" required
-            class="input mt-1">
-            <option value="">Select a service</option>
-            <!-- Services will be loaded dynamically -->
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
-          <input type="text" id="bookingCustomerName" required
-            class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
-          <input type="email" id="bookingCustomerEmail"
-            class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
-          <input type="tel" id="bookingCustomerPhone"
-            class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Date</label>
-          <input type="date" id="bookingDate" required
-            class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Time</label>
-          <input type="time" id="bookingTime" required
-            class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
-          <textarea id="bookingNotes" rows="2"
-            class="input mt-1"></textarea>
-        </div>
-        <div class="flex justify-end space-x-3 pt-4">
-          <button type="button" onclick="hideQuickBookingModal()"
-            class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-4 py-2 rounded">
-            Cancel
-          </button>
-          <button type="submit" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-4 py-2 rounded">
-            Create Booking
-          </button>
-        </div>
-      </form>
     </div>
+  </div>
   </div>
 
   <script>
     const CURRENCY_SYMBOL = '{{currencySymbol .Business.Currency}}';
 
+    // --- Booking Step Navigation ---
+    var bkgStep = 1;
+    function bkgGoToStep(step) {
+      bkgStep = step;
+      document.getElementById('bkgStep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('bkgStep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('bkgStep3').classList.toggle('hidden', step !== 3);
+      document.getElementById('bkgBackBtn').classList.toggle('hidden', step === 1);
+      document.getElementById('bkgNextBtn').classList.toggle('hidden', step === 3);
+      document.getElementById('bkgSubmitBtn').classList.toggle('hidden', step !== 3);
+
+      for (var i = 1; i <= 3; i++) {
+        var ind = document.getElementById('bkgStep' + i + 'Indicator');
+        var lbl = document.getElementById('bkgStep' + i + 'Label');
+        var active = i <= step;
+        ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
+        ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+        if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-secondary)]' : 'text-[var(--color-text-muted)]');
+      }
+      document.getElementById('bkgStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]');
+      document.getElementById('bkgStep2to3').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 3 ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]');
+
+      if (step === 3) bkgRenderSummary();
+    }
+    function bkgNextStep() {
+      if (bkgStep === 1) {
+        if (!document.getElementById('bookingService').value) {
+          showNotification('Please select a service', 'warning');
+          return;
+        }
+        bkgGoToStep(2);
+      } else if (bkgStep === 2) {
+        if (!document.getElementById('bookingDate').value || !document.getElementById('bookingTime').value || !document.getElementById('bookingCustomerName').value) {
+          showNotification('Please fill in date, time, and customer name', 'warning');
+          return;
+        }
+        bkgGoToStep(3);
+      }
+    }
+    function bkgRenderSummary() {
+      var nameEl = document.getElementById('bookingServiceSelectedName');
+      document.getElementById('bkgConfirmService').textContent = nameEl.textContent || '\u2014';
+      var d = document.getElementById('bookingDate').value;
+      var t = document.getElementById('bookingTime').value;
+      document.getElementById('bkgConfirmDateTime').textContent = (d && t) ? d + ' ' + t : '\u2014';
+      document.getElementById('bkgConfirmCustomer').textContent = document.getElementById('bookingCustomerName').value || '\u2014';
+    }
+
     function openQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.remove('hidden');
       document.getElementById('quickBookingModal').classList.add('flex');
+      bkgGoToStep(1);
       loadServices();
     }
 
@@ -336,16 +503,47 @@
       document.getElementById('quickBookingForm').reset();
     }
 
+    var bookingServicesList = [];
+
+    function renderBookingServices(filter) {
+      const container = document.getElementById('bookingServiceResults');
+      const countEl = document.getElementById('bookingServiceCount');
+      const selectedId = document.getElementById('bookingService').value;
+      const filtered = filter ? bookingServicesList.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())) : bookingServicesList;
+      container.innerHTML = filtered.length ? filtered.map(s => {
+        const isSelected = String(s.id) === selectedId;
+        return '<div data-id="' + s.id + '" data-name="' + s.name.replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + s.name + '</div>';
+      }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No services found</div>';
+      countEl.textContent = filtered.length + ' of ' + bookingServicesList.length + ' services';
+    }
+    function selectBookingService(el) {
+      const id = el.dataset.id;
+      const name = el.dataset.name;
+      document.getElementById('bookingService').value = id;
+      document.getElementById('bookingServiceSelectedName').textContent = name;
+      document.getElementById('bookingServiceSelected').classList.remove('hidden');
+      renderBookingServices(document.getElementById('bookingServiceSearch').value);
+    }
+
     function loadServices() {
-      return fetch('/services')
-        .then(response => response.json())
-        .then(data => {
-          const select = document.getElementById('bookingService');
-          select.innerHTML = '<option value="">Select a service</option>';
-          data.services.forEach(service => {
-            select.innerHTML += `<option value="${service.id}">${service.name} - ${CURRENCY_SYMBOL}${service.max_price}</option>`;
+      return fetch('/business/services')
+        .then(response => response.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const serviceCards = doc.querySelectorAll('[data-service-id]');
+          bookingServicesList = [];
+          serviceCards.forEach(card => {
+            bookingServicesList.push({
+              id: card.dataset.serviceId,
+              name: card.querySelector('h3')?.textContent || 'Unknown Service'
+            });
           });
-          return data.services;
+          document.getElementById('bookingService').value = '';
+          document.getElementById('bookingServiceSelected').classList.add('hidden');
+          document.getElementById('bookingServiceSearch').value = '';
+          renderBookingServices('');
+          return serviceCards;
         })
         .catch(error => {
           console.error('Error loading services:', error);
@@ -353,31 +551,53 @@
         });
     }
 
-    function updateBookingStatus(selectElement) {
-      const bookingId = selectElement.getAttribute('data-booking-id');
-      const status = selectElement.value;
-
+    function approveBooking(bookingId) {
       fetch(`/business/bookings/${bookingId}/status`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({status: status})
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: JSON.stringify({status: 'client_confirmed'})
       })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert('Failed to update booking status');
-          }
-        })
-        .catch(error => console.error('Error:', error));
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to approve booking', 'error'); })
+        .catch(() => showNotification('Failed to approve booking', 'error'));
+    }
+
+    function markBookingAsPaid(bookingId) {
+      fetch(`/business/bookings/${bookingId}/paid`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to mark as paid', 'error'); })
+        .catch(() => showNotification('Failed to mark as paid', 'error'));
+    }
+
+    function completeBooking(bookingId) {
+      fetch(`/business/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: JSON.stringify({status: 'completed'})
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to complete booking', 'error'); })
+        .catch(() => showNotification('Failed to complete booking', 'error'));
+    }
+
+    function cancelBooking(bookingId) {
+      if (!confirm('Are you sure you want to cancel this booking?')) return;
+      fetch(`/business/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: JSON.stringify({status: 'cancelled'})
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
+        .catch(() => showNotification('Failed to cancel booking', 'error'));
     }
 
     function editBooking(bookingId) {
       // Fetch booking data and populate form
-      fetch(`/bookings/${bookingId}`)
+      fetch(`/business/bookings/${bookingId}`)
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -416,12 +636,12 @@
             document.getElementById('quickBookingModal').classList.remove('hidden');
             document.getElementById('quickBookingModal').classList.add('flex');
           } else {
-            alert('Failed to load booking data');
+            showNotification('Failed to load booking data', 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Failed to load booking data');
+          showNotification('Failed to load booking data', 'error');
         });
     }
 
@@ -442,20 +662,22 @@
         customer_email: document.getElementById('bookingCustomerEmail').value,
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: bookingDateTime,
-        notes: document.getElementById('bookingNotes').value
+        notes: document.getElementById('bookingNotes').value,
+        mark_completed: document.getElementById('bookingCompleted').checked
       };
 
       // Check if this is an edit or create
       const bookingId = this.getAttribute('data-booking-id');
       const isEdit = bookingId && bookingId !== '';
 
-      const url = isEdit ? `/bookings/${bookingId}` : '/bookings';
+      const url = isEdit ? `/business/bookings/${bookingId}` : '/business/bookings';
       const method = isEdit ? 'PUT' : 'POST';
 
       fetch(url, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie('csrf_token')
         },
         body: JSON.stringify(bookingData)
       })
@@ -467,13 +689,76 @@
             this.removeAttribute('data-booking-id');
             location.reload();
           } else {
-            alert(data.error || `Failed to ${isEdit ? 'update' : 'create'} booking`);
+            showNotification(data.error || `Failed to ${isEdit ? 'update' : 'create'} booking`, 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert(`Failed to ${isEdit ? 'update' : 'create'} booking`);
+          showNotification(`Failed to ${isEdit ? 'update' : 'create'} booking`, 'error');
         });
+    });
+
+    function filterBookings() {
+      const search = document.getElementById('bookingSearch').value.toLowerCase().trim();
+      const field = document.getElementById('bookingSearchField').value;
+      const status = document.getElementById('bookingStatusFilter').value;
+      const totalRows = document.querySelectorAll('#bookingsTableBody tr[data-status]');
+      const allRows = document.querySelectorAll('#bookingsTableBody tr[data-number]');
+      let visibleCount = 0;
+
+      const hasFilters = search || status;
+      document.getElementById('clearBookingFilters').classList.toggle('hidden', !hasFilters);
+
+      allRows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const matchStatus = !status || rowStatus === status;
+
+        let matchSearch = true;
+        if (search) {
+          let targets = [];
+          if (field === 'all') {
+            targets = [row.getAttribute('data-number'), row.getAttribute('data-customer-name'), row.getAttribute('data-customer-email')];
+          } else if (field === 'number') {
+            targets = [row.getAttribute('data-number')];
+          } else if (field === 'customerName') {
+            targets = [row.getAttribute('data-customer-name')];
+          } else if (field === 'customerEmail') {
+            targets = [row.getAttribute('data-customer-email')];
+          }
+          matchSearch = targets.some(t => t && t.toLowerCase().includes(search));
+        }
+
+        const show = matchSearch && matchStatus;
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+
+      document.getElementById('noBookingsMsg').style.display = visibleCount === 0 && totalRows.length > 0 ? '' : 'none';
+      document.getElementById('bookingResultsCount').textContent = hasFilters ? `${visibleCount} of ${allRows.length} results` : '';
+    }
+
+    document.getElementById('bookingSearch').addEventListener('input', filterBookings);
+    document.getElementById('bookingServiceSearch')?.addEventListener('input', function() { renderBookingServices(this.value); });
+    document.getElementById('bookingSearchField').addEventListener('change', filterBookings);
+    document.getElementById('bookingStatusFilter').addEventListener('change', filterBookings);
+    document.getElementById('clearBookingFilters').addEventListener('click', function() {
+      document.getElementById('bookingSearch').value = '';
+      document.getElementById('bookingSearchField').value = 'all';
+      document.getElementById('bookingStatusFilter').value = '';
+      filterBookings();
+    });
+
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      const isHidden = menu.classList.contains('hidden');
+      document.querySelectorAll('[id^="bookingActions-"]').forEach(el => el.classList.add('hidden'));
+      if (isHidden) menu.classList.remove('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('[onclick^="toggleDropdown"]') && !e.target.closest('[id^="bookingActions-"]')) {
+        document.querySelectorAll('[id^="bookingActions-"]').forEach(el => el.classList.add('hidden'));
+      }
     });
   </script>
 

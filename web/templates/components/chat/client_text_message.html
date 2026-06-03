@@ -2,8 +2,8 @@
 {{if eq .Sender "client"}}
 <div class="flex justify-end">
   <div class="max-w-[85%] lg:max-w-md">
-    <div class="bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg px-4 py-2">
-      <p class="text-sm">{{.Value}}</p>
+    <div class="bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg px-3 sm:px-4 py-1.5 sm:py-2">
+      <p class="text-xs sm:text-sm">{{.Value}}</p>
     </div>
     <div class="flex items-center justify-between mt-1">
       <p class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</p>
@@ -13,8 +13,8 @@
 {{else}}
 <div class="flex justify-start">
   <div class="max-w-[85%] lg:max-w-md">
-    <div class="bg-[var(--color-surface-tertiary)] text-[var(--color-text)] rounded-lg px-4 py-2">
-      <p class="text-sm">{{.Value}}</p>
+    <div class="bg-[var(--color-surface-tertiary)] text-[var(--color-text)] rounded-lg px-3 sm:px-4 py-1.5 sm:py-2">
+      <p class="text-xs sm:text-sm">{{.Value}}</p>
     </div>
     <div class="flex items-center justify-between mt-1">
       <p class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</p>

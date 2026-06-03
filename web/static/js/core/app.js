@@ -120,7 +120,7 @@ class SalesMeeApp {
 
     startHeartbeat() {
         setInterval(function() {
-            fetch('/client/heartbeat', { method: 'POST' })
+            fetch('/client/heartbeat', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
                 .catch(function() {});
         }, 30000);
     }

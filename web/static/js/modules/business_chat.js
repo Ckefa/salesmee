@@ -12,7 +12,7 @@ function scrollToBottom() {
 }
 
 function markAsRead() {
-  fetch(`/business/clients/${clientId}/read`, { method: 'PUT' })
+  fetch(`/business/clients/${clientId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function() {
       var badge = document.querySelector('.client-item[data-client-id="' + clientId + '"] .unread-badge');
       if (badge) badge.remove();
@@ -82,6 +82,7 @@ function updateClientStatus(clientId, status) {
 
   fetch('/business/clients/' + clientId + '/status', {
     method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
     body: formData
   })
     .then(response => {
@@ -163,6 +164,7 @@ function updateConversationStatus(conversationId, stage) {
 
   fetch('/business/conversations/' + conversationId + '/status', {
     method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
     body: formData
   })
     .then(response => {
@@ -200,6 +202,7 @@ function saveChatProgress(conversationId, stage) {
 
   fetch('/business/conversations/' + conversationId + '/status', {
     method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
     body: formData
   })
     .then(response => {
@@ -230,25 +233,10 @@ function saveChatProgress(conversationId, stage) {
 
 
 
-function showNotification(message, type) {
-  const notification = document.createElement('div');
-  notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
-  notification.textContent = message;
-
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
-}
-
-
-
 // ========== Order Lifecycle Functions ==========
 
 function sendOrderToClient(orderId) {
-  if (!confirm('Send this order to the client?')) return;
-  fetch(`/business/orders/${orderId}/send`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/send`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -262,8 +250,9 @@ function sendOrderToClient(orderId) {
 }
 
 function confirmOrderBusiness(orderId) {
-  if (!confirm('Confirm and process this order?')) return;
-  fetch(`/business/orders/${orderId}/confirm`, { method: 'POST' })
+  showConfirmModal({ title: 'Confirm Order', message: 'Confirm this order?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/business/orders/${orderId}/confirm`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -274,11 +263,13 @@ function confirmOrderBusiness(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to confirm order', 'error'); });
+  });
 }
 
 function rejectOrder(orderId) {
-  if (!confirm('Reject this order?')) return;
-  fetch(`/business/orders/${orderId}/reject`, { method: 'POST' })
+  showConfirmModal({ title: 'Reject Order', message: 'Reject this order?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Reject' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/business/orders/${orderId}/reject`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -289,11 +280,47 @@ function rejectOrder(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to reject order', 'error'); });
+  });
+}
+
+function confirmAllOrderPayments(orderId) {
+  showConfirmModal({ title: 'Confirm Payments', message: 'Confirm all pending payments for this order?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/business/orders/${orderId}/payments/confirm-all`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showNotification(data.message || 'Payments confirmed!', 'success');
+        fetchMessages();
+      } else {
+        showNotification(data.error || 'Failed to confirm payments', 'error');
+      }
+    })
+    .catch(e => { console.error(e); showNotification('Failed to confirm payments', 'error'); });
+  });
+}
+
+function fulfillOrder(orderId) {
+  showConfirmModal({ title: 'Complete Order', message: 'Mark this order as completed?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/business/orders/${orderId}/fulfill`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showNotification('Order completed!', 'success');
+        fetchMessages();
+      } else {
+        showNotification(data.error || 'Failed to complete order', 'error');
+      }
+    })
+    .catch(e => { console.error(e); showNotification('Failed to complete order', 'error'); });
+  });
 }
 
 function cancelDraftOrder(orderId) {
-  if (!confirm('Discard this draft order?')) return;
-  fetch(`/business/orders/${orderId}/reject`, { method: 'POST' })
+  showConfirmModal({ title: 'Discard Draft', message: 'Discard this draft order?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Discard' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/business/orders/${orderId}/reject`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -304,10 +331,11 @@ function cancelDraftOrder(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to discard draft', 'error'); });
+  });
 }
 
 function orderItemIncrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/increment`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/items/${productId}/increment`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) fetchMessages();
@@ -316,7 +344,7 @@ function orderItemIncrement(orderId, productId, btn) {
 }
 
 function orderItemDecrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/decrement`, { method: 'POST' })
+  fetch(`/business/orders/${orderId}/items/${productId}/decrement`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) fetchMessages();
@@ -326,11 +354,12 @@ function orderItemDecrement(orderId, productId, btn) {
 
 function updateBookingStatusFromCard(bookingId, newStatus) {
   const action = newStatus === 'confirmed' ? 'confirm' : newStatus === 'completed' ? 'complete' : 'cancel';
-  if (!confirm(`Are you sure you want to ${action} this booking?`)) return;
+  showConfirmModal({ title: action.charAt(0).toUpperCase() + action.slice(1) + ' Booking', message: 'Are you sure you want to ' + action + ' this booking?', confirmText: action.charAt(0).toUpperCase() + action.slice(1), confirmClass: newStatus === 'cancelled' ? 'bg-[var(--color-error)] text-white' : 'bg-[var(--color-primary)] text-white' }).then(function(confirmed) {
+    if (!confirmed) return;
 
-  fetch(`/business/bookings/${bookingId}/status`, {
+    fetch(`/business/bookings/${bookingId}/status`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify({ status: newStatus })
   })
     .then(r => r.json())
@@ -343,6 +372,7 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
       }
     })
     .catch(e => { console.error(e); showNotification(`Failed to ${action} booking`, 'error'); });
+  });
 }
 
 // ========== Message Search ==========

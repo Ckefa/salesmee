@@ -23,14 +23,49 @@
 
 {{template "client_message_input" .}}
 
+{{template "csrf_script" .}}
 <script>
   var businessId = {{.Business.ID}};
   var clientId = {{.Client.ID}};
+  var currencySymbol = '{{currencySymbol .Business.Currency}}';
 </script>
 <script src="/static/js/modules/shared.js"></script>
 <script src="/static/js/modules/client_chat.js"></script>
+<script>
+async function clientSubmitOrderPayment(orderId, maxAmount) {
+  const result = await showPaymentModal(maxAmount, currencySymbol);
+  if (!result) return;
+  fetch('/client/orders/' + orderId + '/payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+    body: JSON.stringify({ amount: result.amount, method: result.method, reference: result.reference || '' })
+  })
+    .then(r => r.json())
+    .then(function(d) {
+      if (d.success) {
+if (typeof showNotification === 'function') showNotification('Payment recorded! Awaiting business confirmation.', 'success');
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to record payment', 'error');
+      }
+    });
+}
 
-{{template "client_order" .}}
-{{template "client_booking" .}}
-{{template "product_picker" .}}
-{{template "service_picker" .}}
+async function clientSubmitBookingPayment(bookingId, maxAmount) {
+  const result = await showPaymentModal(maxAmount, currencySymbol);
+  if (!result) return;
+  fetch('/client/bookings/' + bookingId + '/payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+    body: JSON.stringify({ amount: result.amount, method: result.method, reference: result.reference || '' })
+  })
+    .then(r => r.json())
+    .then(function(d) {
+      if (d.success) {
+if (typeof showNotification === 'function') showNotification('Payment recorded! Awaiting business confirmation.', 'success');
+      } else {
+        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to record payment', 'error');
+      }
+    });
+}
+</script>
+

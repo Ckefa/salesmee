@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"salesmee/internal/db"
+	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 
@@ -52,29 +53,29 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	state := c.Query("state")
 	cookieState, err := c.Cookie("google_oauth_state")
 	if err != nil || state == "" || state != cookieState {
-		c.HTML(400, "business_login.html", gin.H{
+		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
-		})
+		}))
 		return
 	}
 	c.SetCookie("google_oauth_state", "", -1, "/business/auth/google", "", false, true)
 
 	code := c.Query("code")
 	if code == "" {
-		c.HTML(400, "business_login.html", gin.H{
+		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "No authorization code provided.",
-		})
+		}))
 		return
 	}
 
 	user, err := getBusinessGoogleAdapter().ExchangeCode(code)
 	if err != nil {
-		c.HTML(500, "business_login.html", gin.H{
+		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to authenticate with Google.",
-		})
+		}))
 		return
 	}
 
@@ -102,10 +103,10 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
-		c.HTML(500, "business_login.html", gin.H{
+		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token.",
-		})
+		}))
 		return
 	}
 
@@ -124,29 +125,29 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	state := c.Query("state")
 	cookieState, err := c.Cookie("facebook_oauth_state")
 	if err != nil || state == "" || state != cookieState {
-		c.HTML(400, "business_login.html", gin.H{
+		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
-		})
+		}))
 		return
 	}
 	c.SetCookie("facebook_oauth_state", "", -1, "/business/auth/facebook", "", false, true)
 
 	code := c.Query("code")
 	if code == "" {
-		c.HTML(400, "business_login.html", gin.H{
+		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "No authorization code provided.",
-		})
+		}))
 		return
 	}
 
 	user, err := getBusinessFacebookAdapter().ExchangeCode(code)
 	if err != nil {
-		c.HTML(500, "business_login.html", gin.H{
+		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to authenticate with Facebook.",
-		})
+		}))
 		return
 	}
 
@@ -174,10 +175,10 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
-		c.HTML(500, "business_login.html", gin.H{
+		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token.",
-		})
+		}))
 		return
 	}
 
@@ -193,13 +194,13 @@ func ShowRegisterGoogle(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "register_google.html", gin.H{
+	c.HTML(200, "register_google.html", middleware.TemplateData(c, gin.H{
 		"Title":     "Complete Registration - SalesMee",
 		"Token":     tok,
 		"Name":      data.Name,
 		"Email":     data.Email,
 		"AvatarURL": data.AvatarURL,
-	})
+	}))
 }
 
 func CompleteRegisterGoogle(c *gin.Context) {
@@ -212,14 +213,14 @@ func CompleteRegisterGoogle(c *gin.Context) {
 
 	businessType := c.PostForm("business_type")
 	if businessType == "" || !validBusinessTypes[businessType] {
-		c.HTML(200, "register_google.html", gin.H{
+		c.HTML(200, "register_google.html", middleware.TemplateData(c, gin.H{
 			"Title":     "Complete Registration - SalesMee",
 			"Token":     tok,
 			"Name":      data.Name,
 			"Email":     data.Email,
 			"AvatarURL": data.AvatarURL,
 			"Error":     "Please select a valid business type",
-		})
+		}))
 		return
 	}
 
@@ -244,14 +245,14 @@ func CompleteRegisterGoogle(c *gin.Context) {
 
 	if err := db.DB.Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
-		c.HTML(200, "register_google.html", gin.H{
+		c.HTML(200, "register_google.html", middleware.TemplateData(c, gin.H{
 			"Title":     "Complete Registration - SalesMee",
 			"Token":     tok,
 			"Name":      data.Name,
 			"Email":     data.Email,
 			"AvatarURL": data.AvatarURL,
 			"Error":     "An account with this email already exists",
-		})
+		}))
 		return
 	}
 

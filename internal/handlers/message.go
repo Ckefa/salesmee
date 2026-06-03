@@ -27,6 +27,9 @@ type MessageObj struct {
 func GetMessages(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	var business models.Business
+	db.DB.First(&business, businessID)
 	if err != nil {
 		log.Println("GetMessages: =>> Invalid customer ID")
 		c.String(400, "Invalid customer ID")
@@ -145,23 +148,42 @@ func GetMessages(c *gin.Context) {
 			actionRequired = "none"
 		}
 
+		remaining := order.TotalAmount - order.PaidAmount
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		// Get payment methods from business
+		var orderPaymentMethods []models.PaymentMethod
+		db.DB.Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
+
+		var orderPendingAmt float64
+		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
+			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
+
 		orderData := map[string]interface{}{
-			"id":                 order.ID,
-			"order_number":       order.OrderNumber,
-			"status":             order.Status,
-			"client_confirmed":   order.ConfirmedByClient,
-			"business_confirmed": order.ConfirmedByBusiness,
-			"action_required":    actionRequired,
-			"editable":           editable,
-			"sender":             order.Sender,
-			"draft":              order.Draft,
-			"items":              items,
-			"total_amount":       order.TotalAmount,
-			"quantity":           order.Quantity,
-			"notes":              order.Notes,
-			"product_names":      productNames,
-			"first_product_name": firstProductName,
-			"created_at":         order.CreatedAt,
+			"id":                   order.ID,
+			"order_number":         order.OrderNumber,
+			"status":               order.Status,
+			"client_confirmed":     order.ConfirmedByClient,
+			"business_confirmed":   order.ConfirmedByBusiness,
+			"action_required":      actionRequired,
+			"editable":             editable,
+			"sender":               order.Sender,
+			"draft":                order.Draft,
+			"items":                items,
+			"total_amount":         order.TotalAmount,
+			"paid_amount":          order.PaidAmount,
+			"pending_amount":       orderPendingAmt,
+			"remaining":            remaining,
+			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+			"quantity":             order.Quantity,
+			"notes":                order.Notes,
+			"currency":             business.Currency,
+			"product_names":        productNames,
+			"first_product_name":   firstProductName,
+			"created_at":           order.CreatedAt,
+			"payment_methods":      orderPaymentMethods,
 		}
 
 		messageObjs = append(messageObjs, MessageObj{
@@ -195,18 +217,46 @@ func GetMessages(c *gin.Context) {
 			}
 		}
 
+		bookingRemaining := booking.TotalAmount - booking.PaidAmount
+		if bookingRemaining < 0 {
+			bookingRemaining = 0
+		}
+
+		// Get payment methods from business
+		var bookingPaymentMethods []models.PaymentMethod
+		db.DB.Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
+
+		var bookingPendingAmt float64
+		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
+			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
+
+		var bookingActionRequired string
+		if booking.Status == "client_confirmed" && !(booking.PaidAmount >= booking.TotalAmount) {
+			bookingActionRequired = "business"
+		} else {
+			bookingActionRequired = "none"
+		}
+
 		bookingData := map[string]interface{}{
-			"id":             booking.ID,
-			"booking_number": booking.BookingNumber,
-			"service_id":     firstServiceID,
-			"service_name":   serviceName,
-			"service_names":  serviceNames,
-			"scheduled_date": booking.ScheduledDate,
-			"duration":       booking.Duration,
-			"total_amount":   booking.TotalAmount,
-			"notes":          booking.Notes,
-			"status":         booking.Status,
-			"created_at":     booking.CreatedAt,
+			"id":                   booking.ID,
+			"booking_number":       booking.BookingNumber,
+			"service_id":           firstServiceID,
+			"service_name":         serviceName,
+			"service_names":        serviceNames,
+			"scheduled_date":       booking.ScheduledDate,
+			"duration":             booking.Duration,
+			"total_amount":         booking.TotalAmount,
+			"paid_amount":          booking.PaidAmount,
+			"pending_amount":       bookingPendingAmt,
+			"remaining":            bookingRemaining,
+			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
+			"notes":                booking.Notes,
+			"status":               booking.Status,
+			"sender":               booking.Sender,
+			"action_required":      bookingActionRequired,
+			"currency":             business.Currency,
+			"created_at":           booking.CreatedAt,
+			"payment_methods":      bookingPaymentMethods,
 		}
 
 		messageObjs = append(messageObjs, MessageObj{
@@ -232,6 +282,7 @@ func GetMessages(c *gin.Context) {
 		"Customer": client,
 		"Messages": messageObjs,
 		"Progress": progress,
+		"Business": business,
 	})
 }
 

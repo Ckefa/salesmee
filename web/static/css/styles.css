@@ -61,7 +61,8 @@
   --color-border-light: #292524;
   --color-text: #fafaf9;
   --color-text-secondary: #a8a29e;
-  --color-text-muted: #78716c;
+  --color-text-secondary: #a8a29e;
+  --color-text-muted: #a8a29e;
   --color-text-inverse: #1c1917;
   --color-primary: #2dd4bf;
   --color-primary-hover: #5eead4;
@@ -70,13 +71,13 @@
   --color-secondary: #a78bfa;
   --color-secondary-light: #2e1065;
   --color-accent: #fbbf24;
-  --color-accent-light: #451a03;
+  --color-accent-light: #78350f;
   --color-success: #34d399;
   --color-success-light: #064e3b;
   --color-warning: #fbbf24;
-  --color-warning-light: #451a03;
+  --color-warning-light: #78350f;
   --color-error: #fb7185;
-  --color-error-light: #4c0519;
+  --color-error-light: #7f1d1d;
   --color-info: #38bdf8;
   --color-info-light: #0c4a6e;
 
@@ -111,6 +112,12 @@
   ::selection {
     background-color: var(--color-primary-light);
     color: var(--color-primary-dark);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
   }
 
   .dark ::selection {
@@ -684,6 +691,11 @@
       transform: translateX(0);
     }
   }
+  @media (max-width: 480px) {
+    .sidebar {
+      width: 100%;
+    }
+  }
 
   /* --- Collapsible Stats (Mobile) --- */
   #statsGrid {
@@ -739,6 +751,7 @@
     padding: 0.5rem 0;
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     backdrop-filter: blur(12px);
+    overflow: hidden;
   }
   .bottom-nav-item {
     display: flex;
@@ -753,6 +766,9 @@
     cursor: pointer;
     border: none;
     background: transparent;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
   }
   .bottom-nav-item i {
     font-size: 1.25rem;
@@ -776,6 +792,27 @@
   }
   .bottom-nav-item:hover {
     color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 480px) {
+    .bottom-nav {
+      padding: 0.375rem 0;
+      padding-bottom: calc(0.375rem + env(safe-area-inset-bottom));
+    }
+    .bottom-nav-item {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.5625rem;
+    }
+    .bottom-nav-item i {
+      font-size: 1.1rem;
+    }
+    .bottom-nav-item.active {
+      border-radius: 6px;
+    }
+    .bottom-nav-item.active::before {
+      width: 16px;
+      height: 2px;
+    }
   }
 
   /* --- Theme Toggle --- */
@@ -1018,4 +1055,32 @@
 @media (min-width: 1280px) {
   .hide-desktop { display: none !important; }
   .show-desktop { display: block !important; }
+}
+
+/* ============================================
+   Tiny Screens (≤480px)
+   ============================================ */
+@media (max-width: 480px) {
+  .empty-state {
+    padding: 2rem 1.25rem;
+    min-height: 12rem;
+  }
+  .empty-state-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .empty-state-title {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .empty-state-text {
+    font-size: 0.8125rem;
+    max-width: 18rem;
+    margin-bottom: 1rem;
+  }
+  .card {
+    border-radius: var(--radius-lg);
+  }
 }

@@ -185,17 +185,38 @@ function startMessagePolling() {
 function addOrderMessageToChat(order) {
   const container = document.getElementById('messages-container');
   if (!container) return;
+  const status = order.status || 'pending';
+  const bgClass = status === 'pending' ? 'bg-[var(--color-warning-light)] border-[var(--color-warning)]' :
+    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] border-[var(--color-info)]' :
+    status === 'confirmed' ? 'bg-[var(--color-info-light)] border-[var(--color-info)]' :
+    status === 'fulfilled' || status === 'completed' ? 'bg-[var(--color-success-light)] border-[var(--color-success)]' :
+    status === 'cancelled' ? 'bg-[var(--color-error-light)] border-[var(--color-error)]' : 'bg-[var(--color-info-light)] border-[var(--color-info)]';
+  const iconColor = status === 'pending' ? 'text-[var(--color-warning)]' :
+    status === 'client_confirmed' ? 'text-[var(--color-info)]' :
+    status === 'confirmed' ? 'text-[var(--color-info)]' :
+    status === 'fulfilled' || status === 'completed' ? 'text-[var(--color-success)]' :
+    status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-info)]';
+  const statusLabel = status === 'pending' ? 'Pending' :
+    status === 'client_confirmed' ? 'Confirmed' :
+    status === 'confirmed' ? 'Confirmed' :
+    status === 'fulfilled' || status === 'completed' ? 'Completed' :
+    status === 'cancelled' ? 'Cancelled' : 'Pending';
+  const statusBadgeBg = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
+    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'fulfilled' || status === 'completed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
+    status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-warning-light)] text-[var(--color-warning)]';
   const div = document.createElement('div');
   div.className = 'flex justify-end';
   div.innerHTML = `<div class="max-w-xs lg:max-w-md w-full">
-    <div class="bg-[var(--color-info-light)] border border-[var(--color-info)] rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
+    <div class="${bgClass} border rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
-          <i class="fas fa-shopping-cart text-[var(--color-info)]"></i>
-          <span class="font-semibold text-[var(--color-info)] text-sm">[${order.id}]</span>
+          <i class="fas fa-shopping-cart ${iconColor}"></i>
+          <span class="font-semibold ${iconColor} text-sm">[${order.id}]</span>
           <span class="text-[var(--color-text)] text-sm">${order.product_name || 'Product'}</span>
         </div>
-        <button onclick="openClientEditOrderPicker(${order.id})" class="text-[var(--color-info)] hover:opacity-80 text-xs" title="Edit Order">
+        <button onclick="openClientEditOrderPicker(${order.id})" class="${iconColor} hover:opacity-80 text-xs" title="Edit Order">
           <i class="fas fa-edit"></i>
         </button>
       </div>
@@ -205,7 +226,7 @@ function addOrderMessageToChat(order) {
       </div>
       <div class="flex items-center justify-between mt-2">
         <p class="text-xs text-[var(--color-text-muted)]">${new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})}</p>
-        <span class="text-xs bg-[var(--color-warning-light)] text-[var(--color-warning)] px-2 py-1 rounded">Pending</span>
+        <span class="text-xs ${statusBadgeBg} px-2 py-1 rounded">${statusLabel}</span>
       </div>
     </div>
   </div>`;
@@ -226,25 +247,25 @@ function addBookingMessageToChat(booking) {
   const dateStr = bookingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const timeStr = bookingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   const statusClass = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
-    status === 'confirmed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
-    status === 'completed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'completed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
     status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]';
   const borderClass = status === 'pending' ? 'border-[var(--color-warning)] bg-[var(--color-warning-light)]' :
-    status === 'confirmed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
-    status === 'completed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
+    status === 'client_confirmed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
+    status === 'completed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
     status === 'cancelled' ? 'border-[var(--color-error)] bg-[var(--color-error-light)]' : 'border-[var(--color-border)] bg-[var(--color-surface-secondary)]';
   const iconClass = status === 'pending' ? 'text-[var(--color-warning)]' :
-    status === 'confirmed' ? 'text-[var(--color-success)]' :
-    status === 'completed' ? 'text-[var(--color-info)]' :
+    status === 'client_confirmed' ? 'text-[var(--color-info)]' :
+    status === 'completed' ? 'text-[var(--color-success)]' :
     status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]';
 
   let extraHtml = '';
   if (status === 'pending') {
     extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-warning)] font-medium"><i class="fas fa-clock mr-1"></i>Awaiting business confirmation</p></div>';
-  } else if (status === 'confirmed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
+  } else if (status === 'client_confirmed') {
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
   } else if (status === 'completed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
   } else if (status === 'cancelled') {
     extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-error)] font-medium"><i class="fas fa-ban mr-1"></i>This booking was cancelled</p></div>';
   }
@@ -288,8 +309,9 @@ function addBookingMessageToChat(booking) {
 }
 
 function clientConfirmOrder(orderId) {
-  if (!confirm('Confirm this order?')) return;
-  fetch(`/client/orders/${orderId}/confirm`, {
+  showConfirmModal({ title: 'Confirm Order', message: 'Confirm this order?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/client/orders/${orderId}/confirm`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
     body: JSON.stringify({ items: [] })
@@ -317,19 +339,6 @@ function clientConfirmOrder(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to confirm order', 'error'); });
-}
-
-function clientRequestChanges(orderId) {
-  const message = prompt('Describe the changes you need:');
-  if (!message) return;
-  // For now, just send a text message requesting changes
-  const formData = new FormData();
-  formData.append('content', 'Request changes for order #' + orderId + ': ' + message);
-  formData.append('sender', 'client');
-  htmx.ajax('POST', `/client/businesses/${businessId}/messages`, {
-    values: formData,
-    target: '#messages-container',
-    swap: 'beforeend'
   });
 }
 
@@ -356,16 +365,17 @@ function updateClientOrderTotal(orderId) {
   card.querySelectorAll('[data-item-product-id]').forEach(item => {
     const qty = parseInt(item.querySelector('.qty-value').textContent);
     const priceEl = item.closest('.flex.items-center.justify-between').querySelector('.text-sm.font-bold');
-    const priceText = priceEl ? priceEl.textContent.replace('$', '') : '0';
+    const priceText = priceEl ? priceEl.textContent.replace(/[^0-9.]/g, '') : '0';
     total += qty * parseFloat(priceText);
   });
   const totalEl = card.querySelector('.text-lg.font-bold');
-  if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+  if (totalEl) totalEl.textContent = (typeof currencySymbol !== 'undefined' ? currencySymbol : '$') + total.toFixed(2);
 }
 
 function cancelOrder(orderId) {
-  if (!confirm('Are you sure you want to cancel this order?')) return;
-  fetch(`/client/orders/${orderId}/cancel`, {
+  showConfirmModal({ title: 'Cancel Order', message: 'Are you sure you want to cancel this order?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Cancel Order' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/client/orders/${orderId}/cancel`, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
   })
@@ -378,13 +388,15 @@ function cancelOrder(orderId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to cancel order', 'error'); });
+  });
 }
 
 function cancelBooking(bookingId) {
-  if (!confirm('Are you sure you want to cancel this booking?')) return;
+  showConfirmModal({ title: 'Cancel Booking', message: 'Are you sure you want to cancel this booking?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Cancel Booking' }).then(function(confirmed) {
+    if (!confirmed) return;
   fetch(`/client/bookings/${bookingId}/cancel`, {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
   })
     .then(r => r.json())
     .then(data => {
@@ -395,6 +407,27 @@ function cancelBooking(bookingId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to cancel booking', 'error'); });
+  });
+}
+
+function clientConfirmBooking(bookingId) {
+  showConfirmModal({ title: 'Approve Booking', message: 'Are you sure you want to approve this booking?', confirmText: 'Approve', confirmClass: 'bg-[var(--color-success)] text-white' }).then(function(confirmed) {
+    if (!confirmed) return;
+  fetch(`/client/bookings/${bookingId}/confirm`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showNotification('Booking confirmed!', 'success');
+        if (typeof startMessagePolling === 'function') startMessagePolling();
+      } else {
+        showNotification(data.error || 'Failed to confirm booking', 'error');
+      }
+    })
+    .catch(e => { console.error(e); showNotification('Failed to confirm booking', 'error'); });
+  });
 }
 
 function toggleMediaTray() {

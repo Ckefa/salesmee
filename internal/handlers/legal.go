@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"salesmee/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,12 +24,12 @@ func ShowCookies(c *gin.Context) {
 
 func ShowUserDeletion(c *gin.Context) {
 	externalID := c.Query("id")
-	c.HTML(http.StatusOK, "user_deletion.html", gin.H{
+	c.HTML(http.StatusOK, "user_deletion.html", middleware.TemplateData(c, gin.H{
 		"ExternalID":  externalID,
 		"Submitted":   false,
 		"Email":       "",
 		"AccountType": "",
-	})
+	}))
 }
 
 func SubmitUserDeletion(c *gin.Context) {
@@ -41,13 +43,13 @@ func SubmitUserDeletion(c *gin.Context) {
 	fmt.Printf("[DELETION REQUEST] ID=%s Email=%s Type=%s ExternalID=%s Reason=%s\n",
 		requestID, email, accountType, externalID, reason)
 
-	c.HTML(http.StatusOK, "user_deletion.html", gin.H{
+	c.HTML(http.StatusOK, "user_deletion.html", middleware.TemplateData(c, gin.H{
 		"Submitted":   true,
 		"RequestID":   requestID,
 		"Email":       email,
 		"AccountType": accountType,
 		"ExternalID":  externalID,
-	})
+	}))
 }
 
 func generateDeletionRequestID() string {

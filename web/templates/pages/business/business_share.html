@@ -91,28 +91,28 @@
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto pb-16">
       <div class="py-8">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
           <!-- Analytics Preview -->
-          <div class="bg-[var(--color-surface)] card p-8">
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Share Analytics</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="p-4 rounded-xl bg-[var(--color-primary-light)] border-[var(--color-primary)]">
-                <p class="text-2xl font-bold text-[var(--color-primary-dark)]">{{.TotalClients}}</p>
-                <p class="text-xs text-[var(--color-primary)] font-medium mt-1">Connected Clients</p>
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8">
+            <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)] mb-4">Share Analytics</h3>
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+              <div class="p-3 sm:p-4 rounded-xl bg-[var(--color-primary-light)] border-[var(--color-primary)]">
+                <p class="text-xl sm:text-2xl font-bold text-[var(--color-primary-dark)]">{{.TotalClients}}</p>
+                <p class="text-[10px] sm:text-xs text-[var(--color-primary)] font-medium mt-1">Connected Clients</p>
               </div>
-              <div class="p-4 rounded-xl bg-[var(--color-info-light)] border-[var(--color-info)]">
-                <p class="text-2xl font-bold text-[var(--color-info)]">{{.TotalProducts}}</p>
-                <p class="text-xs text-[var(--color-info)] font-medium mt-1">Products & Services</p>
+              <div class="p-3 sm:p-4 rounded-xl bg-[var(--color-info-light)] border-[var(--color-info)]">
+                <p class="text-xl sm:text-2xl font-bold text-[var(--color-info)]">{{.TotalProducts}}</p>
+                <p class="text-[10px] sm:text-xs text-[var(--color-info)] font-medium mt-1">Products & Services</p>
               </div>
             </div>
           </div>
 
           <!-- Profile Card -->
-          <div class="bg-[var(--color-surface)] card p-8">
-            <div class="flex items-center gap-5">
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8">
+            <div class="flex items-center gap-4 sm:gap-5">
               <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center overflow-hidden">
                 {{if .Business.Logo}}
                 <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-full h-full object-cover">
@@ -128,20 +128,20 @@
           </div>
 
           <!-- Shareable Link -->
-          <div class="bg-[var(--color-surface)] card p-8">
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">Your Public Profile Link</h3>
-            <p class="text-sm text-[var(--color-text-secondary)] mb-4">Share this link so clients can discover your business and connect instantly.</p>
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8">
+            <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)] mb-2">Your Public Profile Link</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-4">Share this link so clients can discover your business and connect instantly.</p>
             <div class="flex items-center gap-2">
               <input type="text" id="profileLink" value="{{.ProfileURL}}" readonly
-                class="flex-1 px-4 py-3 border border-[var(--color-border)] rounded-xl bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-sm font-mono focus:outline-none">
+                class="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border border-[var(--color-border)] rounded-xl bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs sm:text-sm font-mono focus:outline-none">
               <button onclick="copyLink('profileLink')"
-                class="px-4 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl transition-colors">
-                <i class="fas fa-copy"></i>
+                class="px-3 sm:px-4 py-2.5 sm:py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl transition-colors">
+                <i class="fas fa-copy text-sm"></i>
               </button>
             </div>
             <!-- Social Share Buttons -->
-            <div class="mt-4 flex items-center gap-2">
-              <span class="text-xs text-[var(--color-text-muted)] font-medium mr-1">Share via</span>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="text-[10px] sm:text-xs text-[var(--color-text-muted)] font-medium mr-1">Share via</span>
               <a href="https://wa.me/?text={{.ProfileURL}}" target="_blank" rel="noopener"
                 class="w-9 h-9 rounded-full bg-[var(--color-success)] hover:brightness-110 text-white flex items-center justify-center transition-colors" title="Share on WhatsApp">
                 <i class="fab fa-whatsapp"></i>
@@ -162,60 +162,61 @@
           </div>
 
           <!-- Direct Connect Link -->
-          <div class="bg-[var(--color-surface)] card p-8">
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">Direct Connect Link</h3>
-            <p class="text-sm text-[var(--color-text-secondary)] mb-4">Clients using this link can enter their email and instantly connect to start chatting.</p>
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8">
+            <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)] mb-2">Direct Connect Link</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-4">Clients using this link can enter their email and instantly connect to start chatting.</p>
             <div class="flex items-center gap-2">
               <input type="text" id="connectLink" value="{{.ConnectURL}}" readonly
-                class="flex-1 px-4 py-3 border border-[var(--color-border)] rounded-xl bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-sm font-mono focus:outline-none">
+                class="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border border-[var(--color-border)] rounded-xl bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs sm:text-sm font-mono focus:outline-none">
               <button onclick="copyLink('connectLink')"
-                class="px-4 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl transition-colors">
-                <i class="fas fa-copy"></i>
+                class="px-3 sm:px-4 py-2.5 sm:py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl transition-colors">
+                <i class="fas fa-copy text-sm"></i>
               </button>
             </div>
           </div>
 
           <!-- Regenerate Links -->
-          <div class="bg-[var(--color-surface)] card p-8">
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">Regenerate Links</h3>
-            <p class="text-sm text-[var(--color-text-secondary)] mb-4">Generate a new unique URL for your business. Old links will stop working.</p>
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8">
+            <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)] mb-2">Regenerate Links</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-4">Generate a new unique URL for your business. Old links will stop working.</p>
             <button onclick="regenerateSlug()"
-              class="px-5 py-2.5 bg-[var(--color-accent)] hover:brightness-110 text-white rounded-xl transition-colors text-sm font-medium">
+              class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-[var(--color-accent)] hover:brightness-110 text-white rounded-xl transition-colors text-xs sm:text-sm font-medium">
               <i class="fas fa-sync-alt mr-1.5"></i> Regenerate Links & QR Code
             </button>
           </div>
 
           <!-- QR Code -->
-          <div class="bg-[var(--color-surface)] card p-8 text-center">
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">QR Code</h3>
-            <p class="text-sm text-[var(--color-text-secondary)] mb-6">Scan to open your business profile page.</p>
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8 text-center">
+            <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)] mb-2">QR Code</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-4 sm:mb-6">Scan to open your business profile page.</p>
             <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{.QRData}}"
                  alt="QR Code for {{.Business.Name}}"
                  crossorigin="anonymous"
                  class="mx-auto rounded-xl shadow-sm border border-[var(--color-border)]"
-                 width="250" height="250">
-            <div class="mt-4 flex items-center justify-center gap-3">
-              <p class="text-xs text-[var(--color-text-muted)]">Point your camera at the QR code to open your business profile</p>
+                 width="200" height="200"
+                 style="max-width: 100%; height: auto;">
+            <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">Point your camera at the QR code to open your business profile</p>
               <button onclick="downloadQR()"
-                class="px-4 py-2 btn btn-secondary text-white rounded-xl transition-colors text-sm">
+                class="px-3 sm:px-4 py-1.5 sm:py-2 btn btn-secondary text-white rounded-xl transition-colors text-xs sm:text-sm">
                 <i class="fas fa-download mr-1"></i> Download PNG
               </button>
             </div>
           </div>
 
           <!-- Public Profile Preview Card -->
-          <div class="bg-[var(--color-surface)] card p-8">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-[var(--color-text)]">Profile Preview</h3>
+          <div class="bg-[var(--color-surface)] card p-4 sm:p-6 lg:p-8">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">Profile Preview</h3>
               <a href="{{.ProfileURL}}" target="_blank" rel="noopener"
                 class="text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">
                 Open live <i class="fas fa-external-link-alt ml-1"></i>
               </a>
             </div>
             <div class="border border-[var(--color-border)] rounded-xl overflow-hidden shadow-sm">
-              <div class="bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-[var(--color-surface)]/20 flex items-center justify-center">
+              <div class="bg-gradient-to-r from-teal-500 to-cyan-600 px-4 sm:px-6 py-3 sm:py-4">
+                <div class="flex items-center gap-2 sm:gap-3">
+                  <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-[var(--color-surface)]/20 flex items-center justify-center">
                     {{if .Business.Logo}}
                     <img src="/static/{{.Business.Logo}}" class="w-12 h-12 rounded-full object-cover">
                     {{else}}
@@ -288,19 +289,19 @@
       const btn = event.target.closest('button');
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Regenerating...';
-      fetch('/business/regenerate-slug', { method: 'POST' })
+      fetch('/business/regenerate-slug', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
             location.reload();
           } else {
-            alert(data.error || 'Failed to regenerate');
+            showNotification(data.error || 'Failed to regenerate', 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-sync-alt mr-1.5"></i> Regenerate Links & QR Code';
           }
         })
         .catch(() => {
-          alert('Failed to regenerate');
+          showNotification('Failed to regenerate', 'error');
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-sync-alt mr-1.5"></i> Regenerate Links & QR Code';
         });
@@ -324,7 +325,7 @@
           btn.innerHTML = '<i class="fas fa-download mr-1"></i> Download PNG';
         })
         .catch(function() {
-          alert('Failed to download QR code. The image might be from a cross-origin source.');
+          showNotification('Failed to download QR code. The image might be from a cross-origin source.', 'error');
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-download mr-1"></i> Download PNG';
         });

@@ -5,13 +5,21 @@
 {{$isPending := eq $status "pending"}}
 {{$isClientConfirmed := eq $status "client_confirmed"}}
 {{$isConfirmed := eq $status "confirmed"}}
-{{$isFulfilled := eq $status "fulfilled"}}
+{{$isFulfilled := or (eq $status "fulfilled") (eq $status "completed")}}
 {{$isCancelled := eq $status "cancelled"}}
 {{$actionRequired := $order.action_required}}
+{{$sym := or (currencySymbol $order.currency) "$"}}
+{{$s1 := "pending"}}{{$s2 := "pending"}}{{$s3 := "pending"}}{{$s4 := "pending"}}
+{{if $isDraft}}{{$s1 = "active"}}
+{{else if $isPending}}{{$s1 = "active"}}
+{{else if $isClientConfirmed}}{{$s1 = "completed"}}{{$s2 = "active"}}
+{{else if $isConfirmed}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{if $order.is_fully_paid}}{{$s3 = "completed"}}{{$s4 = "active"}}{{else}}{{$s3 = "active"}}{{end}}
+{{else if $isFulfilled}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "completed"}}
+{{end}}
 <div class="flex {{if eq .Sender "business"}}justify-end{{else}}justify-start{{end}}">
   <div class="max-w-sm lg:max-w-md w-full">
     <div class="rounded-xl border-2 p-4 shadow-sm transition-all duration-200
-      {{if $isDraft}}border-dashed border-[var(--color-border)] bg-[var(--color-surface-secondary)]{{else if $isCancelled}}border-[var(--color-error)]/40 bg-[var(--color-error-light)]{{else if $isConfirmed}}border-[var(--color-success)]/40 bg-[var(--color-success-light)]{{else if $isFulfilled}}border-[var(--color-primary)]/40 bg-[var(--color-primary-light)]{{else if $isClientConfirmed}}border-[var(--color-warning)]/40 bg-[var(--color-warning-light)]{{else}}border-[var(--color-info)]/40 bg-[var(--color-info-light)]{{end}}"
+      {{if $isDraft}}border-dashed border-[var(--color-border)] bg-[var(--color-surface-secondary)]{{else if $isCancelled}}border-[var(--color-error)]/40 bg-[var(--color-error-light)]{{else if $isFulfilled}}border-[var(--color-success)]/40 bg-[var(--color-success-light)]{{else if or $isConfirmed $isClientConfirmed}}border-[var(--color-info)]/40 bg-[var(--color-info-light)]{{else}}border-[var(--color-warning)]/40 bg-[var(--color-warning-light)]{{end}}"
       data-message-id="{{.ID}}"
       data-order-id="{{$order.id}}"
       data-order-status="{{$status}}">
@@ -19,27 +27,27 @@
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-2 min-w-0">
           <div class="w-8 h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center shadow-sm flex-shrink-0">
-            <i class="fas fa-shopping-cart {{if $isDraft}}text-[var(--color-text-muted)]{{else if $isCancelled}}text-[var(--color-error)]{{else}}text-[var(--color-info)]{{end}}"></i>
+            <i class="fas fa-shopping-cart {{if $isDraft}}text-[var(--color-text-muted)]{{else if $isCancelled}}text-[var(--color-error)]{{else if $isFulfilled}}text-[var(--color-success)]{{else if or $isConfirmed $isClientConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-warning)]{{end}}"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="font-semibold text-sm text-[var(--color-text)] truncate">
+            <h4 class="font-semibold text-xs sm:text-sm text-[var(--color-text)] truncate">
               {{if $order.order_number}}Order {{$order.order_number}}{{else}}New Order{{end}}
             </h4>
             <span class="text-xs font-medium px-2 py-0.5 rounded-full
               {{if $isDraft}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]
-              {{else if $isPending}}bg-[var(--color-info-light)] text-[var(--color-info)]
-              {{else if $isClientConfirmed}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
-              {{else if $isConfirmed}}bg-[var(--color-success-light)] text-[var(--color-success)]
-              {{else if $isFulfilled}}bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]
+              {{else if $isPending}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
+              {{else if $isClientConfirmed}}bg-[var(--color-info-light)] text-[var(--color-info)]
+              {{else if $isConfirmed}}bg-[var(--color-info-light)] text-[var(--color-info)]
+              {{else if $isFulfilled}}bg-[var(--color-success-light)] text-[var(--color-success)]
               {{else if $isCancelled}}bg-[var(--color-error-light)] text-[var(--color-error)]
               {{else}}bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]{{end}} order-status-badge">
-              {{if $isDraft}}Draft{{else if $isPending}}Pending{{else if $isClientConfirmed}}Client Confirmed{{else if $isConfirmed}}Confirmed{{else if $isFulfilled}}Fulfilled{{else if $isCancelled}}Cancelled{{else}}{{$status}}{{end}}
+              {{if $isDraft}}Draft{{else if $isPending}}Pending{{else if $isClientConfirmed}}Client Confirmed{{else if $isConfirmed}}Confirmed{{else if $isFulfilled}}Completed{{else if $isCancelled}}Cancelled{{else}}{{$status}}{{end}}
             </span>
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0 ml-2">
           {{if $isDraft}}
-          <span class="text-xs font-semibold text-[var(--color-text-muted)] italic">Only you can see this</span>
+          <span class="text-[10px] sm:text-xs font-semibold text-[var(--color-text-muted)] italic">Only you can see this</span>
           {{else if eq $actionRequired "business"}}
           <span class="text-xs font-bold text-[var(--color-warning)] animate-pulse">ACTION NEEDED</span>
           {{end}}
@@ -61,13 +69,13 @@
             <div class="w-8 h-8 rounded-lg bg-[var(--color-surface-tertiary)] flex items-center justify-center flex-shrink-0 text-xs">📦</div>
             {{end}}
             <div class="min-w-0">
-              <p class="font-medium text-sm text-[var(--color-text)] truncate">{{.name}}</p>
-              <p class="text-xs text-[var(--color-text-secondary)]">${{printf "%.2f" .unit_price}} each</p>
+              <p class="font-medium text-xs sm:text-sm text-[var(--color-text)] truncate">{{.name}}</p>
+              <p class="text-[10px] sm:text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{{$sym}}{{printf "%.2f" .unit_price}} each</p>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0 ml-2">
-            <span class="text-sm font-semibold text-[var(--color-text)]">x{{.quantity}}</span>
-            <span class="text-sm font-bold text-[var(--color-text)] w-14 text-right">${{printf "%.2f" .total_price}}</span>
+            <span class="text-xs sm:text-sm font-semibold text-[var(--color-text)]">x{{.quantity}}</span>
+            <span class="text-xs sm:text-sm font-bold text-[var(--color-text)] whitespace-nowrap text-right min-w-[4.5rem]">{{$sym}}{{printf "%.2f" .total_price}}</span>
           </div>
         </div>
         {{end}}
@@ -76,67 +84,159 @@
       <p class="hidden order-notes-data">{{$order.notes}}</p>
       <p class="hidden order-quantity-data">{{$order.quantity}}</p>
 
-      <!-- Total & Notes -->
+      <!-- Total -->
       <div class="border-t border-[var(--color-border)] pt-3 mb-3">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-sm text-[var(--color-text-secondary)] font-medium">Total</span>
-          <span class="text-lg font-bold text-[var(--color-text)]">${{printf "%.2f" $order.total_amount}}</span>
+        <div class="flex justify-between items-center">
+          <span class="text-xs sm:text-sm text-[var(--color-text-secondary)] font-medium">Total</span>
+          <span class="text-base sm:text-lg font-bold text-[var(--color-text)]">{{$sym}}{{printf "%.2f" $order.total_amount}}</span>
         </div>
-        {{if $order.notes}}
-        <div class="bg-[var(--color-surface)]/60 rounded-lg p-2 text-xs text-[var(--color-text-secondary)] italic">
-          <i class="far fa-sticky-note mr-1"></i>{{$order.notes}}
-        </div>
-        {{end}}
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex gap-2">
-        {{if $isDraft}}
-        <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-sm font-medium transition"
-          onclick="cancelDraftOrder({{$order.id}})">
-          <i class="fas fa-trash-alt mr-1"></i>Discard
-        </button>
-        <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-info)] text-white hover:opacity-90 text-sm font-medium transition shadow-sm"
-          onclick="sendOrderToClient({{$order.id}})">
-          Send to Client <i class="fas fa-arrow-right ml-1"></i>
-        </button>
+      <!-- Notes -->
+      {{if $order.notes}}
+      <div class="mb-3 bg-[var(--color-surface)]/60 rounded-lg p-2 text-[10px] sm:text-xs text-[var(--color-text-secondary)] italic">
+        <i class="far fa-sticky-note mr-1"></i>{{$order.notes}}
+      </div>
+      {{end}}
 
+      <!-- Progress Bar -->
+      <div class="flex items-center justify-center mb-3 px-1">
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s1 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s1 "active"}}bg-[var(--color-warning)] text-white shadow-[0_0_0_3px_rgba(245,158,11,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s1 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}1{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s1 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s1 "active"}}text-[var(--color-warning)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Create</span>
+        </div>
+        <div class="w-8 sm:w-12 h-0.5 mx-1 rounded {{if ne $s2 "pending"}}bg-[var(--color-success)]{{else}}bg-[var(--color-border-light)]{{end}}"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s2 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s2 "active"}}bg-[var(--color-info)] text-white shadow-[0_0_0_3px_rgba(14,165,233,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s2 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}2{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s2 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s2 "active"}}text-[var(--color-info)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Confirm</span>
+        </div>
+        <div class="w-8 sm:w-12 h-0.5 mx-1 rounded {{if ne $s3 "pending"}}bg-[var(--color-success)]{{else}}bg-[var(--color-border-light)]{{end}}"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s3 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s3 "active"}}bg-[var(--color-secondary)] text-white shadow-[0_0_0_3px_rgba(139,92,246,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s3 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}3{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s3 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s3 "active"}}text-[var(--color-secondary)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Paid</span>
+        </div>
+        <div class="w-8 sm:w-12 h-0.5 mx-1 rounded {{if ne $s4 "pending"}}bg-[var(--color-success)]{{else}}bg-[var(--color-border-light)]{{end}}"></div>
+        <div class="flex flex-col items-center">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+            {{if eq $s4 "completed"}}bg-[var(--color-success)] text-white
+            {{else if eq $s4 "active"}}bg-[var(--color-success)] text-white shadow-[0_0_0_3px_rgba(16,185,129,0.3)]
+            {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
+            {{if eq $s4 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}4{{end}}
+          </div>
+          <span class="text-[10px] mt-1 {{if eq $s4 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s4 "active"}}text-[var(--color-success)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Complete</span>
+        </div>
+      </div>
+
+      <!-- Step Content -->
+      {{if $isCancelled}}
+      <div class="w-full text-center py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-xs sm:text-sm font-medium">
+        <i class="fas fa-ban mr-1"></i>Order cancelled
+      </div>
+
+      {{else if eq $s1 "active"}}
+        {{if $isDraft}}
+        <div class="flex gap-2">
+          <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-medium transition"
+            onclick="cancelDraftOrder({{$order.id}})">
+            <i class="fas fa-trash-alt mr-1"></i>Discard
+          </button>
+          <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-info)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
+            onclick="sendOrderToClient({{$order.id}})">
+            Send to Client <i class="fas fa-arrow-right ml-1"></i>
+          </button>
+        </div>
         {{else if eq $actionRequired "business"}}
-        <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-sm font-medium transition"
+        <div class="flex gap-2">
+          <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
+            onclick="rejectOrder({{$order.id}})">
+            <i class="fas fa-times mr-1"></i>Reject
+          </button>
+          <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
+            onclick="confirmOrderBusiness({{$order.id}})">
+            <i class="fas fa-check mr-1"></i>Confirm Items
+          </button>
+        </div>
+        {{else if eq $actionRequired "client"}}
+        <div class="w-full text-center py-2 bg-[var(--color-info-light)] rounded-lg text-[var(--color-info)] text-xs sm:text-sm font-medium">
+          <i class="fas fa-clock mr-1"></i>Waiting for client approval
+        </div>
+        {{end}}
+
+      {{else if eq $s2 "active"}}
+      <div class="mb-3">
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-[var(--color-border-light)]">
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">{{$sym}}{{printf "%.2f" $order.paid_amount}}</strong></span>
+          {{if gt $order.pending_amount 0.0}}
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">{{$sym}}{{printf "%.2f" $order.pending_amount}}</strong></span>
+          {{end}}
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>{{$sym}}{{printf "%.2f" $order.remaining}}</strong></span>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
           onclick="rejectOrder({{$order.id}})">
           <i class="fas fa-times mr-1"></i>Reject
         </button>
-        <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-sm font-medium transition shadow-sm"
+        <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="confirmOrderBusiness({{$order.id}})">
-          <i class="fas fa-check mr-1"></i>Confirm & Process
+          <i class="fas fa-check mr-1"></i>Confirm
         </button>
-
-        {{else if eq $actionRequired "client"}}
-        <div class="w-full text-center py-2 bg-[var(--color-info-light)] rounded-lg text-[var(--color-info)] text-sm font-medium">
-          <i class="fas fa-clock mr-1"></i>Waiting for client confirmation
-        </div>
-
-        {{else if $isConfirmed}}
-        <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-sm font-medium">
-          <i class="fas fa-check-circle mr-1"></i>Order confirmed
-        </div>
-
-        {{else if $isFulfilled}}
-        <div class="w-full text-center py-2 bg-[var(--color-primary-light)] rounded-lg text-[var(--color-primary-dark)] text-sm font-medium">
-          <i class="fas fa-check-double mr-1"></i>Order fulfilled
-        </div>
-
-        {{else if $isCancelled}}
-        <div class="w-full text-center py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-sm font-medium">
-          <i class="fas fa-ban mr-1"></i>Order cancelled
-        </div>
-
-        {{else}}
-        <div class="w-full text-center py-2 bg-[var(--color-surface-secondary)] rounded-lg text-[var(--color-text-secondary)] text-sm font-medium">
-          {{$status}}
-        </div>
-        {{end}}
       </div>
+
+      {{else if eq $s3 "active"}}
+      <div class="mb-3">
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-[var(--color-border-light)]">
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">{{$sym}}{{printf "%.2f" $order.paid_amount}}</strong></span>
+          {{if gt $order.pending_amount 0.0}}
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">{{$sym}}{{printf "%.2f" $order.pending_amount}}</strong></span>
+          {{end}}
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>{{$sym}}{{printf "%.2f" $order.remaining}}</strong></span>
+        </div>
+        <div id="orderPendingPayments-{{$order.id}}" class="mt-2 space-y-1">
+          {{if gt $order.pending_amount 0.0}}
+          <div class="text-[10px] font-medium text-[var(--color-warning)] mb-2"><i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation</div>
+          <button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm"
+            onclick="confirmAllOrderPayments({{$order.id}})">
+            <i class="fas fa-check mr-1"></i>Confirm Payment
+          </button>
+          {{else}}
+          <div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>
+          {{end}}
+        </div>
+      </div>
+
+      {{else if eq $s4 "active"}}
+      <div class="space-y-3">
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-success)] bg-[var(--color-success-light)] rounded-lg px-3 py-2">
+          <i class="fas fa-check-circle"></i> Fully Paid
+        </div>
+        <button class="w-full py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
+          onclick="fulfillOrder({{$order.id}})">
+          <i class="fas fa-check-double mr-1"></i>Process Order
+        </button>
+      </div>
+
+      {{else if $isFulfilled}}
+      <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
+        <i class="fas fa-check-double mr-1"></i>Order completed
+      </div>
+
+      {{end}}
 
       <!-- Timestamp -->
       <div class="mt-2 text-right">

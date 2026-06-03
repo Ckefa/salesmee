@@ -66,6 +66,7 @@
       </div>
 
       <form method="POST" action="/business/login" id="loginForm" class="space-y-5" novalidate>
+        {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
         <div>
           <label for="email" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Email</label>
           <div class="relative input-with-icon">

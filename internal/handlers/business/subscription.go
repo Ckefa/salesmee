@@ -56,10 +56,11 @@ type CheckoutPageData struct {
 	Interval   string
 	UnitAmount float64
 	Providers  []string
+	CSRFToken  string
 
-	ProductCount       int
-	ServiceCount       int
-	PendingOrderCount  int
+	ProductCount        int
+	ServiceCount        int
+	PendingOrderCount   int
 	PendingBookingCount int
 }
 
@@ -284,6 +285,7 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 		Interval:   billingInterval,
 		UnitAmount: unitAmount,
 		Providers:  []string{"stripe", "paypal"},
+		CSRFToken:  c.GetString("csrf_token"),
 	}
 
 	c.HTML(http.StatusOK, "checkout.html", data)

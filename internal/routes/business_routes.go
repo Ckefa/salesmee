@@ -79,6 +79,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/bookings", businessHandler.CreateBooking)
 		protected.PUT("/bookings/:id", businessHandler.UpdateBooking)
 		protected.PUT("/bookings/:id/status", businessHandler.UpdateBookingStatus)
+		protected.PUT("/bookings/:id/paid", businessHandler.MarkBookingAsPaid)
 
 		// client routes
 		protected.POST("/clients", client.CreateClient)
@@ -120,6 +121,10 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/orders/:id/send", businessHandler.SendOrderToClient)
 		protected.POST("/orders/:id/confirm", businessHandler.ConfirmOrderBusiness)
 		protected.POST("/orders/:id/reject", businessHandler.RejectOrder)
+		protected.POST("/orders/:id/fulfill", businessHandler.FulfillOrder)
+		protected.PUT("/orders/:id/paid", businessHandler.MarkOrderAsPaid)
+		protected.GET("/orders/:id/receipt", businessHandler.GetOrderReceipt)
+		protected.GET("/bookings/:id/receipt", businessHandler.GetBookingReceipt)
 
 		// Share page
 		protected.GET("/share", businessHandler.GetSharePage)
@@ -137,6 +142,21 @@ func SetupBusinessRoutes(r *gin.Engine) {
 
 		// Payments
 		protected.GET("/payments", businessHandler.GetPayments)
+		protected.POST("/payment-instructions", businessHandler.UpdatePaymentInstructions)
+		protected.POST("/orders/:id/payments/:payment_id/confirm", businessHandler.ConfirmOrderPayment)
+		protected.POST("/orders/:id/payments/confirm-all", businessHandler.ConfirmAllOrderPayments)
+		protected.POST("/orders/:id/payments/:payment_id/reject", businessHandler.RejectOrderPayment)
+		protected.GET("/orders/:id/payments", businessHandler.GetOrderPayments)
+		protected.POST("/bookings/:id/payments/confirm-all", businessHandler.ConfirmAllBookingPayments)
+		protected.POST("/bookings/:id/payments/:payment_id/confirm", businessHandler.ConfirmBookingPayment)
+		protected.POST("/bookings/:id/payments/:payment_id/reject", businessHandler.RejectBookingPayment)
+		protected.GET("/bookings/:id/payments", businessHandler.GetBookingPayments)
+
+		// Payment Methods (structured, multi-type)
+		protected.GET("/payment-methods", businessHandler.GetPaymentMethods)
+		protected.POST("/payment-methods", businessHandler.CreatePaymentMethod)
+		protected.PUT("/payment-methods/:id", businessHandler.UpdatePaymentMethod)
+		protected.DELETE("/payment-methods/:id", businessHandler.DeletePaymentMethod)
 
 		// Conversation progress routes
 		protected.GET("/conversations/:conversation_id/progress", handlers.GetConversationProgress)

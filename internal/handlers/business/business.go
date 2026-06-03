@@ -140,30 +140,30 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		}
 	}
 
-	// Count pending orders per client and add to unread badge
-	type pendingCountResult struct {
+	// Count non-completed orders per client and add to unread badge
+	type notCompletedCountResult struct {
 		ClientID uint
 		Count    int
 	}
-	var orderPending []pendingCountResult
+	var orderNotCompleted []notCompletedCountResult
 	h.db.Model(&models.Order{}).
 		Select("client_id, COUNT(*) as count").
-		Where("business_id = ? AND status = 'pending'", businessID).
+		Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).
 		Group("client_id").
-		Find(&orderPending)
+		Find(&orderNotCompleted)
 	orderMap := make(map[uint]int)
-	for _, o := range orderPending {
+	for _, o := range orderNotCompleted {
 		orderMap[o.ClientID] = o.Count
 	}
 
-	var bookingPending []pendingCountResult
+	var bookingNotCompleted []notCompletedCountResult
 	h.db.Model(&models.Booking{}).
 		Select("client_id, COUNT(*) as count").
-		Where("business_id = ? AND status = 'pending'", businessID).
+		Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).
 		Group("client_id").
-		Find(&bookingPending)
+		Find(&bookingNotCompleted)
 	bookingMap := make(map[uint]int)
-	for _, b := range bookingPending {
+	for _, b := range bookingNotCompleted {
 		bookingMap[b.ClientID] = b.Count
 	}
 
@@ -171,12 +171,12 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		clientsWithUnread[i].UnreadCount += orderMap[clientsWithUnread[i].ID] + bookingMap[clientsWithUnread[i].ID]
 	}
 
-	// Count pending orders and bookings (global)
+	// Count non-completed orders and bookings (global)
 	var pendingOrderCount int64
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
+	h.db.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).Count(&pendingOrderCount)
 
 	var pendingBookingCount int64
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookingCount)
+	h.db.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).Count(&pendingBookingCount)
 
 	totalPending := int(pendingOrderCount + pendingBookingCount)
 
@@ -227,10 +227,10 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	h.db.Model(&models.Booking{}).Where("business_id = ?", businessID).Count(&totalBookings)
 	h.db.Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&activeClients)
 
-	// Calculate total revenue from completed orders and bookings
+	// Calculate total revenue from paid amounts
 	var ordersRevenue, bookingsRevenue float64
-	h.db.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Scan(&ordersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "completed"}).Scan(&bookingsRevenue)
+	h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&ordersRevenue)
+	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&bookingsRevenue)
 	totalRevenue = ordersRevenue + bookingsRevenue
 
 	// Get recent orders with client info
@@ -428,8 +428,8 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	h.db.Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&activeClients)
 
 	var ordersRevenue, bookingsRevenue float64
-	h.db.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Scan(&ordersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "completed"}).Scan(&bookingsRevenue)
+	h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&ordersRevenue)
+	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&bookingsRevenue)
 	totalRevenue = ordersRevenue + bookingsRevenue
 
 	var recentOrders []models.Order
@@ -459,21 +459,6 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "dashboard.html", data)
-}
-
-func (h *BusinessHandler) GetPayments(c *gin.Context) {
-	businessID := c.GetUint("business_id")
-	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
-		return
-	}
-	c.HTML(http.StatusOK, "payments.html", gin.H{
-		"Business":   business,
-		"ActivePage": "payments",
-		"Countries":  data.Countries,
-		"Currencies": data.Currencies,
-	})
 }
 
 func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {

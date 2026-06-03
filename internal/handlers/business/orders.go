@@ -2,7 +2,6 @@ package business
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"salesmee/internal/data"
@@ -21,11 +20,15 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 	}
 
 	var request struct {
-		ClientID        uint   `json:"client_id" binding:"required"`
+		ClientID        uint   `json:"client_id"`
 		ProductID       uint   `json:"product_id" binding:"required"`
 		Quantity        int    `json:"quantity" binding:"required"`
+		CustomerName    string `json:"customer_name"`
+		CustomerEmail   string `json:"customer_email"`
+		CustomerPhone   string `json:"customer_phone"`
 		DeliveryAddress string `json:"delivery_address"`
 		Notes           string `json:"notes"`
+		MarkCompleted   bool   `json:"mark_completed"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -46,12 +49,29 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Create or get client
+	// Get or create client
 	var client models.Client
-	if err := h.db.Where("id = ?", request.ClientID).First(&client).Error; err != nil {
-		log.Println("Failed to create client", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
-		return
+	if request.ClientID > 0 {
+		if err := h.db.First(&client, request.ClientID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
+			return
+		}
+	} else {
+		client = models.Client{
+			BusinessID: &businessID,
+			Name:       request.CustomerName,
+			Email:      request.CustomerEmail,
+			Phone:      request.CustomerPhone,
+		}
+		if err := h.db.Create(&client).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
+			return
+		}
+	}
+
+	status := "pending"
+	if request.MarkCompleted {
+		status = "fulfilled"
 	}
 
 	// Create order
@@ -60,11 +80,15 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		ClientID:     client.ID,
 		Quantity:     request.Quantity,
 		OrderNumber:  generateOrderNumber(),
-		Status:       "pending",
+		Status:       status,
 		Sender:       "business",
 		TotalAmount:  float64(request.Quantity) * product.Price,
 		Notes:        fmt.Sprintf("Delivery: %s. %s", request.DeliveryAddress, request.Notes),
 		DeliveryDate: &[]time.Time{time.Now().AddDate(0, 0, 7)}[0],
+	}
+
+	if request.MarkCompleted {
+		order.PaidAmount = order.TotalAmount
 	}
 
 	if err := h.db.Create(&order).Error; err != nil {
@@ -102,6 +126,18 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 	}
 	h.db.Create(&inventoryLog)
 
+	// If mark_completed, create payment record
+	if request.MarkCompleted {
+		payment := models.Payment{
+			OrderID:   &order.ID,
+			Amount:    order.TotalAmount,
+			Method:    "cash",
+			Status:    "completed",
+			Reference: "Walk-in counter payment",
+		}
+		h.db.Create(&payment)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"order":   order,
@@ -123,37 +159,43 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	}
 
 	var orders []models.Order
-	h.db.Where("business_id = ?", businessID).Find(&orders)
+	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ?", businessID).Find(&orders)
 
-	var pendingCount, confirmedCount, completedCount, canceledCount int64
+	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	var totalRevenue float64
 
 	for _, order := range orders {
 		switch order.Status {
+		case "draft":
+			draftCount++
 		case "pending":
 			pendingCount++
+		case "client_confirmed":
+			clientConfirmedCount++
 		case "confirmed":
 			confirmedCount++
-		case "completed":
-			completedCount++
-		case "canceled":
-			canceledCount++
+		case "fulfilled":
+			fulfilledCount++
+		case "cancelled":
+			cancelledCount++
 		}
 		totalRevenue += order.TotalAmount
 	}
 
 	c.HTML(http.StatusOK, "orders.html", gin.H{
-		"Business":       currentBusiness,
-		"Orders":         orders,
-		"PendingCount":   pendingCount,
-		"ConfirmedCount": confirmedCount,
-		"CompletedCount": completedCount,
-		"CanceledCount":  canceledCount,
-		"TotalOrders":    len(orders),
-		"TotalRevenue":   totalRevenue,
-		"ActivePage":     "orders",
-		"Countries":      data.Countries,
-		"Currencies":     data.Currencies,
+		"Business":             currentBusiness,
+		"Orders":               orders,
+		"DraftCount":           draftCount,
+		"PendingCount":         pendingCount,
+		"ClientConfirmedCount": clientConfirmedCount,
+		"ConfirmedCount":       confirmedCount,
+		"FulfilledCount":       fulfilledCount,
+		"CancelledCount":       cancelledCount,
+		"TotalOrders":          len(orders),
+		"TotalRevenue":         totalRevenue,
+		"ActivePage":           "orders",
+		"Countries":            data.Countries,
+		"Currencies":           data.Currencies,
 	})
 }
 
@@ -733,8 +775,118 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	})
 }
 
+// FulfillOrder transitions confirmed → fulfilled
+func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	orderIDStr := c.Param("id")
+
+	orderID, err := strconv.ParseUint(orderIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+		return
+	}
+
+	var order models.Order
+	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return
+	}
+
+	if order.Status != "confirmed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before fulfillment"})
+		return
+	}
+
+	now := time.Now()
+	order.Status = "fulfilled"
+	order.UpdatedAt = now
+	if err := h.db.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fulfill order"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Order fulfilled successfully",
+	})
+}
+
+// GetOrderReceipt renders a print-friendly receipt for a completed order
+func (h *BusinessHandler) GetOrderReceipt(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.Redirect(http.StatusFound, "/business/login")
+		return
+	}
+
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Invalid order ID"})
+		return
+	}
+
+	var order models.Order
+	if err := h.db.Preload("Client").Preload("OrderItems.Product").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Order not found"})
+		return
+	}
+
+	if order.Status != "fulfilled" && order.Status != "completed" {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Order is not completed"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "receipt_order.html", gin.H{
+		"Order":    order,
+		"Business": order.Business,
+	})
+}
+
+// MarkOrderAsPaid sets the order's paid amount to the total (quick mark as fully paid)
+func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	orderIDStr := c.Param("id")
+	orderID, _ := strconv.ParseUint(orderIDStr, 10, 32)
+
+	var order models.Order
+	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return
+	}
+
+	if order.Status != "confirmed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before marking as paid"})
+		return
+	}
+
+	order.PaidAmount = order.TotalAmount
+	order.UpdatedAt = time.Now()
+	h.db.Save(&order)
+
+	// Create a completed payment record
+	h.db.Create(&models.Payment{
+		OrderID:   &order.ID,
+		ClientID:  order.ClientID,
+		Amount:    order.TotalAmount,
+		Method:    "cash",
+		Status:    "completed",
+		Reference: "quick-paid",
+		Notes:     "Marked as paid from dashboard",
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Order marked as paid",
+	})
+}
+
 // buildOrderData creates the rich order data map for templates
-func buildOrderData(order models.Order, orderItems []models.OrderItem, productNames []string, firstProductName string) map[string]interface{} {
+func buildOrderData(order models.Order, orderItems []models.OrderItem, productNames []string, firstProductName string, paymentMethods []models.PaymentMethod) map[string]interface{} {
 	var items []map[string]interface{}
 	for _, item := range orderItems {
 		itemMap := map[string]interface{}{
@@ -790,22 +942,31 @@ func buildOrderData(order models.Order, orderItems []models.OrderItem, productNa
 		firstProductName = productNames[0]
 	}
 
+	remaining := order.TotalAmount - order.PaidAmount
+	if remaining < 0 {
+		remaining = 0
+	}
+
 	return map[string]interface{}{
-		"id":                 order.ID,
-		"order_number":       order.OrderNumber,
-		"status":             order.Status,
-		"client_confirmed":   order.ConfirmedByClient,
-		"business_confirmed": order.ConfirmedByBusiness,
-		"action_required":    actionRequired,
-		"editable":           editable,
-		"sender":             order.Sender,
-		"draft":              order.Draft,
-		"items":              items,
-		"total_amount":       order.TotalAmount,
-		"quantity":           order.Quantity,
-		"notes":              order.Notes,
-		"product_names":      productNames,
-		"first_product_name": firstProductName,
-		"created_at":         order.CreatedAt,
+		"id":                   order.ID,
+		"order_number":         order.OrderNumber,
+		"status":               order.Status,
+		"client_confirmed":     order.ConfirmedByClient,
+		"business_confirmed":   order.ConfirmedByBusiness,
+		"action_required":      actionRequired,
+		"editable":             editable,
+		"sender":               order.Sender,
+		"draft":                order.Draft,
+		"items":                items,
+		"total_amount":         order.TotalAmount,
+		"paid_amount":          order.PaidAmount,
+		"remaining":            remaining,
+		"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+		"quantity":             order.Quantity,
+		"notes":                order.Notes,
+		"product_names":        productNames,
+		"first_product_name":   firstProductName,
+		"created_at":           order.CreatedAt,
+		"payment_methods":      paymentMethods,
 	}
 }

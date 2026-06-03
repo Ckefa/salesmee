@@ -493,14 +493,16 @@ async function submitServiceBooking() {
         body.scheduled_date = bookingDateTime;
         resp = await fetch(`/client/bookings/${servicePickerEditBookingId}/update`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+          credentials: 'same-origin',
           body: JSON.stringify(body)
         });
       } else {
         body.booking_date = bookingDateTime;
         resp = await fetch(`/business/bookings/${servicePickerEditBookingId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+          credentials: 'same-origin',
           body: JSON.stringify(body)
         });
       }
@@ -530,7 +532,8 @@ async function submitServiceBooking() {
     } else if (servicePickerMode === 'client') {
       resp = await fetch('/client/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        credentials: 'same-origin',
         body: JSON.stringify({
           service_id: servicePickerSelectedService.id,
           scheduled_date: bookingDateTime,
@@ -560,7 +563,7 @@ async function submitServiceBooking() {
         showNotification(data.error || 'Failed to create booking', 'error');
       }
     } else {
-      const clientId = typeof clientId !== 'undefined' ? clientId : servicePickerClientId;
+      const clientId = servicePickerClientId;
       if (!clientId) {
         showNotification('Client ID not found', 'error');
         if (submitBtn) {
@@ -569,9 +572,10 @@ async function submitServiceBooking() {
         }
         return;
       }
-      resp = await fetch('/bookings', {
+      resp = await fetch('/business/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        credentials: 'same-origin',
         body: JSON.stringify({
           client_id: parseInt(clientId),
           service_id: servicePickerSelectedService.id,

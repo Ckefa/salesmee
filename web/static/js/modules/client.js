@@ -60,17 +60,24 @@ function sendMessage() {
 }
 
 function disconnectBusiness(businessId) {
-  if (!confirm('Remove this business from your list? You can reconnect later.')) return;
-  fetch('/client/disconnect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        location.reload();
-      } else {
-        showNotification('Failed to remove business', 'error');
-      }
-    })
-    .catch(() => showNotification('Failed to remove business', 'error'));
+  showConfirmModal({
+    title: 'Remove Business',
+    message: 'Remove this business from your list? You can reconnect later.',
+    confirmText: 'Remove',
+    confirmClass: 'bg-[var(--color-error)] text-white'
+  }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/client/disconnect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          showNotification('Failed to remove business', 'error');
+        }
+      })
+      .catch(() => showNotification('Failed to remove business', 'error'));
+  });
 }
 
 function hideClientOrderModal() {

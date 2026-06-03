@@ -1,21 +1,21 @@
 {{define "client_chat_header"}}
-<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-4 flex items-center justify-between flex-shrink-0">
-  <div class="flex items-center space-x-3 min-w-0 flex-1">
+<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
+  <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
     {{if .Business.Logo}}
-    <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-10 h-10 rounded-full object-cover shrink-0">
+    <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0">
     {{else}}
-    <div class="w-10 h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center shrink-0">
-      <i class="fas fa-store text-[var(--color-primary)]"></i>
+    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center shrink-0">
+      <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-base"></i>
     </div>
     {{end}}
     <div class="min-w-0">
-      <h2 class="font-semibold text-[var(--color-text)] truncate">{{.Business.Name}}</h2>
-      <p class="text-sm text-[var(--color-text-muted)] truncate">{{.Business.BusinessType}}</p>
+      <h2 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">{{.Business.Name}}</h2>
+      <p class="text-xs sm:text-sm text-[var(--color-text-muted)] truncate">{{.Business.BusinessType}}</p>
     </div>
   </div>
-  <div class="flex items-center space-x-2 shrink-0">
-    <span class="inline-block w-2 h-2 bg-[var(--color-success)] rounded-full"></span>
-    <span class="text-sm text-[var(--color-text-muted)] hide-mobile">Online</span>
+  <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+    <span class="inline-block w-2 h-2 bg-[var(--color-success)] rounded-full shrink-0"></span>
+    <span class="text-xs sm:text-sm text-[var(--color-text-muted)] hide-mobile">Online</span>
   </div>
 </div>
 {{end}}

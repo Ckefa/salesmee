@@ -123,7 +123,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	}
 
 	var orders []models.Order
-	h.db.Where("business_id = ?", businessID).Find(&orders)
+	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ?", businessID).Find(&orders)
 
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	var totalRevenue float64

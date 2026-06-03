@@ -240,6 +240,39 @@
           </div>
         </div>
 
+        <!-- Search & Filter -->
+        <div class="flex flex-col gap-3 mb-4">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-search text-[var(--color-text-muted)] text-xs"></i>
+            </div>
+            <input type="text" id="orderSearch" placeholder="Search by order #, customer, or product..."
+              class="input pl-9 text-sm">
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <select id="orderSearchField" class="input text-sm">
+              <option value="all">All Fields</option>
+              <option value="number">Order #</option>
+              <option value="customerName">Customer Name</option>
+              <option value="customerEmail">Email</option>
+            </select>
+            <select id="orderStatusFilter" class="input text-sm">
+              <option value="">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="pending">Pending</option>
+              <option value="client_confirmed">Confirmed</option>
+              <option value="fulfilled">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button id="clearOrderFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
+              <i class="fas fa-times mr-1"></i>Clear
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mb-2">
+          <span id="orderResultsCount" class="text-xs text-[var(--color-text-muted)]"></span>
+        </div>
+
         <!-- Orders Table -->
         <div class="bg-[var(--color-surface)] rounded-xl card">
           <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
@@ -261,7 +294,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
+                <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]" id="ordersTableBody">
                 {{range .Orders}}
                 {{$isDraft := eq .Status "draft"}}
                 {{$isPending := eq .Status "pending"}}
@@ -270,17 +303,15 @@
                 {{$isFulfilled := or (eq .Status "fulfilled") (eq .Status "completed")}}
                 {{$isCancelled := eq .Status "cancelled"}}
                 {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
-                <tr class="table-row-hover">
+                <tr data-status="{{.Status}}"
+                  data-number="{{.OrderNumber}}"
+                  data-customer-name="{{.Client.Name}}"
+                  data-customer-email="{{.Client.Email}}"
+                  class="table-row-hover">
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.OrderNumber}}</td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
-                    <div class="flex items-center">
-                      <img src="https://picsum.photos/seed/customer{{.Client.ID}}/32/32.jpg" alt="{{.Client.Name}}"
-                        class="w-8 h-8 rounded-full mr-3">
-                      <div>
-                        <div class="font-medium">{{.Client.Name}}</div>
-                        <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
-                      </div>
-                    </div>
+                    <div class="font-medium">{{.Client.Name}}</div>
+                    <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
                   </td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
                     {{range .OrderItems}}{{.Quantity}}x {{.Product.Name}}{{end}}
@@ -299,33 +330,38 @@
                   </td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">{{.CreatedAt.Format "Jan 02, 2006"}}
                   </td>
-                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                    <div class="flex space-x-2">
-                      <div class="flex items-center gap-1">
+                  <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
+                    <button onclick="toggleDropdown('orderActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
+                      <i class="fas fa-ellipsis-v text-[var(--color-text-muted)]"></i>
+                    </button>
+                    <div id="orderActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
+                      <div class="py-1">
                         {{if not $isCancelled}}
+                        <span class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold block">Steps</span>
                         <button onclick="{{if $isDraft}}sendOrderToClient({{.ID}}){{else}};{{end}}"
-                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if $isDraft}}bg-[var(--color-warning)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-warning-light)] text-[var(--color-warning)] opacity-40 cursor-default{{end}}">
-                          <i class="fas fa-clock text-[10px]"></i>Pending
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isDraft}}text-[var(--color-warning)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-clock w-4 {{if $isDraft}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"></i>Pending
                         </button>
                         <button onclick="{{if or $isPending $isClientConfirmed}}businessConfirmOrder({{.ID}}){{else}};{{end}}"
-                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if or $isPending $isClientConfirmed}}bg-[var(--color-info)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-info-light)] text-[var(--color-info)] opacity-40 cursor-default{{end}}">
-                          <i class="fas fa-check-circle text-[10px]"></i>Confirmed
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if or $isPending $isClientConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-check-circle w-4 {{if or $isPending $isClientConfirmed}}text-[var(--color-info)]{{else}}opacity-40{{end}}"></i>Confirmed
                         </button>
                         <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markOrderAsPaid({{.ID}}){{else}};{{end}}"
-                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if and $isConfirmed (not $isFullyPaid)}}bg-[var(--color-secondary)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-secondary-light)] text-[var(--color-secondary)] opacity-40 cursor-default{{end}}">
-                          <i class="fas fa-credit-card text-[10px]"></i>Paid
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-credit-card w-4 {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"></i>Paid
                         </button>
                         <button onclick="{{if and $isConfirmed $isFullyPaid}}fulfillOrder({{.ID}}){{else}};{{end}}"
-                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if and $isConfirmed $isFullyPaid}}bg-[var(--color-success)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-success-light)] text-[var(--color-success)] opacity-40 cursor-default{{end}}">
-                          <i class="fas fa-check-double text-[10px]"></i>Completed
+                          class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                          <i class="fas fa-check-double w-4 {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"></i>Completed
                         </button>
                         {{if not $isFulfilled}}
-                        <button onclick="rejectOrder({{.ID}})" class="text-[var(--color-error)] hover:text-[var(--color-error)] text-xs p-1" title="Cancel">
-                          <i class="fas fa-times"></i>
+                        <hr class="border-t border-[var(--color-border)] my-1">
+                        <button onclick="rejectOrder({{.ID}})" class="w-full text-left px-3 py-2 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] flex items-center gap-2">
+                          <i class="fas fa-times w-4"></i>Cancel
                         </button>
                         {{end}}
                         {{else}}
-                        <span class="text-xs text-[var(--color-text-muted)]">Cancelled</span>
+                        <div class="px-3 py-2 text-xs text-[var(--color-text-muted)]">Cancelled</div>
                         {{end}}
                       </div>
                     </div>
@@ -340,6 +376,12 @@
                   </td>
                 </tr>
                 {{end}}
+                <tr id="noOrdersMsg" style="display:none">
+                  <td colspan="7" class="px-3 sm:px-6 py-12 text-center">
+                    <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
+                    <p class="text-sm text-[var(--color-text-secondary)]">No orders match your search</p>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -656,6 +698,68 @@
           console.error('Error:', error);
           showNotification('Failed to create booking', 'error');
         });
+    });
+
+    function filterOrders() {
+      const search = document.getElementById('orderSearch').value.toLowerCase().trim();
+      const field = document.getElementById('orderSearchField').value;
+      const status = document.getElementById('orderStatusFilter').value;
+      const totalRows = document.querySelectorAll('#ordersTableBody tr[data-status]');
+      const allRows = document.querySelectorAll('#ordersTableBody tr[data-number]');
+      let visibleCount = 0;
+
+      const hasFilters = search || status;
+      document.getElementById('clearOrderFilters').classList.toggle('hidden', !hasFilters);
+
+      allRows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const matchStatus = !status || rowStatus === status;
+
+        let matchSearch = true;
+        if (search) {
+          let targets = [];
+          if (field === 'all') {
+            targets = [row.getAttribute('data-number'), row.getAttribute('data-customer-name'), row.getAttribute('data-customer-email')];
+          } else if (field === 'number') {
+            targets = [row.getAttribute('data-number')];
+          } else if (field === 'customerName') {
+            targets = [row.getAttribute('data-customer-name')];
+          } else if (field === 'customerEmail') {
+            targets = [row.getAttribute('data-customer-email')];
+          }
+          matchSearch = targets.some(t => t && t.toLowerCase().includes(search));
+        }
+
+        const show = matchSearch && matchStatus;
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+
+      document.getElementById('noOrdersMsg').style.display = visibleCount === 0 && totalRows.length > 0 ? '' : 'none';
+      document.getElementById('orderResultsCount').textContent = hasFilters ? `${visibleCount} of ${allRows.length} results` : '';
+    }
+
+    document.getElementById('orderSearch').addEventListener('input', filterOrders);
+    document.getElementById('orderSearchField').addEventListener('change', filterOrders);
+    document.getElementById('orderStatusFilter').addEventListener('change', filterOrders);
+    document.getElementById('clearOrderFilters').addEventListener('click', function() {
+      document.getElementById('orderSearch').value = '';
+      document.getElementById('orderSearchField').value = 'all';
+      document.getElementById('orderStatusFilter').value = '';
+      filterOrders();
+    });
+
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      const isHidden = menu.classList.contains('hidden');
+      document.querySelectorAll('[id^="orderActions-"]').forEach(el => el.classList.add('hidden'));
+      if (isHidden) menu.classList.remove('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('[onclick^="toggleDropdown"]') && !e.target.closest('[id^="orderActions-"]')) {
+        document.querySelectorAll('[id^="orderActions-"]').forEach(el => el.classList.add('hidden'));
+      }
     });
   </script>
 

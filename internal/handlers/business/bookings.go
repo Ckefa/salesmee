@@ -101,7 +101,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	}
 
 	var bookings []models.Booking
-	h.db.Where("business_id = ?", businessID).Find(&bookings)
+	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ?", businessID).Find(&bookings)
 
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	var totalRevenue float64

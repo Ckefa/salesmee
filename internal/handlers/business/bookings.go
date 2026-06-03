@@ -329,13 +329,14 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 	}
 
 	var request struct {
-		ClientID     uint   `json:"client_id"`
-		ServiceID    uint   `json:"service_id" binding:"required"`
-		CustomerName string `json:"customer_name"`
+		ClientID      uint   `json:"client_id"`
+		ServiceID     uint   `json:"service_id" binding:"required"`
+		CustomerName  string `json:"customer_name"`
 		CustomerEmail string `json:"customer_email"`
 		CustomerPhone string `json:"customer_phone"`
-		BookingDate  string `json:"booking_date" binding:"required"`
-		Notes        string `json:"notes"`
+		BookingDate   string `json:"booking_date" binding:"required"`
+		Notes         string `json:"notes"`
+		MarkCompleted bool   `json:"mark_completed"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -378,17 +379,26 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		return
 	}
 
+	status := "pending"
+	if request.MarkCompleted {
+		status = "completed"
+	}
+
 	// Create booking
 	booking := models.Booking{
 		BusinessID:    businessID,
 		ClientID:      client.ID,
 		BookingNumber: generateBookingNumber(),
-		Status:        "pending",
+		Status:        status,
 		Sender:        "business",
 		ScheduledDate: bookingDate,
 		Duration:      service.Duration,
 		TotalAmount:   service.MaxPrice,
 		Notes:         request.Notes,
+	}
+
+	if request.MarkCompleted {
+		booking.PaidAmount = booking.TotalAmount
 	}
 
 	if err := h.db.Create(&booking).Error; err != nil {
@@ -407,6 +417,18 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 	if err := h.db.Create(&bookingItem).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking item"})
 		return
+	}
+
+	// If mark_completed, create payment record
+	if request.MarkCompleted {
+		payment := models.Payment{
+			BookingID: &booking.ID,
+			Amount:    booking.TotalAmount,
+			Method:    "cash",
+			Status:    "completed",
+			Reference: "Walk-in counter payment",
+		}
+		h.db.Create(&payment)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -60,6 +60,40 @@
       </div>
     </div>
 
+    <!-- Walk-in Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 hover:shadow-lg transition-shadow">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--color-warning-light)] rounded-lg flex items-center justify-center">
+            <i class="fas fa-shopping-bag text-xl text-[var(--color-warning)]"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-base font-semibold text-[var(--color-text)]">Counter Order</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1">Create an order for a walk-in or phone customer on the spot</p>
+            <button onclick="showQuickOrderModal()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-warning)] text-white text-xs font-medium hover:brightness-110 transition">
+              <i class="fas fa-plus-circle text-xs"></i>
+              Create Order
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 hover:shadow-lg transition-shadow">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--color-secondary-light)] rounded-lg flex items-center justify-center">
+            <i class="fas fa-calendar-plus text-xl text-[var(--color-secondary)]"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-base font-semibold text-[var(--color-text)]">Walk-in Booking</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1">Schedule a service for a customer who walked in or called</p>
+            <button onclick="showQuickBookingModal()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-secondary)] text-white text-xs font-medium hover:brightness-110 transition">
+              <i class="fas fa-plus-circle text-xs"></i>
+              Create Booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Recent Orders and Bookings -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Recent Orders -->

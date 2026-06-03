@@ -2,7 +2,6 @@ package business
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"salesmee/internal/data"
@@ -21,11 +20,15 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 	}
 
 	var request struct {
-		ClientID        uint   `json:"client_id" binding:"required"`
+		ClientID        uint   `json:"client_id"`
 		ProductID       uint   `json:"product_id" binding:"required"`
 		Quantity        int    `json:"quantity" binding:"required"`
+		CustomerName    string `json:"customer_name"`
+		CustomerEmail   string `json:"customer_email"`
+		CustomerPhone   string `json:"customer_phone"`
 		DeliveryAddress string `json:"delivery_address"`
 		Notes           string `json:"notes"`
+		MarkCompleted   bool   `json:"mark_completed"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -46,12 +49,29 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Create or get client
+	// Get or create client
 	var client models.Client
-	if err := h.db.Where("id = ?", request.ClientID).First(&client).Error; err != nil {
-		log.Println("Failed to create client", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
-		return
+	if request.ClientID > 0 {
+		if err := h.db.First(&client, request.ClientID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
+			return
+		}
+	} else {
+		client = models.Client{
+			BusinessID: &businessID,
+			Name:       request.CustomerName,
+			Email:      request.CustomerEmail,
+			Phone:      request.CustomerPhone,
+		}
+		if err := h.db.Create(&client).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
+			return
+		}
+	}
+
+	status := "pending"
+	if request.MarkCompleted {
+		status = "fulfilled"
 	}
 
 	// Create order
@@ -60,11 +80,15 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		ClientID:     client.ID,
 		Quantity:     request.Quantity,
 		OrderNumber:  generateOrderNumber(),
-		Status:       "pending",
+		Status:       status,
 		Sender:       "business",
 		TotalAmount:  float64(request.Quantity) * product.Price,
 		Notes:        fmt.Sprintf("Delivery: %s. %s", request.DeliveryAddress, request.Notes),
 		DeliveryDate: &[]time.Time{time.Now().AddDate(0, 0, 7)}[0],
+	}
+
+	if request.MarkCompleted {
+		order.PaidAmount = order.TotalAmount
 	}
 
 	if err := h.db.Create(&order).Error; err != nil {
@@ -101,6 +125,18 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		Reason:    fmt.Sprintf("Order #%s", order.OrderNumber),
 	}
 	h.db.Create(&inventoryLog)
+
+	// If mark_completed, create payment record
+	if request.MarkCompleted {
+		payment := models.Payment{
+			OrderID:   &order.ID,
+			Amount:    order.TotalAmount,
+			Method:    "cash",
+			Status:    "completed",
+			Reference: "Walk-in counter payment",
+		}
+		h.db.Create(&payment)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

@@ -15,19 +15,6 @@
   <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
-  <!-- Floating Quick Actions -->
-  <div class="fixed top-20 right-4 z-50 flex flex-col space-y-2 hide-mobile">
-    <button onclick="showQuickOrderModal()"
-      class="btn btn-primary btn-sm shadow-lg shadow-teal-500/20 group">
-      <i class="fas fa-shopping-cart"></i>
-      <span class="hidden group-hover:inline">Quick Order</span>
-    </button>
-    <button onclick="showQuickBookingModal()"
-      class="btn btn-secondary btn-sm shadow-lg group">
-      <i class="fas fa-calendar-plus"></i>
-      <span class="hidden group-hover:inline">Quick Booking</span>
-    </button>
-  </div>
 
   <!-- Header -->
   <header class="navbar-glass">
@@ -135,42 +122,101 @@
 
   <!-- Quick Order Modal -->
   <div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto z-50 animate-fade-in" onclick="hideQuickOrderModal()">
-    <div class="relative top-10 sm:top-20 max-w-md p-4 sm:p-5 card shadow-xl animate-scale-in mx-3 sm:mx-auto" onclick="event.stopPropagation()">
-      <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">Quick Order</h3>
-      <form id="quickOrderForm" class="mt-4 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Select Product</label>
-          <select id="orderProduct" required class="input mt-1">
-            <option value="">Choose a product...</option>
-          </select>
+    <div class="relative top-10 sm:top-20 max-w-lg p-4 sm:p-5 card shadow-xl animate-scale-in mx-3 sm:mx-auto" onclick="event.stopPropagation()">
+      <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">New Order</h3>
+
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-center gap-0 mt-4 mb-6">
+        <span id="ordStep1Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-warning)] text-white shadow-sm transition-all duration-300">1</span>
+        <span id="ordStep1Label" class="text-xs font-medium text-[var(--color-warning)] ml-1.5 transition-colors duration-300">Browse</span>
+        <div id="ordStep1to2" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-warning)] transition-colors duration-300"></div>
+        <span id="ordStep2Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">2</span>
+        <span id="ordStep2Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Details</span>
+        <div id="ordStep2to3" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300"></div>
+        <span id="ordStep3Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">3</span>
+        <span id="ordStep3Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Confirm</span>
+      </div>
+
+      <form id="quickOrderForm" class="space-y-4">
+        <!-- Step 1: Browse -->
+        <div id="ordStep1">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Product</label>
+            <div class="relative mt-1">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+              <input type="text" id="orderProductSearch" placeholder="Type to search..." class="input pl-10 text-sm">
+            </div>
+            <div id="orderProductResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
+              <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading products...</div>
+            </div>
+            <div id="orderProductCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
+            <div id="orderProductSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
+              <i class="fas fa-check-circle mr-1"></i><span id="orderProductSelectedName"></span>
+            </div>
+            <input type="hidden" id="orderProduct" value="">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Quantity</label>
+            <input type="number" id="orderQuantity" min="1" required class="input mt-1">
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Quantity</label>
-          <input type="number" id="orderQuantity" min="1" required class="input mt-1">
+
+        <!-- Step 2: Details -->
+        <div id="ordStep2" class="hidden">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
+            <input type="text" id="orderCustomerName" required class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
+            <input type="email" id="orderCustomerEmail" class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
+            <input type="tel" id="orderCustomerPhone" class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Delivery Address</label>
+            <textarea id="orderDeliveryAddress" rows="2" class="input mt-1"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
+            <textarea id="orderNotes" rows="2" class="input mt-1"></textarea>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
-          <input type="text" id="orderCustomerName" required class="input mt-1">
+
+        <!-- Step 3: Confirm -->
+        <div id="ordStep3" class="hidden">
+          <div class="bg-[var(--color-surface-secondary)] rounded-lg p-3 sm:p-4 space-y-2">
+            <div class="flex justify-between text-xs sm:text-sm">
+              <span class="text-[var(--color-text-secondary)]">Product</span>
+              <span id="ordConfirmProduct" class="font-medium text-[var(--color-text)] text-right">—</span>
+            </div>
+            <div class="flex justify-between text-xs sm:text-sm">
+              <span class="text-[var(--color-text-secondary)]">Quantity</span>
+              <span id="ordConfirmQty" class="font-medium text-[var(--color-text)]">—</span>
+            </div>
+            <div class="flex justify-between text-xs sm:text-sm">
+              <span class="text-[var(--color-text-secondary)]">Customer</span>
+              <span id="ordConfirmCustomer" class="font-medium text-[var(--color-text)] text-right">—</span>
+            </div>
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer mt-3">
+            <input type="checkbox" id="orderCompleted" class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-success)] focus:ring-[var(--color-success)]">
+            <span class="text-xs sm:text-sm text-[var(--color-text-secondary)]">Mark as paid &amp; completed — for walk-in customers</span>
+          </label>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
-          <input type="email" id="orderCustomerEmail" class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
-          <input type="tel" id="orderCustomerPhone" class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Delivery Address</label>
-          <textarea id="orderDeliveryAddress" rows="2" class="input mt-1"></textarea>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
-          <textarea id="orderNotes" rows="2" class="input mt-1"></textarea>
-        </div>
-        <div class="flex justify-end gap-3 pt-4">
-          <button type="button" onclick="hideQuickOrderModal()" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary">Create Order</button>
+
+        <!-- Navigation -->
+        <div class="flex justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
+          <button type="button" id="ordBackBtn" onclick="ordGoToStep(ordStep - 1)" class="btn btn-secondary hidden">
+            <i class="fas fa-arrow-left mr-1"></i>Back
+          </button>
+          <div class="flex gap-3 ml-auto">
+            <button type="button" id="ordCancelBtn" onclick="hideQuickOrderModal()" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="ordNextBtn" class="btn btn-primary" onclick="ordNextStep()">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+            <button type="submit" id="ordSubmitBtn" class="btn btn-primary hidden">Create Order</button>
+          </div>
         </div>
       </form>
     </div>
@@ -178,38 +224,97 @@
 
   <!-- Quick Booking Modal -->
   <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto z-50 animate-fade-in" onclick="hideQuickBookingModal()">
-    <div class="relative top-10 sm:top-20 max-w-md p-4 sm:p-5 card shadow-xl animate-scale-in mx-3 sm:mx-auto" onclick="event.stopPropagation()">
-      <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">Quick Booking</h3>
-      <form id="quickBookingForm" class="mt-4 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Select Service</label>
-          <select id="bookingService" required class="input mt-1">
-            <option value="">Choose a service...</option>
-          </select>
+    <div class="relative top-10 sm:top-20 max-w-lg p-4 sm:p-5 card shadow-xl animate-scale-in mx-3 sm:mx-auto" onclick="event.stopPropagation()">
+      <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">New Booking</h3>
+
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-center gap-0 mt-4 mb-6">
+        <span id="bkgStep1Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-secondary)] text-white shadow-sm transition-all duration-300">1</span>
+        <span id="bkgStep1Label" class="text-xs font-medium text-[var(--color-secondary)] ml-1.5 transition-colors duration-300">Choose</span>
+        <div id="bkgStep1to2" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-secondary)] transition-colors duration-300"></div>
+        <span id="bkgStep2Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">2</span>
+        <span id="bkgStep2Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Schedule</span>
+        <div id="bkgStep2to3" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300"></div>
+        <span id="bkgStep3Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">3</span>
+        <span id="bkgStep3Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Confirm</span>
+      </div>
+
+      <form id="quickBookingForm" class="space-y-4">
+        <!-- Step 1: Choose Service -->
+        <div id="bkgStep1">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Service</label>
+            <div class="relative mt-1">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+              <input type="text" id="bookingServiceSearch" placeholder="Type to search..." class="input pl-10 text-sm">
+            </div>
+            <div id="bookingServiceResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
+              <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading services...</div>
+            </div>
+            <div id="bookingServiceCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
+            <div id="bookingServiceSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
+              <i class="fas fa-check-circle mr-1"></i><span id="bookingServiceSelectedName"></span>
+            </div>
+            <input type="hidden" id="bookingService" value="">
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
-          <input type="text" id="bookingCustomerName" required class="input mt-1">
+
+        <!-- Step 2: Schedule & Customer -->
+        <div id="bkgStep2" class="hidden">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Date & Time</label>
+            <input type="datetime-local" id="bookingDateTime" required class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
+            <input type="text" id="bookingCustomerName" required class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
+            <input type="email" id="bookingCustomerEmail" class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
+            <input type="tel" id="bookingCustomerPhone" class="input mt-1">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
+            <textarea id="bookingNotes" rows="2" class="input mt-1"></textarea>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
-          <input type="email" id="bookingCustomerEmail" class="input mt-1">
+
+        <!-- Step 3: Confirm -->
+        <div id="bkgStep3" class="hidden">
+          <div class="bg-[var(--color-surface-secondary)] rounded-lg p-3 sm:p-4 space-y-2">
+            <div class="flex justify-between text-xs sm:text-sm">
+              <span class="text-[var(--color-text-secondary)]">Service</span>
+              <span id="bkgConfirmService" class="font-medium text-[var(--color-text)] text-right">—</span>
+            </div>
+            <div class="flex justify-between text-xs sm:text-sm">
+              <span class="text-[var(--color-text-secondary)]">Date &amp; Time</span>
+              <span id="bkgConfirmDateTime" class="font-medium text-[var(--color-text)] text-right">—</span>
+            </div>
+            <div class="flex justify-between text-xs sm:text-sm">
+              <span class="text-[var(--color-text-secondary)]">Customer</span>
+              <span id="bkgConfirmCustomer" class="font-medium text-[var(--color-text)] text-right">—</span>
+            </div>
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer mt-3">
+            <input type="checkbox" id="bookingCompleted" class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-success)] focus:ring-[var(--color-success)]">
+            <span class="text-xs sm:text-sm text-[var(--color-text-secondary)]">Mark as paid &amp; completed — for walk-in customers</span>
+          </label>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
-          <input type="tel" id="bookingCustomerPhone" class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Booking Date & Time</label>
-          <input type="datetime-local" id="bookingDateTime" required class="input mt-1">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
-          <textarea id="bookingNotes" rows="2" class="input mt-1"></textarea>
-        </div>
-        <div class="flex justify-end gap-3 pt-4">
-          <button type="button" onclick="hideQuickBookingModal()" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary" style="background: var(--color-secondary);">Create Booking</button>
+
+        <!-- Navigation -->
+        <div class="flex justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
+          <button type="button" id="bkgBackBtn" onclick="bkgGoToStep(bkgStep - 1)" class="btn btn-secondary hidden">
+            <i class="fas fa-arrow-left mr-1"></i>Back
+          </button>
+          <div class="flex gap-3 ml-auto">
+            <button type="button" id="bkgCancelBtn" onclick="hideQuickBookingModal()" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="bkgNextBtn" class="btn btn-primary" onclick="bkgNextStep()" style="background: var(--color-secondary);">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+            <button type="submit" id="bkgSubmitBtn" class="btn btn-primary hidden" style="background: var(--color-secondary);">Create Booking</button>
+          </div>
         </div>
       </form>
     </div>
@@ -227,6 +332,51 @@
       htmx.ajax('GET', '/business/dashboard', { target: 'main', swap: 'innerHTML' });
     }, 30000);
 
+    var orderProductsList = [];
+    var bookingServicesList = [];
+
+    function renderOrderProducts(filter) {
+      var container = document.getElementById('orderProductResults');
+      var countEl = document.getElementById('orderProductCount');
+      var selectedId = document.getElementById('orderProduct').value;
+      var filtered = filter ? orderProductsList.filter(function(p) { return p.name.toLowerCase().includes(filter.toLowerCase()); }) : orderProductsList;
+      var selectedNameEl = document.getElementById('orderProductSelectedName');
+      var selectedName = selectedNameEl ? selectedNameEl.textContent : '';
+      container.innerHTML = filtered.length ? filtered.map(function(p) {
+        var isSelected = String(p.id) === selectedId;
+        return '<div data-id="' + p.id + '" data-name="' + p.name.replace(/'/g, '&#39;') + '" onclick="selectOrderProduct(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + p.name + '</div>';
+      }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No products found</div>';
+      countEl.textContent = filtered.length + ' of ' + orderProductsList.length + ' products';
+    }
+    function selectOrderProduct(el) {
+      var id = el.dataset.id;
+      var name = el.dataset.name;
+      document.getElementById('orderProduct').value = id;
+      document.getElementById('orderProductSelectedName').textContent = name;
+      document.getElementById('orderProductSelected').classList.remove('hidden');
+      renderOrderProducts(document.getElementById('orderProductSearch').value);
+    }
+
+    function renderBookingServices(filter) {
+      var container = document.getElementById('bookingServiceResults');
+      var countEl = document.getElementById('bookingServiceCount');
+      var selectedId = document.getElementById('bookingService').value;
+      var filtered = filter ? bookingServicesList.filter(function(s) { return s.name.toLowerCase().includes(filter.toLowerCase()); }) : bookingServicesList;
+      container.innerHTML = filtered.length ? filtered.map(function(s) {
+        var isSelected = String(s.id) === selectedId;
+        return '<div data-id="' + s.id + '" data-name="' + s.name.replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + s.name + '</div>';
+      }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No services found</div>';
+      countEl.textContent = filtered.length + ' of ' + bookingServicesList.length + ' services';
+    }
+    function selectBookingService(el) {
+      var id = el.dataset.id;
+      var name = el.dataset.name;
+      document.getElementById('bookingService').value = id;
+      document.getElementById('bookingServiceSelectedName').textContent = name;
+      document.getElementById('bookingServiceSelected').classList.remove('hidden');
+      renderBookingServices(document.getElementById('bookingServiceSearch').value);
+    }
+
     async function loadProductsForOrder() {
       try {
         var response = await fetch('/business/products');
@@ -234,16 +384,17 @@
         var parser = new DOMParser();
         var doc = parser.parseFromString(data, 'text/html');
         var productCards = doc.querySelectorAll('[data-product-id]');
-        var select = document.getElementById('orderProduct');
-        select.innerHTML = '<option value="">Choose a product...</option>';
+        orderProductsList = [];
         productCards.forEach(function(card) {
-          var productId = card.dataset.productId;
-          var productName = card.querySelector('h3')?.textContent || 'Unknown Product';
-          var option = document.createElement('option');
-          option.value = productId;
-          option.textContent = productName;
-          select.appendChild(option);
+          orderProductsList.push({
+            id: card.dataset.productId,
+            name: card.querySelector('h3')?.textContent || 'Unknown Product'
+          });
         });
+        document.getElementById('orderProduct').value = '';
+        document.getElementById('orderProductSelected').classList.add('hidden');
+        document.getElementById('orderProductSearch').value = '';
+        renderOrderProducts('');
       } catch (error) { console.error('Failed to load products:', error); }
     }
 
@@ -254,22 +405,31 @@
         var parser = new DOMParser();
         var doc = parser.parseFromString(data, 'text/html');
         var serviceCards = doc.querySelectorAll('[data-service-id]');
-        var select = document.getElementById('bookingService');
-        select.innerHTML = '<option value="">Choose a service...</option>';
+        bookingServicesList = [];
         serviceCards.forEach(function(card) {
-          var serviceId = card.dataset.serviceId;
-          var serviceName = card.querySelector('h3')?.textContent || 'Unknown Service';
-          var option = document.createElement('option');
-          option.value = serviceId;
-          option.textContent = serviceName;
-          select.appendChild(option);
+          bookingServicesList.push({
+            id: card.dataset.serviceId,
+            name: card.querySelector('h3')?.textContent || 'Unknown Service'
+          });
         });
+        document.getElementById('bookingService').value = '';
+        document.getElementById('bookingServiceSelected').classList.add('hidden');
+        document.getElementById('bookingServiceSearch').value = '';
+        renderBookingServices('');
       } catch (error) { console.error('Failed to load services:', error); }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var ordSearch = document.getElementById('orderProductSearch');
+      if (ordSearch) ordSearch.addEventListener('input', function() { renderOrderProducts(this.value); });
+      var bkgSearch = document.getElementById('bookingServiceSearch');
+      if (bkgSearch) bkgSearch.addEventListener('input', function() { renderBookingServices(this.value); });
+    });
 
     function showQuickOrderModal() {
       document.getElementById('quickOrderModal').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
+      ordGoToStep(1);
       loadProductsForOrder();
     }
     function hideQuickOrderModal() {
@@ -280,12 +440,106 @@
     function showQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
+      bkgGoToStep(1);
       loadServicesForBooking();
     }
     function hideQuickBookingModal() {
       document.getElementById('quickBookingModal').classList.add('hidden');
       document.body.style.overflow = '';
       document.getElementById('quickBookingForm').reset();
+    }
+
+    // --- Order Step Navigation ---
+    var ordStep = 1;
+    function ordGoToStep(step) {
+      ordStep = step;
+      document.getElementById('ordStep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('ordStep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('ordStep3').classList.toggle('hidden', step !== 3);
+      document.getElementById('ordBackBtn').classList.toggle('hidden', step === 1);
+      document.getElementById('ordNextBtn').classList.toggle('hidden', step === 3);
+      document.getElementById('ordSubmitBtn').classList.toggle('hidden', step !== 3);
+
+      for (var i = 1; i <= 3; i++) {
+        var ind = document.getElementById('ordStep' + i + 'Indicator');
+        var lbl = document.getElementById('ordStep' + i + 'Label');
+        var active = i <= step;
+        ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-warning)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
+        ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+        if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-muted)]');
+      }
+      document.getElementById('ordStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-border)]');
+      document.getElementById('ordStep2to3').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 3 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-border)]');
+
+      if (step === 3) ordRenderSummary();
+    }
+    function ordNextStep() {
+      if (ordStep === 1) {
+        if (!document.getElementById('orderProduct').value || !document.getElementById('orderQuantity').value) {
+          showNotification('Please select a product and enter quantity', 'warning');
+          return;
+        }
+        ordGoToStep(2);
+      } else if (ordStep === 2) {
+        if (!document.getElementById('orderCustomerName').value) {
+          showNotification('Please enter customer name', 'warning');
+          return;
+        }
+        ordGoToStep(3);
+      }
+    }
+    function ordRenderSummary() {
+      var nameEl = document.getElementById('orderProductSelectedName');
+      document.getElementById('ordConfirmProduct').textContent = nameEl.textContent || '\u2014';
+      document.getElementById('ordConfirmQty').textContent = document.getElementById('orderQuantity').value || '\u2014';
+      document.getElementById('ordConfirmCustomer').textContent = document.getElementById('orderCustomerName').value || '\u2014';
+    }
+
+    // --- Booking Step Navigation ---
+    var bkgStep = 1;
+    function bkgGoToStep(step) {
+      bkgStep = step;
+      document.getElementById('bkgStep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('bkgStep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('bkgStep3').classList.toggle('hidden', step !== 3);
+      document.getElementById('bkgBackBtn').classList.toggle('hidden', step === 1);
+      document.getElementById('bkgNextBtn').classList.toggle('hidden', step === 3);
+      document.getElementById('bkgSubmitBtn').classList.toggle('hidden', step !== 3);
+
+      for (var i = 1; i <= 3; i++) {
+        var ind = document.getElementById('bkgStep' + i + 'Indicator');
+        var lbl = document.getElementById('bkgStep' + i + 'Label');
+        var active = i <= step;
+        ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
+        ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+        if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-secondary)]' : 'text-[var(--color-text-muted)]');
+      }
+      document.getElementById('bkgStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]');
+      document.getElementById('bkgStep2to3').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 3 ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]');
+
+      if (step === 3) bkgRenderSummary();
+    }
+    function bkgNextStep() {
+      if (bkgStep === 1) {
+        if (!document.getElementById('bookingService').value) {
+          showNotification('Please select a service', 'warning');
+          return;
+        }
+        bkgGoToStep(2);
+      } else if (bkgStep === 2) {
+        if (!document.getElementById('bookingDateTime').value || !document.getElementById('bookingCustomerName').value) {
+          showNotification('Please fill in date/time and customer name', 'warning');
+          return;
+        }
+        bkgGoToStep(3);
+      }
+    }
+    function bkgRenderSummary() {
+      var nameEl = document.getElementById('bookingServiceSelectedName');
+      document.getElementById('bkgConfirmService').textContent = nameEl.textContent || '\u2014';
+      var dt = document.getElementById('bookingDateTime').value;
+      document.getElementById('bkgConfirmDateTime').textContent = dt ? new Date(dt).toLocaleString() : '\u2014';
+      document.getElementById('bkgConfirmCustomer').textContent = document.getElementById('bookingCustomerName').value || '\u2014';
     }
 
     document.getElementById('quickOrderForm')?.addEventListener('submit', function(e) {
@@ -297,7 +551,8 @@
         customer_email: document.getElementById('orderCustomerEmail').value,
         customer_phone: document.getElementById('orderCustomerPhone').value,
         delivery_address: document.getElementById('orderDeliveryAddress').value,
-        notes: document.getElementById('orderNotes').value
+        notes: document.getElementById('orderNotes').value,
+        mark_completed: document.getElementById('orderCompleted').checked
       };
       fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(orderData) })
         .then(function(r) { return r.json(); })
@@ -316,7 +571,8 @@
         customer_email: document.getElementById('bookingCustomerEmail').value,
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: document.getElementById('bookingDateTime').value,
-        notes: document.getElementById('bookingNotes').value
+        notes: document.getElementById('bookingNotes').value,
+        mark_completed: document.getElementById('bookingCompleted').checked
       };
       fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(bookingData) })
         .then(function(r) { return r.json(); })

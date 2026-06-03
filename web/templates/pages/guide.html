@@ -136,12 +136,12 @@
         A complete walkthrough for businesses and clients. From your first login to advanced workflows — we've got you covered.
       </p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="#business-guide" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold transition-all shadow-lg shadow-teal-500/25">
+        <button onclick="switchTab('business'); document.getElementById('business-guide').scrollIntoView({behavior:'smooth'})" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold transition-all shadow-lg shadow-teal-500/25 cursor-pointer">
           <i class="fas fa-store"></i> For Businesses
-        </a>
-        <a href="#client-guide" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/20">
+        </button>
+        <button onclick="switchTab('client'); document.getElementById('client-guide').scrollIntoView({behavior:'smooth'})" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/20 cursor-pointer">
           <i class="fas fa-user"></i> For Clients
-        </a>
+        </button>
       </div>
     </div>
   </section>
@@ -254,19 +254,29 @@
               <div class="step-number bg-teal-100 text-teal-700">3</div>
               <div>
                 <h3 class="text-2xl font-bold text-slate-900">Managing Orders</h3>
-                <p class="text-sm text-slate-500">Receive, track, and fulfill customer orders</p>
+                <p class="text-sm text-slate-500">Receive, track, fulfill, and print receipts</p>
               </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
                 <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-truck"></i></div>
-                <h4 class="font-semibold text-slate-900 mb-2">Order Lifecycle</h4>
-                <p class="text-sm text-slate-600 leading-relaxed">Orders flow through statuses: <span class="text-amber-600 font-medium">Pending</span> → <span class="text-blue-600 font-medium">Confirmed</span> → <span class="text-emerald-600 font-medium">Completed</span> or <span class="text-red-600 font-medium">Cancelled</span>. Update status from the dashboard or use the Quick Order modal for instant creation.</p>
+                <h4 class="font-semibold text-slate-900 mb-2">4-Step Color Lifecycle</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Orders track through <strong class="text-amber-600">Pending</strong> → <strong class="text-blue-600">Confirmed</strong> → <strong class="text-purple-600">Paid</strong> → <strong class="text-emerald-600">Completed</strong> &mdash; each step uses a distinct color (yellow, blue, purple, green) everywhere: dashboard tables, chat cards, stat icons, and step buttons. Only the next logical step is clickable.</p>
               </div>
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-bolt"></i></div>
-                <h4 class="font-semibold text-slate-900 mb-2">Quick Order Modal</h4>
-                <p class="text-sm text-slate-600 leading-relaxed">Click the <strong>Quick Order</strong> floating button on your dashboard to create an order in seconds. Select a client, pick products, set the status — all without leaving your current view.</p>
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-search"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Search & Filter</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">The orders table has a search bar with field-specific filtering (Order #, Customer Name, Email, or All Fields) plus a status dropdown. A live results counter shows "X of Y orders" and a clear button appears when filters are active.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-store"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Walk-in Counter Orders</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Use the <strong>Counter Order</strong> card on the dashboard overview for in-person sales. The 3-step wizard lets you search products, enter customer details, and optionally mark the order as paid + completed in one click via the <strong>Mark Completed</strong> checkbox.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 mb-4"><i class="fas fa-print"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Receipt Printing</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Completed orders show a receipt icon in the table. Click it to open a print-optimized receipt page with your business logo, customer info, itemized table, totals, and payment summary &mdash; then print or save as PDF directly from the browser.</p>
               </div>
             </div>
           </div>
@@ -277,21 +287,29 @@
               <div class="step-number bg-teal-100 text-teal-700">4</div>
               <div>
                 <h3 class="text-2xl font-bold text-slate-900">Bookings & Appointments</h3>
-                <p class="text-sm text-slate-500">Accept and manage client appointments</p>
+                <p class="text-sm text-slate-500">Accept, manage, and print receipts for bookings</p>
               </div>
             </div>
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card mb-4">
-              <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600"><i class="fas fa-calendar-check"></i></div>
-                <div>
-                  <h4 class="font-semibold text-slate-900 mb-2">How Bookings Work</h4>
-                  <p class="text-sm text-slate-600 leading-relaxed">Clients can book your services directly from your public profile. Each service has a defined duration and price. You can also create bookings manually from the dashboard using the <strong>Quick Booking</strong> modal. All bookings sync to your dashboard in real-time.</p>
-                  <div class="mt-3 flex flex-wrap gap-2">
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium"><i class="fas fa-clock"></i> Duration-based</span>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium"><i class="fas fa-bell"></i> Real-time notifications</span>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium"><i class="fas fa-sync"></i> Auto-sync calendar</span>
-                  </div>
-                </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-calendar-check"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Color Lifecycle & Management</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Bookings use the same 4-step color system: <strong class="text-amber-600">Pending</strong> → <strong class="text-blue-600">Confirmed</strong> → <strong class="text-purple-600">Paid</strong> → <strong class="text-emerald-600">Completed</strong>. The dashboard features a search/filter bar, action dropdowns, and a receipt column for completed bookings.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-store"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Walk-in Booking</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">The <strong>Walk-in Booking</strong> card on your dashboard lets you create bookings for in-person clients. The 3-step wizard covers service search, scheduling, and optional Mark Completed. Great for front-desk or reception scenarios.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-print"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Booking Receipts</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Completed bookings show a receipt icon in the table. Click it to open a print-friendly receipt with business details, customer info, service items, scheduled date, payments, and totals. Print or save as PDF.</p>
+              </div>
+              <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-users"></i></div>
+                <h4 class="font-semibold text-slate-900 mb-2">Client Self-Booking</h4>
+                <p class="text-sm text-slate-600 leading-relaxed">Clients can book your services directly from your public profile at <code class="text-violet-600 bg-violet-50 px-1 rounded text-xs">/b/your-slug</code>. Each service shows its duration and price. Bookings sync to your dashboard instantly.</p>
               </div>
             </div>
           </div>
@@ -365,10 +383,19 @@
             <div class="space-y-3">
               <div class="tip-box rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-bolt text-teal-500 mt-0.5"></i>
+                  <i class="fas fa-store text-teal-500 mt-0.5"></i>
                   <div>
-                    <span class="text-sm font-semibold text-teal-800">Use Quick Actions</span>
-                    <p class="text-sm text-teal-700 mt-0.5">The floating <strong>Quick Order</strong> and <strong>Quick Booking</strong> buttons on your dashboard save clicks. Use them for rapid order entry during busy periods.</p>
+                    <span class="text-sm font-semibold text-teal-800">Walk-in Counter Flow</span>
+                    <p class="text-sm text-teal-700 mt-0.5">Use the <strong>Counter Order</strong> and <strong>Walk-in Booking</strong> cards on the dashboard overview for in-person customers. The 3-step wizards let you search products/services, enter customer details, and mark as paid + completed in one click.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="tip-box rounded-xl p-4">
+                <div class="flex gap-3">
+                  <i class="fas fa-print text-teal-500 mt-0.5"></i>
+                  <div>
+                    <span class="text-sm font-semibold text-teal-800">Print or Save Receipts</span>
+                    <p class="text-sm text-teal-700 mt-0.5">Completed orders and bookings have a receipt icon in the table. Click it to open a print-friendly receipt &mdash; then print a paper copy or save as PDF. Each receipt includes business info, itemized details, totals, and payment records.</p>
                   </div>
                 </div>
               </div>
@@ -646,12 +673,12 @@
 
   <!-- Mobile bottom nav -->
   <div class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-2 flex justify-around items-center md:hidden shadow-2xl">
-    <a href="#business-guide" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium">
+    <button onclick="switchTab('business'); document.getElementById('business-guide').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium cursor-pointer">
       <i class="fas fa-store text-base"></i><span>Business</span>
-    </a>
-    <a href="#client-guide" class="flex flex-col items-center gap-0.5 text-slate-500 text-xs font-medium">
+    </button>
+    <button onclick="switchTab('client'); document.getElementById('client-guide').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-slate-500 text-xs font-medium cursor-pointer">
       <i class="fas fa-user text-base"></i><span>Client</span>
-    </a>
+    </button>
     <a href="/business/register" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium">
       <i class="fas fa-rocket text-base"></i><span>Get Started</span>
     </a>

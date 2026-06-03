@@ -260,6 +260,37 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 	})
 }
 
+// GetBookingReceipt renders a print-friendly receipt for a completed booking
+func (h *BusinessHandler) GetBookingReceipt(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.Redirect(http.StatusFound, "/business/login")
+		return
+	}
+
+	bookingID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Invalid booking ID"})
+		return
+	}
+
+	var booking models.Booking
+	if err := h.db.Preload("Client").Preload("BookingItems.Service").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Booking not found"})
+		return
+	}
+
+	if booking.Status != "completed" {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Booking is not completed"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "receipt_booking.html", gin.H{
+		"Booking":  booking,
+		"Business": booking.Business,
+	})
+}
+
 func (h *BusinessHandler) UpdateBooking(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {

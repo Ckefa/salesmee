@@ -230,6 +230,7 @@
                     </th>
                     <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
                     </th>
+                    <th class="px-3 sm:px-6 py-3 text-center text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Receipt</th>
                   </tr>
                 </thead>
                 <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]" id="bookingsTableBody">
@@ -299,10 +300,17 @@
                         </div>
                       </div>
                     </td>
+                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                      {{if $isCompleted}}
+                      <button onclick="window.open('/business/bookings/{{.ID}}/receipt', '_blank')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition text-[var(--color-text-muted)] hover:text-[var(--color-success)]" title="Print Receipt">
+                        <i class="fas fa-receipt"></i>
+                      </button>
+                      {{end}}
+                    </td>
                   </tr>
                   {{else}}
                   <tr>
-                    <td colspan="7" class="px-3 sm:px-6 py-12 text-center">
+                    <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
                       <i class="fas fa-calendar-alt text-[var(--color-text-muted)] text-5xl mb-4 block"></i>
                       <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
                       <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
@@ -312,7 +320,7 @@
                   </tr>
                   {{end}}
                   <tr id="noBookingsMsg" style="display:none">
-                    <td colspan="7" class="px-3 sm:px-6 py-12 text-center">
+                    <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
                       <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
                       <p class="text-sm text-[var(--color-text-secondary)]">No bookings match your search</p>
                     </td>

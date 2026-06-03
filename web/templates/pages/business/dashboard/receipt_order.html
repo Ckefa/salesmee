@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt {{.Order.OrderNumber}} - {{.Business.Name}}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .receipt {
+      background: #fff;
+      max-width: 640px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .receipt-inner { padding: 40px 48px; }
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 20px; font-weight: 700; color: #111827; }
+    .header p { font-size: 13px; color: #6b7280; margin-top: 4px; }
+    .divider { border: none; border-top: 2px solid #e5e7eb; margin: 24px 0; }
+    .divider-dashed { border: none; border-top: 1px dashed #d1d5db; margin: 20px 0; }
+    .receipt-title { font-size: 28px; font-weight: 800; color: #111827; letter-spacing: -0.5px; }
+    .receipt-meta { display: flex; justify-content: space-between; margin-top: 8px; }
+    .receipt-meta div { font-size: 13px; color: #6b7280; }
+    .receipt-meta strong { color: #111827; }
+    .section-title { font-size: 12px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .info-grid { display: flex; gap: 40px; }
+    .info-grid div { flex: 1; }
+    .info-grid p { font-size: 14px; color: #374151; margin-top: 4px; }
+    .info-grid .label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+    table.items { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    table.items th {
+      font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;
+      text-align: left; padding: 8px 0; border-bottom: 2px solid #e5e7eb;
+    }
+    table.items th:last-child, table.items td:last-child { text-align: right; }
+    table.items td {
+      font-size: 14px; color: #374151; padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+    }
+    table.items .item-name { font-weight: 500; color: #111827; }
+    .totals { margin-top: 16px; }
+    .totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: #374151; }
+    .totals .row.total { border-top: 2px solid #e5e7eb; margin-top: 6px; padding-top: 12px; font-weight: 700; font-size: 16px; color: #111827; }
+    .totals .row.paid { color: #059669; font-weight: 600; }
+    .totals .row.balance { color: #dc2626; font-weight: 600; }
+    .payment-summary { background: #f9fafb; border-radius: 8px; padding: 16px; margin-top: 16px; }
+    .payment-summary .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: #374151; }
+    .payment-summary .label { color: #9ca3af; }
+    .footer { text-align: center; margin-top: 32px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
+    .footer p { font-size: 13px; color: #9ca3af; }
+    .no-print { text-align: center; margin-top: 16px; }
+    .no-print button {
+      background: #111827; color: #fff; border: none; padding: 10px 24px; border-radius: 8px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .no-print button:hover { background: #374151; }
+    .print-header { display: none; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .receipt { box-shadow: none; border-radius: 0; }
+      .no-print { display: none; }
+      .receipt-inner { padding: 20px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="receipt-inner">
+      <!-- Header -->
+      <div class="header">
+        {{if .Business.Logo}}
+        <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" style="height:48px;margin-bottom:8px;">
+        {{end}}
+        <h1>{{.Business.Name}}</h1>
+        <p>{{.Business.Email}}</p>
+      </div>
+
+      <!-- Receipt Title -->
+      <div style="text-align:center;">
+        <div class="receipt-title">RECEIPT</div>
+        <div class="receipt-meta" style="justify-content:center;gap:32px;">
+          <div><strong>#{{.Order.OrderNumber}}</strong></div>
+          <div><strong>{{.Order.CreatedAt.Format "Jan 02, 2006"}}</strong></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Customer Info -->
+      <div class="section-title">Customer</div>
+      <div class="info-grid">
+        <div>
+          <p class="label">Name</p>
+          <p>{{.Order.Client.Name}}</p>
+        </div>
+        <div>
+          <p class="label">Email</p>
+          <p>{{.Order.Client.Email}}</p>
+        </div>
+        <div>
+          <p class="label">Phone</p>
+          <p>{{if .Order.Client.Phone}}{{.Order.Client.Phone}}{{else}}&mdash;{{end}}</p>
+        </div>
+      </div>
+
+      <hr class="divider-dashed">
+
+      <!-- Order Items -->
+      <div class="section-title">Items</div>
+      <table class="items">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th style="text-align:center;">Qty</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Order.OrderItems}}
+          <tr>
+            <td class="item-name">{{.Product.Name}}</td>
+            <td style="text-align:center;color:#6b7280;">{{.Quantity}}</td>
+            <td>{{currencySymbol $.Business.Currency}}{{printf "%.2f" .UnitPrice}}</td>
+            <td>{{currencySymbol $.Business.Currency}}{{printf "%.2f" .TotalPrice}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <!-- Totals -->
+      {{$sym := currencySymbol .Business.Currency}}
+      <div class="totals">
+        <div class="row"><span>Subtotal</span><span>{{$sym}}{{printf "%.2f" .Order.TotalAmount}}</span></div>
+        <div class="row paid"><span>Paid</span><span>{{$sym}}{{printf "%.2f" .Order.PaidAmount}}</span></div>
+        {{$balance := sub .Order.TotalAmount .Order.PaidAmount}}
+        {{if gt $balance 0.0}}
+        <div class="row balance"><span>Balance Due</span><span>{{$sym}}{{printf "%.2f" $balance}}</span></div>
+        {{end}}
+        <div class="row total"><span>Total</span><span>{{$sym}}{{printf "%.2f" .Order.TotalAmount}}</span></div>
+      </div>
+
+      <!-- Payment Summary -->
+      {{if len .Order.Payments}}
+      <hr class="divider-dashed">
+      <div class="section-title">Payments</div>
+      <div class="payment-summary">
+        {{range .Order.Payments}}
+        <div class="row">
+          <span class="label">{{.Method | title}} {{if .Reference}}&middot; {{.Reference}}{{end}}</span>
+          <span>{{$sym}}{{printf "%.2f" .Amount}}</span>
+        </div>
+        <div class="row">
+          <span class="label">{{.CreatedAt.Format "Jan 02, 2006 15:04"}}</span>
+          <span style="color:{{if eq .Status "completed"}}#059669{{else}}#d97706{{end}};font-size:11px;">{{.Status | title}}</span>
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>Thank you for your business!</p>
+      </div>
+    </div>
+
+    <!-- Print Button -->
+    <div class="no-print" style="padding:0 48px 32px;">
+      <button onclick="window.print()"><i class="fas fa-print mr-2"></i>Print / Save PDF</button>
+      <button onclick="window.close()" style="background:transparent;color:#6b7280;border:1px solid #d1d5db;margin-left:8px;">Close</button>
+    </div>
+  </div>
+</body>
+</html>

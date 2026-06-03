@@ -123,6 +123,8 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/orders/:id/reject", businessHandler.RejectOrder)
 		protected.POST("/orders/:id/fulfill", businessHandler.FulfillOrder)
 		protected.PUT("/orders/:id/paid", businessHandler.MarkOrderAsPaid)
+		protected.GET("/orders/:id/receipt", businessHandler.GetOrderReceipt)
+		protected.GET("/bookings/:id/receipt", businessHandler.GetBookingReceipt)
 
 		// Share page
 		protected.GET("/share", businessHandler.GetSharePage)

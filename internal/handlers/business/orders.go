@@ -811,6 +811,37 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	})
 }
 
+// GetOrderReceipt renders a print-friendly receipt for a completed order
+func (h *BusinessHandler) GetOrderReceipt(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.Redirect(http.StatusFound, "/business/login")
+		return
+	}
+
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Invalid order ID"})
+		return
+	}
+
+	var order models.Order
+	if err := h.db.Preload("Client").Preload("OrderItems.Product").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Order not found"})
+		return
+	}
+
+	if order.Status != "fulfilled" && order.Status != "completed" {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Order is not completed"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "receipt_order.html", gin.H{
+		"Order":    order,
+		"Business": order.Business,
+	})
+}
+
 // MarkOrderAsPaid sets the order's paid amount to the total (quick mark as fully paid)
 func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 	businessID := c.GetUint("business_id")

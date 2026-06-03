@@ -49,7 +49,7 @@ type Booking struct {
 	BusinessID    uint      `gorm:"not null;index" json:"business_id"`
 	ClientID      uint      `gorm:"not null;index" json:"client_id"`
 	BookingNumber string    `gorm:"unique;not null" json:"booking_number"`
-	Status        string    `gorm:"default:'pending'" json:"status"` // pending, confirmed, completed, cancelled
+	Status        string    `gorm:"default:'pending'" json:"status"` // pending, client_confirmed, completed, cancelled
 	Sender        string    `gorm:"default:'client'" json:"sender"`  // client, business
 	ScheduledDate time.Time `gorm:"not null" json:"scheduled_date"`
 	Duration      int       `gorm:"not null" json:"duration"` // in minutes

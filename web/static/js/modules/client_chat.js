@@ -185,17 +185,38 @@ function startMessagePolling() {
 function addOrderMessageToChat(order) {
   const container = document.getElementById('messages-container');
   if (!container) return;
+  const status = order.status || 'pending';
+  const bgClass = status === 'pending' ? 'bg-[var(--color-warning-light)] border-[var(--color-warning)]' :
+    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] border-[var(--color-info)]' :
+    status === 'confirmed' ? 'bg-[var(--color-info-light)] border-[var(--color-info)]' :
+    status === 'fulfilled' || status === 'completed' ? 'bg-[var(--color-success-light)] border-[var(--color-success)]' :
+    status === 'cancelled' ? 'bg-[var(--color-error-light)] border-[var(--color-error)]' : 'bg-[var(--color-info-light)] border-[var(--color-info)]';
+  const iconColor = status === 'pending' ? 'text-[var(--color-warning)]' :
+    status === 'client_confirmed' ? 'text-[var(--color-info)]' :
+    status === 'confirmed' ? 'text-[var(--color-info)]' :
+    status === 'fulfilled' || status === 'completed' ? 'text-[var(--color-success)]' :
+    status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-info)]';
+  const statusLabel = status === 'pending' ? 'Pending' :
+    status === 'client_confirmed' ? 'Confirmed' :
+    status === 'confirmed' ? 'Confirmed' :
+    status === 'fulfilled' || status === 'completed' ? 'Completed' :
+    status === 'cancelled' ? 'Cancelled' : 'Pending';
+  const statusBadgeBg = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
+    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'fulfilled' || status === 'completed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
+    status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-warning-light)] text-[var(--color-warning)]';
   const div = document.createElement('div');
   div.className = 'flex justify-end';
   div.innerHTML = `<div class="max-w-xs lg:max-w-md w-full">
-    <div class="bg-[var(--color-info-light)] border border-[var(--color-info)] rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
+    <div class="${bgClass} border rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
-          <i class="fas fa-shopping-cart text-[var(--color-info)]"></i>
-          <span class="font-semibold text-[var(--color-info)] text-sm">[${order.id}]</span>
+          <i class="fas fa-shopping-cart ${iconColor}"></i>
+          <span class="font-semibold ${iconColor} text-sm">[${order.id}]</span>
           <span class="text-[var(--color-text)] text-sm">${order.product_name || 'Product'}</span>
         </div>
-        <button onclick="openClientEditOrderPicker(${order.id})" class="text-[var(--color-info)] hover:opacity-80 text-xs" title="Edit Order">
+        <button onclick="openClientEditOrderPicker(${order.id})" class="${iconColor} hover:opacity-80 text-xs" title="Edit Order">
           <i class="fas fa-edit"></i>
         </button>
       </div>
@@ -205,7 +226,7 @@ function addOrderMessageToChat(order) {
       </div>
       <div class="flex items-center justify-between mt-2">
         <p class="text-xs text-[var(--color-text-muted)]">${new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})}</p>
-        <span class="text-xs bg-[var(--color-warning-light)] text-[var(--color-warning)] px-2 py-1 rounded">Pending</span>
+        <span class="text-xs ${statusBadgeBg} px-2 py-1 rounded">${statusLabel}</span>
       </div>
     </div>
   </div>`;
@@ -226,25 +247,25 @@ function addBookingMessageToChat(booking) {
   const dateStr = bookingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const timeStr = bookingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   const statusClass = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
-    status === 'confirmed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
-    status === 'completed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
+    status === 'completed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
     status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]';
   const borderClass = status === 'pending' ? 'border-[var(--color-warning)] bg-[var(--color-warning-light)]' :
-    status === 'confirmed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
-    status === 'completed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
+    status === 'client_confirmed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
+    status === 'completed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
     status === 'cancelled' ? 'border-[var(--color-error)] bg-[var(--color-error-light)]' : 'border-[var(--color-border)] bg-[var(--color-surface-secondary)]';
   const iconClass = status === 'pending' ? 'text-[var(--color-warning)]' :
-    status === 'confirmed' ? 'text-[var(--color-success)]' :
-    status === 'completed' ? 'text-[var(--color-info)]' :
+    status === 'client_confirmed' ? 'text-[var(--color-info)]' :
+    status === 'completed' ? 'text-[var(--color-success)]' :
     status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]';
 
   let extraHtml = '';
   if (status === 'pending') {
     extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-warning)] font-medium"><i class="fas fa-clock mr-1"></i>Awaiting business confirmation</p></div>';
-  } else if (status === 'confirmed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
+  } else if (status === 'client_confirmed') {
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
   } else if (status === 'completed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
+    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
   } else if (status === 'cancelled') {
     extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-error)] font-medium"><i class="fas fa-ban mr-1"></i>This booking was cancelled</p></div>';
   }

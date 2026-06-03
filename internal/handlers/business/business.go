@@ -140,30 +140,30 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		}
 	}
 
-	// Count pending orders per client and add to unread badge
-	type pendingCountResult struct {
+	// Count non-completed orders per client and add to unread badge
+	type notCompletedCountResult struct {
 		ClientID uint
 		Count    int
 	}
-	var orderPending []pendingCountResult
+	var orderNotCompleted []notCompletedCountResult
 	h.db.Model(&models.Order{}).
 		Select("client_id, COUNT(*) as count").
-		Where("business_id = ? AND status = 'pending'", businessID).
+		Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).
 		Group("client_id").
-		Find(&orderPending)
+		Find(&orderNotCompleted)
 	orderMap := make(map[uint]int)
-	for _, o := range orderPending {
+	for _, o := range orderNotCompleted {
 		orderMap[o.ClientID] = o.Count
 	}
 
-	var bookingPending []pendingCountResult
+	var bookingNotCompleted []notCompletedCountResult
 	h.db.Model(&models.Booking{}).
 		Select("client_id, COUNT(*) as count").
-		Where("business_id = ? AND status = 'pending'", businessID).
+		Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).
 		Group("client_id").
-		Find(&bookingPending)
+		Find(&bookingNotCompleted)
 	bookingMap := make(map[uint]int)
-	for _, b := range bookingPending {
+	for _, b := range bookingNotCompleted {
 		bookingMap[b.ClientID] = b.Count
 	}
 
@@ -171,12 +171,12 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		clientsWithUnread[i].UnreadCount += orderMap[clientsWithUnread[i].ID] + bookingMap[clientsWithUnread[i].ID]
 	}
 
-	// Count pending orders and bookings (global)
+	// Count non-completed orders and bookings (global)
 	var pendingOrderCount int64
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
+	h.db.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).Count(&pendingOrderCount)
 
 	var pendingBookingCount int64
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookingCount)
+	h.db.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).Count(&pendingBookingCount)
 
 	totalPending := int(pendingOrderCount + pendingBookingCount)
 

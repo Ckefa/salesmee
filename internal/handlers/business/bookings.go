@@ -218,6 +218,48 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
+// MarkBookingAsPaid sets the booking's paid amount to the total (quick mark as fully paid)
+func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	bookingIDStr := c.Param("id")
+	bookingID, _ := strconv.ParseUint(bookingIDStr, 10, 32)
+
+	var booking models.Booking
+	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+		return
+	}
+
+	if booking.Status != "client_confirmed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking must be confirmed before marking as paid"})
+		return
+	}
+
+	booking.PaidAmount = booking.TotalAmount
+	booking.UpdatedAt = time.Now()
+	h.db.Save(&booking)
+
+	h.db.Create(&models.Payment{
+		BookingID: &booking.ID,
+		ClientID:  booking.ClientID,
+		Amount:    booking.TotalAmount,
+		Method:    "cash",
+		Status:    "completed",
+		Reference: "quick-paid",
+		Notes:     "Marked as paid from dashboard",
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Booking marked as paid",
+	})
+}
+
 func (h *BusinessHandler) UpdateBooking(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {

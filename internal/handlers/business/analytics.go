@@ -43,13 +43,13 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 	var totalBookings, pendingBookings, confirmedBookings, completedBookings, cancelledBookings int64
 	h.db.Model(&models.Booking{}).Where("business_id = ?", businessID).Count(&totalBookings)
 	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookings)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "confirmed").Count(&confirmedBookings)
+	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "client_confirmed").Count(&confirmedBookings)
 	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "completed").Count(&completedBookings)
 	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "cancelled").Count(&cancelledBookings)
 
 	var ordersRevenue, bookingsRevenue float64
 	h.db.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Scan(&ordersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "completed"}).Scan(&bookingsRevenue)
+	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"client_confirmed", "completed"}).Scan(&bookingsRevenue)
 	totalRevenue := ordersRevenue + bookingsRevenue
 
 	var topProducts []TopProduct
@@ -71,7 +71,7 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 	h.db.Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Find(&orders)
 
 	var bookings []models.Booking
-	h.db.Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "completed"}).Find(&bookings)
+	h.db.Where("business_id = ? AND status IN ?", businessID, []string{"client_confirmed", "completed"}).Find(&bookings)
 
 	monthMap := make(map[string]float64)
 	for _, o := range orders {

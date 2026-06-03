@@ -96,7 +96,7 @@
           </div>
 
           <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
             <!-- Pending Bookings -->
             <div class="card p-3 sm:p-4">
               <div class="flex items-center">
@@ -127,7 +127,7 @@
             <div class="card p-3 sm:p-4">
               <div class="flex items-center">
                 <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
+                  <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
                 </div>
                 <div class="ml-2 sm:ml-3">
                   <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
@@ -136,7 +136,7 @@
               </div>
             </div>
 
-            <!-- Canceled Bookings -->
+            <!-- Cancelled Bookings -->
             <div class="card p-3 sm:p-4">
               <div class="flex items-center">
                 <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2 sm:p-2.5">
@@ -202,6 +202,11 @@
                 </thead>
                 <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
                   {{range .Bookings}}
+                  {{$isPending := eq .Status "pending"}}
+                  {{$isConfirmed := eq .Status "client_confirmed"}}
+                  {{$isCompleted := eq .Status "completed"}}
+                  {{$isCancelled := eq .Status "cancelled"}}
+                  {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
                   <tr>
                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{.Client.Name}}</td>
@@ -212,23 +217,42 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{if eq
-                        .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "confirmed"
-                        }}bg-[var(--color-success-light)] text-[var(--color-success)] {{else if eq .Status "completed" }}bg-[var(--color-info-light)] text-[var(--color-info)]
+                        .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "client_confirmed"
+                        }}bg-[var(--color-info-light)] text-[var(--color-info)] {{else if eq .Status "completed" }}bg-[var(--color-success-light)] text-[var(--color-success)]
                         {{else if eq .Status "cancelled" }}bg-[var(--color-error-light)] text-[var(--color-error)] {{else}}bg-[var(--color-surface-tertiary)]
                         text-[var(--color-text-secondary)]{{end}}">
-                        {{.Status}}
+                        {{if eq .Status "pending"}}Pending{{else if eq .Status "client_confirmed"}}Confirmed{{else if eq .Status "completed"}}Completed{{else if eq .Status "cancelled"}}Cancelled{{else}}{{.Status}}{{end}}
                       </span>
                     </td>
                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                       <div class="flex items-center space-x-2">
-                        <select onchange="updateBookingStatus(this)" data-booking-id="{{.ID}}"
-                          class="input text-sm">
-                          <option value="pending" {{if eq .Status "pending" }}selected{{end}}>Pending</option>
-                          <option value="confirmed" {{if eq .Status "confirmed" }}selected{{end}}>Confirmed</option>
-                          <option value="completed" {{if eq .Status "completed" }}selected{{end}}>Completed</option>
-                          <option value="cancelled" {{if eq .Status "cancelled" }}selected{{end}}>Cancelled</option>
-                        </select>
+                        <div class="flex items-center gap-1">
+                          {{if not $isCancelled}}
+                          <button onclick=";" class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if $isPending}}bg-[var(--color-warning)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-warning-light)] text-[var(--color-warning)] opacity-40 cursor-default{{end}}">
+                            <i class="fas fa-clock text-[10px]"></i>Pending
+                          </button>
+                          <button onclick="{{if $isPending}}approveBooking({{.ID}}){{else}};{{end}}"
+                            class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if $isPending}}bg-[var(--color-info)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-info-light)] text-[var(--color-info)] opacity-40 cursor-default{{end}}">
+                            <i class="fas fa-check-circle text-[10px]"></i>Confirmed
+                          </button>
+                          <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markBookingAsPaid({{.ID}}){{else}};{{end}}"
+                            class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if and $isConfirmed (not $isFullyPaid)}}bg-[var(--color-secondary)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-secondary-light)] text-[var(--color-secondary)] opacity-40 cursor-default{{end}}">
+                            <i class="fas fa-credit-card text-[10px]"></i>Paid
+                          </button>
+                          <button onclick="{{if and $isConfirmed $isFullyPaid}}completeBooking({{.ID}}){{else}};{{end}}"
+                            class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if and $isConfirmed $isFullyPaid}}bg-[var(--color-success)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-success-light)] text-[var(--color-success)] opacity-40 cursor-default{{end}}">
+                            <i class="fas fa-check-double text-[10px]"></i>Completed
+                          </button>
+                          {{if not $isCompleted}}
+                          <button onclick="cancelBooking({{.ID}})" class="text-[var(--color-error)] hover:text-[var(--color-error)] text-xs p-1" title="Cancel">
+                            <i class="fas fa-times"></i>
+                          </button>
+                          {{end}}
+                          {{else}}
+                          <span class="text-xs text-[var(--color-text-muted)]">Cancelled</span>
+                          {{end}}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -342,27 +366,48 @@
         });
     }
 
-    function updateBookingStatus(selectElement) {
-      const bookingId = selectElement.getAttribute('data-booking-id');
-      const status = selectElement.value;
-
+    function approveBooking(bookingId) {
       fetch(`/business/bookings/${bookingId}/status`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': getCookie('csrf_token')
-        },
-        body: JSON.stringify({status: status})
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: JSON.stringify({status: 'client_confirmed'})
       })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            location.reload();
-          } else {
-            showNotification('Failed to update booking status', 'error');
-          }
-        })
-        .catch(error => console.error('Error:', error));
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to approve booking', 'error'); })
+        .catch(() => showNotification('Failed to approve booking', 'error'));
+    }
+
+    function markBookingAsPaid(bookingId) {
+      fetch(`/business/bookings/${bookingId}/paid`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to mark as paid', 'error'); })
+        .catch(() => showNotification('Failed to mark as paid', 'error'));
+    }
+
+    function completeBooking(bookingId) {
+      fetch(`/business/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: JSON.stringify({status: 'completed'})
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to complete booking', 'error'); })
+        .catch(() => showNotification('Failed to complete booking', 'error'));
+    }
+
+    function cancelBooking(bookingId) {
+      if (!confirm('Are you sure you want to cancel this booking?')) return;
+      fetch(`/business/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: JSON.stringify({status: 'cancelled'})
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
+        .catch(() => showNotification('Failed to cancel booking', 'error'));
     }
 
     function editBooking(bookingId) {

@@ -79,6 +79,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/bookings", businessHandler.CreateBooking)
 		protected.PUT("/bookings/:id", businessHandler.UpdateBooking)
 		protected.PUT("/bookings/:id/status", businessHandler.UpdateBookingStatus)
+		protected.PUT("/bookings/:id/paid", businessHandler.MarkBookingAsPaid)
 
 		// client routes
 		protected.POST("/clients", client.CreateClient)
@@ -121,6 +122,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/orders/:id/confirm", businessHandler.ConfirmOrderBusiness)
 		protected.POST("/orders/:id/reject", businessHandler.RejectOrder)
 		protected.POST("/orders/:id/fulfill", businessHandler.FulfillOrder)
+		protected.PUT("/orders/:id/paid", businessHandler.MarkOrderAsPaid)
 
 		// Share page
 		protected.GET("/share", businessHandler.GetSharePage)

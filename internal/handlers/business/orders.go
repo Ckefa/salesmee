@@ -125,35 +125,41 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	var orders []models.Order
 	h.db.Where("business_id = ?", businessID).Find(&orders)
 
-	var pendingCount, confirmedCount, completedCount, canceledCount int64
+	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	var totalRevenue float64
 
 	for _, order := range orders {
 		switch order.Status {
+		case "draft":
+			draftCount++
 		case "pending":
 			pendingCount++
+		case "client_confirmed":
+			clientConfirmedCount++
 		case "confirmed":
 			confirmedCount++
-		case "completed":
-			completedCount++
-		case "canceled":
-			canceledCount++
+		case "fulfilled":
+			fulfilledCount++
+		case "cancelled":
+			cancelledCount++
 		}
 		totalRevenue += order.TotalAmount
 	}
 
 	c.HTML(http.StatusOK, "orders.html", gin.H{
-		"Business":       currentBusiness,
-		"Orders":         orders,
-		"PendingCount":   pendingCount,
-		"ConfirmedCount": confirmedCount,
-		"CompletedCount": completedCount,
-		"CanceledCount":  canceledCount,
-		"TotalOrders":    len(orders),
-		"TotalRevenue":   totalRevenue,
-		"ActivePage":     "orders",
-		"Countries":      data.Countries,
-		"Currencies":     data.Currencies,
+		"Business":             currentBusiness,
+		"Orders":               orders,
+		"DraftCount":           draftCount,
+		"PendingCount":         pendingCount,
+		"ClientConfirmedCount": clientConfirmedCount,
+		"ConfirmedCount":       confirmedCount,
+		"FulfilledCount":       fulfilledCount,
+		"CancelledCount":       cancelledCount,
+		"TotalOrders":          len(orders),
+		"TotalRevenue":         totalRevenue,
+		"ActivePage":           "orders",
+		"Countries":            data.Countries,
+		"Currencies":           data.Currencies,
 	})
 }
 
@@ -766,6 +772,49 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Order fulfilled successfully",
+	})
+}
+
+// MarkOrderAsPaid sets the order's paid amount to the total (quick mark as fully paid)
+func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	orderIDStr := c.Param("id")
+	orderID, _ := strconv.ParseUint(orderIDStr, 10, 32)
+
+	var order models.Order
+	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return
+	}
+
+	if order.Status != "confirmed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before marking as paid"})
+		return
+	}
+
+	order.PaidAmount = order.TotalAmount
+	order.UpdatedAt = time.Now()
+	h.db.Save(&order)
+
+	// Create a completed payment record
+	h.db.Create(&models.Payment{
+		OrderID:   &order.ID,
+		ClientID:  order.ClientID,
+		Amount:    order.TotalAmount,
+		Method:    "cash",
+		Status:    "completed",
+		Reference: "quick-paid",
+		Notes:     "Marked as paid from dashboard",
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Order marked as paid",
 	})
 }
 

@@ -134,7 +134,20 @@
         </div>
 
         <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+          <!-- Draft Orders -->
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-surface-tertiary)] rounded-full">
+                <i class="fas fa-pen text-[var(--color-text-secondary)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Draft</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.DraftCount}}</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Pending Orders -->
           <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
@@ -144,6 +157,19 @@
               <div class="ml-2 sm:ml-3">
                 <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
                 <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Client Confirmed Orders -->
+          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+            <div class="flex items-center">
+              <div class="p-2 sm:p-2.5 bg-[var(--color-info-light)] rounded-full">
+                <i class="fas fa-user-check text-[var(--color-info)] text-sm sm:text-base"></i>
+              </div>
+              <div class="ml-2 sm:ml-3">
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Client Confirmed</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.ClientConfirmedCount}}</p>
               </div>
             </div>
           </div>
@@ -165,24 +191,24 @@
           <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
               <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
-                <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
+                <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
               </div>
               <div class="ml-2 sm:ml-3">
                 <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
-                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.FulfilledCount}}</p>
               </div>
             </div>
           </div>
 
-          <!-- Canceled Orders -->
+          <!-- Cancelled Orders -->
           <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
             <div class="flex items-center">
               <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
                 <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
               </div>
               <div class="ml-2 sm:ml-3">
-                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Canceled</p>
-                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CanceledCount}}</p>
+                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Cancelled</p>
+                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
               </div>
             </div>
           </div>
@@ -237,6 +263,13 @@
               </thead>
               <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
                 {{range .Orders}}
+                {{$isDraft := eq .Status "draft"}}
+                {{$isPending := eq .Status "pending"}}
+                {{$isClientConfirmed := eq .Status "client_confirmed"}}
+                {{$isConfirmed := eq .Status "confirmed"}}
+                {{$isFulfilled := or (eq .Status "fulfilled") (eq .Status "completed")}}
+                {{$isCancelled := eq .Status "cancelled"}}
+                {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
                 <tr class="table-row-hover">
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.OrderNumber}}</td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
@@ -256,24 +289,45 @@
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                     <span
                       class="badge-status 
-                      {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
-                      {{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]
-                      {{else if eq .Status `completed` }}bg-[var(--color-success-light)] text-[var(--color-success)]
-                      {{else if eq .Status `cancelled` }}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]{{end}}">
-                      {{.Status}}
+                      {{if eq .Status `draft`}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]
+                      {{else if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
+                      {{else if or (eq .Status `client_confirmed`) (eq .Status `confirmed`)}}bg-[var(--color-info-light)] text-[var(--color-info)]
+                      {{else if or (eq .Status `fulfilled`) (eq .Status `completed`)}}bg-[var(--color-success-light)] text-[var(--color-success)]
+                      {{else if eq .Status `cancelled`}}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]{{end}}">
+                      {{if eq .Status `draft`}}Draft{{else if eq .Status `pending`}}Pending{{else if eq .Status `client_confirmed`}}Client Confirmed{{else if eq .Status `confirmed`}}Confirmed{{else if or (eq .Status `fulfilled`) (eq .Status `completed`)}}Completed{{else if eq .Status `cancelled`}}Cancelled{{else}}{{.Status}}{{end}}
                     </span>
                   </td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">{{.CreatedAt.Format "Jan 02, 2006"}}
                   </td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                     <div class="flex space-x-2">
-                      <select data-order-id="{{.ID}}" onchange="updateOrderStatus(this)"
-                        class="input text-xs sm:text-sm">
-                        <option value="pending" {{if eq .Status "pending" }}selected{{end}}>Pending</option>
-                        <option value="confirmed" {{if eq .Status "confirmed" }}selected{{end}}>Confirmed</option>
-                        <option value="completed" {{if eq .Status "completed" }}selected{{end}}>Completed</option>
-                        <option value="cancelled" {{if eq .Status "cancelled" }}selected{{end}}>Cancelled</option>
-                      </select>
+                      <div class="flex items-center gap-1">
+                        {{if not $isCancelled}}
+                        <button onclick="{{if $isDraft}}sendOrderToClient({{.ID}}){{else}};{{end}}"
+                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if $isDraft}}bg-[var(--color-warning)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-warning-light)] text-[var(--color-warning)] opacity-40 cursor-default{{end}}">
+                          <i class="fas fa-clock text-[10px]"></i>Pending
+                        </button>
+                        <button onclick="{{if or $isPending $isClientConfirmed}}businessConfirmOrder({{.ID}}){{else}};{{end}}"
+                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if or $isPending $isClientConfirmed}}bg-[var(--color-info)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-info-light)] text-[var(--color-info)] opacity-40 cursor-default{{end}}">
+                          <i class="fas fa-check-circle text-[10px]"></i>Confirmed
+                        </button>
+                        <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markOrderAsPaid({{.ID}}){{else}};{{end}}"
+                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if and $isConfirmed (not $isFullyPaid)}}bg-[var(--color-secondary)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-secondary-light)] text-[var(--color-secondary)] opacity-40 cursor-default{{end}}">
+                          <i class="fas fa-credit-card text-[10px]"></i>Paid
+                        </button>
+                        <button onclick="{{if and $isConfirmed $isFullyPaid}}fulfillOrder({{.ID}}){{else}};{{end}}"
+                          class="px-1.5 py-1 rounded text-xs font-medium transition flex items-center gap-1 {{if and $isConfirmed $isFullyPaid}}bg-[var(--color-success)] text-white cursor-pointer hover:brightness-110{{else}}bg-[var(--color-success-light)] text-[var(--color-success)] opacity-40 cursor-default{{end}}">
+                          <i class="fas fa-check-double text-[10px]"></i>Completed
+                        </button>
+                        {{if not $isFulfilled}}
+                        <button onclick="rejectOrder({{.ID}})" class="text-[var(--color-error)] hover:text-[var(--color-error)] text-xs p-1" title="Cancel">
+                          <i class="fas fa-times"></i>
+                        </button>
+                        {{end}}
+                        {{else}}
+                        <span class="text-xs text-[var(--color-text-muted)]">Cancelled</span>
+                        {{end}}
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -478,32 +532,56 @@
       document.getElementById('quickBookingForm').reset();
     }
 
-    // Update order status
-    function updateOrderStatus(selectElement) {
-      const orderId = selectElement.dataset.orderId;
-      const status = selectElement.value;
-
-      fetch(`orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': getCookie('csrf_token')
-        },
-        body: JSON.stringify({status: status})
+    // Order step actions
+    function sendOrderToClient(orderId) {
+      fetch(`orders/${orderId}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
       })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Reload the page to show updated status
-            location.reload();
-          } else {
-            showNotification('Failed to update order status', 'error');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showNotification('Failed to update order status', 'error');
-        });
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to send order', 'error'); })
+        .catch(() => showNotification('Failed to send order', 'error'));
+    }
+
+    function businessConfirmOrder(orderId) {
+      fetch(`orders/${orderId}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to confirm order', 'error'); })
+        .catch(() => showNotification('Failed to confirm order', 'error'));
+    }
+
+    function markOrderAsPaid(orderId) {
+      fetch(`orders/${orderId}/paid`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to mark as paid', 'error'); })
+        .catch(() => showNotification('Failed to mark as paid', 'error'));
+    }
+
+    function fulfillOrder(orderId) {
+      fetch(`orders/${orderId}/fulfill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to complete order', 'error'); })
+        .catch(() => showNotification('Failed to complete order', 'error'));
+    }
+
+    function rejectOrder(orderId) {
+      if (!confirm('Are you sure you want to cancel this order?')) return;
+      fetch(`orders/${orderId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(r => r.json())
+        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel order', 'error'); })
+        .catch(() => showNotification('Failed to cancel order', 'error'));
     }
 
     // Form submissions

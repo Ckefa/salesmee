@@ -115,7 +115,7 @@
               </div>
               <div class="mt-3 flex items-center gap-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
                 <span class="text-[var(--color-warning)]">{{.PendingOrders}} pending</span>
-                <span class="text-[var(--color-success)]">{{.FulfilledOrders}} fulfilled</span>
+                <span class="text-[var(--color-success)]">{{.FulfilledOrders}} completed</span>
               </div>
             </div>
 
@@ -177,7 +177,7 @@
                 </div>
                 <div>
                   <div class="flex justify-between text-xs sm:text-sm mb-1">
-                    <span class="text-[var(--color-text)]">Fulfilled</span>
+                    <span class="text-[var(--color-text)]">Completed</span>
                     <span class="text-[var(--color-text-muted)]">{{.FulfilledOrders}} ({{printf "%.0f" (div (mul (float .FulfilledOrders) 100) (float $totalOrders))}}%)</span>
                   </div>
                   <div class="bar bg-[var(--color-surface-tertiary)] overflow-hidden">

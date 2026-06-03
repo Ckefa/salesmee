@@ -78,8 +78,8 @@
               <div class="text-right">
                 <p class="text-xs sm:text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
                 <span
-                  class="badge-status text-[10px] sm:text-xs {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]{{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]{{else if eq .Status `completed` }}bg-[var(--color-success-light)] text-[var(--color-success)]{{else}}bg-[var(--color-error-light)] text-[var(--color-error)]{{end}}">
-                  {{.Status}}
+                  class="badge-status px-2 py-0.5 rounded-md font-medium text-[10px] sm:text-xs {{if eq .Status `draft`}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]{{else if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]{{else if or (eq .Status `client_confirmed`) (eq .Status `confirmed`)}}bg-[var(--color-info-light)] text-[var(--color-info)]{{else if or (eq .Status `fulfilled`) (eq .Status `completed`)}}bg-[var(--color-success-light)] text-[var(--color-success)]{{else if eq .Status `cancelled`}}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)]{{end}}">
+                  {{if eq .Status `draft`}}Draft{{else if eq .Status `pending`}}Pending{{else if eq .Status `client_confirmed`}}Client Confirmed{{else if eq .Status `confirmed`}}Confirmed{{else if or (eq .Status `fulfilled`) (eq .Status `completed`)}}Completed{{else if eq .Status `cancelled`}}Cancelled{{else}}{{.Status}}{{end}}
                 </span>
               </div>
             </div>
@@ -111,13 +111,12 @@
               </div>
               <div class="text-right">
                 <p class="text-xs sm:text-sm font-medium text-[var(--color-text)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</p>
-                <span class="badge-status text-[10px] sm:text-xs
+                <span class="badge-status px-2 py-0.5 rounded-md font-medium text-[10px] sm:text-xs
                   {{if eq .Status `pending`}}bg-[var(--color-warning-light)] text-[var(--color-warning)]
-                  {{else if eq .Status `confirmed` }}bg-[var(--color-info-light)] text-[var(--color-info)]
-                  {{else if eq .Status `completed` }}bg-[var(--color-success-light)]
-                  text-[var(--color-success)]
-                  {{else}}bg-[var(--color-error-light)] text-[var(--color-error)]{{end}}">
-                  {{.Status}}
+                  {{else if eq .Status `client_confirmed`}}bg-[var(--color-info-light)] text-[var(--color-info)]
+                  {{else if eq .Status `completed`}}bg-[var(--color-success-light)] text-[var(--color-success)]
+                  {{else if eq .Status `cancelled`}}bg-[var(--color-error-light)] text-[var(--color-error)]{{else}}bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)]{{end}}">
+                  {{if eq .Status `pending`}}Pending{{else if eq .Status `client_confirmed`}}Confirmed{{else if eq .Status `completed`}}Completed{{else if eq .Status `cancelled`}}Cancelled{{else}}{{.Status}}{{end}}
                 </span>
               </div>
             </div>

@@ -301,19 +301,19 @@ function confirmAllOrderPayments(orderId) {
 }
 
 function fulfillOrder(orderId) {
-  showConfirmModal({ title: 'Fulfill Order', message: 'Mark this order as fulfilled?' }).then(function(confirmed) {
+  showConfirmModal({ title: 'Complete Order', message: 'Mark this order as completed?' }).then(function(confirmed) {
     if (!confirmed) return;
     fetch(`/business/orders/${orderId}/fulfill`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
-        showNotification('Order fulfilled!', 'success');
+        showNotification('Order completed!', 'success');
         fetchMessages();
       } else {
-        showNotification(data.error || 'Failed to fulfill order', 'error');
+        showNotification(data.error || 'Failed to complete order', 'error');
       }
     })
-    .catch(e => { console.error(e); showNotification('Failed to fulfill order', 'error'); });
+    .catch(e => { console.error(e); showNotification('Failed to complete order', 'error'); });
   });
 }
 

@@ -367,7 +367,7 @@
 
     function editBooking(bookingId) {
       // Fetch booking data and populate form
-      fetch(`/bookings/${bookingId}`)
+      fetch(`/business/bookings/${bookingId}`)
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -439,7 +439,7 @@
       const bookingId = this.getAttribute('data-booking-id');
       const isEdit = bookingId && bookingId !== '';
 
-      const url = isEdit ? `/bookings/${bookingId}` : '/bookings';
+      const url = isEdit ? `/business/bookings/${bookingId}` : '/business/bookings';
       const method = isEdit ? 'PUT' : 'POST';
 
       fetch(url, {

@@ -263,6 +263,16 @@ func GetClientMessages(c *gin.Context) {
 		return
 	}
 
+	// Get business info (need currency for order/booking data)
+	var business struct {
+		ID           uint   `json:"id"`
+		Name         string `json:"name"`
+		BusinessType string `json:"business_type"`
+		Logo         string `json:"logo"`
+		Currency     string `json:"currency"`
+	}
+	db.DB.Raw("SELECT id, name, business_type, logo, currency FROM businesses WHERE id = ?", businessID).First(&business)
+
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
 	for _, msg := range messages {
@@ -369,6 +379,7 @@ func GetClientMessages(c *gin.Context) {
 			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
 			"quantity":             order.Quantity,
 			"notes":                order.Notes,
+			"currency":             business.Currency,
 			"product_names":        productNames,
 			"first_product_name":   firstProductName,
 			"created_at":           order.CreatedAt,
@@ -415,6 +426,15 @@ func GetClientMessages(c *gin.Context) {
 		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
+		var bookingActionRequired string
+		if booking.Status == "pending" {
+			bookingActionRequired = "client"
+		} else if booking.Status == "client_confirmed" && booking.PaidAmount < booking.TotalAmount {
+			bookingActionRequired = "client"
+		} else {
+			bookingActionRequired = "none"
+		}
+
 		bookingData := map[string]interface{}{
 			"id":                   booking.ID,
 			"booking_number":       booking.BookingNumber,
@@ -430,6 +450,9 @@ func GetClientMessages(c *gin.Context) {
 			"remaining":            bookingRemaining,
 			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
 			"notes":                booking.Notes,
+			"sender":               booking.Sender,
+			"action_required":      bookingActionRequired,
+			"currency":             business.Currency,
 			"created_at":           booking.CreatedAt,
 			"service_names":        serviceNames,
 			"payment_methods":      bookingPaymentMethods,
@@ -453,15 +476,6 @@ func GetClientMessages(c *gin.Context) {
 			}
 		}
 	}
-
-	// Get business info
-	var business struct {
-		ID           uint   `json:"id"`
-		Name         string `json:"name"`
-		BusinessType string `json:"business_type"`
-		Logo         string `json:"logo"`
-	}
-	db.DB.Raw("SELECT id, name, business_type, logo FROM businesses WHERE id = ?", businessID).First(&business)
 
 	c.HTML(200, "client_chat.html", gin.H{
 		"Business":    business,
@@ -942,5 +956,38 @@ func ClientCancelBooking(c *gin.Context) {
 		"success": true,
 		"booking": booking,
 		"message": "Booking cancelled successfully",
+	})
+}
+
+// ClientConfirmBooking allows a client to confirm/approve a booking
+func ClientConfirmBooking(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	bookingIDStr := c.Param("id")
+
+	bookingID, err := strconv.ParseUint(bookingIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid booking ID"})
+		return
+	}
+
+	var booking models.Booking
+	if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+		return
+	}
+
+	if booking.Status != "pending" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking cannot be confirmed in current status"})
+		return
+	}
+
+	booking.Status = "client_confirmed"
+	booking.UpdatedAt = time.Now()
+	db.DB.Save(&booking)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"booking": booking,
+		"message": "Booking confirmed! Waiting for business to complete.",
 	})
 }

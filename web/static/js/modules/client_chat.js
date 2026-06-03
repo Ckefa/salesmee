@@ -344,11 +344,11 @@ function updateClientOrderTotal(orderId) {
   card.querySelectorAll('[data-item-product-id]').forEach(item => {
     const qty = parseInt(item.querySelector('.qty-value').textContent);
     const priceEl = item.closest('.flex.items-center.justify-between').querySelector('.text-sm.font-bold');
-    const priceText = priceEl ? priceEl.textContent.replace('$', '') : '0';
+    const priceText = priceEl ? priceEl.textContent.replace(/[^0-9.]/g, '') : '0';
     total += qty * parseFloat(priceText);
   });
   const totalEl = card.querySelector('.text-lg.font-bold');
-  if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+  if (totalEl) totalEl.textContent = (typeof currencySymbol !== 'undefined' ? currencySymbol : '$') + total.toFixed(2);
 }
 
 function cancelOrder(orderId) {
@@ -375,7 +375,7 @@ function cancelBooking(bookingId) {
     if (!confirmed) return;
   fetch(`/client/bookings/${bookingId}/cancel`, {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
   })
     .then(r => r.json())
     .then(data => {
@@ -386,6 +386,26 @@ function cancelBooking(bookingId) {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to cancel booking', 'error'); });
+  });
+}
+
+function clientConfirmBooking(bookingId) {
+  showConfirmModal({ title: 'Approve Booking', message: 'Are you sure you want to approve this booking?', confirmText: 'Approve', confirmClass: 'bg-[var(--color-success)] text-white' }).then(function(confirmed) {
+    if (!confirmed) return;
+  fetch(`/client/bookings/${bookingId}/confirm`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showNotification('Booking confirmed!', 'success');
+        if (typeof startMessagePolling === 'function') startMessagePolling();
+      } else {
+        showNotification(data.error || 'Failed to confirm booking', 'error');
+      }
+    })
+    .catch(e => { console.error(e); showNotification('Failed to confirm booking', 'error'); });
   });
 }
 

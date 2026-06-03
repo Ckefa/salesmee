@@ -210,7 +210,8 @@
     });
   }
 
-  function showPaymentModal(maxAmount) {
+  function showPaymentModal(maxAmount, currencySym) {
+    currencySym = currencySym || '$';
     return new Promise(function(resolve) {
       var id = 'modal-pay-' + (++modalCounter);
       var overlay = document.createElement('div');
@@ -222,7 +223,7 @@
         '<div class="bg-[var(--color-surface)] rounded-xl shadow-2xl p-5 mx-4 w-full max-w-sm border border-[var(--color-border)] animate-fade-in-down">' +
           '<h3 class="text-base font-semibold text-[var(--color-text)] mb-4">Submit Payment</h3>' +
 
-          '<label class="text-xs font-medium text-[var(--color-text-secondary)] block mb-1">Amount ($)</label>' +
+          '<label class="text-xs font-medium text-[var(--color-text-secondary)] block mb-1">Amount (' + currencySym + ')</label>' +
           '<input type="number" step="0.01" min="0.01" max="' + maxAmount.toFixed(2) + '" class="modal-amount w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] mb-3" value="' + maxAmount.toFixed(2) + '" placeholder="0.00">' +
 
           '<label class="text-xs font-medium text-[var(--color-text-secondary)] block mb-1">Method</label>' +
@@ -251,7 +252,7 @@
       function getResult() {
         var amt = parseFloat(amountInput.value);
         if (isNaN(amt) || amt <= 0 || amt > maxAmount) {
-          showNotification('Amount must be between $0.01 and $' + maxAmount.toFixed(2), 'error');
+          showNotification('Amount must be between ' + currencySym + '0.01 and ' + currencySym + maxAmount.toFixed(2), 'error');
           return null;
         }
         return {

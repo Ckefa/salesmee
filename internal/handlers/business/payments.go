@@ -120,7 +120,7 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 		return
 	}
 
-	if booking.Status != "confirmed" && booking.Status != "completed" {
+	if booking.Status != "client_confirmed" && booking.Status != "completed" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking must be confirmed before payment"})
 		return
 	}
@@ -511,6 +511,53 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 		"confirmed":      len(pendingPayments),
 		"total_amount":   totalConfirmed,
 		"paid_amount":    order.PaidAmount,
+		"message":        fmt.Sprintf("Confirmed %d payment(s) totaling $%.2f", len(pendingPayments), totalConfirmed),
+	})
+}
+
+// ConfirmAllBookingPayments confirms all pending payments for a booking at once
+func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	bookingIDStr := c.Param("id")
+	bookingID, _ := strconv.ParseUint(bookingIDStr, 10, 32)
+
+	var booking models.Booking
+	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+		return
+	}
+
+	var pendingPayments []models.Payment
+	h.db.Where("booking_id = ? AND status = ?", bookingID, "pending").Find(&pendingPayments)
+
+	if len(pendingPayments) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No pending payments to confirm"})
+		return
+	}
+
+	now := time.Now()
+	var totalConfirmed float64
+	for _, payment := range pendingPayments {
+		payment.Status = "completed"
+		payment.UpdatedAt = now
+		h.db.Save(&payment)
+		totalConfirmed += payment.Amount
+	}
+
+	booking.PaidAmount += totalConfirmed
+	booking.UpdatedAt = now
+	h.db.Save(&booking)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":        true,
+		"confirmed":      len(pendingPayments),
+		"total_amount":   totalConfirmed,
+		"paid_amount":    booking.PaidAmount,
 		"message":        fmt.Sprintf("Confirmed %d payment(s) totaling $%.2f", len(pendingPayments), totalConfirmed),
 	})
 }

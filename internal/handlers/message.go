@@ -27,6 +27,9 @@ type MessageObj struct {
 func GetMessages(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	var business models.Business
+	db.DB.First(&business, businessID)
 	if err != nil {
 		log.Println("GetMessages: =>> Invalid customer ID")
 		c.String(400, "Invalid customer ID")
@@ -176,6 +179,7 @@ func GetMessages(c *gin.Context) {
 			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
 			"quantity":             order.Quantity,
 			"notes":                order.Notes,
+			"currency":             business.Currency,
 			"product_names":        productNames,
 			"first_product_name":   firstProductName,
 			"created_at":           order.CreatedAt,
@@ -226,6 +230,13 @@ func GetMessages(c *gin.Context) {
 		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
+		var bookingActionRequired string
+		if booking.Status == "client_confirmed" && !(booking.PaidAmount >= booking.TotalAmount) {
+			bookingActionRequired = "business"
+		} else {
+			bookingActionRequired = "none"
+		}
+
 		bookingData := map[string]interface{}{
 			"id":                   booking.ID,
 			"booking_number":       booking.BookingNumber,
@@ -241,6 +252,9 @@ func GetMessages(c *gin.Context) {
 			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
 			"notes":                booking.Notes,
 			"status":               booking.Status,
+			"sender":               booking.Sender,
+			"action_required":      bookingActionRequired,
+			"currency":             business.Currency,
 			"created_at":           booking.CreatedAt,
 			"payment_methods":      bookingPaymentMethods,
 		}
@@ -268,6 +282,7 @@ func GetMessages(c *gin.Context) {
 		"Customer": client,
 		"Messages": messageObjs,
 		"Progress": progress,
+		"Business": business,
 	})
 }
 

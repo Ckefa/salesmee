@@ -11,11 +11,11 @@
       <i class="fas fa-concierge-bell text-xs sm:text-sm"></i>
       <span>Services</span>
     </button>
-    <button onclick="openPaymentModal({{.Customer.ID}})"
-      class="bg-[var(--color-accent)] hover:opacity-90 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm flex items-center space-x-1">
+    <a href="/business/payments"
+      class="bg-[var(--color-accent)] hover:opacity-90 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm flex items-center space-x-1 no-underline">
       <i class="fas fa-credit-card text-xs sm:text-sm"></i>
-      <span>Payment</span>
-    </button>
+      <span>Payments</span>
+    </a>
   </div>
 
   <form id="message-form" hx-post="clients/{{.Customer.ID}}/messages" hx-target="#messages-container"

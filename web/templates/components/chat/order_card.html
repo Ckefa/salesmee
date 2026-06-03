@@ -8,6 +8,7 @@
 {{$isFulfilled := eq $status "fulfilled"}}
 {{$isCancelled := eq $status "cancelled"}}
 {{$actionRequired := $order.action_required}}
+{{$sym := or (currencySymbol $order.currency) "$"}}
 {{$s1 := "pending"}}{{$s2 := "pending"}}{{$s3 := "pending"}}{{$s4 := "pending"}}
 {{if $isDraft}}{{$s1 = "active"}}
 {{else if $isPending}}{{$s1 = "active"}}
@@ -69,12 +70,12 @@
             {{end}}
             <div class="min-w-0">
               <p class="font-medium text-xs sm:text-sm text-[var(--color-text)] truncate">{{.name}}</p>
-              <p class="text-[10px] sm:text-xs text-[var(--color-text-secondary)]">${{printf "%.2f" .unit_price}} each</p>
+              <p class="text-[10px] sm:text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{{$sym}}{{printf "%.2f" .unit_price}} each</p>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0 ml-2">
             <span class="text-xs sm:text-sm font-semibold text-[var(--color-text)]">x{{.quantity}}</span>
-            <span class="text-xs sm:text-sm font-bold text-[var(--color-text)] w-14 text-right">${{printf "%.2f" .total_price}}</span>
+            <span class="text-xs sm:text-sm font-bold text-[var(--color-text)] whitespace-nowrap text-right min-w-[4.5rem]">{{$sym}}{{printf "%.2f" .total_price}}</span>
           </div>
         </div>
         {{end}}
@@ -87,7 +88,7 @@
       <div class="border-t border-[var(--color-border)] pt-3 mb-3">
         <div class="flex justify-between items-center">
           <span class="text-xs sm:text-sm text-[var(--color-text-secondary)] font-medium">Total</span>
-          <span class="text-base sm:text-lg font-bold text-[var(--color-text)]">${{printf "%.2f" $order.total_amount}}</span>
+          <span class="text-base sm:text-lg font-bold text-[var(--color-text)]">{{$sym}}{{printf "%.2f" $order.total_amount}}</span>
         </div>
       </div>
 
@@ -179,11 +180,11 @@
       {{else if eq $s2 "active"}}
       <div class="mb-3">
         <div class="flex items-center justify-between text-xs pt-1 border-t border-[var(--color-border-light)]">
-          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">${{printf "%.2f" $order.paid_amount}}</strong></span>
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">{{$sym}}{{printf "%.2f" $order.paid_amount}}</strong></span>
           {{if gt $order.pending_amount 0.0}}
-          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">${{printf "%.2f" $order.pending_amount}}</strong></span>
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">{{$sym}}{{printf "%.2f" $order.pending_amount}}</strong></span>
           {{end}}
-          <span class="text-[var(--color-text-muted)]">Remaining: <strong>${{printf "%.2f" $order.remaining}}</strong></span>
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>{{$sym}}{{printf "%.2f" $order.remaining}}</strong></span>
         </div>
       </div>
       <div class="flex gap-2">
@@ -200,11 +201,11 @@
       {{else if eq $s3 "active"}}
       <div class="mb-3">
         <div class="flex items-center justify-between text-xs pt-1 border-t border-[var(--color-border-light)]">
-          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">${{printf "%.2f" $order.paid_amount}}</strong></span>
+          <span class="text-[var(--color-text-secondary)]">Confirmed: <strong class="text-[var(--color-success)]">{{$sym}}{{printf "%.2f" $order.paid_amount}}</strong></span>
           {{if gt $order.pending_amount 0.0}}
-          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">${{printf "%.2f" $order.pending_amount}}</strong></span>
+          <span class="text-[var(--color-text-secondary)]">Awaiting Confirmation: <strong class="text-[var(--color-warning)]">{{$sym}}{{printf "%.2f" $order.pending_amount}}</strong></span>
           {{end}}
-          <span class="text-[var(--color-text-muted)]">Remaining: <strong>${{printf "%.2f" $order.remaining}}</strong></span>
+          <span class="text-[var(--color-text-muted)]">Remaining: <strong>{{$sym}}{{printf "%.2f" $order.remaining}}</strong></span>
         </div>
         <div id="orderPendingPayments-{{$order.id}}" class="mt-2 space-y-1">
           {{if gt $order.pending_amount 0.0}}

@@ -143,6 +143,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/orders/:id/payments/confirm-all", businessHandler.ConfirmAllOrderPayments)
 		protected.POST("/orders/:id/payments/:payment_id/reject", businessHandler.RejectOrderPayment)
 		protected.GET("/orders/:id/payments", businessHandler.GetOrderPayments)
+		protected.POST("/bookings/:id/payments/confirm-all", businessHandler.ConfirmAllBookingPayments)
 		protected.POST("/bookings/:id/payments/:payment_id/confirm", businessHandler.ConfirmBookingPayment)
 		protected.POST("/bookings/:id/payments/:payment_id/reject", businessHandler.RejectBookingPayment)
 		protected.GET("/bookings/:id/payments", businessHandler.GetBookingPayments)

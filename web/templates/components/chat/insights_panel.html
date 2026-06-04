@@ -1,0 +1,105 @@
+{{define "insights_panel"}}
+{{$insight := .Insight}}
+<div class="bg-[var(--color-surface-secondary)]">
+  <div class="px-3 sm:px-6 py-4 sm:py-5 space-y-4">
+
+    {{/* Tier Header Card */}}
+    <div class="flex items-start justify-between border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-4 py-3 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] flex items-center justify-center">
+          <i class="fas fa-circle text-[10px] text-[var(--color-text-muted)]"></i>
+        </div>
+        <div>
+          <div class="text-base font-semibold text-[var(--color-text)] capitalize">{{$insight.Tier}} Tier</div>
+          <div class="text-xs text-[var(--color-text-muted)]">Customer classification</div>
+        </div>
+      </div>
+      <button onclick="toggleInsightsDrawer({{$insight.ConversationID}})" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-tertiary)] transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] -mr-1 -mt-1">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </div>
+
+    {{/* Tier Score */}}
+    <div class="space-y-2">
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-[var(--color-text-secondary)] font-medium">Tier Score</span>
+        <span class="text-[var(--color-text)] font-bold tabular-nums">{{$insight.TierScore}}<span class="text-[var(--color-text-muted)] font-normal text-xs">/100</span></span>
+      </div>
+      <div class="h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
+        <div class="h-full rounded-full bg-[var(--color-primary)] transition-all duration-700 ease-out" style="width: {{$insight.TierScore}}%"></div>
+      </div>
+      {{$nextLabel := ""}}{{$nextScore := 0}}
+      {{if lt $insight.TierScore 25}}{{$nextLabel = "Silver"}}{{$nextScore = 25}}
+      {{else if lt $insight.TierScore 50}}{{$nextLabel = "Gold"}}{{$nextScore = 50}}
+      {{else if lt $insight.TierScore 75}}{{$nextLabel = "Platinum"}}{{$nextScore = 75}}
+      {{else if lt $insight.TierScore 100}}{{$nextLabel = "Diamond"}}{{$nextScore = 100}}
+      {{end}}
+      <div class="text-xs text-[var(--color-text-muted)]">
+        {{if $nextLabel}}Next: <span class="font-medium text-[var(--color-text-secondary)]">{{$nextLabel}}</span> at {{$nextScore}} pts{{else}}<span class="text-[var(--color-text-secondary)] font-medium">Maximum tier reached</span>{{end}}
+      </div>
+    </div>
+
+    {{/* Metric Cards */}}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      {{/* Activity */}}
+      <div class="border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-3.5 py-3">
+        <div class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Activity</div>
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="flex-1 h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
+            <div class="h-full rounded-full bg-[var(--color-text)]" style="width: {{mul (div (float $insight.ActivityScore) 5) 100}}%"></div>
+          </div>
+          <span class="text-sm font-bold text-[var(--color-text)] tabular-nums">{{$insight.ActivityScore}}<span class="text-[var(--color-text-muted)] font-normal text-xs">/5</span></span>
+        </div>
+        <div class="text-xs text-[var(--color-text-muted)]">
+          {{$insight.CompletedOrders}} completed · {{$insight.TotalBookings}} booking{{if ne $insight.TotalBookings 1}}s{{end}}
+        </div>
+      </div>
+
+      {{/* Behavior */}}
+      <div class="border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-3.5 py-3">
+        <div class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Behavior</div>
+        {{$trendIcon := "fa-minus"}}{{$trendTitle := ""}}{{$trendDesc := "Minimal recent activity"}}
+        {{if eq $insight.BehaviorTrend "high_value"}}{{$trendIcon = "fa-arrow-up"}}{{$trendTitle = "High Value"}}{{$trendDesc = "Frequent high-spend purchases"}}
+        {{else if eq $insight.BehaviorTrend "active"}}{{$trendIcon = "fa-minus"}}{{$trendTitle = "Active"}}{{$trendDesc = "Regular engagement"}}
+        {{end}}
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="flex items-center justify-center w-7 h-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-secondary)]">
+            <i class="fas {{$trendIcon}} text-xs text-[var(--color-text)]"></i>
+          </span>
+          <span class="text-sm font-semibold text-[var(--color-text)] capitalize">{{$trendTitle}}</span>
+        </div>
+        <div class="text-xs text-[var(--color-text-muted)]">{{$trendDesc}}</div>
+      </div>
+
+      {{/* Engagement */}}
+      <div class="border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-3.5 py-3">
+        <div class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Engagement</div>
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="flex-1 h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
+            <div class="h-full rounded-full bg-[var(--color-primary)] transition-all duration-700 ease-out" style="width: {{$insight.EngagementScore}}%"></div>
+          </div>
+          <span class="text-sm font-bold text-[var(--color-text)] tabular-nums">{{$insight.EngagementScore}}<span class="text-[var(--color-text-muted)] font-normal text-xs">%</span></span>
+        </div>
+        <div class="text-xs text-[var(--color-text-muted)]">
+          {{if ge $insight.EngagementScore 75}}Very responsive{{else if ge $insight.EngagementScore 50}}Moderate engagement{{else}}Low engagement{{end}}
+        </div>
+      </div>
+    </div>
+
+    {{/* Summary */}}
+    <div class="border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+      <div class="flex items-center gap-3 text-[var(--color-text-muted)]">
+        <span class="text-[var(--color-text)] font-semibold tabular-nums">${{printf "%.0f" $insight.TotalSpent}}</span>
+        <span class="text-xs text-[var(--color-text-muted)]">total spent</span>
+        <span class="w-px h-4 bg-[var(--color-border)]"></span>
+        <span class="text-[var(--color-text)] font-semibold tabular-nums">{{$insight.CompletedOrders}}</span>
+        <span class="text-xs text-[var(--color-text-muted)]">completed</span>
+      </div>
+      {{if $insight.LastActiveAt}}
+      <div class="text-xs text-[var(--color-text-muted)] tabular-nums">Last active {{$insight.LastActiveAt | formatDate}}</div>
+      {{end}}
+    </div>
+
+  </div>
+</div>
+{{end}}

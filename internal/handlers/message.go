@@ -278,11 +278,25 @@ func GetMessages(c *gin.Context) {
 		}
 	}
 
+	var insight models.CustomerInsight
+	if err := db.DB.Where("conversation_id = ?", conversation.ID).First(&insight).Error; err != nil {
+		insight = models.CustomerInsight{
+			ConversationID: conversation.ID,
+			Tier:           "bronze",
+			TierScore:      0,
+			ActivityScore:  0,
+			EngagementScore: 0,
+			BehaviorTrend:  "inactive",
+			TotalSpent:     0,
+		}
+	}
+
 	c.HTML(200, "business_chat.html", gin.H{
 		"Customer": client,
 		"Messages": messageObjs,
 		"Progress": progress,
 		"Business": business,
+		"Insight":  insight,
 	})
 }
 
@@ -331,6 +345,8 @@ func CreateMessage(c *gin.Context) {
 		c.String(500, "Failed to create message")
 		return
 	}
+
+	AutoCalculateProgress(conversation.ID)
 
 	// Return message partial
 	c.HTML(200, "message_partial.html", gin.H{

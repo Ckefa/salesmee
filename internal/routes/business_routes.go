@@ -171,6 +171,11 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/conversations/:conversation_id/progress", handlers.GetConversationProgress)
 		protected.PUT("/conversations/:conversation_id/stage", handlers.UpdateConversationStage)
 
+		// Customer insight routes
+		protected.GET("/conversations/:conversation_id/insights-badge", handlers.GetConversationInsightsBadge)
+		protected.GET("/conversations/:conversation_id/insights-panel", handlers.GetConversationInsightsPanel)
+		protected.POST("/conversations/:conversation_id/insights/refresh", handlers.RefreshConversationInsights)
+
 		// Subscription & Billing routes
 		protected.GET("/subscription", businessHandler.GetSubscriptionPage)
 		protected.GET("/subscription/plans", businessHandler.GetPlansPage)

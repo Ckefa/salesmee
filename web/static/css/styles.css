@@ -1030,6 +1030,20 @@
     transform-origin: center;
   }
 
+  /* Insights Drawer Slide */
+  #insights-drawer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #insights-drawer.open {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  #insights-drawer.open::-webkit-scrollbar {
+    width: 4px;
+  }
+
   @keyframes scaleIn {
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }

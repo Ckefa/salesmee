@@ -1,0 +1,9 @@
+{{define "insights_badge"}}
+<button class="insights-toggle flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors duration-200"
+  onclick="toggleInsightsDrawer({{.Insight.ConversationID}})"
+  title="View customer insights">
+  <i class="fas fa-circle text-[5px] sm:text-[6px] opacity-60"></i>
+  <span class="capitalize">{{.Insight.Tier}}</span>
+  <i class="fas fa-chevron-down text-[8px] opacity-40"></i>
+</button>
+{{end}}

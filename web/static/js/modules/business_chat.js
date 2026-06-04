@@ -59,20 +59,6 @@ document.addEventListener('click', function(e) {
     showConversationProgress(clientId);
   }
 
-  const statusDropdown = e.target.closest('.conversation-status-dropdown');
-  if (statusDropdown && statusDropdown.value) {
-    const conversationId = statusDropdown.getAttribute('data-conversation-id');
-    updateConversationStatus(conversationId, statusDropdown.value);
-  }
-
-  const saveProgressBtn = e.target.closest('.save-chat-progress-btn');
-  if (saveProgressBtn) {
-    const conversationId = saveProgressBtn.getAttribute('data-conversation-id');
-    const dropdown = document.querySelector('.conversation-progress-dropdown[data-conversation-id="' + conversationId + '"]');
-    if (dropdown && dropdown.value) {
-      saveChatProgress(conversationId, dropdown.value);
-    }
-  }
 });
 
 function updateClientStatus(clientId, status) {
@@ -156,82 +142,24 @@ function createQuickAction(messageId, actionType) {
   });
 }
 
-function updateConversationStatus(conversationId, stage) {
-  console.log('Updating conversation status:', conversationId, stage);
-  const formData = new FormData();
-  formData.append('stage', stage);
-  formData.append('reason', 'Manual status update by business');
+// ========== Customer Insights ==========
 
-  fetch('/business/conversations/' + conversationId + '/status', {
-    method: 'PUT',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
-    body: formData
-  })
-    .then(response => {
-      console.log('Response status:', response.status);
-      if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Response data:', data);
-      if (data.progress) {
-        showNotification('Conversation stage updated to ' + stage, 'success');
-        const dropdown = document.querySelector('.conversation-status-dropdown');
-        if (dropdown) {
-          dropdown.value = stage;
-          console.log('Updated dropdown to:', stage);
-        }
-      } else {
-        console.error('No progress data in response');
-        showNotification('Failed to update conversation stage', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error updating conversation status:', error);
-      showNotification('Failed to update conversation status: ' + error.message, 'error');
-    });
+function toggleInsightsDrawer(conversationId) {
+  var drawer = document.getElementById('insights-drawer');
+  if (!drawer) return;
+  if (!drawer.classList.contains('open')) {
+    drawer.classList.add('open');
+    if (!drawer.hasChildNodes() || drawer.innerHTML.trim() === '') {
+      drawer.innerHTML = '<div class="px-3 sm:px-6 py-6 text-center text-[var(--color-text-muted)] text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading insights...</div>';
+      htmx.ajax('GET', '/business/conversations/' + conversationId + '/insights-panel', {
+        target: '#insights-drawer',
+        swap: 'innerHTML'
+      });
+    }
+  } else {
+    drawer.classList.remove('open');
+  }
 }
-
-function saveChatProgress(conversationId, stage) {
-  console.log('Saving chat progress:', conversationId, stage);
-  const formData = new FormData();
-  formData.append('stage', stage);
-  formData.append('reason', 'Manual progress update from chat');
-
-  fetch('/business/conversations/' + conversationId + '/status', {
-    method: 'PUT',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
-    body: formData
-  })
-    .then(response => {
-      console.log('Chat progress response status:', response.status);
-      if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Chat progress response data:', data);
-      if (data.progress) {
-        showNotification('Conversation progress saved: ' + stage, 'success');
-        const progressScoreElement = document.querySelector('.text-xs.text-gray-500');
-        if (progressScoreElement && data.progress.progress_score) {
-          progressScoreElement.textContent = 'Progress Score: ' + data.progress.progress_score + '%';
-        }
-      } else {
-        console.error('No progress data in response');
-        showNotification('Failed to save conversation progress', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error saving chat progress:', error);
-      showNotification('Failed to save conversation progress: ' + error.message, 'error');
-    });
-}
-
-
 
 // ========== Order Lifecycle Functions ==========
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"salesmee/internal/data"
+	"salesmee/internal/handlers"
 	"salesmee/internal/models"
 	"time"
 
@@ -136,6 +137,12 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 			Reference: "Walk-in counter payment",
 		}
 		h.db.Create(&payment)
+	}
+
+	// Auto-advance conversation progress
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", client.ID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -337,6 +344,11 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 	if err := h.db.Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
 		return
+	}
+
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
@@ -807,6 +819,11 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 	order.UpdatedAt = now
 	h.db.Save(&order)
 
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":      true,
 		"order":        order,
@@ -846,6 +863,11 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 	order.UpdatedAt = now
 	h.db.Save(&order)
 
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"order":   order,
@@ -878,6 +900,11 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	order.Status = "cancelled"
 	order.UpdatedAt = time.Now()
 	h.db.Save(&order)
+
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -914,6 +941,11 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	if err := h.db.Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fulfill order"})
 		return
+	}
+
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -989,6 +1021,11 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 		Reference: "quick-paid",
 		Notes:     "Marked as paid from dashboard",
 	})
+
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

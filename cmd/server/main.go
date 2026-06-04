@@ -45,6 +45,7 @@ func main() {
 		&models.Payment{},
 		&models.InventoryLog{},
 		&models.ProductImage{},
+		&models.CustomerInsight{},
 		&models.SubscriptionPlan{},
 		&models.BusinessSubscription{},
 		&models.PasswordResetToken{},

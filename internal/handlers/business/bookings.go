@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"salesmee/internal/data"
+	"salesmee/internal/handlers"
 	"salesmee/internal/models"
 	"time"
 
@@ -314,6 +315,11 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 		return
 	}
 
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
@@ -352,6 +358,11 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 		Reference: "quick-paid",
 		Notes:     "Marked as paid from dashboard",
 	})
+
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -559,6 +570,12 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 			Reference: "Walk-in counter payment",
 		}
 		h.db.Create(&payment)
+	}
+
+	// Auto-advance conversation progress
+	var conv models.Conversation
+	if err := h.db.Where("client_id = ? AND business_id = ?", client.ID, businessID).First(&conv).Error; err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

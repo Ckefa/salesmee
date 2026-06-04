@@ -204,27 +204,148 @@ func updateConversationProgress(messageID uint) {
 	// Get conversation from message
 	var message models.Message
 	db.DB.Preload("Conversation").First(&message, messageID)
+	AutoCalculateProgress(message.ConversationID)
+}
 
-	// Auto-advance stage based on message count
-	var messageCount int64
-	db.DB.Model(&models.Message{}).Where("conversation_id = ?", message.ConversationID).Count(&messageCount)
-
+// AutoCalculateProgress analyzes conversation activity and forward-advances the stage.
+// Never downgrades — only moves forward in the pipeline.
+func AutoCalculateProgress(conversationID uint) {
 	var progress models.ConversationProgress
-	if err := db.DB.Where("conversation_id = ?", message.ConversationID).First(&progress).Error; err != nil {
+	if err := db.DB.Where("conversation_id = ?", conversationID).First(&progress).Error; err != nil {
 		return
 	}
 
-	// Simple auto-progression based on message count
+	var conversation models.Conversation
+	if err := db.DB.First(&conversation, conversationID).Error; err != nil {
+		return
+	}
+	clientID := conversation.ClientID
+
 	newStage := progress.CurrentStage
-	if messageCount >= 8 && progress.CurrentStage == models.StageInitial {
-		newStage = models.StageQualification
-	} else if messageCount >= 15 && progress.CurrentStage == models.StageQualification {
-		newStage = models.StageNegotiation
+	reason := ""
+
+	// 1. Check for fulfilled/completed orders → StageCompleted
+	var completedOrders int64
+	db.DB.Model(&models.Order{}).Where("client_id = ? AND status IN ('fulfilled','completed')", clientID).Count(&completedOrders)
+
+	// 2. Check for completed bookings → StageCompleted
+	var completedBookings int64
+	db.DB.Model(&models.Booking{}).Where("client_id = ? AND status = 'completed'", clientID).Count(&completedBookings)
+
+	if completedOrders > 0 || completedBookings > 0 {
+		if isBefore(newStage, models.StageCompleted) {
+			newStage = models.StageCompleted
+			reason = "auto: completed order(s) or booking(s) exist"
+		}
+	} else {
+		// 3. Check for confirmed orders / client_confirmed bookings → StageConfirmation
+		var confirmedOrders int64
+		db.DB.Model(&models.Order{}).Where("client_id = ? AND status IN ('confirmed','client_confirmed')", clientID).Count(&confirmedOrders)
+
+		var confirmedBookings int64
+		db.DB.Model(&models.Booking{}).Where("client_id = ? AND status = 'client_confirmed'", clientID).Count(&confirmedBookings)
+
+		if confirmedOrders > 0 || confirmedBookings > 0 {
+			if isBefore(newStage, models.StageConfirmation) {
+				newStage = models.StageConfirmation
+				reason = "auto: confirmed order(s) or booking(s) exist"
+			}
+		} else {
+			// 4. Check for pending orders/bookings → StageNegotiation
+			var pendingOrders int64
+			db.DB.Model(&models.Order{}).Where("client_id = ? AND status = 'pending'", clientID).Count(&pendingOrders)
+
+			var pendingBookings int64
+			db.DB.Model(&models.Booking{}).Where("client_id = ? AND status = 'pending'", clientID).Count(&pendingBookings)
+
+			if pendingOrders > 0 || pendingBookings > 0 {
+				if isBefore(newStage, models.StageNegotiation) {
+					newStage = models.StageNegotiation
+					reason = "auto: pending order(s) or booking(s) exist"
+				}
+			} else {
+				// 5. Check message count → StageQualification
+				var msgCount int64
+				db.DB.Model(&models.Message{}).Where("conversation_id = ?", conversationID).Count(&msgCount)
+
+				if msgCount >= 5 && isBefore(newStage, models.StageQualification) {
+					newStage = models.StageQualification
+					reason = "auto: 5+ messages in conversation"
+				}
+			}
+		}
 	}
 
+	// 6. Payments received → StageInProgress (overrides earlier stages but not completed)
+	if isBefore(newStage, models.StageCompleted) {
+		var paidOrders int64
+		db.DB.Model(&models.Order{}).Where("client_id = ? AND paid_amount > 0", clientID).Count(&paidOrders)
+
+		var bookingPayments int64
+		db.DB.Model(&models.Booking{}).Where("client_id = ? AND paid_amount > 0", clientID).Count(&bookingPayments)
+
+		if paidOrders > 0 || bookingPayments > 0 {
+			if isBefore(newStage, models.StageInProgress) {
+				newStage = models.StageInProgress
+				reason = "auto: payment(s) received"
+			}
+		}
+	}
+
+	// 7. 14+ days idle after completion → StageFollowUp
+	if newStage == models.StageCompleted || progress.CurrentStage == models.StageCompleted {
+		var lastMsg models.Message
+		if err := db.DB.Where("conversation_id = ?", conversationID).Order("created_at DESC").First(&lastMsg).Error; err == nil {
+			if time.Since(lastMsg.CreatedAt).Hours() > 336 && progress.CurrentStage == models.StageCompleted { // 14 days
+				if isBefore(newStage, models.StageFollowUp) {
+					newStage = models.StageFollowUp
+					reason = "auto: 14+ days since last message after completion"
+				}
+			}
+		}
+	}
+
+	// Apply change if stage advanced
 	if newStage != progress.CurrentStage {
+		transition := models.StageTransition{
+			Stage:     newStage,
+			ChangedAt: time.Now(),
+			Reason:    reason,
+		}
+		if len(progress.StageHistory) > 0 {
+			lastTransition := progress.StageHistory[len(progress.StageHistory)-1]
+			transition.Duration = int(time.Since(lastTransition.ChangedAt).Hours())
+		}
+
+		progress.StageHistory = append(progress.StageHistory, transition)
 		progress.CurrentStage = newStage
 		progress.ProgressScore = calculateProgressScore(newStage)
+
+		if newStage == models.StageConfirmation {
+			expectedClose := time.Now().AddDate(0, 0, 7)
+			progress.ExpectedClose = &expectedClose
+		}
+		if newStage == models.StageCompleted {
+			now := time.Now()
+			progress.ActualClose = &now
+		}
+
 		db.DB.Save(&progress)
 	}
+
+	CalculateConversationInsights(conversationID)
+}
+
+// isBefore returns true if stage a is earlier in the pipeline than stage b.
+func isBefore(a, b models.ConversationStage) bool {
+	order := map[models.ConversationStage]int{
+		models.StageInitial:       0,
+		models.StageQualification: 1,
+		models.StageNegotiation:   2,
+		models.StageConfirmation:  3,
+		models.StageInProgress:    4,
+		models.StageCompleted:     5,
+		models.StageFollowUp:      6,
+	}
+	return order[a] < order[b]
 }

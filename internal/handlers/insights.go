@@ -159,8 +159,10 @@ func CalculateConversationInsights(conversationID uint) {
 	insight.BehaviorTrend = behaviorTrend
 	insight.EngagementScore = engagementScore
 	insight.TotalOrders = int(totalOrders)
+	insight.PendingOrders = int(pendingOrders)
 	insight.CompletedOrders = int(completedOrders)
 	insight.TotalBookings = int(totalBookings)
+	insight.PendingBookings = int(pendingBookings)
 	insight.CompletedBookings = int(completedBookings)
 	insight.TotalSpent = totalSpent
 	insight.TotalMessages = int(msgCount)

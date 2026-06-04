@@ -1030,14 +1030,29 @@
     transform-origin: center;
   }
 
-  /* Insights Drawer Slide */
+  /* Insights Drawer — Floating Overlay */
   #insights-drawer {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 40;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    background: var(--color-surface);
+    pointer-events: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
   #insights-drawer.open {
     max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
     overflow-y: auto;
   }
   #insights-drawer.open::-webkit-scrollbar {

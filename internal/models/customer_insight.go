@@ -12,8 +12,10 @@ type CustomerInsight struct {
 	BehaviorTrend     string     `gorm:"default:'inactive'"`
 	EngagementScore   int        `gorm:"default:0"`
 	TotalOrders       int        `gorm:"default:0"`
+	PendingOrders     int        `gorm:"default:0"`
 	CompletedOrders   int        `gorm:"default:0"`
 	TotalBookings     int        `gorm:"default:0"`
+	PendingBookings   int        `gorm:"default:0"`
 	CompletedBookings int        `gorm:"default:0"`
 	TotalMessages     int        `gorm:"default:0"`
 	TotalSpent        float64    `gorm:"default:0"`

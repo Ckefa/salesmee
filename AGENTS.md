@@ -25,6 +25,7 @@ go vet ./...
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `currencySymbol` | `func(string) string` | Returns symbol for currency code (e.g. `"USD"` → `"$"`) |
+| `add` | `func(a, b float64) float64` | Addition |
 | `sub` | `func(a, b float64) float64` | Subtraction |
 | `mul` | `func(a, b float64) float64` | Multiplication |
 | `div` | `func(a, b float64) float64` | Division |

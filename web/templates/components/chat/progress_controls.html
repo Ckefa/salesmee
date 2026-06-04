@@ -3,14 +3,14 @@
 {{$stageMap := dict "initial" 0 "qualification" 1 "negotiation" 2 "confirmation" 3 "in_progress" 4 "completed" 5 "follow_up" 6}}
 {{$pos := index $stageMap $s}}
 
-{{$stageLabel := ""}}
-{{if eq $s "initial"}}{{$stageLabel = "Initial Contact"}}
-{{else if eq $s "qualification"}}{{$stageLabel = "Qualification"}}
-{{else if eq $s "negotiation"}}{{$stageLabel = "Negotiation"}}
-{{else if eq $s "confirmation"}}{{$stageLabel = "Confirmation"}}
-{{else if eq $s "in_progress"}}{{$stageLabel = "In Progress"}}
-{{else if eq $s "completed"}}{{$stageLabel = "Completed"}}
-{{else if eq $s "follow_up"}}{{$stageLabel = "Follow Up"}}
+{{$stageLabel := ""}}{{$stageAbbrev := ""}}
+{{if eq $s "initial"}}{{$stageLabel = "Initial Contact"}}{{$stageAbbrev = "Init"}}
+{{else if eq $s "qualification"}}{{$stageLabel = "Qualification"}}{{$stageAbbrev = "Qual"}}
+{{else if eq $s "negotiation"}}{{$stageLabel = "Negotiation"}}{{$stageAbbrev = "Nego"}}
+{{else if eq $s "confirmation"}}{{$stageLabel = "Confirmation"}}{{$stageAbbrev = "Conf"}}
+{{else if eq $s "in_progress"}}{{$stageLabel = "In Progress"}}{{$stageAbbrev = "Prog"}}
+{{else if eq $s "completed"}}{{$stageLabel = "Completed"}}{{$stageAbbrev = "Done"}}
+{{else if eq $s "follow_up"}}{{$stageLabel = "Follow Up"}}{{$stageAbbrev = "Follow"}}
 {{end}}
 
 {{$hc := ""}}
@@ -25,91 +25,92 @@
 
 {{$nextAction := .Progress.NextAction}}
 {{$hasVal := and .Progress.Value (gt .Progress.Value 0.0)}}
-{{$hasClose := .Progress.ExpectedClose}}
-
 {{$behavior := ""}}
 {{if .Insight}}
-  {{if eq .Insight.BehaviorTrend "high_value"}}{{$behavior = "↑ High value"}}
-  {{else if eq .Insight.BehaviorTrend "active"}}{{$behavior = "↑ Active"}}
+  {{if eq .Insight.BehaviorTrend "high_value"}}{{$behavior = "↗ High"}}
+  {{else if eq .Insight.BehaviorTrend "active"}}{{$behavior = "↗ Active"}}
   {{else}}{{$behavior = "→ Inactive"}}
   {{end}}
 {{end}}
 
-<div class="border-b border-[var(--color-border)] px-3 sm:px-6 py-2.5 sm:py-4">
-  {{/* Pipeline + Score */}}
-  <div class="flex items-start justify-between gap-2">
-    <div class="flex flex-col min-w-0 flex-1">
-      {{/* Pipeline dots */}}
-      <div class="flex items-center">
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 0}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 0}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-        <span class="block h-px w-2 sm:w-4 md:w-6 {{if gt $pos 0}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 1}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 1}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-        <span class="block h-px w-2 sm:w-4 md:w-6 {{if gt $pos 1}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 2}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 2}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-        <span class="block h-px w-2 sm:w-4 md:w-6 {{if gt $pos 2}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 3}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 3}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-        <span class="block h-px w-2 sm:w-4 md:w-6 {{if gt $pos 3}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 4}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 4}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-        <span class="block h-px w-2 sm:w-4 md:w-6 {{if gt $pos 4}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 5}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 5}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-        <span class="block h-px w-2 sm:w-4 md:w-6 {{if gt $pos 5}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
-        <span class="block rounded-full transition-all duration-300 {{if gt $pos 6}}w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[var(--color-text)] opacity-40{{else if eq $pos 6}}w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-primary)] ring-[3px] ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 sm:w-2 sm:h-2 border border-[var(--color-border)]{{end}}"></span>
-      </div>
-      {{/* Pipeline labels */}}
-      <div class="flex items-center mt-0.5 text-[7px] sm:text-[9px] text-[var(--color-text-muted)] font-medium tracking-wide">
-        <span class="w-1.5 sm:w-2 text-center">I</span>
-        <span class="w-2 sm:w-4 md:w-6 text-center"></span>
-        <span class="w-1.5 sm:w-2 text-center">Q</span>
-        <span class="w-2 sm:w-4 md:w-6 text-center"></span>
-        <span class="w-1.5 sm:w-2 text-center">N</span>
-        <span class="w-2 sm:w-4 md:w-6 text-center"></span>
-        <span class="w-1.5 sm:w-2 text-center">C</span>
-        <span class="w-2 sm:w-4 md:w-6 text-center"></span>
-        <span class="w-1.5 sm:w-2 text-center">P</span>
-        <span class="w-2 sm:w-4 md:w-6 text-center"></span>
-        <span class="w-1.5 sm:w-2 text-center">D</span>
-        <span class="w-2 sm:w-4 md:w-6 text-center"></span>
-        <span class="w-1.5 sm:w-2 text-center">F</span>
-      </div>
+<div class="border-b border-[var(--color-border)] px-3 sm:px-6 py-1.5">
+  <div class="flex items-center justify-between gap-1.5 text-xs leading-tight">
+
+    {{/* Left: Pipeline + Score + Stage */}}
+    <div class="flex items-center gap-1.5 min-w-0 shrink-0">
+      <span class="hidden sm:inline-flex items-center gap-0 mr-0.5 shrink-0">
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 0}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 0}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="Initial"></span>
+        <span class="block h-px w-1.5 sm:w-2 {{if gt $pos 0}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 1}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 1}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="Qualification"></span>
+        <span class="block h-px w-1.5 sm:w-2 {{if gt $pos 1}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 2}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 2}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="Negotiation"></span>
+        <span class="block h-px w-1.5 sm:w-2 {{if gt $pos 2}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 3}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 3}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="Confirmation"></span>
+        <span class="block h-px w-1.5 sm:w-2 {{if gt $pos 3}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 4}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 4}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="In Progress"></span>
+        <span class="block h-px w-1.5 sm:w-2 {{if gt $pos 4}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 5}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 5}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="Completed"></span>
+        <span class="block h-px w-1.5 sm:w-2 {{if gt $pos 5}}bg-[var(--color-text)] opacity-20{{else}}bg-[var(--color-border)]{{end}}"></span>
+        <span class="block rounded-full transition-all duration-300 {{if gt $pos 6}}w-1.5 h-1.5 bg-[var(--color-text)] opacity-30{{else if eq $pos 6}}w-2 h-2 bg-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]{{else}}w-1.5 h-1.5 border border-[var(--color-border)]{{end}}" title="Follow Up"></span>
+      </span>
+
+      <span class="text-sm font-mono font-bold tabular-nums text-[var(--color-text)] leading-none shrink-0" title="Score: {{.Progress.ProgressScore}}/100">{{.Progress.ProgressScore}}</span>
+
+      <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {{$hc}}"></span>
+
+      <span class="text-[var(--color-text)] font-medium truncate max-w-[72px] sm:max-w-none" title="{{$stageLabel}}">{{$stageAbbrev}}</span>
     </div>
 
-    {{/* Score */}}
-    <div class="flex flex-col items-end shrink-0 -mt-0.5">
-      <span class="text-2xl sm:text-3xl font-mono font-bold leading-none text-[var(--color-text)] tabular-nums tracking-tight">{{.Progress.ProgressScore}}</span>
-      <span class="text-[9px] sm:text-[10px] text-[var(--color-text-muted)] font-semibold tracking-[0.15em] uppercase mt-0.5">score</span>
-    </div>
-  </div>
-
-  {{/* Stage + Behavior */}}
-  <div class="flex items-center gap-2 mt-2">
-    <span class="inline-flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
-      <span class="w-1.5 h-1.5 rounded-full" style="background-color: {{$hc}}"></span>
-      <span class="text-[var(--color-text)] font-medium">{{$stageLabel}}</span>
-      {{if $behavior}}<span class="w-0.5 h-0.5 rounded-full bg-[var(--color-border)] mx-0.5"></span><span class="text-[var(--color-text-muted)]">{{$behavior}}</span>{{end}}
-    </span>
-  </div>
-
-  {{/* Context chips */}}
-  <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5 text-[11px] sm:text-xs text-[var(--color-text-muted)]">
-    {{if .Insight}}<span>{{.Insight.TotalOrders}} order{{if ne .Insight.TotalOrders 1}}s{{end}}</span><span class="w-0.5 h-0.5 rounded-full bg-[var(--color-border)] shrink-0"></span>{{end}}
-    {{if $hasVal}}<span class="tabular-nums">${{printf "%.0f" .Progress.Value}}</span><span class="w-0.5 h-0.5 rounded-full bg-[var(--color-border)] shrink-0"></span>{{end}}
-    {{if .Insight}}<span>{{.Insight.TotalMessages}} msg{{if ne .Insight.TotalMessages 1}}s{{end}}</span><span class="w-0.5 h-0.5 rounded-full bg-[var(--color-border)] shrink-0"></span>{{end}}
-    {{if and .Insight .Insight.TotalBookings}}<span>{{.Insight.TotalBookings}} booking{{if ne .Insight.TotalBookings 1}}s{{end}}</span><span class="w-0.5 h-0.5 rounded-full bg-[var(--color-border)] shrink-0"></span>{{end}}
-    {{if $hasClose}}<span class="tabular-nums">{{.Progress.ExpectedClose | formatDate}}</span>{{end}}
-  </div>
-
-  {{/* Next action + Tier badge */}}
-  <div class="flex items-center justify-between gap-2 mt-2.5 pt-2.5 border-t border-[var(--color-border)]">
-    {{if $nextAction}}
-    <div class="text-[11px] sm:text-xs text-[var(--color-text-muted)] truncate min-w-0">
-      Next: <span class="text-[var(--color-text-secondary)] font-medium">{{$nextAction}}</span>
-    </div>
-    {{else}}
-    <div></div>
-    {{end}}
+    {{/* Middle: Orders + Bookings + Pending */}}
     {{if .Insight}}
-    {{template "insights_badge" .}}
+    <div class="hidden lg:flex items-center gap-3 shrink-0 min-w-0">
+      <span class="flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="{{.Insight.TotalOrders}} total order{{if ne .Insight.TotalOrders 1}}s{{end}}">
+        <i class="fas fa-shopping-cart text-[9px] text-[var(--color-primary)]"></i>
+        <span>{{.Insight.TotalOrders}}</span>
+      </span>
+      <span class="w-px h-3 bg-[var(--color-border)] opacity-40 shrink-0"></span>
+      <span class="flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="{{.Insight.TotalBookings}} total booking{{if ne .Insight.TotalBookings 1}}s{{end}}">
+        <i class="fas fa-calendar-days text-[9px] text-[var(--color-secondary)]"></i>
+        <span>{{.Insight.TotalBookings}}</span>
+      </span>
+      {{$pendingTotal := add (float .Insight.PendingOrders) (float .Insight.PendingBookings)}}
+      {{if gt $pendingTotal 0.0}}
+      <span class="w-px h-3 bg-[var(--color-border)] opacity-40 shrink-0"></span>
+      <span class="flex items-center gap-1 text-[var(--color-warning)] whitespace-nowrap tabular-nums font-medium" title="{{printf "%.0f" $pendingTotal}} pending">
+        <i class="fas fa-hourglass-half text-[9px] text-[var(--color-warning)]"></i>
+        <span>{{printf "%.0f" $pendingTotal}}</span>
+      </span>
+      {{end}}
+    </div>
     {{end}}
+
+    {{/* Right: Behavior / Value / Next / Tier */}}
+    <div class="flex items-center gap-3 shrink-0 min-w-0">
+      {{if $behavior}}
+      <span class="hidden lg:inline whitespace-nowrap
+        {{if eq .Insight.BehaviorTrend "high_value"}}text-[var(--color-success)] font-medium
+        {{else if eq .Insight.BehaviorTrend "active"}}text-[var(--color-info)]
+        {{else}}text-[var(--color-text-muted)]{{end}}"
+        title="Behavior: {{$behavior}}">{{$behavior}}</span>
+      {{end}}
+
+      {{if $hasVal}}
+      <span class="hidden xl:flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="Value: ${{printf "%.0f" .Progress.Value}}">
+        <span class="w-px h-3 bg-[var(--color-border)] opacity-40 shrink-0 mr-1"></span>
+        <i class="fas fa-dollar-sign text-[9px] text-[var(--color-text-muted)]"></i>
+        <span>{{printf "%.0f" .Progress.Value}}</span>
+      </span>
+      {{end}}
+
+      {{if $nextAction}}
+      <span class="hidden 2xl:inline text-[var(--color-text-muted)] truncate max-w-[80px]" title="{{$nextAction}}">{{$nextAction}}</span>
+      {{end}}
+
+      {{if .Insight}}
+      {{template "insights_badge" .}}
+      {{end}}
+    </div>
+
   </div>
 </div>
 {{end}}

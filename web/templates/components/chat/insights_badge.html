@@ -1,9 +1,16 @@
 {{define "insights_badge"}}
-<button class="insights-toggle flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors duration-200"
+{{$tierColor := "text-[var(--color-warning)]"}}
+{{if eq .Insight.Tier "platinum"}}{{$tierColor = "text-[var(--color-info)]"}}
+{{else if eq .Insight.Tier "diamond"}}{{$tierColor = "text-[var(--color-secondary)]"}}
+{{else if eq .Insight.Tier "gold"}}{{$tierColor = "text-[var(--color-warning)]"}}
+{{else if eq .Insight.Tier "silver"}}{{$tierColor = "text-[var(--color-text-muted)]"}}
+{{else}}{{$tierColor = "text-[var(--color-text-muted)]"}}
+{{end}}
+<button class="insights-toggle flex items-center gap-1 text-[11px] sm:text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors duration-200"
   onclick="toggleInsightsDrawer({{.Insight.ConversationID}})"
   title="View customer insights">
-  <i class="fas fa-circle text-[5px] sm:text-[6px] opacity-60"></i>
-  <span class="capitalize">{{.Insight.Tier}}</span>
-  <i class="fas fa-chevron-down text-[8px] opacity-40"></i>
+  <i class="fas fa-star {{$tierColor}} text-[10px]"></i>
+  <span class="capitalize {{$tierColor}}">{{.Insight.Tier}}</span>
+  <i class="fas fa-chevron-down text-[8px] text-[var(--color-text-muted)]"></i>
 </button>
 {{end}}

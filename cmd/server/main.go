@@ -54,6 +54,19 @@ func main() {
 	)
 	log.Println("✅ Database auto-migration completed successfully")
 
+	// Schema sync: add missing columns for models modified after initial migration
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS customer_id INTEGER NOT NULL DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_orders INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS pending_orders INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS completed_orders INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_bookings INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS pending_bookings INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS completed_bookings INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_messages INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_spent DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ")
+	log.Println("✅ Schema sync completed")
+
 	// Data migration: copy old first_name/last_name to name/username for existing records
 	log.Println("🔄 Running data migration for business fields...")
 	db.DB.Exec("UPDATE businesses SET name = first_name WHERE (name IS NULL OR name = '') AND (first_name IS NOT NULL AND first_name != '')")

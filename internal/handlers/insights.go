@@ -131,8 +131,10 @@ func CalculateConversationInsights(conversationID uint) {
 		engagementScore = 25
 	}
 
-	var totalSpent float64
-	db.DB.Model(&models.Payment{}).Select("COALESCE(SUM(amount), 0)").Where("(order_id IN (SELECT id FROM orders WHERE client_id = ?) OR booking_id IN (SELECT id FROM bookings WHERE client_id = ?)) AND status = 'completed'", customerID, customerID).Scan(&totalSpent)
+	var orderSpent, bookingSpent float64
+	db.DB.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("client_id = ? AND status IN ('fulfilled','completed')", customerID).Scan(&orderSpent)
+	db.DB.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("client_id = ? AND status = 'completed'", customerID).Scan(&bookingSpent)
+	totalSpent := orderSpent + bookingSpent
 
 	lastActive := time.Now()
 	var lastMsg models.Message
@@ -179,11 +181,9 @@ func GetConversationInsightsBadge(c *gin.Context) {
 		return
 	}
 
+	CalculateConversationInsights(uint(conversationID))
 	var insight models.CustomerInsight
-	if err := db.DB.Where("conversation_id = ?", conversationID).First(&insight).Error; err != nil {
-		CalculateConversationInsights(uint(conversationID))
-		db.DB.Where("conversation_id = ?", conversationID).First(&insight)
-	}
+	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
 
 	c.HTML(200, "insights_badge", gin.H{
 		"Insight": insight,
@@ -197,14 +197,17 @@ func GetConversationInsightsPanel(c *gin.Context) {
 		return
 	}
 
+	CalculateConversationInsights(uint(conversationID))
 	var insight models.CustomerInsight
-	if err := db.DB.Where("conversation_id = ?", conversationID).First(&insight).Error; err != nil {
-		CalculateConversationInsights(uint(conversationID))
-		db.DB.Where("conversation_id = ?", conversationID).First(&insight)
-	}
+	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
+
+	businessID := c.GetUint("business_id")
+	var business models.Business
+	db.DB.First(&business, businessID)
 
 	c.HTML(200, "insights_panel", gin.H{
-		"Insight": insight,
+		"Insight":  insight,
+		"Business": business,
 	})
 }
 

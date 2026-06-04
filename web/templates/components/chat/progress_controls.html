@@ -95,10 +95,9 @@
       {{end}}
 
       {{if $hasVal}}
-      <span class="hidden xl:flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="Value: ${{printf "%.0f" .Progress.Value}}">
+      <span class="hidden xl:flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="Value: {{currencySymbol .Business.Currency}}{{printf "%.0f" .Progress.Value}}">
         <span class="w-px h-3 bg-[var(--color-border)] opacity-40 shrink-0 mr-1"></span>
-        <i class="fas fa-dollar-sign text-[9px] text-[var(--color-text-muted)]"></i>
-        <span>{{printf "%.0f" .Progress.Value}}</span>
+        <span class="tabular-nums">{{currencySymbol .Business.Currency}}{{printf "%.0f" .Progress.Value}}</span>
       </span>
       {{end}}
 

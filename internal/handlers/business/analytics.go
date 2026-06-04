@@ -3,11 +3,13 @@ package business
 import (
 	"net/http"
 	"sort"
-	"salesmee/internal/data"
+	dataPkg "salesmee/internal/data"
 	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
+
+var _ = models.Order{}
 
 type TopProduct struct {
 	Name    string
@@ -33,45 +35,82 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 		return
 	}
 
-	var totalOrders, pendingOrders, confirmedOrders, fulfilledOrders, cancelledOrders int64
-	h.db.Model(&models.Order{}).Where("business_id = ?", businessID).Count(&totalOrders)
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrders)
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "confirmed").Count(&confirmedOrders)
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "fulfilled").Count(&fulfilledOrders)
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "cancelled").Count(&cancelledOrders)
+	data := h.computeAnalyticsData(businessID, "this_month")
 
-	var totalBookings, pendingBookings, confirmedBookings, completedBookings, cancelledBookings int64
-	h.db.Model(&models.Booking{}).Where("business_id = ?", businessID).Count(&totalBookings)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookings)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "client_confirmed").Count(&confirmedBookings)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "completed").Count(&completedBookings)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "cancelled").Count(&cancelledBookings)
+	c.HTML(http.StatusOK, "analytics.html", gin.H{
+		"Business":          currentBusiness,
+		"ActivePage":        "analytics",
+		"TotalRevenue":      data.TotalRevenue,
+		"OrdersRevenue":     data.OrdersRevenue,
+		"BookingsRevenue":   data.BookingsRevenue,
+		"TotalOrders":       data.TotalOrders,
+		"PendingOrders":     data.PendingOrders,
+		"ConfirmedOrders":   data.ConfirmedOrders,
+		"FulfilledOrders":   data.FulfilledOrders,
+		"CancelledOrders":   data.CancelledOrders,
+		"TotalBookings":     data.TotalBookings,
+		"PendingBookings":   data.PendingBookings,
+		"ConfirmedBookings": data.ConfirmedBookings,
+		"CompletedBookings": data.CompletedBookings,
+		"CancelledBookings": data.CancelledBookings,
+		"TopProducts":       data.TopProducts,
+		"ActiveClients":     data.ActiveClients,
+		"MonthlyRevenue":    data.MonthlyRevenue,
+		"Countries":         dataPkg.Countries,
+		"Currencies":        dataPkg.Currencies,
+	})
+}
 
-	var ordersRevenue, bookingsRevenue float64
-	h.db.Model(&models.Order{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Scan(&ordersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(total_amount), 0)").Where("business_id = ? AND status IN ?", businessID, []string{"client_confirmed", "completed"}).Scan(&bookingsRevenue)
-	totalRevenue := ordersRevenue + bookingsRevenue
+type analyticsData struct {
+	TotalOrders, PendingOrders, ConfirmedOrders, FulfilledOrders, CancelledOrders int
+	TotalBookings, PendingBookings, ConfirmedBookings, CompletedBookings, CancelledBookings int
+	OrdersRevenue, BookingsRevenue, TotalRevenue float64
+	TopProducts []TopProduct
+	ActiveClients int
+	MonthlyRevenue []MonthlyRevenue
+}
 
-	var topProducts []TopProduct
+func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string) analyticsData {
+	startTime, endTime, _ := timeRangeBounds(rangeKey)
+	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
+
+	var d analyticsData
+	var tmp int64
+
+	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.TotalOrders = int(tmp)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&tmp); d.PendingOrders = int(tmp)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "confirmed").Count(&tmp); d.ConfirmedOrders = int(tmp)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "fulfilled").Count(&tmp); d.FulfilledOrders = int(tmp)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&tmp); d.CancelledOrders = int(tmp)
+
+	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.TotalBookings = int(tmp)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&tmp); d.PendingBookings = int(tmp)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "client_confirmed").Count(&tmp); d.ConfirmedBookings = int(tmp)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "completed").Count(&tmp); d.CompletedBookings = int(tmp)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&tmp); d.CancelledBookings = int(tmp)
+
+	h.db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, startTime, endTime).Scan(&d.OrdersRevenue)
+	h.db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, startTime, endTime).Scan(&d.BookingsRevenue)
+	d.TotalRevenue = d.OrdersRevenue + d.BookingsRevenue
+
 	h.db.Raw(`
 		SELECT p.name, SUM(oi.total_price) as revenue, SUM(oi.quantity) as count
 		FROM order_items oi
 		JOIN products p ON p.id = oi.product_id
 		JOIN orders o ON o.id = oi.order_id
-		WHERE o.business_id = ? AND o.status IN ('confirmed', 'fulfilled')
+		WHERE o.business_id = ? AND o.created_at BETWEEN ? AND ? AND o.status IN ('confirmed', 'fulfilled')
 		GROUP BY p.id, p.name
 		ORDER BY revenue DESC
 		LIMIT 10
-	`, businessID).Scan(&topProducts)
+	`, businessID, startTime, endTime).Scan(&d.TopProducts)
 
-	var activeClients int64
-	h.db.Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&activeClients)
+	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.ActiveClients = int(tmp)
 
 	var orders []models.Order
-	h.db.Where("business_id = ? AND status IN ?", businessID, []string{"confirmed", "fulfilled"}).Find(&orders)
+	h.db.Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"confirmed", "fulfilled"}).Find(&orders)
 
 	var bookings []models.Booking
-	h.db.Where("business_id = ? AND status IN ?", businessID, []string{"client_confirmed", "completed"}).Find(&bookings)
+	h.db.Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"client_confirmed", "completed"}).Find(&bookings)
 
 	monthMap := make(map[string]float64)
 	for _, o := range orders {
@@ -83,37 +122,84 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 		monthMap[month] += b.TotalAmount
 	}
 
-	var monthlyRevenue []MonthlyRevenue
 	for month, revenue := range monthMap {
-		monthlyRevenue = append(monthlyRevenue, MonthlyRevenue{Month: month, Revenue: revenue})
+		d.MonthlyRevenue = append(d.MonthlyRevenue, MonthlyRevenue{Month: month, Revenue: revenue})
 	}
-	sort.Slice(monthlyRevenue, func(i, j int) bool {
-		return monthlyRevenue[i].Month < monthlyRevenue[j].Month
+	sort.Slice(d.MonthlyRevenue, func(i, j int) bool {
+		return d.MonthlyRevenue[i].Month < d.MonthlyRevenue[j].Month
 	})
-	if len(monthlyRevenue) > 6 {
-		monthlyRevenue = monthlyRevenue[len(monthlyRevenue)-6:]
+	if len(d.MonthlyRevenue) > 6 {
+		d.MonthlyRevenue = d.MonthlyRevenue[len(d.MonthlyRevenue)-6:]
 	}
 
-	c.HTML(http.StatusOK, "analytics.html", gin.H{
+	return d
+}
+
+func (h *BusinessHandler) GetAnalyticsStats(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	var currentBusiness models.Business
+	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	r := c.DefaultQuery("range", "this_month")
+	data := h.computeAnalyticsData(businessID, r)
+
+	c.HTML(http.StatusOK, "analytics_content", gin.H{
 		"Business":          currentBusiness,
 		"ActivePage":        "analytics",
-		"TotalRevenue":      totalRevenue,
-		"OrdersRevenue":     ordersRevenue,
-		"BookingsRevenue":   bookingsRevenue,
-		"TotalOrders":       totalOrders,
-		"PendingOrders":     pendingOrders,
-		"ConfirmedOrders":   confirmedOrders,
-		"FulfilledOrders":   fulfilledOrders,
-		"CancelledOrders":   cancelledOrders,
-		"TotalBookings":     totalBookings,
-		"PendingBookings":   pendingBookings,
-		"ConfirmedBookings": confirmedBookings,
-		"CompletedBookings": completedBookings,
-		"CancelledBookings": cancelledBookings,
-		"TopProducts":       topProducts,
-		"ActiveClients":     activeClients,
-		"MonthlyRevenue":    monthlyRevenue,
-		"Countries":         data.Countries,
-		"Currencies":        data.Currencies,
+		"TotalRevenue":      data.TotalRevenue,
+		"OrdersRevenue":     data.OrdersRevenue,
+		"BookingsRevenue":   data.BookingsRevenue,
+		"TotalOrders":       data.TotalOrders,
+		"PendingOrders":     data.PendingOrders,
+		"ConfirmedOrders":   data.ConfirmedOrders,
+		"FulfilledOrders":   data.FulfilledOrders,
+		"CancelledOrders":   data.CancelledOrders,
+		"TotalBookings":     data.TotalBookings,
+		"PendingBookings":   data.PendingBookings,
+		"ConfirmedBookings": data.ConfirmedBookings,
+		"CompletedBookings": data.CompletedBookings,
+		"CancelledBookings": data.CancelledBookings,
+		"TopProducts":       data.TopProducts,
+		"ActiveClients":     data.ActiveClients,
+		"MonthlyRevenue":    data.MonthlyRevenue,
+	})
+}
+
+func (h *BusinessHandler) GetAnalyticsStatsGrid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	var currentBusiness models.Business
+	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	r := c.DefaultQuery("range", "this_month")
+	data := h.computeAnalyticsData(businessID, r)
+
+	c.HTML(http.StatusOK, "analytics_stats_grid", gin.H{
+		"Business":          currentBusiness,
+		"TotalRevenue":      data.TotalRevenue,
+		"OrdersRevenue":     data.OrdersRevenue,
+		"BookingsRevenue":   data.BookingsRevenue,
+		"TotalOrders":       data.TotalOrders,
+		"PendingOrders":     data.PendingOrders,
+		"FulfilledOrders":   data.FulfilledOrders,
+		"TotalBookings":     data.TotalBookings,
+		"PendingBookings":   data.PendingBookings,
+		"CompletedBookings": data.CompletedBookings,
+		"ActiveClients":     data.ActiveClients,
 	})
 }

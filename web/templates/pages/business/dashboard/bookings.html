@@ -8,6 +8,7 @@
   <title>Bookings - SalesMee</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
   <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
@@ -76,263 +77,268 @@
   {{template "verify_banner" .}}
 
   <div class="flex h-screen pt-16">
-{{template "dashboard_sidebar" .}}
-
-    <!-- Main Content -->
+    {{template "dashboard_sidebar" .}}
     <main class="flex-1 overflow-y-auto pb-16">
-      <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <!-- Page Header -->
-          <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Bookings Management</h2>
-              <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">View and manage your service bookings</p>
-            </div>
-            <button onclick="openQuickBookingModal()"
-              class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
-              <i class="fas fa-calendar-plus"></i>
-              <span>Quick Booking</span>
-            </button>
-          </div>
-
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-            <!-- Pending Bookings -->
-            <div class="card p-3 sm:p-4">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
-                </div>
-                <div class="ml-2 sm:ml-3">
-                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
-                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Confirmed Bookings -->
-            <div class="card p-3 sm:p-4">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-check-circle text-[var(--color-info)] text-sm sm:text-base"></i>
-                </div>
-                <div class="ml-2 sm:ml-3">
-                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
-                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Completed Bookings -->
-            <div class="card p-3 sm:p-4">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
-                </div>
-                <div class="ml-2 sm:ml-3">
-                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
-                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Cancelled Bookings -->
-            <div class="card p-3 sm:p-4">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
-                </div>
-                <div class="ml-2 sm:ml-3">
-                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
-                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Total Bookings -->
-            <div class="card p-3 sm:p-4">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-calendar-check text-[var(--color-secondary)] text-sm sm:text-base"></i>
-                </div>
-                <div class="ml-2 sm:ml-3">
-                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
-                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Total Revenue -->
-            <div class="card p-3 sm:p-4">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
-                  <i class="fas fa-dollar-sign text-[var(--color-secondary)] text-sm sm:text-base"></i>
-                </div>
-                <div class="ml-2 sm:ml-3">
-                  <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
-                  <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Search & Filter -->
-          <div class="flex flex-col gap-3 mb-2">
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i class="fas fa-search text-[var(--color-text-muted)] text-xs"></i>
-              </div>
-              <input type="text" id="bookingSearch" placeholder="Search by booking #, customer, or service..."
-                class="input pl-9 text-sm">
-            </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-              <select id="bookingSearchField" class="input text-sm">
-                <option value="all">All Fields</option>
-                <option value="number">Booking #</option>
-                <option value="customerName">Customer Name</option>
-                <option value="customerEmail">Email</option>
-              </select>
-              <select id="bookingStatusFilter" class="input text-sm">
-                <option value="">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="client_confirmed">Confirmed</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-              <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
-                <i class="fas fa-times mr-1"></i>Clear
-              </button>
-            </div>
-          </div>
-          <div class="flex justify-between items-center mb-4">
-            <span id="bookingResultsCount" class="text-xs text-[var(--color-text-muted)]"></span>
-          </div>
-
-          <!-- Bookings Table -->
-          <div class="bg-[var(--color-surface)] card overflow-hidden">
-            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
-              <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">All Bookings</h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-[var(--color-border)]">
-                <thead class="bg-[var(--color-surface-secondary)]">
-                  <tr>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Booking #
-                    </th>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
-                    </th>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Service
-                    </th>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status
-                    </th>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Amount
-                    </th>
-                    <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
-                    </th>
-                    <th class="px-3 sm:px-6 py-3 text-center text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Receipt</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]" id="bookingsTableBody">
-                  {{range .Bookings}}
-                  {{$isPending := eq .Status "pending"}}
-                  {{$isConfirmed := eq .Status "client_confirmed"}}
-                  {{$isCompleted := eq .Status "completed"}}
-                  {{$isCancelled := eq .Status "cancelled"}}
-                  {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
-                  <tr data-status="{{.Status}}"
-                    data-number="{{.BookingNumber}}"
-                    data-customer-name="{{.Client.Name}}"
-                    data-customer-email="{{.Client.Email}}">
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
-                      <div class="font-medium">{{.Client.Name}}</div>
-                      <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
-                    </td>
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
-                      <div class="font-medium">{{range .BookingItems}}{{.Service.Name}}{{end}}</div>
-                    </td>
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">
-                      {{.ScheduledDate.Format "2006-01-02 15:04"}}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{if eq
-                        .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "client_confirmed"
-                        }}bg-[var(--color-info-light)] text-[var(--color-info)] {{else if eq .Status "completed" }}bg-[var(--color-success-light)] text-[var(--color-success)]
-                        {{else if eq .Status "cancelled" }}bg-[var(--color-error-light)] text-[var(--color-error)] {{else}}bg-[var(--color-surface-tertiary)]
-                        text-[var(--color-text-secondary)]{{end}}">
-                        {{if eq .Status "pending"}}Pending{{else if eq .Status "client_confirmed"}}Confirmed{{else if eq .Status "completed"}}Completed{{else if eq .Status "cancelled"}}Cancelled{{else}}{{.Status}}{{end}}
-                      </span>
-                    </td>
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
-                      <button onclick="toggleDropdown('bookingActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
-                        <i class="fas fa-ellipsis-v text-[var(--color-text-muted)]"></i>
-                      </button>
-                      <div id="bookingActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
-                        <div class="py-1">
-                          {{if not $isCancelled}}
-                          <span class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold block">Steps</span>
-                          <button onclick=";" class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-warning)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                            <i class="fas fa-clock w-4 {{if $isPending}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"></i>Pending
-                          </button>
-                          <button onclick="{{if $isPending}}approveBooking({{.ID}}){{else}};{{end}}"
-                            class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-info)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                            <i class="fas fa-check-circle w-4 {{if $isPending}}text-[var(--color-info)]{{else}}opacity-40{{end}}"></i>Confirmed
-                          </button>
-                          <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markBookingAsPaid({{.ID}}){{else}};{{end}}"
-                            class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                            <i class="fas fa-credit-card w-4 {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"></i>Paid
-                          </button>
-                          <button onclick="{{if and $isConfirmed $isFullyPaid}}completeBooking({{.ID}}){{else}};{{end}}"
-                            class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                            <i class="fas fa-check-double w-4 {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"></i>Completed
-                          </button>
-                          {{if not $isCompleted}}
-                          <hr class="border-t border-[var(--color-border)] my-1">
-                          <button onclick="cancelBooking({{.ID}})" class="w-full text-left px-3 py-2 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] flex items-center gap-2">
-                            <i class="fas fa-times w-4"></i>Cancel
-                          </button>
-                          {{end}}
-                          {{else}}
-                          <div class="px-3 py-2 text-xs text-[var(--color-text-muted)]">Cancelled</div>
-                          {{end}}
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
-                      {{if $isCompleted}}
-                      <button onclick="window.open('/business/bookings/{{.ID}}/receipt', '_blank')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition text-[var(--color-text-muted)] hover:text-[var(--color-success)]" title="Print Receipt">
-                        <i class="fas fa-receipt"></i>
-                      </button>
-                      {{end}}
-                    </td>
-                  </tr>
-                  {{else}}
-                  <tr>
-                    <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
-                      <i class="fas fa-calendar-alt text-[var(--color-text-muted)] text-5xl mb-4 block"></i>
-                      <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
-                      <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
-                        <i class="fas fa-plus mr-2"></i>Create your first booking
-                      </button>
-                    </td>
-                  </tr>
-                  {{end}}
-                  <tr id="noBookingsMsg" style="display:none">
-                    <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
-                      <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
-                      <p class="text-sm text-[var(--color-text-secondary)]">No bookings match your search</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+      {{template "bookings_content" .}}
     </main>
   </div>
+
+{{define "bookings_content"}}
+<div class="py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Bookings Management</h2>
+        <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">View and manage your service bookings</p>
+      </div>
+      <button onclick="openQuickBookingModal()"
+        class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
+        <i class="fas fa-calendar-plus"></i>
+        <span>Quick Booking</span>
+      </button>
+    </div>
+
+    <div id="bookings-content">
+      {{template "bookings_stats_grid" .}}
+
+      <!-- Search & Filter -->
+      <div class="flex flex-col gap-3 mb-2">
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-search text-[var(--color-text-muted)] text-xs"></i>
+          </div>
+          <input type="text" id="bookingSearch" placeholder="Search by booking #, customer, or service..."
+            class="input pl-9 text-sm">
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <select id="bookingSearchField" class="input text-sm">
+            <option value="all">All Fields</option>
+            <option value="number">Booking #</option>
+            <option value="customerName">Customer Name</option>
+            <option value="customerEmail">Email</option>
+          </select>
+          <select id="bookingPeriodFilter" class="input text-sm" onchange="onPeriodChange(this)">
+            <option value="this_month">This Month</option>
+            <option value="last_month">Last Month</option>
+            <option value="last_3_months">Last 3 Months</option>
+            <option value="last_6_months">Last 6 Months</option>
+            <option value="this_year">Year to Date</option>
+            <option value="last_year">Last Year</option>
+          </select>
+          <select id="bookingStatusFilter" class="input text-sm">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="client_confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
+            <i class="fas fa-times mr-1"></i>Clear
+          </button>
+        </div>
+      </div>
+      <div class="flex justify-between items-center mb-4">
+        <span id="bookingResultsCount" class="text-xs text-[var(--color-text-muted)]"></span>
+      </div>
+
+      <!-- Bookings Table -->
+      <div class="bg-[var(--color-surface)] card overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)]">
+          <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">All Bookings</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-[var(--color-border)]">
+            <thead class="bg-[var(--color-surface-secondary)]">
+              <tr>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Booking #
+                </th>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Customer
+                </th>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Service
+                </th>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Date</th>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Status
+                </th>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Amount
+                </th>
+                <th class="px-3 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Actions
+                </th>
+                <th class="px-3 sm:px-6 py-3 text-center text-[10px] sm:text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Receipt</th>
+              </tr>
+            </thead>
+            <tbody class="bg-[var(--color-surface)] divide-y divide-[var(--color-border)]" id="bookingsTableBody">
+              {{range .Bookings}}
+              {{$isPending := eq .Status "pending"}}
+              {{$isConfirmed := eq .Status "client_confirmed"}}
+              {{$isCompleted := eq .Status "completed"}}
+              {{$isCancelled := eq .Status "cancelled"}}
+              {{$isFullyPaid := ge .PaidAmount .TotalAmount}}
+              <tr data-status="{{.Status}}"
+                data-number="{{.BookingNumber}}"
+                data-customer-name="{{.Client.Name}}"
+                data-customer-email="{{.Client.Email}}"
+                data-created-at="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
+                  <div class="font-medium">{{.Client.Name}}</div>
+                  <div class="text-[var(--color-text-muted)]">{{.Client.Email}}</div>
+                </td>
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
+                  <div class="font-medium">{{range .BookingItems}}{{.Service.Name}}{{end}}</div>
+                </td>
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">
+                  {{.ScheduledDate.Format "2006-01-02 15:04"}}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{if eq
+                    .Status "pending" }}bg-[var(--color-warning-light)] text-[var(--color-warning)] {{else if eq .Status "client_confirmed"
+                    }}bg-[var(--color-info-light)] text-[var(--color-info)] {{else if eq .Status "completed" }}bg-[var(--color-success-light)] text-[var(--color-success)]
+                    {{else if eq .Status "cancelled" }}bg-[var(--color-error-light)] text-[var(--color-error)] {{else}}bg-[var(--color-surface-tertiary)]
+                    text-[var(--color-text-secondary)]{{end}}">
+                    {{if eq .Status "pending"}}Pending{{else if eq .Status "client_confirmed"}}Confirmed{{else if eq .Status "completed"}}Completed{{else if eq .Status "cancelled"}}Cancelled{{else}}{{.Status}}{{end}}
+                  </span>
+                </td>
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
+                  <button onclick="toggleDropdown('bookingActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
+                    <i class="fas fa-ellipsis-v text-[var(--color-text-muted)]"></i>
+                  </button>
+                  <div id="bookingActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
+                    <div class="py-1">
+                      {{if not $isCancelled}}
+                      <span class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold block">Steps</span>
+                      <button onclick=";" class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-warning)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                        <i class="fas fa-clock w-4 {{if $isPending}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"></i>Pending
+                      </button>
+                      <button onclick="{{if $isPending}}approveBooking({{.ID}}){{else}};{{end}}"
+                        class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-info)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                        <i class="fas fa-check-circle w-4 {{if $isPending}}text-[var(--color-info)]{{else}}opacity-40{{end}}"></i>Confirmed
+                      </button>
+                      <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markBookingAsPaid({{.ID}}){{else}};{{end}}"
+                        class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                        <i class="fas fa-credit-card w-4 {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"></i>Paid
+                      </button>
+                      <button onclick="{{if and $isConfirmed $isFullyPaid}}completeBooking({{.ID}}){{else}};{{end}}"
+                        class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}text-[var(--color-text-muted)]{{end}}">
+                        <i class="fas fa-check-double w-4 {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"></i>Completed
+                      </button>
+                      {{if not $isCompleted}}
+                      <hr class="border-t border-[var(--color-border)] my-1">
+                      <button onclick="cancelBooking({{.ID}})" class="w-full text-left px-3 py-2 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] flex items-center gap-2">
+                        <i class="fas fa-times w-4"></i>Cancel
+                      </button>
+                      {{end}}
+                      {{else}}
+                      <div class="px-3 py-2 text-xs text-[var(--color-text-muted)]">Cancelled</div>
+                      {{end}}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                  {{if $isCompleted}}
+                  <button onclick="window.open('/business/bookings/{{.ID}}/receipt', '_blank')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition text-[var(--color-text-muted)] hover:text-[var(--color-success)]" title="Print Receipt">
+                    <i class="fas fa-receipt"></i>
+                  </button>
+                  {{end}}
+                </td>
+              </tr>
+              {{else}}
+              <tr>
+                <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
+                  <i class="fas fa-calendar-alt text-[var(--color-text-muted)] text-5xl mb-4 block"></i>
+                  <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
+                  <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
+                    <i class="fas fa-plus mr-2"></i>Create your first booking
+                  </button>
+                </td>
+              </tr>
+              {{end}}
+              <tr id="noBookingsMsg" style="display:none">
+                <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
+                  <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
+                  <p class="text-sm text-[var(--color-text-secondary)]">No bookings match your search</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{define "bookings_stats_grid"}}
+<div id="bookings-stats-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+  <div class="card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2 sm:p-2.5">
+        <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.PendingCount}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-2.5">
+        <i class="fas fa-check-circle text-[var(--color-info)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.ConfirmedCount}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-2.5">
+        <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CompletedCount}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2 sm:p-2.5">
+        <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.CancelledCount}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
+        <i class="fas fa-calendar-check text-[var(--color-secondary)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{.TotalBookings}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
+        <i class="fas fa-dollar-sign text-[var(--color-secondary)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}
 
   <!-- Quick Booking Modal -->
   <div id="quickBookingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
@@ -698,18 +704,41 @@
         });
     });
 
+    function dateInRange(dateStr, period) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      let start, end;
+      switch (period) {
+        case 'this_month': start = new Date(now.getFullYear(), now.getMonth(), 1); break;
+        case 'last_month': start = new Date(now.getFullYear(), now.getMonth() - 1, 1); end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999); break;
+        case 'last_3_months': start = new Date(now.getFullYear(), now.getMonth() - 3, 1); break;
+        case 'last_6_months': start = new Date(now.getFullYear(), now.getMonth() - 6, 1); break;
+        case 'this_year': start = new Date(now.getFullYear(), 0, 1); break;
+        case 'last_year': start = new Date(now.getFullYear() - 1, 0, 1); end = new Date(now.getFullYear(), 0, 0, 23, 59, 59, 999); break;
+      }
+      if (!end) end = now;
+      return date >= start && date <= end;
+    }
+
     function filterBookings() {
       const search = document.getElementById('bookingSearch').value.toLowerCase().trim();
       const field = document.getElementById('bookingSearchField').value;
       const status = document.getElementById('bookingStatusFilter').value;
-      const totalRows = document.querySelectorAll('#bookingsTableBody tr[data-status]');
-      const allRows = document.querySelectorAll('#bookingsTableBody tr[data-number]');
-      let visibleCount = 0;
+      const period = document.getElementById('bookingPeriodFilter').value;
+      const rows = document.querySelectorAll('#bookingsTableBody tr[data-number]');
+      let periodVisible = 0;
+      let allVisible = 0;
 
-      const hasFilters = search || status;
-      document.getElementById('clearBookingFilters').classList.toggle('hidden', !hasFilters);
+      rows.forEach(row => {
+        const createdAt = row.getAttribute('data-created-at');
+        let matchPeriod = true;
+        if (period && createdAt) {
+          matchPeriod = dateInRange(createdAt, period);
+        }
+        row.style.display = matchPeriod ? '' : 'none';
+        if (!matchPeriod) return;
+        periodVisible++;
 
-      allRows.forEach(row => {
         const rowStatus = row.getAttribute('data-status');
         const matchStatus = !status || rowStatus === status;
 
@@ -729,12 +758,19 @@
         }
 
         const show = matchSearch && matchStatus;
-        row.style.display = show ? '' : 'none';
-        if (show) visibleCount++;
+        if (!show) row.style.display = 'none';
+        if (show) allVisible++;
       });
 
-      document.getElementById('noBookingsMsg').style.display = visibleCount === 0 && totalRows.length > 0 ? '' : 'none';
-      document.getElementById('bookingResultsCount').textContent = hasFilters ? `${visibleCount} of ${allRows.length} results` : '';
+      const hasFilters = search || status;
+      document.getElementById('clearBookingFilters').classList.toggle('hidden', !hasFilters);
+      document.getElementById('noBookingsMsg').style.display = allVisible === 0 && periodVisible > 0 ? '' : 'none';
+      document.getElementById('bookingResultsCount').textContent = hasFilters ? `${allVisible} of ${periodVisible} results` : '';
+    }
+
+    function onPeriodChange(el) {
+      htmx.ajax('GET', '/business/bookings/stats-grid?range=' + el.value, {target: '#bookings-stats-grid', swap: 'outerHTML'});
+      filterBookings();
     }
 
     document.getElementById('bookingSearch').addEventListener('input', filterBookings);

@@ -89,11 +89,19 @@
     <main class="flex-1 overflow-y-auto pb-16">
       <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-8">
-          <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Payments</h2>
-          <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-2">Manage payment methods and track client payments</p>
+        {{template "payments_content" .}}
         </div>
+      </div>
+    </main>
+  </div>
 
+{{define "payments_content"}}
+<div class="mb-8">
+  <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Payments</h2>
+  <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-2">Manage payment methods and track client payments</p>
+</div>
+
+<div id="payments-content">
         <!-- Payment Methods Section -->
         <div class="bg-[var(--color-surface)] rounded-xl card mb-6">
           <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)] flex items-center justify-between flex-wrap gap-2">
@@ -176,53 +184,23 @@
           </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-            <div class="flex items-center">
-              <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
-                <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
-              </div>
-              <div class="ml-2 sm:ml-3">
-                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
-                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalCompleted}}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-            <div class="flex items-center">
-              <div class="p-2 sm:p-2.5 bg-[var(--color-warning-light)] rounded-full">
-                <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
-              </div>
-              <div class="ml-2 sm:ml-3">
-                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
-                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPending}}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-            <div class="flex items-center">
-              <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
-                <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
-              </div>
-              <div class="ml-2 sm:ml-3">
-                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Failed</p>
-                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalFailed}}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-            <div class="flex items-center">
-              <div class="p-2 sm:p-2.5 bg-[var(--color-primary-light)] rounded-full">
-                <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
-              </div>
-              <div class="ml-2 sm:ml-3">
-                <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
-                <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPaidRevenue}}</p>
-              </div>
-            </div>
-          </div>
+        <!-- Date Range Filter Pills -->
+        <div class="flex flex-wrap gap-2 mb-6" id="payments-filter-pills">
+          <button onclick="setActivePill(this)" hx-get="/business/payments/stats-grid?range=this_month" hx-target="#payments-stats-grid" hx-swap="outerHTML"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white">This Month</button>
+          <button onclick="setActivePill(this)" hx-get="/business/payments/stats-grid?range=last_month" hx-target="#payments-stats-grid" hx-swap="outerHTML"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Month</button>
+          <button onclick="setActivePill(this)" hx-get="/business/payments/stats-grid?range=last_3_months" hx-target="#payments-stats-grid" hx-swap="outerHTML"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 3M</button>
+          <button onclick="setActivePill(this)" hx-get="/business/payments/stats-grid?range=last_6_months" hx-target="#payments-stats-grid" hx-swap="outerHTML"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 6M</button>
+          <button onclick="setActivePill(this)" hx-get="/business/payments/stats-grid?range=this_year" hx-target="#payments-stats-grid" hx-swap="outerHTML"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Year to Date</button>
+          <button onclick="setActivePill(this)" hx-get="/business/payments/stats-grid?range=last_year" hx-target="#payments-stats-grid" hx-swap="outerHTML"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Year</button>
         </div>
+
+        {{template "payments_stats_grid" .}}
 
         <!-- Payments Table -->
         <div class="bg-[var(--color-surface)] rounded-xl card">
@@ -281,7 +259,59 @@
         </div>
       </div>
     </div>
-    </main>
+</div>
+{{end}}
+
+{{define "payments_stats_grid"}}
+<div id="payments-stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
+        <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalCompleted}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-warning-light)] rounded-full">
+        <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPending}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
+        <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Failed</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalFailed}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-primary-light)] rounded-full">
+        <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPaidRevenue}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}
+
+  </main>
   </div>
 
   {{template "business_profile" .}}

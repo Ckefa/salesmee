@@ -158,8 +158,11 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		return
 	}
 
+	r := c.DefaultQuery("range", "this_month")
+	startTime, endTime, _ := timeRangeBounds(r)
+
 	var orders []models.Order
-	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ?", businessID).Find(&orders)
+	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
 
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	var totalRevenue float64
@@ -196,6 +199,114 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"ActivePage":           "orders",
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
+	})
+}
+
+func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	var currentBusiness models.Business
+	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	r := c.DefaultQuery("range", "this_month")
+	startTime, endTime, _ := timeRangeBounds(r)
+
+	var orders []models.Order
+	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
+
+	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
+	var totalRevenue float64
+
+	for _, order := range orders {
+		switch order.Status {
+		case "draft":
+			draftCount++
+		case "pending":
+			pendingCount++
+		case "client_confirmed":
+			clientConfirmedCount++
+		case "confirmed":
+			confirmedCount++
+		case "fulfilled":
+			fulfilledCount++
+		case "cancelled":
+			cancelledCount++
+		}
+		totalRevenue += order.TotalAmount
+	}
+
+	c.HTML(http.StatusOK, "orders_content", gin.H{
+		"Business":             currentBusiness,
+		"Orders":               orders,
+		"DraftCount":           draftCount,
+		"PendingCount":         pendingCount,
+		"ClientConfirmedCount": clientConfirmedCount,
+		"ConfirmedCount":       confirmedCount,
+		"FulfilledCount":       fulfilledCount,
+		"CancelledCount":       cancelledCount,
+		"TotalOrders":          len(orders),
+		"TotalRevenue":         totalRevenue,
+		"ActivePage":           "orders",
+	})
+}
+
+func (h *BusinessHandler) GetOrdersStatsGrid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
+		return
+	}
+
+	var currentBusiness models.Business
+	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	r := c.DefaultQuery("range", "this_month")
+	startTime, endTime, _ := timeRangeBounds(r)
+
+	var orders []models.Order
+	h.db.Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
+
+	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
+	var totalRevenue float64
+
+	for _, order := range orders {
+		switch order.Status {
+		case "draft":
+			draftCount++
+		case "pending":
+			pendingCount++
+		case "client_confirmed":
+			clientConfirmedCount++
+		case "confirmed":
+			confirmedCount++
+		case "fulfilled":
+			fulfilledCount++
+		case "cancelled":
+			cancelledCount++
+		}
+		totalRevenue += order.TotalAmount
+	}
+
+	c.HTML(http.StatusOK, "orders_stats_grid", gin.H{
+		"Business":             currentBusiness,
+		"DraftCount":           int(draftCount),
+		"PendingCount":         int(pendingCount),
+		"ClientConfirmedCount": int(clientConfirmedCount),
+		"ConfirmedCount":       int(confirmedCount),
+		"FulfilledCount":       int(fulfilledCount),
+		"CancelledCount":       int(cancelledCount),
+		"TotalOrders":          len(orders),
+		"TotalRevenue":         totalRevenue,
 	})
 }
 

@@ -468,6 +468,114 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	})
 }
 
+func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	r := c.DefaultQuery("range", "this_month")
+	startTime, endTime, _ := timeRangeBounds(r)
+	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
+
+	var orderIDs []uint
+	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &orderIDs)
+
+	var bookingIDs []uint
+	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &bookingIDs)
+
+	var payments []models.Payment
+	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
+		query := h.db.Preload("Client")
+		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
+			query = query.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
+		} else if len(orderIDs) > 0 {
+			query = query.Where("order_id IN ?", orderIDs)
+		} else {
+			query = query.Where("booking_id IN ?", bookingIDs)
+		}
+		query.Order("created_at DESC").Find(&payments)
+	}
+
+	type PaymentRow struct {
+		models.Payment
+		SourceType   string
+		SourceNumber string
+		ClientName   string
+	}
+
+	var rows []PaymentRow
+	var totalCompleted, totalPending, totalFailed float64
+
+	orderMap := make(map[uint]models.Order)
+	if len(orderIDs) > 0 {
+		var orders []models.Order
+		h.db.Where("id IN ?", orderIDs).Find(&orders)
+		for _, o := range orders {
+			orderMap[o.ID] = o
+		}
+	}
+
+	bookingMap := make(map[uint]models.Booking)
+	if len(bookingIDs) > 0 {
+		var bookings []models.Booking
+		h.db.Where("id IN ?", bookingIDs).Find(&bookings)
+		for _, b := range bookings {
+			bookingMap[b.ID] = b
+		}
+	}
+
+	for _, p := range payments {
+		row := PaymentRow{
+			Payment:    p,
+			ClientName: p.Client.Name,
+		}
+		if p.OrderID != nil {
+			if o, ok := orderMap[*p.OrderID]; ok {
+				row.SourceType = "order"
+				row.SourceNumber = o.OrderNumber
+			}
+		} else if p.BookingID != nil {
+			if b, ok := bookingMap[*p.BookingID]; ok {
+				row.SourceType = "booking"
+				row.SourceNumber = b.BookingNumber
+			}
+		}
+		rows = append(rows, row)
+
+		switch p.Status {
+		case "completed":
+			totalCompleted += p.Amount
+		case "pending":
+			totalPending += p.Amount
+		case "failed":
+			totalFailed += p.Amount
+		}
+	}
+
+	var paidOrdersRevenue, paidBookingsRevenue float64
+	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidOrdersRevenue)
+	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidBookingsRevenue)
+
+	var paymentMethods []models.PaymentMethod
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
+
+	c.HTML(http.StatusOK, "payments_content", gin.H{
+		"Business":         business,
+		"ActivePage":       "payments",
+		"Payments":         rows,
+		"PaymentMethods":   paymentMethods,
+		"TotalCompleted":   totalCompleted,
+		"TotalPending":     totalPending,
+		"TotalFailed":      totalFailed,
+		"TotalPaidRevenue": paidOrdersRevenue + paidBookingsRevenue,
+		"PaymentCount":     len(rows),
+	})
+}
+
 // ConfirmAllOrderPayments confirms all pending payments for an order at once
 func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
@@ -785,6 +893,63 @@ func (h *BusinessHandler) DeletePaymentMethod(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func (h *BusinessHandler) GetPaymentsStatsGrid(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	r := c.DefaultQuery("range", "this_month")
+	startTime, endTime, _ := timeRangeBounds(r)
+	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
+
+	var orderIDs []uint
+	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &orderIDs)
+
+	var bookingIDs []uint
+	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &bookingIDs)
+
+	var payments []models.Payment
+	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
+		query := h.db.Preload("Client")
+		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
+			query = query.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
+		} else if len(orderIDs) > 0 {
+			query = query.Where("order_id IN ?", orderIDs)
+		} else {
+			query = query.Where("booking_id IN ?", bookingIDs)
+		}
+		query.Order("created_at DESC").Find(&payments)
+	}
+
+	var totalCompleted, totalPending, totalFailed float64
+	for _, p := range payments {
+		switch p.Status {
+		case "completed":
+			totalCompleted += p.Amount
+		case "pending":
+			totalPending += p.Amount
+		case "failed":
+			totalFailed += p.Amount
+		}
+	}
+
+	var paidOrdersRevenue, paidBookingsRevenue float64
+	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidOrdersRevenue)
+	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidBookingsRevenue)
+
+	c.HTML(http.StatusOK, "payments_stats_grid", gin.H{
+		"Business":         business,
+		"TotalCompleted":   totalCompleted,
+		"TotalPending":     totalPending,
+		"TotalFailed":      totalFailed,
+		"TotalPaidRevenue": paidOrdersRevenue + paidBookingsRevenue,
+	})
 }
 
 func logPaymentError(msg string, err error) {

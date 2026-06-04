@@ -57,6 +57,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 
 		protected.GET("/", businessHandler.GetBizHome)
 		protected.GET("/dashboard", businessHandler.GetDashboard)
+		protected.GET("/dashboard/stats", businessHandler.GetDashboardStats)
 		protected.GET("/products", businessHandler.GetProducts)
 		protected.GET("/products/:id", businessHandler.GetProduct)
 		protected.POST("/products", businessHandler.CreateProduct)
@@ -71,10 +72,14 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.PUT("/services/:id", businessHandler.UpdateService)
 		protected.DELETE("/services/:id", businessHandler.DeleteService)
 		protected.GET("/orders", businessHandler.GetOrders)
+		protected.GET("/orders/stats", businessHandler.GetOrdersStats)
+		protected.GET("/orders/stats-grid", businessHandler.GetOrdersStatsGrid)
 		protected.POST("/orders", businessHandler.CreateOrder)
 		protected.PUT("/orders/:id", businessHandler.UpdateOrder)
 		protected.PUT("/orders/:id/status", businessHandler.UpdateOrderStatus)
 		protected.GET("/bookings", businessHandler.GetBookings)
+		protected.GET("/bookings/stats", businessHandler.GetBookingsStats)
+		protected.GET("/bookings/stats-grid", businessHandler.GetBookingsStatsGrid)
 		protected.GET("/bookings/:id", businessHandler.GetBooking)
 		protected.POST("/bookings", businessHandler.CreateBooking)
 		protected.PUT("/bookings/:id", businessHandler.UpdateBooking)
@@ -139,9 +144,13 @@ func SetupBusinessRoutes(r *gin.Engine) {
 
 		// Analytics
 		protected.GET("/analytics", businessHandler.GetAnalytics)
+		protected.GET("/analytics/stats", businessHandler.GetAnalyticsStats)
+		protected.GET("/analytics/stats-grid", businessHandler.GetAnalyticsStatsGrid)
 
 		// Payments
 		protected.GET("/payments", businessHandler.GetPayments)
+		protected.GET("/payments/stats", businessHandler.GetPaymentsStats)
+		protected.GET("/payments/stats-grid", businessHandler.GetPaymentsStatsGrid)
 		protected.POST("/payment-instructions", businessHandler.UpdatePaymentInstructions)
 		protected.POST("/orders/:id/payments/:payment_id/confirm", businessHandler.ConfirmOrderPayment)
 		protected.POST("/orders/:id/payments/confirm-all", businessHandler.ConfirmAllOrderPayments)

@@ -38,6 +38,8 @@ go vet ./...
 | `formatDate` | `func(time.Time) string` | Formats as `"Jan 2, 2006"` |
 | `formatTime` | `func(time.Time) string` | Formats as `"3:04 PM"` |
 | `fbLogin` | `func() bool` | Returns true if FB_LOGIN env var is set |
+| `seq` | `func(start, end int) []int` | Generates a range of ints (e.g. `seq 1 3` → `[1,2,3]`) |
+| `percent` | `func(current, total int) int` | Returns percentage (0–100) |
 
 ## 4-Step Color System (Orders & Bookings)
 
@@ -97,6 +99,46 @@ Always use `var(--color-*)` via Tailwind arbitrary value syntax: `bg-[var(--colo
 - `$isDraft` — orders only
 - `$isClientConfirmed` — orders only (distinct from business `$isConfirmed`)
 - `$active := .ActivePage` — identifies which sidebar item is active
+
+## Onboarding Feature (5-Step Guided Setup)
+
+Shown as a centered modal overlay only on `/business` page when business has `onboarding_step < 6`.
+
+### 5-Step Flow
+| Step | Label | Auto-advance condition |
+|------|-------|------------------------|
+| 1 | Welcome | Manual ("Let's Go!" button) |
+| 2 | Products & Services | `hasProducts || hasServices` |
+| 3 | Customize Profile | `hasLogo` |
+| 4 | Share & Connect | `hasClients` |
+| 5 | Place a Test Order | `hasOrdersOrBookings` |
+
+### Detection Logic (`internal/services/onboarding/detector.go`)
+- `DetectStep()` runs on every page load and key actions — queries counts, compares against `business.onboarding_step`, updates DB if changed.
+- If current step's condition is met, advances to the next step (`detectedStep == N → N+1`).
+- Completed when `detectedStep > 5` (step 6 = completed).
+
+### Routes (`internal/handlers/business/onboarding.go`)
+| Route | Handler | Description |
+|-------|---------|-------------|
+| `GET /business/onboarding/status` | `GetOnboardingStatus` | Returns current step + total_steps |
+| `POST /business/onboarding/advance` | `AdvanceOnboarding` | Manual advance (e.g. "Let's Go!") |
+| `POST /business/onboarding/progress` | `CheckOnboardingProgress` | Re-runs detection, advances if condition met |
+| `POST /business/onboarding/skip` | `SkipOnboarding` | Marks as completed |
+
+### JS (`web/static/js/modules/onboarding.js`)
+- `onboardingAdvance()` — POST to `/advance`
+- `onboardingCheck()` — POST to `/progress`
+- `onboardingMinimize()` / `onboardingExpand()` — toggle panel state
+- `onboardingClose()` — fade out and hide
+- `onboardingSkip()` — POST to `/skip`
+- `onboardingStartOrder()` — loads first client chat + opens product picker
+- `pollOnboarding()` — polls `/status` every 5s, reloads if step changed
+
+### Template (`web/templates/components/onboarding/onboarding_panel.html`)
+- `{{template "onboarding_panel" .}}` — included only in `business.html`
+- Uses `.Onboarding`, `.Business`, `.Clients` (first client for step 5 button)
+- Requires `.Business.ID`, `.Business.Slug` accessible in template context
 
 ## Per-Client Unread Badge (/business page)
 
@@ -258,6 +300,7 @@ internal/
       subscription.go       — Subscription/billing, Stripe & PayPal webhooks
       public.go             — Public profile, client OTP connect
       business_widgets.go   — Quick booking/order/goal widgets
+      onboarding.go         — Onboarding progress, advance, skip
       profile_change_store.go — In-memory OTP-verified profile changes
     client/                — Client handlers (client_auth.go)
     guide.go               — Public /guide page handler
@@ -277,6 +320,8 @@ internal/
     data/                  — Country/currency data
 web/
   templates/
+    components/onboarding/ — Onboarding panel template
+    pages/business/dashboard/  — Dashboard subpages
     pages/business/dashboard/  — Dashboard subpages
       orders.html            — Orders table (search/filter, action dropdown, 3-step wizard, receipt column)
       bookings.html          — Bookings table (search/filter, action dropdown, 3-step wizard, receipt column)
@@ -309,6 +354,7 @@ web/
       business_chat.js       — Business chat with order/booking action functions
       shared.js              — Toast notifications, confirm/prompt modals, cookie helpers
       theme.js               — Theme toggle (light/dark)
+      onboarding.js          — Onboarding panel (advance, check, skip, poll, start order)
 ```
 
 ## Key Go Handlers
@@ -406,6 +452,14 @@ web/
 | `GET /business/subscription/portal` | `BillingPortal` | Stripe billing portal |
 | `GET /business/subscription/badge` | `GetPlanBadge` | Plan badge for navbar |
 | `GET /business/subscription/badge-sidebar` | `GetPlanBadgeSidebar` | Plan badge for sidebar |
+
+### Onboarding (`internal/handlers/business/onboarding.go`)
+| Route | Handler | Description |
+|-------|---------|-------------|
+| `GET /business/onboarding/status` | `GetOnboardingStatus` | Returns current step + total_steps |
+| `POST /business/onboarding/advance` | `AdvanceOnboarding` | Manual advance (e.g. "Let's Go!") |
+| `POST /business/onboarding/progress` | `CheckOnboardingProgress` | Re-runs detection, advances if condition met |
+| `POST /business/onboarding/skip` | `SkipOnboarding` | Marks as completed |
 
 ### Client Widgets (`internal/handlers/business/business_widgets.go`)
 | Route | Handler | Description |

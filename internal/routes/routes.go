@@ -56,6 +56,7 @@ func Setup(r *gin.Engine) {
 	r.GET("/privacy", handlers.ShowPrivacy)
 	r.GET("/terms", handlers.ShowTerms)
 	r.GET("/cookies", handlers.ShowCookies)
+	r.GET("/refund-policy", handlers.ShowRefund)
 	r.GET("/user-deletion", handlers.ShowUserDeletion)
 	r.POST("/user-deletion", handlers.SubmitUserDeletion)
 

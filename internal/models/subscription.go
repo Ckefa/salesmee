@@ -21,9 +21,6 @@ type SubscriptionPlan struct {
 	SortOrder             int       `gorm:"default:0" json:"sort_order"`
 	StripeMonthlyPriceID  string    `gorm:"column:stripe_monthly_price_id" json:"stripe_monthly_price_id"`
 	StripeYearlyPriceID   string    `gorm:"column:stripe_yearly_price_id" json:"stripe_yearly_price_id"`
-	PayPalProductID       string    `gorm:"column:paypal_product_id" json:"paypal_product_id"`
-	PayPalMonthlyPlanID   string    `gorm:"column:paypal_monthly_plan_id" json:"paypal_monthly_plan_id"`
-	PayPalYearlyPlanID    string    `gorm:"column:paypal_yearly_plan_id" json:"paypal_yearly_plan_id"`
 	IsActive              bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`
@@ -39,6 +36,8 @@ type BusinessSubscription struct {
 	Status               string     `gorm:"default:'trialing'" json:"status"`
 	StripeSubscriptionID string     `json:"stripe_subscription_id"`
 	StripeCustomerID     string     `json:"stripe_customer_id"`
+	PaddleSubscriptionID string     `json:"paddle_subscription_id"`
+	PaddleCustomerID     string     `json:"paddle_customer_id"`
 	BillingInterval      string     `gorm:"default:'month'" json:"billing_interval"`
 	CurrentPeriodStart   time.Time  `json:"current_period_start"`
 	CurrentPeriodEnd     time.Time  `json:"current_period_end"`

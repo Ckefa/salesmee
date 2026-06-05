@@ -5,12 +5,10 @@ import (
 )
 
 type PlanMeta struct {
-	Name                 string
-	Description          string
-	PayPalProductID      string
-	PayPalMonthlyPlanID  string
-	PayPalYearlyPlanID   string
-	Original             *models.SubscriptionPlan
+	Name          string
+	Description   string
+	PaddlePriceID string
+	Original      *models.SubscriptionPlan
 }
 
 type CheckoutContext struct {
@@ -25,7 +23,6 @@ type CheckoutContext struct {
 	SuccessURL      string
 	CancelURL       string
 	Plan            *PlanMeta
-	SavePlan        func(*PlanMeta) error
 }
 
 type CheckoutSession struct {
@@ -50,6 +47,7 @@ type PaymentProvider interface {
 	Name() string
 	CreateCheckoutSession(ctx *CheckoutContext) (*CheckoutSession, error)
 	CreateBillingPortalSession(customerID, returnURL string) (string, error)
+	CancelSubscription(subscriptionID string) error
 	HandleWebhook(payload []byte, sigHeader string) (*WebhookEvent, error)
 	GetOrCreateCustomer(business *models.Business) (string, error)
 }

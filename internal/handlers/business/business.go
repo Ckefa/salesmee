@@ -12,6 +12,7 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/onboarding"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,18 @@ type BusinessHandler struct {
 
 func NewBusinessHandler(db *gorm.DB) *BusinessHandler {
 	return &BusinessHandler{db: db}
+}
+
+func (h *BusinessHandler) onboardingData(businessID uint) *onboarding.OnboardingData {
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		return &onboarding.OnboardingData{Step: 6, TotalSteps: 5, Completed: true}
+	}
+	data, err := onboarding.DetectStep(h.db, &business)
+	if err != nil {
+		return &onboarding.OnboardingData{Step: 6, TotalSteps: 5, Completed: true}
+	}
+	return data
 }
 
 // DashboardData structure
@@ -48,6 +61,7 @@ type DashboardData struct {
 	ActivePage          string
 	Countries           []data.Country
 	Currencies          []data.Currency
+	Onboarding          *onboarding.OnboardingData
 }
 
 func (h *BusinessHandler) GetSharePage(c *gin.Context) {
@@ -83,6 +97,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 		"TotalClients":   int(totalClients),
 		"TotalProducts":  int(totalProducts),
 		"ActivePage":     "share",
+		"Onboarding":     h.onboardingData(businessID),
 	})
 }
 
@@ -202,6 +217,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"OnlineCount":         onlineCount,
 		"Countries":           data.Countries,
 		"Currencies":          data.Currencies,
+		"Onboarding":          h.onboardingData(businessID),
 	})
 }
 
@@ -284,6 +300,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 		LowStockProducts:    lowStockProducts,
 		Countries:           data.Countries,
 		Currencies:          data.Currencies,
+		Onboarding:          h.onboardingData(businessID),
 	}
 
 	data.ActivePage = "dashboard"

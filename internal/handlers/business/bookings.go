@@ -136,6 +136,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		"ActivePage":      "bookings",
 		"Countries":       data.Countries,
 		"Currencies":      data.Currencies,
+		"Onboarding":      h.onboardingData(businessID),
 	})
 }
 

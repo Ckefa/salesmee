@@ -41,6 +41,7 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		"ActivePage": "products",
 		"Countries":  data.Countries,
 		"Currencies": data.Currencies,
+		"Onboarding": h.onboardingData(businessID),
 	})
 }
 

@@ -224,6 +224,8 @@
 
   {{template "mobile_bottom_nav" .}}
 
+  {{template "onboarding_panel" .}}
+
   <!-- Modals -->
   {{template "new-client" .}}
   {{template "quick-order" .}}
@@ -308,6 +310,7 @@
   <script src="/static/js/modules/business.js?v=1"></script>
   <script src="/static/js/modules/product_picker.js?v=1"></script>
   <script src="/static/js/modules/service_picker.js?v=1"></script>
+  <script src="/static/js/modules/onboarding.js?v=1"></script>
   <script src="/static/js/core/app.js?v=1"></script>
 
   <script>
@@ -401,5 +404,6 @@
       });
     });
   </script>
+{{template "dashboard_footer" .}}
 </body>
 </html>

@@ -152,6 +152,19 @@ func main() {
 			}
 			return code
 		},
+		"seq": func(start, end int) []int {
+			s := []int{}
+			for i := start; i <= end; i++ {
+				s = append(s, i)
+			}
+			return s
+		},
+		"percent": func(current, total int) int {
+			if total <= 0 {
+				return 0
+			}
+			return int(float64(current) / float64(total) * 100)
+		},
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)
 

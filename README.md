@@ -96,4 +96,5 @@ web/
     uploads/         — File uploads
 cmd/
   server/            — Entry point
+
 ```

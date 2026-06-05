@@ -206,6 +206,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"ActivePage":           "orders",
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
+		"Onboarding":           h.onboardingData(businessID),
 	})
 }
 

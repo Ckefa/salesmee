@@ -465,6 +465,7 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		"TotalFailed":       totalFailed,
 		"TotalPaidRevenue":  totalPaidRevenue,
 		"PaymentCount":      len(rows),
+		"Onboarding":        h.onboardingData(businessID),
 	})
 }
 

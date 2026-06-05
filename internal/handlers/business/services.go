@@ -48,6 +48,7 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 		"ActivePage": "services",
 		"Countries":  data.Countries,
 		"Currencies": data.Currencies,
+		"Onboarding": h.onboardingData(businessID),
 	})
 }
 

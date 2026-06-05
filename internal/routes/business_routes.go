@@ -142,6 +142,12 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/profile/confirm", businessHandler.ConfirmProfileChange)
 		protected.POST("/profile/resend-otp", businessHandler.ResendProfileOTP)
 
+		// Onboarding
+		protected.GET("/onboarding/status", businessHandler.GetOnboardingStatus)
+		protected.POST("/onboarding/progress", businessHandler.CheckOnboardingProgress)
+		protected.POST("/onboarding/advance", businessHandler.AdvanceOnboarding)
+		protected.POST("/onboarding/skip", businessHandler.SkipOnboarding)
+
 		// Analytics
 		protected.GET("/analytics", businessHandler.GetAnalytics)
 		protected.GET("/analytics/stats", businessHandler.GetAnalyticsStats)

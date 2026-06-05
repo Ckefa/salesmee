@@ -21,6 +21,7 @@ type Business struct {
 	EmailVerified      bool      `gorm:"default:false" json:"email_verified"`
 	VerificationToken  string    `gorm:"default:null" json:"-"`
 	PaymentInstructions string   `gorm:"type:text" json:"payment_instructions"`
+	OnboardingStep     int       `gorm:"default:0" json:"onboarding_step"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 

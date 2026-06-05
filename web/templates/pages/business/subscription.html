@@ -68,6 +68,7 @@
   </div>
   {{template "mobile_bottom_nav" .}}
   {{template "csrf_script" .}}
+{{template "dashboard_footer" .}}
 </body>
 </html>
 
@@ -393,7 +394,7 @@
       </div>
       <div class="mt-3 pt-3 border-t border-[var(--color-border)]">
         <button onclick="openBillingPortal()" class="text-xs font-medium text-[var(--color-primary)] hover:underline">
-          <i class="fas fa-external-link-alt mr-1"></i>Manage billing in Stripe
+          <i class="fas fa-external-link-alt mr-1"></i>Manage billing in {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}}
         </button>
       </div>
       {{else if not .IsCanceled}}
@@ -413,7 +414,7 @@
         </div>
         <div>
           <p class="text-sm font-medium text-[var(--color-text)]">Card on file</p>
-          <p class="text-xs text-[var(--color-text-muted)]">Manage in Stripe Portal</p>
+          <p class="text-xs text-[var(--color-text-muted)]">Managed via {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}}</p>
         </div>
       </div>
       {{else}}
@@ -423,13 +424,13 @@
         </div>
         <div>
           <p class="text-sm font-medium text-[var(--color-text)]">No payment method</p>
-          <p class="text-xs text-[var(--color-text-muted)]">Add one in the Stripe Portal</p>
+          <p class="text-xs text-[var(--color-text-muted)]">Add one in the {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal</p>
         </div>
       </div>
       {{end}}
       <div class="mt-3 pt-3 border-t border-[var(--color-border)]">
         <button onclick="openBillingPortal()" class="text-xs font-medium text-[var(--color-primary)] hover:underline">
-          <i class="fas fa-external-link-alt mr-1"></i>Manage in Stripe Portal
+          <i class="fas fa-external-link-alt mr-1"></i>Manage in {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal
         </button>
       </div>
     </div>
@@ -442,10 +443,10 @@
       Invoice History
     </div>
     <p class="text-sm text-[var(--color-text-muted)] mb-4">
-      View your complete billing history and download invoices in the Stripe Portal.
+      View your complete billing history and download invoices in the {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal.
     </p>
     <button onclick="openBillingPortal()" class="btn btn-secondary btn-sm">
-      <i class="fas fa-external-link-alt"></i> Open Billing Portal
+      <i class="fas fa-external-link-alt"></i> Open {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal
     </button>
   </div>
 

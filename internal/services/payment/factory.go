@@ -2,8 +2,8 @@ package payment
 
 func GetProvider(name string) PaymentProvider {
 	switch name {
-	case "paypal":
-		return NewPayPalAdapter()
+	case "paddle":
+		return NewPaddleAdapter()
 	default:
 		return NewStripeAdapter()
 	}

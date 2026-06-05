@@ -55,7 +55,7 @@ func GetCSRFToken(c *gin.Context) string {
 func CSRFMiddleware() gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/stripe/webhook": true,
-		"/paypal/webhook": true,
+		"/paddle/webhook": true,
 	}
 
 	return func(c *gin.Context) {

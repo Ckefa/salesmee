@@ -190,6 +190,6 @@ func SetupBusinessRoutes(r *gin.Engine) {
 
 	// Webhooks (public)
 	r.POST("/stripe/webhook", business.StripeWebhook(businessHandler))
-	r.POST("/paypal/webhook", business.PayPalWebhook(businessHandler))
+	r.POST("/paddle/webhook", business.PaddleWebhook(businessHandler))
 
 }

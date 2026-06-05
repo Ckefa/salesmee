@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
   <script src="/static/js/modules/shared.js?v=1"></script>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
   <header class="navbar-glass">
@@ -68,6 +69,7 @@
     </main>
   </div>
   {{template "mobile_bottom_nav" .}}
+  {{template "dashboard_footer" .}}
   {{template "csrf_script" .}}
   {{template "checkout_scripts" .}}
 </body>
@@ -164,34 +166,43 @@
       </div>
     </div>
 
-    <!-- PayPal -->
-    <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" onclick="this.querySelector('form').submit()">
+    {{if .PaddleClientToken}}
+    <!-- Paddle -->
+    <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" id="paddleCheckoutCard">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 sm:gap-4">
-          <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-white flex items-center justify-center shadow-md shrink-0 p-2">
-            <img src="/static/images/paypal" alt="PayPal" class="w-full h-full object-contain">
+          <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-md shrink-0">
+            <i class="fas fa-water text-white text-lg"></i>
           </div>
           <div>
-            <h4 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">PayPal</h4>
-            <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Pay with your PayPal account</p>
+            <h4 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Paddle</h4>
+            <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Pay with card, wallet, or local payment methods</p>
           </div>
         </div>
-        <form method="POST" action="/business/subscription/checkout">
-          {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
-          <input type="hidden" name="plan_code" value="{{$plan.Code}}">
-          <input type="hidden" name="interval" value="{{$interval}}">
-          <input type="hidden" name="provider" value="paypal">
-          <button type="submit" class="btn btn-secondary btn-sm text-xs sm:text-sm" style="background:#0070ba;color:white;border-color:#0070ba;">
-            <i class="fab fa-paypal mr-1"></i> Pay with PayPal
-          </button>
-        </form>
+        <button type="button" onclick="initiatePaddleCheckout()" class="btn btn-sm text-xs sm:text-sm text-white" style="background:linear-gradient(135deg,#6b47fb,#3b1de6);border:none;">
+          <i class="fas fa-lock mr-1"></i> Pay with Paddle
+        </button>
       </div>
     </div>
+    {{end}}
   </div>
 
   <!-- Security notice -->
   <div class="text-center text-xs text-[var(--color-text-muted)]">
     <i class="fas fa-lock mr-1"></i> Your payment info is processed securely. We never store your card details.
+  </div>
+
+  <!-- Legal & Support Links -->
+  <div class="text-center text-xs text-[var(--color-text-muted)] space-y-2">
+    <p>Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders.</p>
+    <p>
+      <a href="/terms" class="text-[var(--color-primary)] hover:underline" target="_blank">Terms of Service</a>
+      &middot;
+      <a href="/privacy" class="text-[var(--color-primary)] hover:underline" target="_blank">Privacy Policy</a>
+      &middot;
+      <a href="/refund-policy" class="text-[var(--color-primary)] hover:underline" target="_blank">Refund Policy</a>
+    </p>
+    <p>Need help? <a href="mailto:support@salesmee.com" class="text-[var(--color-primary)] hover:underline">support@salesmee.com</a></p>
   </div>
   {{end}}
 </div>
@@ -210,5 +221,53 @@
       overlay.classList.add('hidden');
     }
   }
+
+  {{if .PaddleClientToken}}
+  Paddle.Environment.set('{{.PaddleEnvironment}}');
+  Paddle.Initialize({ token: '{{.PaddleClientToken}}' });
+
+  async function initiatePaddleCheckout() {
+    var csrfToken = document.querySelector('input[name="_csrf"]');
+    if (!csrfToken) { showNotification('CSRF token not found', 'error'); return; }
+
+    try {
+      var resp = await fetch('/business/subscription/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          _csrf: csrfToken.value,
+          plan_code: '{{.Plan.Code}}',
+          interval: '{{.Interval}}',
+          provider: 'paddle'
+        })
+      });
+      var data = await resp.json();
+      if (data.error) {
+        showNotification(data.error, 'error');
+        return;
+      }
+      if (data.checkout_id) {
+        var successUrl = window.location.origin + '/business/subscription?checkout=success&plan_code=' + encodeURIComponent(data.plan_code) + '&interval=' + encodeURIComponent(data.interval) + '&session_id=' + encodeURIComponent(data.checkout_id);
+
+        Paddle.Checkout.open({
+          transactionId: data.checkout_id,
+          eventCallback: function(event) {
+            if (event.name === 'checkout.completed') {
+              window.location.href = successUrl;
+            }
+            if (event.name === 'checkout.closed') {
+              // overlay closed, no action needed
+            }
+          },
+        });
+      } else {
+        showNotification('Server returned no checkout ID', 'error');
+      }
+    } catch (err) {
+      console.error('Paddle checkout error:', err);
+      showNotification('Failed to initiate Paddle checkout. Please try again.', 'error');
+    }
+  }
+  {{end}}
 </script>
 {{end}}

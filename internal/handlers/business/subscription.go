@@ -3,6 +3,8 @@ package business
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -23,9 +25,9 @@ type SubscriptionPageData struct {
 	UpcomingInvoice *UpcomingInvoiceInfo
 
 	// Sidebar badge counts
-	ProductCount       int
-	ServiceCount       int
-	PendingOrderCount  int
+	ProductCount        int
+	ServiceCount        int
+	PendingOrderCount   int
 	PendingBookingCount int
 
 	// Enhanced fields
@@ -41,6 +43,9 @@ type SubscriptionPageData struct {
 	TrialDaysRemaining int
 	PlanIcon           string
 	PlanColor          string
+
+	// Provider
+	PaymentProvider string
 }
 
 type UpcomingInvoiceInfo struct {
@@ -57,6 +62,9 @@ type CheckoutPageData struct {
 	UnitAmount float64
 	Providers  []string
 	CSRFToken  string
+
+	PaddleClientToken  string
+	PaddleEnvironment  string
 
 	ProductCount        int
 	ServiceCount        int
@@ -183,7 +191,11 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 		data.MonthlyPrice = sub.Plan.PriceMonthly
 		data.YearlyPrice = sub.Plan.PriceYearly
 		data.YearlySavings = (sub.Plan.PriceMonthly - sub.Plan.PriceYearly) * 12
-		data.HasPaymentMethod = sub.StripeCustomerID != ""
+		data.HasPaymentMethod = sub.StripeCustomerID != "" || sub.PaddleCustomerID != ""
+		data.PaymentProvider = "stripe"
+		if sub.PaddleCustomerID != "" {
+			data.PaymentProvider = "paddle"
+		}
 		data.IsCanceled = sub.Status == "canceled"
 		data.IsTrialing = sub.Status == "trialing"
 
@@ -278,14 +290,22 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 		unitAmount = plan.PriceMonthly
 	}
 
+	paddleEnv := os.Getenv("PADDLE_ENVIRONMENT")
+	if paddleEnv == "" {
+		paddleEnv = "sandbox"
+	}
+
 	data := CheckoutPageData{
 		ActivePage: "subscription",
 		Business:   business,
 		Plan:       &plan,
 		Interval:   billingInterval,
 		UnitAmount: unitAmount,
-		Providers:  []string{"stripe", "paypal"},
+		Providers:  []string{"stripe", "paddle"},
 		CSRFToken:  c.GetString("csrf_token"),
+
+		PaddleClientToken: os.Getenv("PADDLE_CLIENT_TOKEN"),
+		PaddleEnvironment: paddleEnv,
 	}
 
 	c.HTML(http.StatusOK, "checkout.html", data)
@@ -329,6 +349,19 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 	host := c.Request.Host
 
 	provider := payment.GetProvider(providerName)
+
+	paddleEnv := os.Getenv("PADDLE_ENVIRONMENT")
+	if paddleEnv == "" {
+		paddleEnv = "sandbox"
+	}
+	paddleEnvUpper := strings.ToUpper(paddleEnv)
+	envKey := fmt.Sprintf("PADDLE_%s_%s_%s_PRICE_ID", paddleEnvUpper, strings.ToUpper(planCode), strings.ToUpper(billingInterval))
+	paddlePriceID := os.Getenv(envKey)
+	if paddlePriceID == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Paddle %s price ID not configured for plan %s %s. Set env var %s", paddleEnv, planCode, billingInterval, envKey)})
+		return
+	}
+
 	checkoutCtx := &payment.CheckoutContext{
 		CustomerEmail:   business.Email,
 		BusinessID:      business.ID,
@@ -341,25 +374,25 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 		SuccessURL:      fmt.Sprintf("%s://%s/business/subscription?checkout=success&plan_code=%s&interval=%s", scheme, host, planCode, billingInterval),
 		CancelURL:       fmt.Sprintf("%s://%s/business/subscription?checkout=canceled", scheme, host),
 		Plan: &payment.PlanMeta{
-			Name:                plan.Name,
-			Description:         plan.Description,
-			PayPalProductID:     plan.PayPalProductID,
-			PayPalMonthlyPlanID: plan.PayPalMonthlyPlanID,
-			PayPalYearlyPlanID:  plan.PayPalYearlyPlanID,
-			Original:            &plan,
-		},
-		SavePlan: func(pm *payment.PlanMeta) error {
-			return h.db.Model(&plan).Updates(map[string]interface{}{
-				"paypal_product_id":      pm.PayPalProductID,
-				"paypal_monthly_plan_id": pm.PayPalMonthlyPlanID,
-				"paypal_yearly_plan_id":  pm.PayPalYearlyPlanID,
-			}).Error
+			Name:          plan.Name,
+			Description:   plan.Description,
+			PaddlePriceID: paddlePriceID,
+			Original:      &plan,
 		},
 	}
 
 	session, err := provider.CreateCheckoutSession(checkoutCtx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create checkout session: " + err.Error()})
+		return
+	}
+
+	if providerName == "paddle" {
+		c.JSON(http.StatusOK, gin.H{
+			"checkout_id": session.ID,
+			"plan_code":   planCode,
+			"interval":    billingInterval,
+		})
 		return
 	}
 
@@ -422,8 +455,25 @@ func (h *BusinessHandler) CancelSubscription(c *gin.Context) {
 		return
 	}
 
+	sub := business.Subscription
+
+	// Cancel at the provider level first
+	if sub.StripeSubscriptionID != "" {
+		provider := payment.NewStripeAdapter()
+		if err := provider.CancelSubscription(sub.StripeSubscriptionID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel with Stripe: " + err.Error()})
+			return
+		}
+	} else if sub.PaddleSubscriptionID != "" {
+		provider := payment.NewPaddleAdapter()
+		if err := provider.CancelSubscription(sub.PaddleSubscriptionID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel with Paddle: " + err.Error()})
+			return
+		}
+	}
+
 	strategy := &subscription.CancelStrategy{}
-	if err := strategy.Execute(h.db, businessID, &business.Subscription.Plan, nil); err != nil {
+	if err := strategy.Execute(h.db, businessID, &sub.Plan, nil); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel subscription"})
 		return
 	}
@@ -453,8 +503,8 @@ func (h *BusinessHandler) BillingPortal(c *gin.Context) {
 		return
 	}
 
-	if business.Subscription == nil || business.Subscription.StripeCustomerID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No Stripe customer found"})
+	if business.Subscription == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No subscription found"})
 		return
 	}
 
@@ -464,8 +514,20 @@ func (h *BusinessHandler) BillingPortal(c *gin.Context) {
 	}
 	returnURL := fmt.Sprintf("%s://%s/business/subscription", scheme, c.Request.Host)
 
-	provider := payment.NewStripeAdapter()
-	portalURL, err := provider.CreateBillingPortalSession(business.Subscription.StripeCustomerID, returnURL)
+	var portalURL string
+	var err error
+
+	if business.Subscription.PaddleCustomerID != "" {
+		provider := payment.NewPaddleAdapter()
+		portalURL, err = provider.CreateBillingPortalSession(business.Subscription.PaddleCustomerID, returnURL)
+	} else if business.Subscription.StripeCustomerID != "" {
+		provider := payment.NewStripeAdapter()
+		portalURL, err = provider.CreateBillingPortalSession(business.Subscription.StripeCustomerID, returnURL)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No billing customer found"})
+		return
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create portal session"})
 		return
@@ -535,36 +597,6 @@ func (h *BusinessHandler) GetPlanBadgeSidebar(c *gin.Context) {
 		`<span class="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white">%s</span>`, planName))
 }
 
-func PayPalWebhook(h *BusinessHandler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		payload, err := c.GetRawData()
-		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-
-		provider := payment.NewPayPalAdapter()
-		event, err := provider.HandleWebhook(payload, "")
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		switch event.Type {
-		case "BILLING.SUBSCRIPTION.ACTIVATED":
-			handleCheckoutCompleted(h.db, event)
-		case "BILLING.SUBSCRIPTION.UPDATED":
-			handleSubscriptionUpdated(h.db, event)
-		case "BILLING.SUBSCRIPTION.CANCELLED":
-			handleSubscriptionDeleted(h.db, event)
-		case "PAYMENT.SALE.COMPLETED":
-			handleInvoicePaid(h.db, event)
-		}
-
-		c.JSON(http.StatusOK, gin.H{"received": true})
-	}
-}
-
 func StripeWebhook(h *BusinessHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		payload, err := c.GetRawData()
@@ -592,6 +624,42 @@ func StripeWebhook(h *BusinessHandler) gin.HandlerFunc {
 		case "invoice.paid":
 			handleInvoicePaid(h.db, event)
 		case "invoice.payment_failed":
+			handleInvoicePaymentFailed(h.db, event)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"received": true})
+	}
+}
+
+func PaddleWebhook(h *BusinessHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, err := c.GetRawData()
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		sigHeader := c.GetHeader("P-Thook-Signature")
+
+		provider := payment.NewPaddleAdapter()
+		event, err := provider.HandleWebhook(payload, sigHeader)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		switch event.Type {
+		case "subscription.created":
+			handleCheckoutCompleted(h.db, event)
+		case "subscription.updated":
+			handleSubscriptionUpdated(h.db, event)
+		case "subscription.cancelled":
+			handleSubscriptionDeleted(h.db, event)
+		case "subscription.past_due":
+			handleInvoicePaymentFailed(h.db, event)
+		case "transaction.completed":
+			handleInvoicePaid(h.db, event)
+		case "transaction.payment_failed":
 			handleInvoicePaymentFailed(h.db, event)
 		}
 
@@ -627,6 +695,8 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 		Status:               "trialing",
 		StripeSubscriptionID: event.SubscriptionID,
 		StripeCustomerID:     event.CustomerID,
+		PaddleSubscriptionID: event.SubscriptionID,
+		PaddleCustomerID:     event.CustomerID,
 		BillingInterval:      interval,
 		CurrentPeriodStart:   now,
 		CurrentPeriodEnd:     periodEnd,
@@ -653,16 +723,23 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 	if err := d.Where("business_id = ?", business.ID).First(&existing).Error; err != nil {
 		d.Create(&sub)
 	} else {
-		d.Model(&existing).Updates(map[string]interface{}{
-			"plan_id":                plan.ID,
-			"status":                 sub.Status,
-			"stripe_subscription_id": event.SubscriptionID,
-			"stripe_customer_id":     event.CustomerID,
-			"billing_interval":       interval,
-			"current_period_start":   sub.CurrentPeriodStart,
-			"current_period_end":     sub.CurrentPeriodEnd,
-			"trial_ends_at":          sub.TrialEndsAt,
-		})
+		updates := map[string]interface{}{
+			"plan_id":              plan.ID,
+			"status":               sub.Status,
+			"billing_interval":     interval,
+			"current_period_start": sub.CurrentPeriodStart,
+			"current_period_end":   sub.CurrentPeriodEnd,
+			"trial_ends_at":        sub.TrialEndsAt,
+		}
+		if event.SubscriptionID != "" {
+			updates["stripe_subscription_id"] = event.SubscriptionID
+			updates["paddle_subscription_id"] = event.SubscriptionID
+		}
+		if event.CustomerID != "" {
+			updates["stripe_customer_id"] = event.CustomerID
+			updates["paddle_customer_id"] = event.CustomerID
+		}
+		d.Model(&existing).Updates(updates)
 	}
 
 	d.Model(&business).Update("subscription_plan_id", plan.ID)
@@ -674,7 +751,7 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleSubscriptionUpdated(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_subscription_id = ?", event.SubscriptionID).First(&sub).Error; err != nil {
+	if err := d.Where("stripe_subscription_id = ? OR paddle_subscription_id = ?", event.SubscriptionID, event.SubscriptionID).First(&sub).Error; err != nil {
 		return
 	}
 
@@ -700,7 +777,7 @@ func handleSubscriptionUpdated(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleSubscriptionDeleted(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_subscription_id = ?", event.SubscriptionID).Preload("Business").First(&sub).Error; err != nil {
+	if err := d.Where("stripe_subscription_id = ? OR paddle_subscription_id = ?", event.SubscriptionID, event.SubscriptionID).Preload("Business").First(&sub).Error; err != nil {
 		return
 	}
 
@@ -713,7 +790,7 @@ func handleSubscriptionDeleted(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleInvoicePaid(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_customer_id = ?", event.CustomerID).Preload("Business").Preload("Plan").First(&sub).Error; err != nil {
+	if err := d.Where("stripe_customer_id = ? OR paddle_customer_id = ?", event.CustomerID, event.CustomerID).Preload("Business").Preload("Plan").First(&sub).Error; err != nil {
 		return
 	}
 
@@ -726,7 +803,7 @@ func handleInvoicePaid(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleInvoicePaymentFailed(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_customer_id = ?", event.CustomerID).Preload("Business").First(&sub).Error; err != nil {
+	if err := d.Where("stripe_customer_id = ? OR paddle_customer_id = ?", event.CustomerID, event.CustomerID).Preload("Business").First(&sub).Error; err != nil {
 		return
 	}
 

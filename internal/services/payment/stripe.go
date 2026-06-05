@@ -13,6 +13,7 @@ import (
 	stripecheckout "github.com/stripe/stripe-go/v76/checkout/session"
 	"github.com/stripe/stripe-go/v76/customer"
 	stripewebhook "github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v76/subscription"
 )
 
 type StripeAdapter struct {
@@ -104,6 +105,14 @@ func (s *StripeAdapter) CreateBillingPortalSession(customerID, returnURL string)
 	}
 
 	return ps.URL, nil
+}
+
+func (s *StripeAdapter) CancelSubscription(subscriptionID string) error {
+	_, err := subscription.Cancel(subscriptionID, nil)
+	if err != nil {
+		return fmt.Errorf("stripe subscription cancellation failed: %w", err)
+	}
+	return nil
 }
 
 func (s *StripeAdapter) HandleWebhook(payload []byte, sigHeader string) (*WebhookEvent, error) {

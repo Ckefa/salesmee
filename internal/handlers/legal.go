@@ -22,6 +22,10 @@ func ShowCookies(c *gin.Context) {
 	c.HTML(http.StatusOK, "cookies.html", nil)
 }
 
+func ShowRefund(c *gin.Context) {
+	c.HTML(http.StatusOK, "refund.html", nil)
+}
+
 func ShowUserDeletion(c *gin.Context) {
 	externalID := c.Query("id")
 	c.HTML(http.StatusOK, "user_deletion.html", middleware.TemplateData(c, gin.H{

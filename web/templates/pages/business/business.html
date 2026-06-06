@@ -49,32 +49,17 @@
         <div class="relative" id="notifContainer">
           <button onclick="toggleNotifications()" class="btn btn-icon btn-ghost relative">
             <i class="fas fa-bell text-lg"></i>
-            {{if gt .TotalPending 0}}
-            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
+            {{if gt .UnreadNotifCount 0}}
+            <span id="notifBadge" class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.UnreadNotifCount}}</span>
+            {{else if gt .TotalPending 0}}
+            <span id="notifBadge" class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
             {{end}}
           </button>
-          <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] card shadow-lg z-50 overflow-hidden animate-fade-in-down">
-            <div class="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-              <span class="text-sm font-semibold text-[var(--color-text)]">Notifications</span>
-              <span class="text-xs text-[var(--color-text-muted)]">{{.TotalPending}} pending</span>
-            </div>
-            <div class="max-h-72 overflow-y-auto">
-              {{if gt .PendingOrderCount 0}}
-              <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 dark:bg-amber-900/30"><i class="fas fa-shopping-cart text-amber-600 dark:text-amber-400 text-xs"></i></div>
-                <div><p class="text-xs sm:text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingOrderCount}}</span> pending orders</p><p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">Awaiting your action</p></div>
-              </div>
-              {{end}}
-              {{if gt .PendingBookingCount 0}}
-              <div class="px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 dark:bg-purple-900/30"><i class="fas fa-calendar text-purple-600 dark:text-purple-400 text-xs"></i></div>
-                <div><p class="text-xs sm:text-sm text-[var(--color-text)]"><span class="font-medium">{{.PendingBookingCount}}</span> pending bookings</p><p class="text-[10px] sm:text-xs text-[var(--color-text-muted)]">Need confirmation</p></div>
-              </div>
-              {{end}}
-              <div class="px-4 py-3 text-center text-xs text-[var(--color-text-muted)]">
-                {{if eq .TotalPending 0}}All caught up! 🎉{{else}}<a href="/business/dashboard" class="link">Manage all in Dashboard</a>{{end}}
-              </div>
-            </div>
+          <div id="notifDropdown" class="hidden"
+               hx-get="/business/notifications"
+               hx-trigger="load, every 60s"
+               hx-swap="innerHTML"
+               hx-target="this">
           </div>
         </div>
 
@@ -120,8 +105,8 @@
           <button onclick="toggleNotifications()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors relative">
             <i class="fas fa-bell w-5 text-center"></i>
             <span>Notifications</span>
-            {{if gt .TotalPending 0}}
-            <span class="ml-auto w-5 h-5 text-white text-[9px] font-bold rounded-full flex items-center justify-center" style="background: var(--color-info)">{{.TotalPending}}</span>
+            {{if gt .UnreadNotifCount 0}}
+            <span class="ml-auto w-5 h-5 text-white text-[9px] font-bold rounded-full flex items-center justify-center" style="background: var(--color-info)">{{.UnreadNotifCount}}</span>
             {{end}}
           </button>
           <div class="border-t border-[var(--color-border-light)] my-1"></div>
@@ -351,12 +336,27 @@
 
     function toggleNotifications() {
       var dd = document.getElementById('notifDropdown');
-      if (dd) dd.classList.toggle('hidden');
+      if (dd) {
+        var wasHidden = dd.classList.contains('hidden');
+        dd.classList.toggle('hidden');
+        if (wasHidden) htmx.trigger(dd, 'load');
+      }
     }
     document.addEventListener('click', function(e) {
       var c = document.getElementById('notifContainer');
       if (c && !c.contains(e.target)) { var dd = document.getElementById('notifDropdown'); if (dd) dd.classList.add('hidden'); }
     });
+
+    function markNotifRead(id) {
+      fetch('/business/notifications/' + id + '/read', { method: 'POST', headers: {'X-CSRF-Token': getCookie('csrf_token')} });
+    }
+    function markAllNotifRead() {
+      var btn = event.target;
+      btn.textContent = 'Reading...';
+      fetch('/business/notifications/read-all', { method: 'POST', headers: {'X-CSRF-Token': getCookie('csrf_token')} }).then(function() {
+        htmx.trigger(document.getElementById('notifDropdown'), 'load');
+      });
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('.stat-counter').forEach(function(el) {

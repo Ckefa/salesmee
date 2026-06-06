@@ -13,6 +13,7 @@ import (
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/routes"
+	"salesmee/internal/services/notifier"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +52,9 @@ func main() {
 		&models.PasswordResetToken{},
 		&models.Admin{},
 		&models.AuditLog{},
+		&models.BusinessNotifPrefs{},
+		&models.NotificationLog{},
+		&models.InAppNotification{},
 	)
 	log.Println("✅ Database auto-migration completed successfully")
 
@@ -178,6 +182,9 @@ func main() {
 	routes.SetupBusinessRoutes(r)
 	routes.SetupClientRoutes(r)
 	routes.SetupAdminRoutes(r)
+
+	// Start background notification scheduler
+	notifier.StartNotificationScheduler(db.DB)
 
 	log.Println("🚀 Running on :" + os.Getenv("APP_PORT"))
 	r.Run(":" + os.Getenv("APP_PORT"))

@@ -1,0 +1,36 @@
+{{define "notifications_list"}}
+<div id="notifDropdown" class="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] card shadow-lg z-50 overflow-hidden animate-fade-in-down">
+  <div class="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+    <span class="text-sm font-semibold text-[var(--color-text)]">Notifications</span>
+    <div class="flex items-center gap-2">
+      {{if gt .UnreadCount 0}}
+      <span class="text-xs text-[var(--color-text-muted)]">{{.UnreadCount}} unread</span>
+      <button onclick="markAllNotifRead()" class="text-xs text-[var(--color-primary)] hover:underline">Mark all read</button>
+      {{else}}
+      <span class="text-xs text-[var(--color-text-muted)]">All read</span>
+      {{end}}
+    </div>
+  </div>
+  <div class="max-h-72 overflow-y-auto">
+    {{if .Notifications}}
+      {{range .Notifications}}
+      <a href="{{.Link}}" onclick="markNotifRead({{.ID}})" class="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] transition-colors {{if .IsRead}}opacity-60{{end}}">
+        <div class="w-8 h-8 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center shrink-0">
+          <i class="{{.Icon}} text-[var(--color-primary)] text-xs"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs sm:text-sm text-[var(--color-text)] font-medium truncate">{{.Title}}</p>
+          <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">{{.Body}}</p>
+          <p class="text-[10px] text-[var(--color-text-muted)] mt-0.5">{{.TimeAgo}}</p>
+        </div>
+      </a>
+      {{end}}
+    {{else}}
+      <div class="px-4 py-8 text-center">
+        <i class="fas fa-bell text-2xl text-[var(--color-text-muted)] mb-2"></i>
+        <p class="text-xs text-[var(--color-text-muted)]">No notifications yet</p>
+      </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

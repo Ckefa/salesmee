@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Notification Settings — SalesMee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-3">
+          <a href="/business/dashboard" class="btn btn-ghost btn-icon" title="Back to Dashboard">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-[var(--color-text)]">Notification Settings</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden lg:flex items-center gap-3">
+            <button class="theme-toggle" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <a href="/business" class="btn btn-secondary btn-sm">
+              <i class="fas fa-comments"></i> Chats
+            </a>
+          </div>
+          <div class="relative lg:hidden">
+            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+              <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-adjust w-5 text-center"></i>
+                <span>Toggle Theme</span>
+              </button>
+              <a href="/business" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+                <i class="fas fa-comments w-5 text-center"></i>
+                <span>Chats</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  {{template "verify_banner" .}}
+
+  <div class="flex h-[calc(100vh-4rem)]">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)] pb-16">
+      <div class="p-6 max-w-3xl">
+        <div class="mb-6">
+          <h1 class="text-xl font-bold text-[var(--color-text)]">Notification Settings</h1>
+          <p class="text-sm text-[var(--color-text-muted)] mt-1">Control which notifications are sent to your clients</p>
+        </div>
+
+        <div class="card p-6 space-y-6">
+          {{$prefs := .NotificationSettings}}
+
+          <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-[var(--color-text)] border-b border-[var(--color-border)] pb-2">Email Notifications</h2>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Booking Reminder (1h before)</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Send reminder 1 hour before scheduled booking</p>
+              </div>
+              <input type="checkbox" class="toggle" id="booking_reminder_1h" {{if $prefs.BookingReminder1h}}checked{{end}}>
+            </label>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Booking Reminder (24h before)</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Send reminder 24 hours before scheduled booking</p>
+              </div>
+              <input type="checkbox" class="toggle" id="booking_reminder_24h" {{if $prefs.BookingReminder24h}}checked{{end}}>
+            </label>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Order Status Changes</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Notify client when order status changes</p>
+              </div>
+              <input type="checkbox" class="toggle" id="order_status_change" {{if $prefs.OrderStatusChange}}checked{{end}}>
+            </label>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Booking Status Changes</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Notify client when booking status changes</p>
+              </div>
+              <input type="checkbox" class="toggle" id="booking_status_change" {{if $prefs.BookingStatusChange}}checked{{end}}>
+            </label>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Payment Due Reminders</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Remind client about unpaid orders/bookings after 7 days</p>
+              </div>
+              <input type="checkbox" class="toggle" id="payment_due_reminder" {{if $prefs.PaymentDueReminder}}checked{{end}}>
+            </label>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Abandoned Cart Follow-ups</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Remind client about pending orders after a set time</p>
+              </div>
+              <input type="checkbox" class="toggle" id="abandoned_cart" {{if $prefs.AbandonedCart}}checked{{end}}>
+            </label>
+
+            <div id="abandonedCartOptions" class="pl-8 {{if not $prefs.AbandonedCart}}hidden{{end}}">
+              <label class="flex items-center gap-2">
+                <span class="text-xs text-[var(--color-text-muted)]">After</span>
+                <input type="number" id="abandoned_cart_hours" value="{{$prefs.AbandonedCartHours}}" class="input w-20 text-sm text-center" min="1" max="168">
+                <span class="text-xs text-[var(--color-text-muted)]">hours</span>
+              </label>
+            </div>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Re-engagement for Inactive Clients</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Reach out to clients who haven't visited in a while</p>
+              </div>
+              <input type="checkbox" class="toggle" id="re_engagement" {{if $prefs.ReEngagement}}checked{{end}}>
+            </label>
+
+            <div id="reEngagementOptions" class="pl-8 {{if not $prefs.ReEngagement}}hidden{{end}}">
+              <label class="flex items-center gap-2">
+                <span class="text-xs text-[var(--color-text-muted)]">After</span>
+                <input type="number" id="inactive_days" value="{{$prefs.InactiveDays}}" class="input w-20 text-sm text-center" min="7" max="365">
+                <span class="text-xs text-[var(--color-text-muted)]">days inactive</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-[var(--color-border)]">
+            <button onclick="saveNotifSettings()" class="btn btn-primary">
+              <i class="fas fa-save mr-1"></i> Save Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  {{template "mobile_bottom_nav" .}}
+  {{template "csrf_script" .}}
+  {{template "dashboard_footer" .}}
+
+  <script>
+  document.getElementById('abandoned_cart').addEventListener('change', function() {
+    document.getElementById('abandonedCartOptions').classList.toggle('hidden', !this.checked);
+  });
+  document.getElementById('re_engagement').addEventListener('change', function() {
+    document.getElementById('reEngagementOptions').classList.toggle('hidden', !this.checked);
+  });
+
+  function saveNotifSettings() {
+    var data = {
+      booking_reminder_1h: document.getElementById('booking_reminder_1h').checked,
+      booking_reminder_24h: document.getElementById('booking_reminder_24h').checked,
+      order_status_change: document.getElementById('order_status_change').checked,
+      booking_status_change: document.getElementById('booking_status_change').checked,
+      payment_due_reminder: document.getElementById('payment_due_reminder').checked,
+      abandoned_cart: document.getElementById('abandoned_cart').checked,
+      re_engagement: document.getElementById('re_engagement').checked,
+      abandoned_cart_hours: parseInt(document.getElementById('abandoned_cart_hours').value) || 24,
+      inactive_days: parseInt(document.getElementById('inactive_days').value) || 30
+    };
+    fetch('/business/notification-settings', {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.json(); }).then(function(resp) {
+      if (resp.success) { showNotification('Settings saved', 'success'); }
+      else { showNotification(resp.error || 'Failed to save', 'error'); }
+    });
+  }
+  </script>
+</body>
+</html>

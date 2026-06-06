@@ -192,6 +192,14 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/subscription/portal", businessHandler.BillingPortal)
 		protected.GET("/subscription/badge", businessHandler.GetPlanBadge)
 		protected.GET("/subscription/badge-sidebar", businessHandler.GetPlanBadgeSidebar)
+
+		// Notification routes
+		protected.GET("/notifications", businessHandler.GetNotifications)
+		protected.GET("/notifications/count", businessHandler.GetNotificationCount)
+		protected.POST("/notifications/:id/read", businessHandler.MarkNotificationRead)
+		protected.POST("/notifications/read-all", businessHandler.MarkAllNotificationsRead)
+		protected.GET("/notification-settings", businessHandler.GetNotificationSettings)
+		protected.PUT("/notification-settings", businessHandler.UpdateNotificationSettings)
 	}
 
 	// Webhooks (public)

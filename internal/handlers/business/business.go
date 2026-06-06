@@ -207,6 +207,9 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		}
 	}
 
+	var unreadNotifCount int64
+	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadNotifCount)
+
 	c.HTML(200, "business.html", gin.H{
 		"Title":               "SalesMee",
 		"Business":            business,
@@ -214,6 +217,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"PendingOrderCount":   int(pendingOrderCount),
 		"PendingBookingCount": int(pendingBookingCount),
 		"TotalPending":        totalPending,
+		"UnreadNotifCount":    int(unreadNotifCount),
 		"OnlineCount":         onlineCount,
 		"Countries":           data.Countries,
 		"Currencies":          data.Currencies,
@@ -909,5 +913,93 @@ func (h *BusinessHandler) GetDashboardStats(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "dashboard_stats", data)
+}
+
+// GetNotifications renders the in-app notification list (HTMX fragment)
+func (h *BusinessHandler) GetNotifications(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+
+	type notifWithTime struct {
+		models.InAppNotification
+		TimeAgo string
+	}
+
+	var notifs []models.InAppNotification
+	h.db.Where("business_id = ?", businessID).Order("created_at DESC").Limit(20).Find(&notifs)
+
+	var unreadCount int64
+	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadCount)
+
+	now := time.Now()
+	enriched := make([]notifWithTime, len(notifs))
+	for i, n := range notifs {
+		enriched[i] = notifWithTime{InAppNotification: n, TimeAgo: timeAgo(now, n.CreatedAt)}
+	}
+
+	c.HTML(http.StatusOK, "notifications_list", gin.H{
+		"Notifications": enriched,
+		"UnreadCount":   int(unreadCount),
+	})
+}
+
+func timeAgo(now, t time.Time) string {
+	d := now.Sub(t)
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		m := int(d.Minutes())
+		if m == 1 {
+			return "1m ago"
+		}
+		return fmt.Sprintf("%dm ago", m)
+	case d < 24*time.Hour:
+		h := int(d.Hours())
+		if h == 1 {
+			return "1h ago"
+		}
+		return fmt.Sprintf("%dh ago", h)
+	case d < 7*24*time.Hour:
+		dd := int(d.Hours() / 24)
+		if dd == 1 {
+			return "1d ago"
+		}
+		return fmt.Sprintf("%dd ago", dd)
+	default:
+		return t.Format("Jan 2")
+	}
+}
+
+// GetNotificationCount returns the unread notification count as JSON
+func (h *BusinessHandler) GetNotificationCount(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+
+	var count int64
+	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&count)
+
+	c.JSON(http.StatusOK, gin.H{"count": int(count)})
+}
+
+// MarkNotificationRead marks a single notification as read
+func (h *BusinessHandler) MarkNotificationRead(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	id := c.Param("id")
+
+	h.db.Model(&models.InAppNotification{}).
+		Where("id = ? AND business_id = ?", id, businessID).
+		Update("is_read", true)
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+// MarkAllNotificationsRead marks all notifications as read for the business
+func (h *BusinessHandler) MarkAllNotificationsRead(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+
+	h.db.Model(&models.InAppNotification{}).
+		Where("business_id = ? AND is_read = false", businessID).
+		Update("is_read", true)
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 

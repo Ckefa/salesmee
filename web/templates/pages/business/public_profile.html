@@ -79,25 +79,67 @@
           </div>
         </div>
 
-        <!-- About / Business Hours Placeholder -->
+        <!-- Business Hours -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-5">
           <div class="flex items-center gap-2 mb-3 sm:mb-4">
             <div class="w-7 sm:w-8 h-7 sm:h-8 rounded-lg bg-gray-100 flex items-center justify-center">
               <i class="fas fa-clock text-gray-600 text-xs sm:text-sm"></i>
             </div>
             <h2 class="text-base sm:text-lg font-bold text-gray-900">Business Hours</h2>
+            {{if .IsAcceptingBookings}}
+            <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Open
+            </span>
+            {{else}}
+            <span class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Not accepting bookings
+            </span>
+            {{end}}
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 text-xs sm:text-sm">
-            <div class="flex justify-between py-1 sm:py-1.5 border-b border-gray-100"><span class="text-gray-600">Monday</span><span class="text-gray-900 font-medium">9:00 AM - 5:00 PM</span></div>
-            <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-600">Tuesday</span><span class="text-gray-900 font-medium">9:00 AM - 5:00 PM</span></div>
-            <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-600">Wednesday</span><span class="text-gray-900 font-medium">9:00 AM - 5:00 PM</span></div>
-            <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-600">Thursday</span><span class="text-gray-900 font-medium">9:00 AM - 5:00 PM</span></div>
-            <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-600">Friday</span><span class="text-gray-900 font-medium">9:00 AM - 5:00 PM</span></div>
-            <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-600">Saturday</span><span class="text-gray-400">Closed</span></div>
-            <div class="flex justify-between py-1.5"><span class="text-gray-600">Sunday</span><span class="text-gray-400">Closed</span></div>
-          </div>
-          <p class="text-xs text-gray-400 mt-3 italic">Hours may vary — contact the business for exact times</p>
+          <div id="businessHoursDisplay" class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 text-xs sm:text-sm"></div>
+          <div id="specialHoursDisplay" class="mt-3 pt-3 border-t border-gray-100" style="display:none"></div>
         </div>
+        <script>
+        (function(){
+          var days = {monday:'Monday',tuesday:'Tuesday',wednesday:'Wednesday',thursday:'Thursday',friday:'Friday',saturday:'Saturday',sunday:'Sunday'};
+          var hours = {};
+
+          try { hours = {{json .BusinessHours}}; } catch(e) {}
+
+          var container = document.getElementById('businessHoursDisplay');
+          container.innerHTML = '';
+          for (var key in days) {
+            var slots = hours[key] || [];
+            var label = days[key];
+            var value = '';
+            if (slots.length > 0) {
+              var parts = [];
+              for (var i = 0; i < slots.length; i++) {
+                parts.push((slots[i].open || '') + ' - ' + (slots[i].close || ''));
+              }
+              value = '<span class="text-gray-900 font-medium text-right">' + parts.join('<br>') + '</span>';
+            } else {
+              value = '<span class="text-gray-400">Closed</span>';
+            }
+            container.innerHTML += '<div class="flex justify-between py-1 sm:py-1.5 border-b border-gray-100"><span class="text-gray-600">' + label + '</span>' + value + '</div>';
+          }
+
+          var special = [];
+          try { special = {{json .SpecialHours}}; } catch(e) {}
+          if (special.length > 0) {
+            var specialContainer = document.getElementById('specialHoursDisplay');
+            specialContainer.style.display = 'block';
+            specialContainer.innerHTML = '<p class="text-xs font-medium text-gray-700 mb-1">Special Hours / Closures</p>';
+            for (var i = 0; i < special.length; i++) {
+              var s = special[i];
+              var iconClass = s.is_closed ? 'text-red-500' : 'text-amber-500';
+              var statusText = s.is_closed ? 'Closed' : ((s.open || '') + ' - ' + (s.close || ''));
+              var reasonHtml = s.reason ? '<span class="italic">(' + s.reason + ')</span>' : '';
+              specialContainer.innerHTML += '<div class="flex items-center gap-2 text-xs text-gray-500 mt-1"><i class="fas fa-exclamation-circle ' + iconClass + '"></i><span>' + s.date + '</span><span>-</span><span>' + statusText + '</span>' + reasonHtml + '</div>';
+            }
+          }
+        })();
+        </script>
 
         <!-- Products Section -->
         {{if .Products}}

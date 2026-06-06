@@ -34,7 +34,7 @@ go vet ./...
 | `default` | `func(def, val interface{})` | Returns `def` if `val` is nil/empty |
 | `hasPrefix` | `strings.HasPrefix` | String prefix check |
 | `dict` | `func(...interface{}) map[string]interface{}` | Builds a map from key-value pairs |
-| `json` | `func(interface{}) string` | JSON marshals to string |
+| `json` | `func(interface{}) template.JS` | JSON marshals to raw JS (returns `template.JS` so `html/template` injects as raw JS in `<script>` blocks, not wrapped in JS string quotes) |
 | `formatDate` | `func(time.Time) string` | Formats as `"Jan 2, 2006"` |
 | `formatTime` | `func(time.Time) string` | Formats as `"3:04 PM"` |
 | `fbLogin` | `func() bool` | Returns true if FB_LOGIN env var is set |
@@ -164,7 +164,7 @@ Payments link to either `Order` or `Booking` via nullable foreign keys. Quick ma
 
 ## Dashboard Sidebar Navigation
 
-10 items, active page detection via `.ActivePage`:
+11 items, active page detection via `.ActivePage`:
 
 | # | Label | Icon | Link | Active Key |
 |---|-------|------|------|-----------|
@@ -175,11 +175,52 @@ Payments link to either `Order` or `Booking` via nullable foreign keys. Quick ma
 | 5 | Bookings | `fa-calendar-check` | `/business/bookings` | `bookings` |
 | 6 | Payments | `fa-credit-card` | `/business/payments` | `payments` |
 | 7 | Analytics | `fa-chart-bar` | `/business/analytics` | `analytics` |
-| 8 | Share | `fa-share-alt` | `/business/share` | `share` |
-| 9 | Subscription | `fa-crown` | `/business/subscription` | `subscription` |
-| 10 | Customers | `fa-users` | `/business` | `customers` |
+| 8 | Notifications | `fa-bell` | `/business/notifications` | `notifications` |
+| 9 | Hours | `fa-clock` | `/business/hours` | `hours` |
+| 10 | Share | `fa-share-alt` | `/business/share` | `share` |
+| 11 | Subscription | `fa-crown` | `/business/subscription` | `subscription` |
+| 12 | Customers | `fa-users` | `/business` | `customers` |
 
 Items 2–5 have count badges (ProductCount/ServiceCount/PendingOrderCount/PendingBookingCount). Subscription badge is loaded via HTMX from `/business/subscription/badge-sidebar`.
+
+## Business Hours & Availability
+
+Implemented as a full-page form at `GET /business/hours` (`hours.html`). Backend in `business_hours.go`.
+
+### DB Fields (on `Business` model)
+| Field | Type | Default |
+|-------|------|---------|
+| `TimeZone` | `string` | `"UTC"` |
+| `BufferTime` | `int` | `0` (minutes between bookings) |
+| `MaxBookingsPerSlot` | `int` | `1` |
+| `IsAcceptingBookings` | `bool` | `true` |
+| `BusinessHours` | `string` (jsonb) | `"{}"` |
+| `SpecialHours` | `string` (jsonb) | `"[]"` |
+
+### Routes (`business_hours.go`)
+| Route | Handler | Description |
+|-------|---------|-------------|
+| `GET /business/hours` | `GetBusinessHours` | Hours management page |
+| `PUT /business/hours` | `UpdateBusinessHours` | Save weekly hours + buffer/max/tz |
+| `PUT /business/hours/special` | `UpdateSpecialHours` | Save special hours/closures |
+| `POST /business/hours/toggle` | `ToggleAcceptingBookings` | Toggle accepting new bookings |
+
+### Template Data
+Passes parsed `BusinessHours` (map) and `SpecialHours` (slice) so `{{json .BusinessHours}}` produces a JS object literal, not a string. The `json` template function returns `template.JS` for this reason — Go's `html/template` would otherwise wrap a bare `string` in JS quotes and escape it.
+
+### JS rendering
+- `renderWeeklyHours()` — iterates `serverHours[day.key]` to build time-range inputs
+- `renderSpecialHours()` — iterates `serverSpecial` to build special-date entries
+- `collectWeeklyHours()` / `saveWeeklyHours()` — serializes DOM state, POSTs to `PUT /business/hours`
+- `saveSpecialHours()` — same for special hours
+- `toggleAccepting(checked)` — toggles via `POST /business/hours/toggle`
+
+### Availability validation
+In `CreateBooking` (`bookings.go:565`), `validateBookingSlot()` checks:
+1. Business is accepting bookings
+2. Day has defined hours
+3. Booking time falls within an open range
+4. No conflicting special closures outside-of-hours
 
 ## Dashboard Table Pages (Orders & Bookings)
 
@@ -289,7 +330,7 @@ Standalone `<html>` pages (no sidebar/nav) with `@media print` CSS. Show:
 ```
 internal/
   handlers/
-    business/              — Business dashboard handlers (11 files)
+    business/              — Business dashboard handlers (16 files)
       business.go           — BusinessHandler struct, GetBizHome, GetDashboard, profile
       orders.go             — Order CRUD, lifecycle (Send, Confirm, Reject, Fulfill, MarkPaid, Receipt)
       bookings.go           — Booking CRUD, lifecycle (MarkPaid, Receipt, Update)
@@ -301,7 +342,11 @@ internal/
       public.go             — Public profile, client OTP connect
       business_widgets.go   — Quick booking/order/goal widgets
       onboarding.go         — Onboarding progress, advance, skip
+      business_hours.go     — Business hours & availability management
       profile_change_store.go — In-memory OTP-verified profile changes
+      reports.go            — Reporting & CSV exports
+      reviews.go            — Reviews & ratings management
+      notification_settings.go — Notification preferences
     client/                — Client handlers (client_auth.go)
     guide.go               — Public /guide page handler
     seo.go                 — Sitemap, robots.txt
@@ -329,6 +374,7 @@ web/
       services.html          — Services grid (CRUD)
       analytics.html         — Analytics dashboard
       payments.html          — Payments ledger
+      hours.html             — Business hours & availability management
       receipt_order.html     — Print-receipt page for orders (standalone)
       receipt_booking.html   — Print-receipt page for bookings (standalone)
       order_confirmation.html — Post-creation confirmation page
@@ -452,6 +498,14 @@ web/
 | `GET /business/subscription/portal` | `BillingPortal` | Stripe billing portal |
 | `GET /business/subscription/badge` | `GetPlanBadge` | Plan badge for navbar |
 | `GET /business/subscription/badge-sidebar` | `GetPlanBadgeSidebar` | Plan badge for sidebar |
+
+### Business Hours (`internal/handlers/business/business_hours.go`)
+| Route | Handler | Description |
+|-------|---------|-------------|
+| `GET /business/hours` | `GetBusinessHours` | Hours management page |
+| `PUT /business/hours` | `UpdateBusinessHours` | Save weekly hours + buffer/max/tz |
+| `PUT /business/hours/special` | `UpdateSpecialHours` | Save special hours/closures |
+| `POST /business/hours/toggle` | `ToggleAcceptingBookings` | Toggle accepting new bookings |
 
 ### Onboarding (`internal/handlers/business/onboarding.go`)
 | Route | Handler | Description |

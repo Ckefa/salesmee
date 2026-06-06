@@ -76,6 +76,12 @@ func main() {
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_messages INTEGER DEFAULT 0")
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_spent DOUBLE PRECISION DEFAULT 0")
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS time_zone VARCHAR(50) DEFAULT 'UTC'")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS buffer_time INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS max_bookings_per_slot INTEGER DEFAULT 1")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS is_accepting_bookings BOOLEAN DEFAULT true")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_hours JSONB DEFAULT '{}'")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS special_hours JSONB DEFAULT '[]'")
 	log.Println("✅ Schema sync completed")
 
 	// Data migration: copy old first_name/last_name to name/username for existing records
@@ -151,9 +157,9 @@ func main() {
 		"mul": func(a, b float64) float64 { return a * b },
 		"div": func(a, b float64) float64 { return a / b },
 		"float": func(i int) float64 { return float64(i) },
-		"json": func(v interface{}) string {
+		"json": func(v interface{}) template.JS {
 			b, _ := json.Marshal(v)
-			return string(b)
+			return template.JS(b)
 		},
 		"currencySymbol": func(code string) string {
 			for _, c := range data.Currencies {

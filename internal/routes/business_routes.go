@@ -208,6 +208,12 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/reviews", businessHandler.GetReviews)
 		protected.POST("/reviews/:id/reply", businessHandler.ReplyToReview)
 
+		// Business Hours routes
+		protected.GET("/hours", businessHandler.GetBusinessHours)
+		protected.PUT("/hours", businessHandler.UpdateBusinessHours)
+		protected.PUT("/hours/special", businessHandler.UpdateSpecialHours)
+		protected.POST("/hours/toggle", businessHandler.ToggleAcceptingBookings)
+
 		// Notification routes
 		protected.GET("/notifications", businessHandler.GetNotifications)
 		protected.GET("/notifications/count", businessHandler.GetNotificationCount)

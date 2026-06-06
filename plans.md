@@ -1,4 +1,4 @@
-## 3. Multi-User Business Login + Roles (RBAC) — ❌ NOT STARTED
+## 1. Multi-User Business Login + Roles (RBAC) — ❌ NOT STARTED
 
 Enable multi-user access per business with role-based permissions.
 
@@ -16,7 +16,7 @@ Enable multi-user access per business with role-based permissions.
 
 ---
 
-## 4. General UX / System Improvements — ⏳ IN PROGRESS
+## 2. General UX / System Improvements — ⏳ IN PROGRESS
 
 ### ✅ Implemented
 - Dark mode toggle (CSS vars + localStorage + prefers-color-scheme)
@@ -51,7 +51,7 @@ Enable multi-user access per business with role-based permissions.
 
 ---
 
-## 5. Architecture Refactor: Hexagonal Architecture (Ports & Adapters) — ❌ NOT STARTED
+## 3. Architecture Refactor: Hexagonal Architecture (Ports & Adapters) — ❌ NOT STARTED
 
 ### Target
 Refactor into clean hexagonal architecture: Domain → Application → Infrastructure → Delivery.
@@ -70,87 +70,51 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ---
 
-## 6. Feature Roadmap
+## 4. Feature Roadmap
 
 ### Tier 1 — High Value, Launch-adjacent
 
-#### 6.1 Promotions, Discounts & Coupons
+#### 4.1 Promotions, Discounts & Coupons
 - Discount codes (%, fixed amount, BOGO, bundle deals)
 - Auto-apply promos (first-time client, seasonal, holiday)
 - Limited-time offers with expiry
 - Coupon redemption tracking
 
-#### 6.2 Automated Notifications & Reminders
-- Booking reminders (1h/24h before) via email
-- Order status change notifications to client
-- Payment due reminders
-- Abandoned cart follow-ups (pending orders)
-- Re-engagement for inactive clients
-- Configurable timing and channels per business
-
-#### 6.3 Reviews & Ratings
-- Client rates completed orders/bookings (1–5 stars + comment)
-- Average rating displayed on public profile `/b/:slug`
-- Business can respond to reviews
-- Aggregate rating analytics
-
-#### 6.4 Reporting & Exports
-- Revenue reports (daily/weekly/monthly/custom range)
-- Sales by product/service
-- Staff performance reports
-- Client acquisition trends
-- CSV/PDF export of orders, bookings, payments, clients
-- Tax summary report
-
 ### Tier 2 — Operations & Growth
 
-#### 6.5 Staff / Team Management
+#### 4.2 Staff / Team Management
 - Staff profiles (name, role, photo, contact)
 - Assign staff to services
 - Commission tracking per order/booking per staff
 - Staff activity log
 
-#### 6.6 Business Hours & Availability
-- Weekly recurring hours
-- Special hours / holiday closures
-- Buffer time between bookings
-- Max bookings per time slot
-- Online/offline toggle for public profile
-
-#### 6.7 Client Portal Self-Service
-- View/manage appointments
-- Cancel/reschedule bookings (within business rules)
-- Reorder past orders
-- Save favorites/bookmarked services
-- Notification preferences
-
-#### 6.8 Broadcast / Announcements
+#### 4.3 Broadcast / Announcements
 - One-to-many messages to all clients or filtered segments
 - Promotional announcements, service updates
 - Opt-out per client
 
 ### Tier 3 — Monetization & Differentiation
 
-#### 6.9 Customer Loyalty / Rewards Program
+#### 4.4 Customer Loyalty / Rewards Program
 - Points-per-spend or per-visit
 - Redeem points for discounts or free services
 - Tie into existing CustomerInsight tier system
 - Birthday/anniversary automated rewards
 - Points balance visible in client dashboard
 
-#### 6.10 Gift Cards & Vouchers
+#### 4.5 Gift Cards & Vouchers
 - Sell gift cards (fixed amount or specific service)
 - Redeem at checkout
 - Balance tracking
 - Send via email
 
-#### 6.11 Invoice / Billing System
+#### 4.6 Invoice / Billing System
 - Formal invoices with invoice #, tax info, business details
 - PDF download + email to client
 - Payment terms (due on receipt, net 15/30)
 - Deposit / partial payment plans
 
-#### 6.12 Tax Configuration
+#### 4.7 Tax Configuration
 - Tax rates per country/location
 - Auto-apply tax to orders/bookings
 - Tax-inclusive or exclusive pricing
@@ -159,22 +123,22 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ### Tier 4 — Scale & Integrations
 
-#### 6.13 Multi-Location / Multi-Branch
+#### 4.8 Multi-Location / Multi-Branch
 - Multiple locations per business account
 - Per-location inventory, staff, products, services
 - Location selector on public profile
 - Reporting by location
 
-#### 6.14 Product / Service Categories
+#### 4.9 Product / Service Categories
 - Categorize products and services
 - Category-based filtering on public page and dashboards
 
-#### 6.15 Waitlist
+#### 4.10 Waitlist
 - Join waitlist for fully booked slots
 - Auto-notify when slot opens
 - Priority based on client tier
 
-#### 6.16 Integrations
+#### 4.11 Integrations
 - Calendar sync (Google Calendar, iCal)
 - Accounting sync (QuickBooks, Xero)
 - SMS notifications (Twilio)

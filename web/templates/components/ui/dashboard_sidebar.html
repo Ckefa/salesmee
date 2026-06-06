@@ -77,6 +77,11 @@
       <i class="fas fa-bell w-4"></i>
       Notifications
     </a>
+    <a href="/business/hours" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `hours`}}bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
+      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+      <i class="fas fa-clock w-4"></i>
+      Hours
+    </a>
     <a href="/business/share" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `share`}}bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
       hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
       <i class="fas fa-share-alt w-4"></i>

@@ -1,6 +1,7 @@
 package business
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"salesmee/internal/db"
@@ -53,16 +54,35 @@ func GetPublicProfile(c *gin.Context) {
 	db.DB.Model(&models.Review{}).Where("business_id = ?", business.ID).Select("COALESCE(AVG(rating), 0)").Scan(&avgRating)
 	db.DB.Model(&models.Review{}).Where("business_id = ?", business.ID).Count(&reviewCount)
 
+	var hoursObj interface{}
+	if business.BusinessHours != "" && business.BusinessHours != "{}" {
+		json.Unmarshal([]byte(business.BusinessHours), &hoursObj)
+	}
+	if hoursObj == nil {
+		hoursObj = map[string]interface{}{}
+	}
+
+	var specialObj interface{}
+	if business.SpecialHours != "" && business.SpecialHours != "[]" {
+		json.Unmarshal([]byte(business.SpecialHours), &specialObj)
+	}
+	if specialObj == nil {
+		specialObj = []interface{}{}
+	}
+
 	c.HTML(http.StatusOK, "public_profile.html", middleware.TemplateData(c, gin.H{
-		"Title":             business.Name + " - SalesMee",
-		"Business":          business,
-		"Products":          products,
-		"Services":          svcList,
-		"TotalClients":      int(totalClients),
-		"IsAcceptingClients": totalClients >= 0,
-		"Reviews":           reviews,
-		"AverageRating":     avgRating,
-		"ReviewCount":       int(reviewCount),
+		"Title":                business.Name + " - SalesMee",
+		"Business":             business,
+		"Products":             products,
+		"Services":             svcList,
+		"TotalClients":         int(totalClients),
+		"IsAcceptingClients":   totalClients >= 0,
+		"IsAcceptingBookings":  business.IsAcceptingBookings,
+		"BusinessHours":        hoursObj,
+		"SpecialHours":         specialObj,
+		"Reviews":              reviews,
+		"AverageRating":        avgRating,
+		"ReviewCount":          int(reviewCount),
 	}))
 }
 

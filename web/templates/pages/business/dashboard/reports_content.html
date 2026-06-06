@@ -1,0 +1,253 @@
+{{define "reports_content"}}
+{{$activeTab := .ActiveTab}}
+
+<!-- Revenue Tab -->
+{{if eq $activeTab "revenue"}}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--color-text)]">Revenue Report</h2>
+      <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="printReport()" class="btn btn-ghost btn-sm"><i class="fas fa-print mr-1"></i>Print</button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
+      <p class="text-2xl font-bold text-[var(--color-text)] mt-1">${{printf "%.2f" .TotalRevenue}}</p>
+    </div>
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">From Orders</p>
+      <p class="text-2xl font-bold text-[var(--color-primary)] mt-1">${{printf "%.2f" .TotalOrdersRev}}</p>
+    </div>
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">From Bookings</p>
+      <p class="text-2xl font-bold text-[var(--color-secondary)] mt-1">${{printf "%.2f" .TotalBookingsRev}}</p>
+    </div>
+  </div>
+
+  <!-- Daily Breakdown -->
+  <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+    <div class="px-5 py-4 border-b border-[var(--color-border)]">
+      <h3 class="font-semibold text-[var(--color-text)]">Daily Breakdown</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
+            <th class="text-left px-5 py-3">Date</th>
+            <th class="text-right px-5 py-3">Orders</th>
+            <th class="text-right px-5 py-3">Bookings</th>
+            <th class="text-right px-5 py-3">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .DailyRevenue}}
+          <tr class="border-t border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)]">
+            <td class="px-5 py-3 font-medium text-[var(--color-text)]">{{.Date}}</td>
+            <td class="px-5 py-3 text-right text-[var(--color-primary)]">${{printf "%.2f" .OrdersRevenue}}</td>
+            <td class="px-5 py-3 text-right text-[var(--color-secondary)]">${{printf "%.2f" .BookingsRevenue}}</td>
+            <td class="px-5 py-3 text-right font-semibold text-[var(--color-text)]">${{printf "%.2f" .Total}}</td>
+          </tr>
+          {{else}}
+          <tr><td colspan="4" class="px-5 py-8 text-center text-[var(--color-text-muted)]">No revenue data for this period</td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{else if eq $activeTab "sales"}}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--color-text)]">Sales by Product & Service</h2>
+      <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/business/reports/export/orders.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Orders CSV</a>
+      <a href="/business/reports/export/bookings.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Bookings CSV</a>
+    </div>
+  </div>
+
+  <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+    <div class="px-5 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
+      <h3 class="font-semibold text-[var(--color-text)]">Breakdown</h3>
+      <span class="text-sm text-[var(--color-text-secondary)]">Total: ${{printf "%.2f" .TotalRevenue}}</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
+            <th class="text-left px-5 py-3">Name</th>
+            <th class="text-left px-5 py-3">Type</th>
+            <th class="text-right px-5 py-3">Units Sold</th>
+            <th class="text-right px-5 py-3">Revenue</th>
+            <th class="text-right px-5 py-3">% of Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .SalesRows}}
+          <tr class="border-t border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)]">
+            <td class="px-5 py-3 font-medium text-[var(--color-text)]">{{.Name}}</td>
+            <td class="px-5 py-3">
+              {{if eq .Type "Product"}}
+              <span class="badge badge-neutral">Product</span>
+              {{else}}
+              <span class="badge badge-info">Service</span>
+              {{end}}
+            </td>
+            <td class="px-5 py-3 text-right text-[var(--color-text)]">{{.Quantity}}</td>
+            <td class="px-5 py-3 text-right font-medium text-[var(--color-text)]">${{printf "%.2f" .Revenue}}</td>
+            <td class="px-5 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <div class="w-16 h-1.5 bg-[var(--color-surface-tertiary)] rounded-full overflow-hidden">
+                  <div class="h-full rounded-full bg-[var(--color-primary)]" style="width: {{.Percentage}}%"></div>
+                </div>
+                <span class="text-xs text-[var(--color-text-secondary)] w-10 text-right">{{.Percentage}}%</span>
+              </div>
+            </td>
+          </tr>
+          {{else}}
+          <tr><td colspan="5" class="px-5 py-8 text-center text-[var(--color-text-muted)]">No sales data for this period</td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{else if eq $activeTab "clients"}}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--color-text)]">Client Acquisition</h2>
+      <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/business/reports/export/clients.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export CSV</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">New Clients (Period)</p>
+      <p class="text-2xl font-bold text-[var(--color-text)] mt-1">{{.NewClientsTotal}}</p>
+    </div>
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">Total Clients</p>
+      <p class="text-2xl font-bold text-[var(--color-primary)] mt-1">{{.TotalClients}}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Daily Acquisition -->
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+      <div class="px-5 py-4 border-b border-[var(--color-border)]">
+        <h3 class="font-semibold text-[var(--color-text)]">Daily New Clients</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
+              <th class="text-left px-5 py-3">Date</th>
+              <th class="text-right px-5 py-3">New Clients</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .NewClients}}
+            <tr class="border-t border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)]">
+              <td class="px-5 py-3 text-[var(--color-text)]">{{.Date}}</td>
+              <td class="px-5 py-3 text-right font-semibold text-[var(--color-primary)]">{{.Count}}</td>
+            </tr>
+            {{else}}
+            <tr><td colspan="2" class="px-5 py-8 text-center text-[var(--color-text-muted)]">No new clients in this period</td></tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Clients -->
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+      <div class="px-5 py-4 border-b border-[var(--color-border)]">
+        <h3 class="font-semibold text-[var(--color-text)]">Recent Clients</h3>
+      </div>
+      <div class="divide-y divide-[var(--color-border)]">
+        {{range .RecentClients}}
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-[var(--color-text)]">{{.Name}}</p>
+            <p class="text-xs text-[var(--color-text-muted)]">{{.Email}}</p>
+          </div>
+          <span class="text-xs text-[var(--color-text-secondary)]">{{formatDate .CreatedAt}}</span>
+        </div>
+        {{else}}
+        <div class="px-5 py-8 text-center text-[var(--color-text-muted)]">No clients yet</div>
+        {{end}}
+      </div>
+    </div>
+  </div>
+</div>
+
+{{else if eq $activeTab "tax"}}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--color-text)]">Tax Summary</h2>
+      <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/business/reports/export/orders.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Orders CSV</a>
+      <a href="/business/reports/export/payments.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Payments CSV</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
+      <p class="text-2xl font-bold text-[var(--color-text)] mt-1">${{printf "%.2f" .TotalRevenue}}</p>
+    </div>
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">Total Orders</p>
+      <p class="text-2xl font-bold text-[var(--color-primary)] mt-1">{{.TotalOrders}}</p>
+    </div>
+    <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
+      <p class="text-sm text-[var(--color-text-secondary)]">Total Bookings</p>
+      <p class="text-2xl font-bold text-[var(--color-secondary)] mt-1">{{.TotalBookings}}</p>
+    </div>
+  </div>
+
+  <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+    <div class="px-5 py-4 border-b border-[var(--color-border)]">
+      <h3 class="font-semibold text-[var(--color-text)]">Monthly Revenue Breakdown</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
+            <th class="text-left px-5 py-3">Month</th>
+            <th class="text-right px-5 py-3">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .MonthlyRevenue}}
+          <tr class="border-t border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)]">
+            <td class="px-5 py-3 font-medium text-[var(--color-text)]">{{.Month}}</td>
+            <td class="px-5 py-3 text-right font-semibold text-[var(--color-text)]">${{printf "%.2f" .Revenue}}</td>
+          </tr>
+          {{else}}
+          <tr><td colspan="2" class="px-5 py-8 text-center text-[var(--color-text-muted)]">No revenue data for this period</td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{{end}}
+{{end}}

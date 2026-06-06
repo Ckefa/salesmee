@@ -12,7 +12,43 @@
   <script src="/static/js/modules/shared.js?v=1"></script>
 </head>
 <body class="bg-[var(--color-bg)]">
-  {{template "dashboard_header" .}}
+  <header class="navbar-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Reviews</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="hidden lg:flex items-center space-x-4">
+            <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+              <i class="fas fa-sun theme-sun"></i>
+              <i class="fas fa-moon theme-moon hidden"></i>
+            </button>
+            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+              {{if .Business.Logo}}
+              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+              {{else}}
+              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+              </div>
+              {{end}}
+              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+            </button>
+          </div>
+          <button class="lg:hidden theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)]" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
   <div class="flex">
     {{template "dashboard_sidebar" .}}
     <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">

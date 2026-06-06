@@ -193,6 +193,17 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/subscription/badge", businessHandler.GetPlanBadge)
 		protected.GET("/subscription/badge-sidebar", businessHandler.GetPlanBadgeSidebar)
 
+		// Reports
+		protected.GET("/reports", businessHandler.GetReportsPage)
+		protected.GET("/reports/revenue", businessHandler.GetRevenueReport)
+		protected.GET("/reports/sales", businessHandler.GetSalesReport)
+		protected.GET("/reports/clients", businessHandler.GetClientReport)
+		protected.GET("/reports/tax", businessHandler.GetTaxReport)
+		protected.GET("/reports/export/orders.csv", businessHandler.ExportOrdersCSV)
+		protected.GET("/reports/export/bookings.csv", businessHandler.ExportBookingsCSV)
+		protected.GET("/reports/export/payments.csv", businessHandler.ExportPaymentsCSV)
+		protected.GET("/reports/export/clients.csv", businessHandler.ExportClientsCSV)
+
 		// Reviews
 		protected.GET("/reviews", businessHandler.GetReviews)
 		protected.POST("/reviews/:id/reply", businessHandler.ReplyToReview)

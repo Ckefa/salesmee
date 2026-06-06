@@ -30,7 +30,7 @@ func main() {
 	db.Connect()
 
 	log.Println("🔄 Starting database auto-migration...")
-	db.DB.AutoMigrate(
+	migrateModels := []interface{}{
 		&models.Business{},
 		&models.Client{},
 		&models.Conversation{},
@@ -57,8 +57,13 @@ func main() {
 		&models.NotificationLog{},
 		&models.InAppNotification{},
 		&models.Review{},
-	)
-	log.Println("✅ Database auto-migration completed successfully")
+	}
+	for _, m := range migrateModels {
+		if err := db.DB.AutoMigrate(m); err != nil {
+			log.Printf("⚠️ Migration warning for %T: %v", m, err)
+		}
+	}
+	log.Println("✅ Database auto-migration completed")
 
 	// Schema sync: add missing columns for models modified after initial migration
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS customer_id INTEGER NOT NULL DEFAULT 0")

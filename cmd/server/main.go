@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -55,6 +56,7 @@ func main() {
 		&models.BusinessNotifPrefs{},
 		&models.NotificationLog{},
 		&models.InAppNotification{},
+		&models.Review{},
 	)
 	log.Println("✅ Database auto-migration completed successfully")
 
@@ -168,6 +170,20 @@ func main() {
 				return 0
 			}
 			return int(float64(current) / float64(total) * 100)
+		},
+		"printf": func(format string, args ...interface{}) string {
+			return fmt.Sprintf(format, args...)
+		},
+		"substr": func(s string, start, length int) string {
+			runes := []rune(s)
+			if start >= len(runes) {
+				return ""
+			}
+			end := start + length
+			if end > len(runes) {
+				end = len(runes)
+			}
+			return string(runes[start:end])
 		},
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)

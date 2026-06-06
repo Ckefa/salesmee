@@ -25,6 +25,10 @@ type Business struct {
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 
-	Clients      []Client             `gorm:"foreignKey:BusinessID" json:"clients,omitempty"`
+	AverageRating float64   `gorm:"default:0"`
+	ReviewCount   int       `gorm:"default:0"`
+
+	Clients      []Client              `gorm:"foreignKey:BusinessID" json:"clients,omitempty"`
 	Subscription *BusinessSubscription `gorm:"foreignKey:BusinessID" json:"subscription,omitempty"`
+	Reviews      []Review              `gorm:"foreignKey:BusinessID" json:"reviews,omitempty"`
 }

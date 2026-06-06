@@ -252,6 +252,9 @@
       <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
         <i class="fas fa-check-double mr-1"></i>Service completed
       </div>
+      <button onclick="openReviewModal({{$booking.business_id}}, null, {{$booking.id}})" class="w-full mt-2 py-1.5 px-3 rounded-lg border border-[var(--color-warning)] text-[var(--color-warning)] hover:bg-[var(--color-warning-light)] text-xs font-medium transition">
+        <i class="fas fa-star mr-1"></i>Leave a Review
+      </button>
       {{end}}
 
       <!-- Timestamp -->

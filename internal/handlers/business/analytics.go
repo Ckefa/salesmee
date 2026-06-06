@@ -69,6 +69,8 @@ type analyticsData struct {
 	TopProducts []TopProduct
 	ActiveClients int
 	MonthlyRevenue []MonthlyRevenue
+	AverageRating float64
+	ReviewCount int
 }
 
 func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string) analyticsData {
@@ -106,6 +108,12 @@ func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string)
 	`, businessID, startTime, endTime).Scan(&d.TopProducts)
 
 	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.ActiveClients = int(tmp)
+
+	// Review stats
+	h.db.Model(&models.Review{}).Where("business_id = ?", businessID).Select("COALESCE(AVG(rating), 0)").Scan(&d.AverageRating)
+	var reviewCount int64
+	h.db.Model(&models.Review{}).Where("business_id = ?", businessID).Count(&reviewCount)
+	d.ReviewCount = int(reviewCount)
 
 	var orders []models.Order
 	h.db.Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"confirmed", "fulfilled"}).Find(&orders)
@@ -171,6 +179,8 @@ func (h *BusinessHandler) GetAnalyticsStats(c *gin.Context) {
 		"TopProducts":       data.TopProducts,
 		"ActiveClients":     data.ActiveClients,
 		"MonthlyRevenue":    data.MonthlyRevenue,
+		"AverageRating":     data.AverageRating,
+		"ReviewCount":       data.ReviewCount,
 	})
 }
 

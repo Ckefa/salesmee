@@ -193,6 +193,10 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/subscription/badge", businessHandler.GetPlanBadge)
 		protected.GET("/subscription/badge-sidebar", businessHandler.GetPlanBadgeSidebar)
 
+		// Reviews
+		protected.GET("/reviews", businessHandler.GetReviews)
+		protected.POST("/reviews/:id/reply", businessHandler.ReplyToReview)
+
 		// Notification routes
 		protected.GET("/notifications", businessHandler.GetNotifications)
 		protected.GET("/notifications/count", businessHandler.GetNotificationCount)

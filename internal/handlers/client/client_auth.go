@@ -363,6 +363,7 @@ func GetClientMessages(c *gin.Context) {
 
 		orderData := map[string]interface{}{
 			"id":                   order.ID,
+			"business_id":          order.BusinessID,
 			"order_number":         order.OrderNumber,
 			"status":               order.Status,
 			"client_confirmed":     order.ConfirmedByClient,
@@ -437,6 +438,7 @@ func GetClientMessages(c *gin.Context) {
 
 		bookingData := map[string]interface{}{
 			"id":                   booking.ID,
+			"business_id":          booking.BusinessID,
 			"booking_number":       booking.BookingNumber,
 			"service_id":           firstServiceID,
 			"status":               booking.Status,

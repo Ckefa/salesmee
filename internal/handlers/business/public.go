@@ -34,13 +34,35 @@ func GetPublicProfile(c *gin.Context) {
 	var totalClients int64
 	db.DB.Model(&models.Client{}).Where("business_id = ?", business.ID).Count(&totalClients)
 
+	// Load reviews with client name
+	var reviews []struct {
+		models.Review
+		ClientName string
+	}
+	db.DB.Raw(`
+		SELECT r.*, c.name as client_name
+		FROM reviews r
+		JOIN clients c ON c.id = r.client_id
+		WHERE r.business_id = ?
+		ORDER BY r.created_at DESC
+		LIMIT 10
+	`, business.ID).Scan(&reviews)
+
+	var avgRating float64
+	var reviewCount int64
+	db.DB.Model(&models.Review{}).Where("business_id = ?", business.ID).Select("COALESCE(AVG(rating), 0)").Scan(&avgRating)
+	db.DB.Model(&models.Review{}).Where("business_id = ?", business.ID).Count(&reviewCount)
+
 	c.HTML(http.StatusOK, "public_profile.html", middleware.TemplateData(c, gin.H{
-		"Title":          business.Name + " - SalesMee",
-		"Business":       business,
-		"Products":       products,
-		"Services":       svcList,
-		"TotalClients":   int(totalClients),
-		"IsAcceptingClients": totalClients >= 0, // always true for now
+		"Title":             business.Name + " - SalesMee",
+		"Business":          business,
+		"Products":          products,
+		"Services":          svcList,
+		"TotalClients":      int(totalClients),
+		"IsAcceptingClients": totalClients >= 0,
+		"Reviews":           reviews,
+		"AverageRating":     avgRating,
+		"ReviewCount":       int(reviewCount),
 	}))
 }
 

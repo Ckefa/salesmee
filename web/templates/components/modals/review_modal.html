@@ -1,0 +1,97 @@
+{{define "review_modal"}}
+<div id="reviewModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/30 backdrop-blur-sm" onclick="if(event.target===this)closeReviewModal()">
+  <div class="bg-[var(--color-surface)] rounded-2xl shadow-xl border border-[var(--color-border)] p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-[var(--color-text)]">Rate Your Experience</h3>
+      <button onclick="closeReviewModal()" class="btn btn-icon btn-ghost btn-icon-sm"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="reviewForm" onsubmit="return submitReview(event)">
+      <input type="hidden" name="business_id" id="reviewBusinessId">
+      <input type="hidden" name="order_id" id="reviewOrderId">
+      <input type="hidden" name="booking_id" id="reviewBookingId">
+
+      <div class="text-center mb-4">
+        <div class="flex items-center justify-center gap-1 text-3xl" id="starRating">
+          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="1" onclick="setRating(1)"></i>
+          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="2" onclick="setRating(2)"></i>
+          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="3" onclick="setRating(3)"></i>
+          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="4" onclick="setRating(4)"></i>
+          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="5" onclick="setRating(5)"></i>
+        </div>
+        <input type="hidden" name="rating" id="ratingValue" value="0">
+        <p id="ratingLabel" class="text-sm text-[var(--color-text-muted)] mt-2">Select a rating</p>
+      </div>
+
+      <div class="space-y-3">
+        <input type="text" name="title" class="input w-full text-sm" placeholder="Summary (optional)" maxlength="200">
+        <textarea name="content" rows="3" class="input w-full text-sm" placeholder="Tell us about your experience (optional)"></textarea>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary flex-1">Submit Review</button>
+        <button type="button" onclick="closeReviewModal()" class="btn btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  var selectedRating = 0;
+
+  function setRating(val) {
+    selectedRating = val;
+    document.getElementById('ratingValue').value = val;
+    var stars = document.querySelectorAll('#starRating .star');
+    stars.forEach(function(s, i) {
+      if (i < val) {
+        s.className = 'fas fa-star text-[var(--color-warning)] cursor-pointer star text-3xl';
+      } else {
+        s.className = 'far fa-star cursor-pointer hover:text-[var(--color-warning)] star text-3xl';
+      }
+    });
+    var labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    document.getElementById('ratingLabel').textContent = labels[val] || 'Select a rating';
+  }
+
+  function openReviewModal(businessId, orderId, bookingId) {
+    selectedRating = 0;
+    document.getElementById('ratingValue').value = 0;
+    document.getElementById('reviewBusinessId').value = businessId;
+    document.getElementById('reviewOrderId').value = orderId || '';
+    document.getElementById('reviewBookingId').value = bookingId || '';
+    document.getElementById('ratingLabel').textContent = 'Select a rating';
+    var stars = document.querySelectorAll('#starRating .star');
+    stars.forEach(function(s) { s.className = 'far fa-star cursor-pointer hover:text-[var(--color-warning)] star text-3xl'; });
+    document.getElementById('reviewModal').classList.remove('hidden');
+  }
+
+  function closeReviewModal() {
+    document.getElementById('reviewModal').classList.add('hidden');
+  }
+
+  function submitReview(e) {
+    e.preventDefault();
+    if (selectedRating === 0) {
+      showNotification('Please select a rating', 'error');
+      return false;
+    }
+    var form = document.getElementById('reviewForm');
+    var data = new FormData(form);
+    fetch('/client/reviews', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') },
+      body: data
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        showNotification('Review submitted! Thank you.', 'success');
+        closeReviewModal();
+      } else {
+        showNotification(d.error || 'Failed to submit review', 'error');
+      }
+    });
+    return false;
+  }
+</script>
+{{end}}

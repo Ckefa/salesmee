@@ -40,7 +40,14 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 	}
 
 	var services []models.Service
-	h.db.Where("business_id = ?", businessID).Order("created_at DESC").Find(&services)
+	query := h.db.Where("business_id = ?", businessID)
+	if locID := c.Query("location_id"); locID != "" {
+		query = query.Where("(location_id IS NULL OR location_id = ?)", locID)
+	}
+	query.Order("created_at DESC").Find(&services)
+
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	c.HTML(http.StatusOK, "services.html", gin.H{
 		"Business":   currentBusiness,
@@ -49,6 +56,7 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 		"Countries":  data.Countries,
 		"Currencies": data.Currencies,
 		"Onboarding": h.onboardingData(businessID),
+		"Locations":  locations,
 	})
 }
 
@@ -59,13 +67,33 @@ func (h *BusinessHandler) CreateService(c *gin.Context) {
 		return
 	}
 
-	var service models.Service
-	if err := c.ShouldBindJSON(&service); err != nil {
+	var req struct {
+		Name         string  `json:"name"`
+		Description  string  `json:"description"`
+		MinPrice     float64 `json:"min_price"`
+		MaxPrice     float64 `json:"max_price"`
+		IsNegotiable bool    `json:"is_negotiable"`
+		Duration     int     `json:"duration"`
+		ImageURL     string  `json:"image_url"`
+		LocationID   *uint   `json:"location_id"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	service.BusinessID = businessID
+	service := models.Service{
+		BusinessID:   businessID,
+		Name:         req.Name,
+		Description:  req.Description,
+		MinPrice:     req.MinPrice,
+		MaxPrice:     req.MaxPrice,
+		IsNegotiable: req.IsNegotiable,
+		Duration:     req.Duration,
+		ImageURL:     req.ImageURL,
+		LocationID:   req.LocationID,
+		IsActive:     true,
+	}
 	service.IsActive = true
 
 	if err := h.db.Create(&service).Error; err != nil {

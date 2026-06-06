@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Locations - SalesMee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+<header class="navbar-glass">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center">
+        <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Locations</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="hidden lg:flex items-center space-x-4">
+          <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon hidden"></i>
+          </button>
+          <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
+            {{if .Business.Logo}}
+            <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+            {{else}}
+            <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
+              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+            </div>
+            {{end}}
+            <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
+          </button>
+        </div>
+        <button class="lg:hidden theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)]" title="Toggle theme">
+          <i class="fas fa-sun theme-sun"></i>
+          <i class="fas fa-moon theme-moon hidden"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="flex">
+  {{template "dashboard_sidebar" .}}
+  <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">
+    <div class="max-w-3xl mx-auto space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Locations</h1>
+          <p class="text-sm text-[var(--color-text-secondary)] mt-1">Manage your business locations and branches</p>
+        </div>
+        <button onclick="showCreateLocationModal()" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus mr-1"></i> Add Location
+        </button>
+      </div>
+
+      <div class="space-y-3" id="locationsList">
+        {{range .Locations}}
+        <div class="card p-4 sm:p-5" data-location-id="{{.ID}}">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <h3 class="font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+                {{if not .IsActive}}<span class="badge badge-neutral text-xs">Inactive</span>{{end}}
+              </div>
+              {{if .Address}}<p class="text-sm text-[var(--color-text-secondary)] mt-1">{{.Address}}</p>{{end}}
+              <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[var(--color-text-muted)]">
+                {{if .Phone}}<span><i class="fas fa-phone mr-1"></i>{{.Phone}}</span>{{end}}
+                {{if .Email}}<span><i class="fas fa-envelope mr-1"></i>{{.Email}}</span>{{end}}
+                <span><i class="fas fa-globe mr-1"></i>{{.TimeZone}}</span>
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button onclick="editLocation({{.ID}}, '{{.Name}}', '{{.Address}}', '{{.Phone}}', '{{.Email}}', '{{.TimeZone}}', {{.Lat}}, {{.Lng}}, {{.SortOrder}}, {{.IsActive}})" class="btn btn-ghost btn-icon btn-icon-sm">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button onclick="deleteLocation({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-error)]">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        {{else}}
+        <div class="card p-8 text-center">
+          <i class="fas fa-map-marker-alt text-3xl text-[var(--color-text-muted)] mb-3"></i>
+          <p class="text-[var(--color-text-secondary)]">No locations yet. Add your first location to start managing branches.</p>
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Create/Edit Location Modal -->
+<div id="locationModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeLocationModal()"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-4">
+    <div class="card p-5">
+      <h2 class="text-lg font-semibold text-[var(--color-text)] mb-4" id="locationModalTitle">Add Location</h2>
+      <input type="hidden" id="editLocationId" value="">
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Name *</label>
+          <input type="text" id="locName" class="input w-full text-sm" placeholder="Downtown Salon">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Address</label>
+          <input type="text" id="locAddress" class="input w-full text-sm" placeholder="123 Main St">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Phone</label>
+            <input type="text" id="locPhone" class="input w-full text-sm" placeholder="+1 555-0123">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Email</label>
+            <input type="email" id="locEmail" class="input w-full text-sm" placeholder="branch@example.com">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Timezone</label>
+          <select id="locTimezone" class="input w-full text-sm">
+            <option value="UTC">UTC</option>
+            <option value="US/Eastern">US/Eastern</option>
+            <option value="US/Central">US/Central</option>
+            <option value="US/Mountain">US/Mountain</option>
+            <option value="US/Pacific">US/Pacific</option>
+            <option value="Europe/London">Europe/London</option>
+            <option value="Europe/Paris">Europe/Paris</option>
+            <option value="Europe/Berlin">Europe/Berlin</option>
+            <option value="Asia/Dubai">Asia/Dubai</option>
+            <option value="Asia/Tokyo">Asia/Tokyo</option>
+            <option value="Australia/Sydney">Australia/Sydney</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="locActive" class="sr-only peer" checked>
+            <div class="w-9 h-5 bg-[var(--color-surface-tertiary)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-success)]"></div>
+          </label>
+          <span class="text-sm text-[var(--color-text)]">Active</span>
+        </div>
+        <div class="hidden" id="locLatLng">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Latitude</label>
+              <input type="number" step="any" id="locLat" class="input w-full text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Longitude</label>
+              <input type="number" step="any" id="locLng" class="input w-full text-sm">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeLocationModal()" class="btn btn-ghost btn-sm">Cancel</button>
+        <button onclick="saveLocation()" class="btn btn-primary btn-sm">
+          <i class="fas fa-save mr-1"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var csrfToken = getCookie('csrf_token');
+
+function showCreateLocationModal() {
+  document.getElementById('locationModalTitle').textContent = 'Add Location';
+  document.getElementById('editLocationId').value = '';
+  document.getElementById('locName').value = '';
+  document.getElementById('locAddress').value = '';
+  document.getElementById('locPhone').value = '';
+  document.getElementById('locEmail').value = '';
+  document.getElementById('locTimezone').value = 'UTC';
+  document.getElementById('locActive').checked = true;
+  document.getElementById('locLatLng').classList.add('hidden');
+  document.getElementById('locationModal').classList.remove('hidden');
+}
+
+function editLocation(id, name, address, phone, email, tz, lat, lng, sortOrder, active) {
+  document.getElementById('locationModalTitle').textContent = 'Edit Location';
+  document.getElementById('editLocationId').value = id;
+  document.getElementById('locName').value = name;
+  document.getElementById('locAddress').value = address;
+  document.getElementById('locPhone').value = phone;
+  document.getElementById('locEmail').value = email;
+  document.getElementById('locTimezone').value = tz;
+  document.getElementById('locActive').checked = active;
+  document.getElementById('locLatLng').classList.remove('hidden');
+  document.getElementById('locLat').value = lat;
+  document.getElementById('locLng').value = lng;
+  document.getElementById('locationModal').classList.remove('hidden');
+}
+
+function closeLocationModal() {
+  document.getElementById('locationModal').classList.add('hidden');
+}
+
+function saveLocation() {
+  var id = document.getElementById('editLocationId').value;
+  var data = {
+    name: document.getElementById('locName').value,
+    address: document.getElementById('locAddress').value,
+    phone: document.getElementById('locPhone').value,
+    email: document.getElementById('locEmail').value,
+    timezone: document.getElementById('locTimezone').value,
+    is_active: document.getElementById('locActive').checked,
+  };
+
+  var lat = parseFloat(document.getElementById('locLat').value);
+  var lng = parseFloat(document.getElementById('locLng').value);
+  if (!isNaN(lat)) data.lat = lat;
+  if (!isNaN(lng)) data.lng = lng;
+
+  var url = id ? '/business/locations/' + id : '/business/locations';
+  var method = id ? 'PUT' : 'POST';
+
+  fetch(url, {
+    method: method,
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); }).then(function(resp) {
+    if (resp.success) {
+      showNotification('Location saved', 'success');
+      setTimeout(function() { location.reload(); }, 500);
+    } else {
+      showNotification(resp.error || 'Failed to save location', 'error');
+    }
+  });
+}
+
+function deleteLocation(id) {
+  if (!confirm('Delete this location? Products and services assigned only to this location will become unassigned.')) return;
+  fetch('/business/locations/' + id, {
+    method: 'DELETE',
+    headers: {'X-CSRF-Token': csrfToken}
+  }).then(function(r) { return r.json(); }).then(function(resp) {
+    if (resp.success) {
+      showNotification('Location deleted', 'success');
+      setTimeout(function() { location.reload(); }, 500);
+    } else {
+      showNotification('Failed to delete location', 'error');
+    }
+  });
+}
+</script>
+
+{{template "dashboard_footer" .}}
+</body>
+</html>

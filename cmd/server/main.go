@@ -57,6 +57,8 @@ func main() {
 		&models.NotificationLog{},
 		&models.InAppNotification{},
 		&models.Review{},
+		&models.Location{},
+		&models.TeamMember{},
 	}
 	for _, m := range migrateModels {
 		if err := db.DB.AutoMigrate(m); err != nil {
@@ -82,6 +84,23 @@ func main() {
 	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS is_accepting_bookings BOOLEAN DEFAULT true")
 	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_hours JSONB DEFAULT '{}'")
 	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS special_hours JSONB DEFAULT '[]'")
+	db.DB.Exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS staff_id INTEGER REFERENCES team_members(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS commission_type VARCHAR(20) DEFAULT 'percentage'")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS commission_value DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS commission_earned DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS staff_id INTEGER REFERENCES team_members(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS commission_type VARCHAR(20) DEFAULT 'percentage'")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS commission_value DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS commission_earned DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec(`CREATE TABLE IF NOT EXISTS team_member_locations (
+		team_member_id INTEGER NOT NULL REFERENCES team_members(id) ON DELETE CASCADE,
+		location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+		PRIMARY KEY (team_member_id, location_id)
+	)`)
 	log.Println("✅ Schema sync completed")
 
 	// Data migration: copy old first_name/last_name to name/username for existing records

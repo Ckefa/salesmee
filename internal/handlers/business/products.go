@@ -31,9 +31,18 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 	}
 
 	var products []models.Product
-	h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+	query := h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order ASC")
-	}).Where("business_id = ?", businessID).Order("created_at DESC").Find(&products)
+	}).Where("business_id = ?", businessID)
+
+	if locID := c.Query("location_id"); locID != "" {
+		query = query.Where("(location_id IS NULL OR location_id = ?)", locID)
+	}
+
+	query.Order("created_at DESC").Find(&products)
+
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	c.HTML(http.StatusOK, "products.html", gin.H{
 		"Business":   currentBusiness,
@@ -42,6 +51,7 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		"Countries":  data.Countries,
 		"Currencies": data.Currencies,
 		"Onboarding": h.onboardingData(businessID),
+		"Locations":  locations,
 	})
 }
 
@@ -52,14 +62,31 @@ func (h *BusinessHandler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	var product models.Product
-	if err := c.ShouldBindJSON(&product); err != nil {
+	var req struct {
+		Name        string  `json:"name"`
+		Description string  `json:"description"`
+		Price       float64 `json:"price"`
+		SKU         string  `json:"sku"`
+		Stock       int     `json:"stock"`
+		MinStock    int     `json:"min_stock"`
+		LocationID  *uint   `json:"location_id"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	product.BusinessID = businessID
-	product.IsActive = true
+	product := models.Product{
+		BusinessID:  businessID,
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		SKU:         req.SKU,
+		Stock:       req.Stock,
+		MinStock:    req.MinStock,
+		LocationID:  req.LocationID,
+		IsActive:    true,
+	}
 
 	if err := h.db.Create(&product).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create product"})

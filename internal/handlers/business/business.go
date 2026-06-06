@@ -62,6 +62,8 @@ type DashboardData struct {
 	Countries           []data.Country
 	Currencies          []data.Currency
 	Onboarding          *onboarding.OnboardingData
+	Locations           []models.Location
+	QueryLocationID     string
 }
 
 func (h *BusinessHandler) GetSharePage(c *gin.Context) {
@@ -239,7 +241,17 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 		return
 	}
 
-	// Get counts
+	locID := c.Query("location_id")
+
+	// Helper to build location clause
+	locClause := ""
+	locArgs := []interface{}{}
+	if locID != "" {
+		locClause = " AND location_id = ?"
+		locArgs = append(locArgs, locID)
+	}
+
+	// Get counts (global — these are sidebar badge counts, not filtered by location)
 	var productCount, serviceCount, pendingOrderCount, pendingBookingCount int64
 
 	h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&productCount)
@@ -249,19 +261,29 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 
 	// Get recent orders with client info
 	var recentOrders []models.Order
-	h.db.Preload("Client").Where("business_id = ?", businessID).Order("created_at DESC").Limit(5).Find(&recentOrders)
+	roQuery := h.db.Preload("Client").Where("business_id = ?", businessID)
+	if locID != "" {
+		roQuery = roQuery.Where("location_id = ?", locID)
+	}
+	roQuery.Order("created_at DESC").Limit(5).Find(&recentOrders)
 
 	// Get recent bookings with client info
 	var recentBookings []models.Booking
-	h.db.Preload("Client").Where("business_id = ?", businessID).Order("created_at DESC").Limit(5).Find(&recentBookings)
+	rbQuery := h.db.Preload("Client").Where("business_id = ?", businessID)
+	if locID != "" {
+		rbQuery = rbQuery.Where("location_id = ?", locID)
+	}
+	rbQuery.Order("created_at DESC").Limit(5).Find(&recentBookings)
 
-	// Get low stock products
+	// Get low stock products (global — not location-scoped)
 	var lowStockProducts []models.Product
 	h.db.Where("business_id = ? AND stock <= min_stock AND is_active = ?", businessID, true).Find(&lowStockProducts)
 
 	// Compute default "This Month" stats for dashboard_stats template
 	startTime, endTime, _ := timeRangeBounds("this_month")
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
+	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?" + locClause
+	timeArgs := []interface{}{businessID, startTime, endTime}
+	timeArgs = append(timeArgs, locArgs...)
 
 	var totalOrders, totalBookings, activeClients int64
 	var completedOrders, completedBookings int64
@@ -270,19 +292,23 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	var cancelledOrders, cancelledBookings int64
 	var ordersRevenue, bookingsRevenue float64
 
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Count(&totalOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Count(&totalBookings)
+	h.db.Model(&models.Order{}).Where(timeClause, timeArgs...).Count(&totalOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause, timeArgs...).Count(&totalBookings)
 	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&activeClients)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Scan(&ordersRevenue)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Scan(&bookingsRevenue)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"fulfilled", "completed"}).Count(&completedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "completed").Count(&completedBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&pendingOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&pendingBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"confirmed", "client_confirmed"}).Count(&confirmedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "client_confirmed").Count(&confirmedBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&cancelledOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&cancelledBookings)
+	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&ordersRevenue)
+	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&bookingsRevenue)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"fulfilled", "completed"})...).Count(&completedOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "completed")...).Count(&completedBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"confirmed", "client_confirmed"})...).Count(&confirmedOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "client_confirmed")...).Count(&confirmedBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledBookings)
+
+	// Load locations
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	data := DashboardData{
 		Business:            currentBusiness,
@@ -305,6 +331,8 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 		Countries:           data.Countries,
 		Currencies:          data.Currencies,
 		Onboarding:          h.onboardingData(businessID),
+		Locations:           locations,
+		QueryLocationID:     locID,
 	}
 
 	data.ActivePage = "dashboard"
@@ -817,6 +845,8 @@ type DashboardStatsData struct {
 	CancelledCount int64
 	TotalRevenue   float64
 	ActiveClients  int64
+	Locations      []models.Location
+	QueryLocationID string
 }
 
 func timeRangeBounds(r string) (start, end time.Time, label string) {
@@ -862,11 +892,19 @@ func (h *BusinessHandler) GetDashboardStats(c *gin.Context) {
 
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, label := timeRangeBounds(r)
+	locID := c.Query("location_id")
 
 	var currentBusiness models.Business
 	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
+	}
+
+	locClause := ""
+	locArgs := []interface{}{}
+	if locID != "" {
+		locClause = " AND location_id = ?"
+		locArgs = append(locArgs, locID)
 	}
 
 	var totalOrders, totalBookings int64
@@ -877,39 +915,47 @@ func (h *BusinessHandler) GetDashboardStats(c *gin.Context) {
 	var ordersRevenue, bookingsRevenue float64
 	var activeClients int64
 
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
+	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?" + locClause
+	timeArgs := []interface{}{businessID, startTime, endTime}
+	timeArgs = append(timeArgs, locArgs...)
 
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Count(&totalOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Count(&totalBookings)
+	h.db.Model(&models.Order{}).Where(timeClause, timeArgs...).Count(&totalOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause, timeArgs...).Count(&totalBookings)
 
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"fulfilled", "completed"}).Count(&completedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "completed").Count(&completedBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"fulfilled", "completed"})...).Count(&completedOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "completed")...).Count(&completedBookings)
 
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&pendingOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&pendingBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingBookings)
 
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"confirmed", "client_confirmed"}).Count(&confirmedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "client_confirmed").Count(&confirmedBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"confirmed", "client_confirmed"})...).Count(&confirmedOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "client_confirmed")...).Count(&confirmedBookings)
 
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&cancelledOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&cancelledBookings)
+	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledOrders)
+	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledBookings)
 
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Scan(&ordersRevenue)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Scan(&bookingsRevenue)
+	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&ordersRevenue)
+	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&bookingsRevenue)
 
-	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&activeClients)
+	h.db.Model(&models.Conversation{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Count(&activeClients)
+
+	// Load locations
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	data := DashboardStatsData{
-		Business:       currentBusiness,
-		PeriodLabel:    label,
-		TotalOrders:    totalOrders,
-		TotalBookings:  totalBookings,
-		CompletedCount: completedOrders + completedBookings,
-		PendingCount:   pendingOrders + pendingBookings,
-		ConfirmedCount: confirmedOrders + confirmedBookings,
-		CancelledCount: cancelledOrders + cancelledBookings,
-		TotalRevenue:   ordersRevenue + bookingsRevenue,
-		ActiveClients:  activeClients,
+		Business:        currentBusiness,
+		PeriodLabel:     label,
+		TotalOrders:     totalOrders,
+		TotalBookings:   totalBookings,
+		CompletedCount:  completedOrders + completedBookings,
+		PendingCount:    pendingOrders + pendingBookings,
+		ConfirmedCount:  confirmedOrders + confirmedBookings,
+		CancelledCount:  cancelledOrders + cancelledBookings,
+		TotalRevenue:    ordersRevenue + bookingsRevenue,
+		ActiveClients:   activeClients,
+		Locations:       locations,
+		QueryLocationID: locID,
 	}
 
 	c.HTML(http.StatusOK, "dashboard_stats", data)

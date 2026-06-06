@@ -37,4 +37,6 @@ type Business struct {
 	Clients      []Client              `gorm:"foreignKey:BusinessID" json:"clients,omitempty"`
 	Subscription *BusinessSubscription `gorm:"foreignKey:BusinessID" json:"subscription,omitempty"`
 	Reviews      []Review              `gorm:"foreignKey:BusinessID" json:"reviews,omitempty"`
+	Locations    []Location            `gorm:"foreignKey:BusinessID" json:"locations,omitempty"`
+	TeamMembers  []TeamMember          `gorm:"foreignKey:BusinessID" json:"team_members,omitempty"`
 }

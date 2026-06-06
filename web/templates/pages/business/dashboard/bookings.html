@@ -133,6 +133,12 @@
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <select id="bookingLocationFilter" class="input text-sm">
+            <option value="">All Locations</option>
+            {{range .Locations}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
           <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
             <i class="fas fa-times mr-1"></i>Clear
           </button>
@@ -178,7 +184,8 @@
                 data-number="{{.BookingNumber}}"
                 data-customer-name="{{.Client.Name}}"
                 data-customer-email="{{.Client.Email}}"
-                data-created-at="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">
+                data-created-at="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}"
+                data-location-id="{{.LocationID}}">
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
                   <div class="font-medium">{{.Client.Name}}</div>
@@ -662,6 +669,8 @@
       const formattedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
       const bookingDateTime = `${bookingDate}T${formattedTime}`;
 
+      const locParams = new URLSearchParams(window.location.search);
+      const curLocId = locParams.get('location_id');
       const bookingData = {
         service_id: parseInt(document.getElementById('bookingService').value),
         customer_name: document.getElementById('bookingCustomerName').value,
@@ -669,7 +678,8 @@
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: bookingDateTime,
         notes: document.getElementById('bookingNotes').value,
-        mark_completed: document.getElementById('bookingCompleted').checked
+        mark_completed: document.getElementById('bookingCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
 
       // Check if this is an edit or create
@@ -725,6 +735,7 @@
       const field = document.getElementById('bookingSearchField').value;
       const status = document.getElementById('bookingStatusFilter').value;
       const period = document.getElementById('bookingPeriodFilter').value;
+      const location = document.getElementById('bookingLocationFilter').value;
       const rows = document.querySelectorAll('#bookingsTableBody tr[data-number]');
       let periodVisible = 0;
       let allVisible = 0;
@@ -742,6 +753,9 @@
         const rowStatus = row.getAttribute('data-status');
         const matchStatus = !status || rowStatus === status;
 
+        const rowLocation = row.getAttribute('data-location-id');
+        const matchLocation = !location || rowLocation === location;
+
         let matchSearch = true;
         if (search) {
           let targets = [];
@@ -757,12 +771,12 @@
           matchSearch = targets.some(t => t && t.toLowerCase().includes(search));
         }
 
-        const show = matchSearch && matchStatus;
+        const show = matchSearch && matchStatus && matchLocation;
         if (!show) row.style.display = 'none';
         if (show) allVisible++;
       });
 
-      const hasFilters = search || status;
+      const hasFilters = search || status || location;
       document.getElementById('clearBookingFilters').classList.toggle('hidden', !hasFilters);
       document.getElementById('noBookingsMsg').style.display = allVisible === 0 && periodVisible > 0 ? '' : 'none';
       document.getElementById('bookingResultsCount').textContent = hasFilters ? `${allVisible} of ${periodVisible} results` : '';
@@ -774,9 +788,9 @@
     }
 
     document.getElementById('bookingSearch').addEventListener('input', filterBookings);
-    document.getElementById('bookingServiceSearch')?.addEventListener('input', function() { renderBookingServices(this.value); });
     document.getElementById('bookingSearchField').addEventListener('change', filterBookings);
     document.getElementById('bookingStatusFilter').addEventListener('change', filterBookings);
+    document.getElementById('bookingLocationFilter').addEventListener('change', filterBookings);
     document.getElementById('clearBookingFilters').addEventListener('click', function() {
       document.getElementById('bookingSearch').value = '';
       document.getElementById('bookingSearchField').value = 'all';

@@ -145,6 +145,15 @@
                 <option value="negotiable">Negotiable</option>
               </select>
             </div>
+            <div class="mt-3 sm:mt-0 sm:ml-4">
+              <select id="locationFilter" onchange="window.location.href=this.value"
+                class="input">
+                <option value="/business/services">All Locations</option>
+                {{range .Locations}}
+                <option value="/business/services?location_id={{.ID}}">{{.Name}}</option>
+                {{end}}
+              </select>
+            </div>
           </div>
 
           <!-- Services Grid -->
@@ -560,6 +569,13 @@
         service.style.display = show ? '' : 'none';
       });
     });
+
+    // Set location filter from URL
+    const locParams = new URLSearchParams(window.location.search);
+    const locId = locParams.get('location_id');
+    if (locId) {
+      document.getElementById('locationFilter').value = '/business/services?location_id=' + locId;
+    }
   </script>
 
   {{template "business_profile" .}}

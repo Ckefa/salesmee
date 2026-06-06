@@ -32,6 +32,7 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		DeliveryAddress string `json:"delivery_address"`
 		Notes           string `json:"notes"`
 		MarkCompleted   bool   `json:"mark_completed"`
+		LocationID      *uint  `json:"location_id"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -88,6 +89,7 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		TotalAmount:  float64(request.Quantity) * product.Price,
 		Notes:        fmt.Sprintf("Delivery: %s. %s", request.DeliveryAddress, request.Notes),
 		DeliveryDate: &[]time.Time{time.Now().AddDate(0, 0, 7)}[0],
+		LocationID:   request.LocationID,
 	}
 
 	if request.MarkCompleted {
@@ -171,7 +173,11 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	startTime, endTime, _ := timeRangeBounds(r)
 
 	var orders []models.Order
-	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
+	orderQuery := h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime)
+	if locID := c.Query("location_id"); locID != "" {
+		orderQuery = orderQuery.Where("location_id = ?", locID)
+	}
+	orderQuery.Find(&orders)
 
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	var totalRevenue float64
@@ -194,6 +200,9 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		totalRevenue += order.TotalAmount
 	}
 
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
 	c.HTML(http.StatusOK, "orders.html", gin.H{
 		"Business":             currentBusiness,
 		"Orders":               orders,
@@ -209,6 +218,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
 		"Onboarding":           h.onboardingData(businessID),
+		"Locations":            locations,
 	})
 }
 

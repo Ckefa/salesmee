@@ -15,6 +15,7 @@ type Service struct {
 	Duration     int       `gorm:"comment:duration in minutes" json:"duration"`
 	ImageURL     string    `json:"image_url"`
 	IsActive     bool      `gorm:"default:true" json:"is_active"`
+	LocationID   *uint     `gorm:"index;default:null" json:"location_id,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 

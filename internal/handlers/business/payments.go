@@ -358,6 +358,7 @@ func (h *BusinessHandler) RejectBookingPayment(c *gin.Context) {
 // GetPayments renders the payments dashboard with real data
 func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
+	locID := c.Query("location_id")
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
@@ -366,11 +367,18 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	}
 
 	// Get all orders and bookings for this business to find their payments
+	orderQuery := h.db.Model(&models.Order{}).Where("business_id = ?", businessID)
+	bookingQuery := h.db.Model(&models.Booking{}).Where("business_id = ?", businessID)
+	if locID != "" {
+		orderQuery = orderQuery.Where("location_id = ?", locID)
+		bookingQuery = bookingQuery.Where("location_id = ?", locID)
+	}
+
 	var orderIDs []uint
-	h.db.Model(&models.Order{}).Where("business_id = ?", businessID).Pluck("id", &orderIDs)
+	orderQuery.Pluck("id", &orderIDs)
 
 	var bookingIDs []uint
-	h.db.Model(&models.Booking{}).Where("business_id = ?", businessID).Pluck("id", &bookingIDs)
+	bookingQuery.Pluck("id", &bookingIDs)
 
 	// Fetch all related payments
 	var payments []models.Payment
@@ -444,14 +452,24 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	}
 
 	// Revenue from paid amounts on orders/bookings
+	paidRevOrderQuery := h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID)
+	paidRevBookingQuery := h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID)
+	if locID != "" {
+		paidRevOrderQuery = paidRevOrderQuery.Where("location_id = ?", locID)
+		paidRevBookingQuery = paidRevBookingQuery.Where("location_id = ?", locID)
+	}
 	var paidOrdersRevenue, paidBookingsRevenue float64
-	h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&paidOrdersRevenue)
-	h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID).Scan(&paidBookingsRevenue)
+	paidRevOrderQuery.Scan(&paidOrdersRevenue)
+	paidRevBookingQuery.Scan(&paidBookingsRevenue)
 	totalPaidRevenue := paidOrdersRevenue + paidBookingsRevenue
 
 	// Load payment methods
 	var paymentMethods []models.PaymentMethod
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
+
+	// Load locations
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	c.HTML(http.StatusOK, "payments.html", gin.H{
 		"Business":          business,
@@ -466,11 +484,14 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		"TotalPaidRevenue":  totalPaidRevenue,
 		"PaymentCount":      len(rows),
 		"Onboarding":        h.onboardingData(businessID),
+		"Locations":         locations,
+		"QueryLocationID":   locID,
 	})
 }
 
 func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
 	businessID := c.GetUint("business_id")
+	locID := c.Query("location_id")
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
@@ -480,13 +501,23 @@ func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
 
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
+
+	locClause := ""
+	locArgs := []interface{}{}
+	if locID != "" {
+		locClause = " AND location_id = ?"
+		locArgs = append(locArgs, locID)
+	}
+
+	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?" + locClause
+	timeArgs := []interface{}{businessID, startTime, endTime}
+	timeArgs = append(timeArgs, locArgs...)
 
 	var orderIDs []uint
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &orderIDs)
+	h.db.Model(&models.Order{}).Where(timeClause, timeArgs...).Pluck("id", &orderIDs)
 
 	var bookingIDs []uint
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &bookingIDs)
+	h.db.Model(&models.Booking{}).Where(timeClause, timeArgs...).Pluck("id", &bookingIDs)
 
 	var payments []models.Payment
 	if len(orderIDs) > 0 || len(bookingIDs) > 0 {

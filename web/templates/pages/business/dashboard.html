@@ -544,6 +544,8 @@
 
     document.getElementById('quickOrderForm')?.addEventListener('submit', function(e) {
       e.preventDefault();
+      var locParams = new URLSearchParams(window.location.search);
+      var curLocId = locParams.get('location_id');
       var orderData = {
         product_id: parseInt(document.getElementById('orderProduct').value),
         quantity: parseInt(document.getElementById('orderQuantity').value),
@@ -552,7 +554,8 @@
         customer_phone: document.getElementById('orderCustomerPhone').value,
         delivery_address: document.getElementById('orderDeliveryAddress').value,
         notes: document.getElementById('orderNotes').value,
-        mark_completed: document.getElementById('orderCompleted').checked
+        mark_completed: document.getElementById('orderCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
       fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(orderData) })
         .then(function(r) { return r.json(); })
@@ -565,6 +568,8 @@
 
     document.getElementById('quickBookingForm')?.addEventListener('submit', function(e) {
       e.preventDefault();
+      var locParams = new URLSearchParams(window.location.search);
+      var curLocId = locParams.get('location_id');
       var bookingData = {
         service_id: parseInt(document.getElementById('bookingService').value),
         customer_name: document.getElementById('bookingCustomerName').value,
@@ -572,7 +577,8 @@
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: document.getElementById('bookingDateTime').value,
         notes: document.getElementById('bookingNotes').value,
-        mark_completed: document.getElementById('bookingCompleted').checked
+        mark_completed: document.getElementById('bookingCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
       fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(bookingData) })
         .then(function(r) { return r.json(); })

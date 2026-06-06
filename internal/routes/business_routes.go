@@ -214,6 +214,18 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.PUT("/hours/special", businessHandler.UpdateSpecialHours)
 		protected.POST("/hours/toggle", businessHandler.ToggleAcceptingBookings)
 
+		// Location routes
+		protected.GET("/locations", businessHandler.GetLocations)
+		protected.POST("/locations", businessHandler.CreateLocation)
+		protected.PUT("/locations/:id", businessHandler.UpdateLocation)
+		protected.DELETE("/locations/:id", businessHandler.DeleteLocation)
+
+		// Team routes
+		protected.GET("/team", businessHandler.GetTeam)
+		protected.POST("/team", businessHandler.InviteTeamMember)
+		protected.PUT("/team/:id", businessHandler.UpdateTeamMember)
+		protected.DELETE("/team/:id", businessHandler.DeleteTeamMember)
+
 		// Notification routes
 		protected.GET("/notifications", businessHandler.GetNotifications)
 		protected.GET("/notifications/count", businessHandler.GetNotificationCount)
@@ -222,6 +234,13 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/notification-settings", businessHandler.GetNotificationSettings)
 		protected.PUT("/notification-settings", businessHandler.UpdateNotificationSettings)
 	}
+
+	// Public team routes (outside auth)
+	r.GET("/business/team/login", businessHandler.ShowTeamLogin)
+	r.POST("/business/team/login", businessHandler.TeamLogin)
+	r.GET("/business/team/logout", businessHandler.TeamLogout)
+	r.GET("/business/team/accept", businessHandler.ShowAcceptInvite)
+	r.POST("/business/team/accept", businessHandler.AcceptInvite)
 
 	// Webhooks (public)
 	r.POST("/stripe/webhook", business.StripeWebhook(businessHandler))

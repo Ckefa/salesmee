@@ -162,6 +162,12 @@
             <option value="fulfilled">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <select id="orderLocationFilter" class="input text-sm">
+            <option value="">All Locations</option>
+            {{range .Locations}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
           <button id="clearOrderFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
             <i class="fas fa-times mr-1"></i>Clear
           </button>
@@ -207,6 +213,7 @@
                 data-customer-name="{{.Client.Name}}"
                 data-customer-email="{{.Client.Email}}"
                 data-created-at="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}"
+                data-location-id="{{.LocationID}}"
                 class="table-row-hover">
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.OrderNumber}}</td>
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
@@ -769,6 +776,8 @@
     document.getElementById('quickOrderForm').addEventListener('submit', function (e) {
       e.preventDefault();
 
+      const locParams = new URLSearchParams(window.location.search);
+      const curLocId = locParams.get('location_id');
       const orderData = {
         product_id: parseInt(document.getElementById('orderProduct').value),
         quantity: parseInt(document.getElementById('orderQuantity').value),
@@ -777,7 +786,8 @@
         customer_phone: document.getElementById('orderCustomerPhone').value,
         delivery_address: document.getElementById('orderDeliveryAddress').value,
         notes: document.getElementById('orderNotes').value,
-        mark_completed: document.getElementById('orderCompleted').checked
+        mark_completed: document.getElementById('orderCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
 
       fetch('orders', {
@@ -807,13 +817,17 @@
     document.getElementById('quickBookingForm').addEventListener('submit', function (e) {
       e.preventDefault();
 
+      const locParams = new URLSearchParams(window.location.search);
+      const curLocId = locParams.get('location_id');
       const bookingData = {
         service_id: parseInt(document.getElementById('bookingService').value),
         customer_name: document.getElementById('bookingCustomerName').value,
         customer_email: document.getElementById('bookingCustomerEmail').value,
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: document.getElementById('bookingDateTime').value,
-        notes: document.getElementById('bookingNotes').value
+        notes: document.getElementById('bookingNotes').value,
+        mark_completed: document.getElementById('bookingCompleted')?.checked || false,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
 
       fetch('bookings', {
@@ -861,6 +875,7 @@
       const field = document.getElementById('orderSearchField').value;
       const status = document.getElementById('orderStatusFilter').value;
       const period = document.getElementById('orderPeriodFilter').value;
+      const location = document.getElementById('orderLocationFilter').value;
       const rows = document.querySelectorAll('#ordersTableBody tr[data-number]');
       let periodVisible = 0;
       let allVisible = 0;
@@ -878,6 +893,9 @@
         const rowStatus = row.getAttribute('data-status');
         const matchStatus = !status || rowStatus === status;
 
+        const rowLocation = row.getAttribute('data-location-id');
+        const matchLocation = !location || rowLocation === location;
+
         let matchSearch = true;
         if (search) {
           let targets = [];
@@ -893,12 +911,12 @@
           matchSearch = targets.some(t => t && t.toLowerCase().includes(search));
         }
 
-        const show = matchSearch && matchStatus;
+        const show = matchSearch && matchStatus && matchLocation;
         if (!show) row.style.display = 'none';
         if (show) allVisible++;
       });
 
-      const hasFilters = search || status;
+      const hasFilters = search || status || location;
       document.getElementById('clearOrderFilters').classList.toggle('hidden', !hasFilters);
       document.getElementById('noOrdersMsg').style.display = allVisible === 0 && periodVisible > 0 ? '' : 'none';
       document.getElementById('orderResultsCount').textContent = hasFilters ? `${allVisible} of ${periodVisible} results` : '';
@@ -910,10 +928,9 @@
     }
 
     document.getElementById('orderSearch').addEventListener('input', filterOrders);
-    document.getElementById('orderProductSearch')?.addEventListener('input', function() { renderOrderProducts(this.value); });
-    document.getElementById('bookingServiceSearch')?.addEventListener('input', function() { renderBookingServices(this.value); });
     document.getElementById('orderSearchField').addEventListener('change', filterOrders);
     document.getElementById('orderStatusFilter').addEventListener('change', filterOrders);
+    document.getElementById('orderLocationFilter').addEventListener('change', filterOrders);
     document.getElementById('clearOrderFilters').addEventListener('click', function() {
       document.getElementById('orderSearch').value = '';
       document.getElementById('orderSearchField').value = 'all';

@@ -13,31 +13,43 @@ import (
 func BizzMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := extractToken(c)
-		if token == "" {
-			c.Redirect(http.StatusFound, "/business/login")
-			c.Abort()
-			return
+		if token != "" {
+			claims, err := services.ValidateToken(token)
+			if err == nil {
+				var exists bool
+				db.DB.Raw("SELECT EXISTS(SELECT 1 FROM businesses WHERE id = ?)", claims.UserID).Scan(&exists)
+				if exists {
+					c.Set("business_id", claims.UserID)
+					c.Set("email", claims.Email)
+					c.Set("auth_type", "owner")
+					c.Next()
+					return
+				}
+				c.SetCookie("token", "", -1, "/", "", false, true)
+			}
 		}
 
-		claims, err := services.ValidateToken(token)
-		if err != nil {
-			c.Redirect(http.StatusFound, "/business/login")
-			c.Abort()
-			return
+		// Fallback: check team_token for staff/manager
+		teamToken, _ := c.Cookie("team_token")
+		if teamToken != "" {
+			claims, err := services.ValidateToken(teamToken)
+			if err == nil {
+				var member struct{ ID uint; BusinessID uint; Role string; IsActive bool }
+				db.DB.Raw("SELECT id, business_id, role, is_active FROM team_members WHERE id = ?", claims.UserID).Scan(&member)
+				if member.IsActive && member.BusinessID > 0 {
+					c.Set("business_id", member.BusinessID)
+					c.Set("team_member_id", member.ID)
+					c.Set("role", member.Role)
+					c.Set("auth_type", "team")
+					c.Next()
+					return
+				}
+				c.SetCookie("team_token", "", -1, "/", "", false, true)
+			}
 		}
 
-		var exists bool
-		db.DB.Raw("SELECT EXISTS(SELECT 1 FROM businesses WHERE id = ?)", claims.UserID).Scan(&exists)
-		if !exists {
-			c.SetCookie("token", "", -1, "/", "", false, true)
-			c.Redirect(http.StatusFound, "/business/login")
-			c.Abort()
-			return
-		}
-
-		c.Set("business_id", claims.UserID)
-		c.Set("email", claims.Email)
-		c.Next()
+		c.Redirect(http.StatusFound, "/business/login")
+		c.Abort()
 	}
 }
 

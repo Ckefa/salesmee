@@ -109,7 +109,11 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	startTime, endTime, _ := timeRangeBounds(r)
 
 	var bookings []models.Booking
-	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&bookings)
+	bookingQuery := h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime)
+	if locID := c.Query("location_id"); locID != "" {
+		bookingQuery = bookingQuery.Where("location_id = ?", locID)
+	}
+	bookingQuery.Find(&bookings)
 
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	var totalRevenue float64
@@ -128,6 +132,9 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		}
 	}
 
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
 	c.HTML(http.StatusOK, "bookings.html", gin.H{
 		"Business":        currentBusiness,
 		"Bookings":        bookings,
@@ -141,6 +148,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		"Countries":       data.Countries,
 		"Currencies":      data.Currencies,
 		"Onboarding":      h.onboardingData(businessID),
+		"Locations":       locations,
 	})
 }
 
@@ -520,6 +528,7 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		BookingDate   string `json:"booking_date" binding:"required"`
 		Notes         string `json:"notes"`
 		MarkCompleted bool   `json:"mark_completed"`
+		LocationID    *uint  `json:"location_id"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -584,6 +593,7 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		Duration:      service.Duration,
 		TotalAmount:   service.MaxPrice,
 		Notes:         request.Notes,
+		LocationID:    request.LocationID,
 	}
 
 	if request.MarkCompleted {

@@ -53,6 +53,8 @@ func (h *BusinessHandler) GetReviews(c *gin.Context) {
 		"Rating2Count":   stats.Rating2Count,
 		"Rating1Count":   stats.Rating1Count,
 		"Onboarding":     h.onboardingData(businessID),
+		"AuthType":       c.GetString("auth_type"),
+		"Role":           c.GetString("role"),
 	})
 }
 

@@ -17,7 +17,7 @@ func (h *BusinessHandler) GetNotificationSettings(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
+		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -32,6 +32,8 @@ func (h *BusinessHandler) GetNotificationSettings(c *gin.Context) {
 		"Title":        "Notification Settings — SalesMee",
 		"Prefs":        prefs,
 		"NotificationSettings": prefs,
+		"AuthType":     c.GetString("auth_type"),
+		"Role":         c.GetString("role"),
 	})
 }
 

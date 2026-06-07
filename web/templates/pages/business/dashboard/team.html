@@ -89,6 +89,11 @@
               </div>
             </div>
             <div class="flex gap-2 shrink-0">
+              {{if .InviteToken}}
+              <button onclick="copyInviteLink('{{.InviteToken}}')" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-info)]" title="Copy invite link">
+                <i class="fas fa-link"></i>
+              </button>
+              {{end}}
               <button onclick="editMember({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm">
                 <i class="fas fa-edit"></i>
               </button>
@@ -235,6 +240,23 @@ function saveMember() {
       showNotification(resp.error || 'Failed to save', 'error');
     }
   });
+}
+
+function copyInviteLink(token) {
+  var link = window.location.origin + '/business/team/accept?token=' + token;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(function() {
+      showNotification('Invite link copied to clipboard', 'success');
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = link;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showNotification('Invite link copied to clipboard', 'success');
+  }
 }
 
 function deleteMember(id) {

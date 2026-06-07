@@ -64,6 +64,8 @@ type DashboardData struct {
 	Onboarding          *onboarding.OnboardingData
 	Locations           []models.Location
 	QueryLocationID     string
+	AuthType            string
+	Role                string
 }
 
 func (h *BusinessHandler) GetSharePage(c *gin.Context) {
@@ -71,7 +73,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
+		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -100,6 +102,8 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 		"TotalProducts":  int(totalProducts),
 		"ActivePage":     "share",
 		"Onboarding":     h.onboardingData(businessID),
+		"AuthType":       c.GetString("auth_type"),
+		"Role":           c.GetString("role"),
 	})
 }
 
@@ -109,8 +113,10 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
 		c.HTML(500, "business.html", gin.H{
-			"Title": "SalesMee",
-			"Error": "Business not found",
+			"Title":    "SalesMee",
+			"Error":    "Business not found",
+			"AuthType": c.GetString("auth_type"),
+			"Role":     c.GetString("role"),
 		})
 		return
 	}
@@ -149,6 +155,8 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 			"Business":  business,
 			"Countries": data.Countries,
 			"Currencies": data.Currencies,
+			"AuthType":  c.GetString("auth_type"),
+			"Role":      c.GetString("role"),
 		})
 		return
 	}
@@ -224,6 +232,8 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"Countries":           data.Countries,
 		"Currencies":          data.Currencies,
 		"Onboarding":          h.onboardingData(businessID),
+		"AuthType":            c.GetString("auth_type"),
+		"Role":                c.GetString("role"),
 	})
 }
 
@@ -336,6 +346,8 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	}
 
 	data.ActivePage = "dashboard"
+	data.AuthType = c.GetString("auth_type")
+	data.Role = c.GetString("role")
 	if c.GetHeader("HX-Request") == "true" {
 		c.HTML(http.StatusOK, "dashboard_content", data)
 	} else {
@@ -483,7 +495,7 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "dashboard.html", gin.H{"error": "Business not found"})
+		c.HTML(http.StatusInternalServerError, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -546,6 +558,8 @@ func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
 		LowStockProducts:    lowStockProducts,
 		Countries:           data.Countries,
 		Currencies:          data.Currencies,
+		AuthType:            c.GetString("auth_type"),
+		Role:                c.GetString("role"),
 	}
 
 	c.HTML(http.StatusOK, "dashboard.html", data)

@@ -42,6 +42,10 @@
     </p>
   </div>
   <script>
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  }
   function login() {
     var email = document.getElementById('email').value;
     var password = document.getElementById('password').value;
@@ -53,7 +57,7 @@
     }
     fetch('/business/team/login', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
       body: JSON.stringify({email: email, password: password})
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.success) {

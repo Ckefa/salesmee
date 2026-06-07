@@ -59,6 +59,8 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 		"Countries":         dataPkg.Countries,
 		"Currencies":        dataPkg.Currencies,
 		"Onboarding":        h.onboardingData(businessID),
+		"AuthType":          c.GetString("auth_type"),
+		"Role":              c.GetString("role"),
 	})
 }
 

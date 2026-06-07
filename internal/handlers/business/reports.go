@@ -50,6 +50,8 @@ func (h *BusinessHandler) GetReportsPage(c *gin.Context) {
 		"ActivePage": "reports",
 		"ActiveTab":  "revenue",
 		"Onboarding": h.onboardingData(businessID),
+		"AuthType":   c.GetString("auth_type"),
+		"Role":       c.GetString("role"),
 	})
 }
 

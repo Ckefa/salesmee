@@ -27,6 +27,8 @@ func (h *BusinessHandler) GetLocations(c *gin.Context) {
 		"Business":   business,
 		"Locations":  locations,
 		"ActivePage": "locations",
+		"AuthType":   c.GetString("auth_type"),
+		"Role":       c.GetString("role"),
 	})
 }
 

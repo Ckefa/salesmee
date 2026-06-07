@@ -66,6 +66,8 @@ func (h *BusinessHandler) GetBusinessHours(c *gin.Context) {
 		"IsAcceptingBookings": business.IsAcceptingBookings,
 		"BusinessHours":       hoursObj,
 		"SpecialHours":        specialObj,
+		"AuthType":            c.GetString("auth_type"),
+		"Role":                c.GetString("role"),
 	})
 }
 

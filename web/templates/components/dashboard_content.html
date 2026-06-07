@@ -9,17 +9,17 @@
 
     <!-- Date Range Filter Pills -->
     <div class="flex flex-wrap gap-2 mb-6" id="stats-filter-pills">
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white">This Month</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Month</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_3_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_3_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 3M</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_6_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_6_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 6M</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Year to Date</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Year</button>
       <select id="dashboardLocationFilter" onchange="onLocationFilterChange(this)" class="input text-xs ml-auto">
         <option value="">All Locations</option>
@@ -29,7 +29,24 @@
       </select>
     </div>
 
-    {{template "dashboard_stats" .}}
+    <div id="stats-container" class="relative">
+      {{template "dashboard_stats" .}}
+      <div id="stats-skeleton" class="htmx-indicator">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {{range $i := seq 1 8}}
+          <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 rounded-md skeleton" style="width:48px;height:48px"></div>
+              <div class="ml-3 sm:ml-4 flex-1">
+                <div class="skeleton skeleton-text" style="width:60%"></div>
+                <div class="skeleton" style="width:40%;height:1.5rem;margin-top:0.25rem"></div>
+              </div>
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </div>
 
     <!-- Walk-in Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

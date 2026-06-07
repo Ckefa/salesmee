@@ -42,6 +42,8 @@ func (h *BusinessHandler) GetTeam(c *gin.Context) {
 		"Members":    members,
 		"Locations":  locations,
 		"ActivePage": "team",
+		"AuthType":   c.GetString("auth_type"),
+		"Role":       c.GetString("role"),
 	})
 }
 
@@ -82,7 +84,7 @@ func (h *BusinessHandler) InviteTeamMember(c *gin.Context) {
 
 	var permJSON string
 	if req.Role == "manager" {
-		permJSON = `{"orders:rw":true,"bookings:rw":true,"clients:rw":true,"analytics:view":true,"products:rw":true,"services:rw":true,"reports:view":true,"locations:view":true}`
+		permJSON = `{"orders:rw":true,"bookings:rw":true,"clients:rw":true,"analytics:view":true,"products:rw":true,"services:rw":true,"payments:rw":true,"reports:view":true,"locations:view":true}`
 	} else {
 		permJSON = `{"orders:r":true,"bookings:r":true,"clients:r":true}`
 	}
@@ -236,9 +238,13 @@ func (h *BusinessHandler) AcceptInvite(c *gin.Context) {
 		return
 	}
 
-	member.Password = string(hashed)
-	member.InviteToken = ""
-	h.db.Save(&member)
+	if err := h.db.Model(&member).Updates(map[string]interface{}{
+		"password":     string(hashed),
+		"invite_token": nil,
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to activate account"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }

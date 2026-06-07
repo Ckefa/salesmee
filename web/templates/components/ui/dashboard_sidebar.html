@@ -1,5 +1,9 @@
 {{define "dashboard_sidebar"}}
 {{$active := .ActivePage}}
+{{$isOwner := eq .AuthType "owner"}}
+{{$isManager := eq .Role "manager"}}
+{{$isStaff := eq .Role "staff"}}
+{{$showMgmt := or $isOwner $isManager}}
 <aside class="w-64 dashboard-sidebar bg-[var(--color-surface)] border-r border-[var(--color-border)] overflow-y-auto scrollbar-thin">
   <div class="lg:hidden flex items-center justify-between px-4 pt-4 pb-2 border-b border-[var(--color-border)] mb-2">
     <span class="text-sm font-semibold text-[var(--color-text)]">Dashboard</span>
@@ -15,6 +19,7 @@
       <i class="fas fa-chart-line w-4"></i>
       Dashboard Overview
     </a>
+    {{if $showMgmt}}
     <a href="/business/products" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
       {{if eq $active `products`}}bg-[var(--color-primary-light)]
       text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
@@ -31,6 +36,7 @@
       Services
       {{if .ServiceCount}}<span class="ml-auto badge badge-neutral">{{.ServiceCount}}</span>{{end}}
     </a>
+    {{end}}
     <a href="/business/orders" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
       {{if eq $active `orders`}}bg-[var(--color-primary-light)]
       text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
@@ -47,6 +53,7 @@
       Bookings
       {{if .PendingBookingCount}}<span class="ml-auto badge badge-info">{{.PendingBookingCount}}</span>{{end}}
     </a>
+    {{if $showMgmt}}
     <a href="/business/payments" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `payments`}}bg-[var(--color-primary-light)]
       text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
       hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
@@ -71,12 +78,14 @@
       <i class="fas fa-star w-4"></i>
       Reviews
     </a>
+    {{end}}
     <a href="/business/notification-settings" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `notifications`}}bg-[var(--color-primary-light)]
       text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
       hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
       <i class="fas fa-bell w-4"></i>
       Notifications
     </a>
+    {{if $isOwner}}
     <a href="/business/hours" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `hours`}}bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
       hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
       <i class="fas fa-clock w-4"></i>
@@ -106,6 +115,7 @@
       <i class="fas fa-users-cog w-4"></i>
       Team
     </a>
+    {{end}}
     <a href="/business" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `customers`}}bg-[var(--color-primary-light)]
       text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
       hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">

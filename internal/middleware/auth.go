@@ -34,13 +34,14 @@ func BizzMiddleware() gin.HandlerFunc {
 		if teamToken != "" {
 			claims, err := services.ValidateToken(teamToken)
 			if err == nil {
-				var member struct{ ID uint; BusinessID uint; Role string; IsActive bool }
-				db.DB.Raw("SELECT id, business_id, role, is_active FROM team_members WHERE id = ?", claims.UserID).Scan(&member)
+				var member struct{ ID uint; BusinessID uint; Role string; IsActive bool; Permissions string }
+				db.DB.Raw("SELECT id, business_id, role, is_active, permissions FROM team_members WHERE id = ?", claims.UserID).Scan(&member)
 				if member.IsActive && member.BusinessID > 0 {
 					c.Set("business_id", member.BusinessID)
 					c.Set("team_member_id", member.ID)
 					c.Set("role", member.Role)
 					c.Set("auth_type", "team")
+					c.Set("team_permissions", parsePermissions(member.Permissions))
 					c.Next()
 					return
 				}

@@ -93,22 +93,42 @@
 {{define "analytics_content"}}
 <!-- Date Range Filter Pills -->
 <div class="flex flex-wrap gap-2 mb-6" id="analytics-filter-pills">
-  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_month" hx-target="#analytics-stats-grid" hx-swap="outerHTML"
+  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_month" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white">This Month</button>
-  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_month" hx-target="#analytics-stats-grid" hx-swap="outerHTML"
+  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_month" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Month</button>
-  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_3_months" hx-target="#analytics-stats-grid" hx-swap="outerHTML"
+  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_3_months" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 3M</button>
-  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_6_months" hx-target="#analytics-stats-grid" hx-swap="outerHTML"
+  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_6_months" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 6M</button>
-  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_year" hx-target="#analytics-stats-grid" hx-swap="outerHTML"
+  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_year" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Year to Date</button>
-  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_year" hx-target="#analytics-stats-grid" hx-swap="outerHTML"
+  <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_year" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Year</button>
 </div>
 
 <div id="analytics-content">
-  {{template "analytics_stats_grid" .}}
+  <div id="analytics-stats-container" class="relative">
+    {{template "analytics_stats_grid" .}}
+    <div id="analytics-stats-skeleton" class="htmx-indicator">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {{range $i := seq 1 4}}
+        <div class="rounded-xl card p-4 sm:p-5">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="skeleton skeleton-text" style="width:50%"></div>
+              <div class="skeleton" style="width:30%;height:1.5rem;margin-top:0.25rem"></div>
+            </div>
+            <div class="w-10 h-10 rounded-lg skeleton"></div>
+          </div>
+          <div class="mt-3">
+            <div class="skeleton skeleton-text" style="width:70%"></div>
+          </div>
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </div>
 
   <!-- Charts Row -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

@@ -18,6 +18,12 @@ func TemplateData(c *gin.Context, data gin.H) gin.H {
 	if _, exists := data["CSRFToken"]; !exists {
 		data["CSRFToken"] = c.GetString("csrf_token")
 	}
+	if _, exists := data["AuthType"]; !exists {
+		data["AuthType"] = c.GetString("auth_type")
+	}
+	if _, exists := data["Role"]; !exists {
+		data["Role"] = c.GetString("role")
+	}
 	return data
 }
 

@@ -52,6 +52,8 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		"Currencies": data.Currencies,
 		"Onboarding": h.onboardingData(businessID),
 		"Locations":  locations,
+		"AuthType":   c.GetString("auth_type"),
+		"Role":       c.GetString("role"),
 	})
 }
 

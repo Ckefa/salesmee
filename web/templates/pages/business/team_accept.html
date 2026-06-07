@@ -46,6 +46,10 @@
   </div>
   {{if not .Error}}
   <script>
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  }
   function acceptInvite() {
     var password = document.getElementById('password').value;
     var errorEl = document.getElementById('acceptError');
@@ -56,7 +60,7 @@
     }
     fetch('/business/team/accept', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
       body: JSON.stringify({token: document.getElementById('token').value, password: password})
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.success) {

@@ -15,6 +15,32 @@ let servicePickerEditDate = '';
 let servicePickerEditTime = '';
 let servicePickerEditNotes = '';
 
+function formatDateDDMMYY(date) {
+  var d = date.getDate().toString().padStart(2, '0');
+  var m = (date.getMonth() + 1).toString().padStart(2, '0');
+  var y = date.getFullYear().toString().slice(-2);
+  return d + '/' + m + '/' + y;
+}
+
+function isTodayOrFuture(date) {
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date >= today;
+}
+
+function syncDateDisplay(dateInput, displayId) {
+  var display = document.getElementById(displayId);
+  if (!display) return;
+  if (dateInput.value) {
+    var date = new Date(dateInput.value + 'T00:00:00');
+    if (!isNaN(date.getTime())) {
+      display.value = formatDateDDMMYY(date);
+    }
+  } else {
+    display.value = '';
+  }
+}
+
 // ========== ENTRY POINTS ==========
 
 function openServicePicker(clientId) {
@@ -324,12 +350,28 @@ function selectService(svcId) {
   const timeInput = document.getElementById('servicePickerTime');
   // Pre-fill from edit data, or default to today/now
   if (servicePickerEditMode) {
-    if (dateInput) dateInput.value = servicePickerEditDate;
+    if (dateInput) {
+      if (servicePickerEditDate) {
+        var editDate = new Date(servicePickerEditDate);
+        if (!isNaN(editDate.getTime())) {
+          dateInput.value = editDate.toISOString().split('T')[0];
+          syncDateDisplay(dateInput, 'servicePickerDateDisplay');
+        } else {
+          document.getElementById('servicePickerDateDisplay').value = servicePickerEditDate;
+        }
+      }
+    }
     if (timeInput) timeInput.value = servicePickerEditTime;
     document.getElementById('servicePickerNotes').value = servicePickerEditNotes || '';
   } else {
     const today = new Date();
-    if (dateInput && !dateInput.value) dateInput.value = today.toISOString().split('T')[0];
+    if (dateInput) {
+      dateInput.min = today.toISOString().split('T')[0];
+      if (!dateInput.value) {
+        dateInput.value = today.toISOString().split('T')[0];
+        syncDateDisplay(dateInput, 'servicePickerDateDisplay');
+      }
+    }
     if (timeInput && !timeInput.value) {
       timeInput.value = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
     }
@@ -349,11 +391,21 @@ function renderServiceConfirmation() {
   const container = document.getElementById('servicePickerConfirmInfo');
   if (!container || !servicePickerSelectedService) return;
 
-  const date = document.getElementById('servicePickerDate').value;
+  const dateRaw = document.getElementById('servicePickerDate').value;
   const time = document.getElementById('servicePickerTime').value;
   const notes = document.getElementById('servicePickerNotes').value;
 
-  const dateObj = new Date(`${date}T${time}`);
+  var dateObj;
+  if (dateRaw && time) {
+    var parsed = new Date(dateRaw + 'T' + time);
+    if (!isNaN(parsed.getTime())) {
+      dateObj = parsed;
+    } else {
+      dateObj = new Date();
+    }
+  } else {
+    dateObj = new Date();
+  }
   const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
@@ -462,17 +514,25 @@ function openClientEditBookingPicker(bookingId) {
 async function submitServiceBooking() {
   if (!servicePickerSelectedService) return;
 
-  const date = document.getElementById('servicePickerDate').value;
+  const dateRaw = document.getElementById('servicePickerDate').value;
   const time = document.getElementById('servicePickerTime').value;
   const notes = document.getElementById('servicePickerNotes').value;
 
-  if (!date || !time) {
+  if (!dateRaw || !time) {
     showNotification('Please select a date and time', 'error');
     return;
   }
 
+  if (!servicePickerEditMode) {
+    var dateObj = new Date(dateRaw + 'T' + time);
+    if (isNaN(dateObj.getTime()) || !isTodayOrFuture(dateObj)) {
+      showNotification('Date must be today or a future date', 'error');
+      return;
+    }
+  }
+
   const [hours, minutes] = time.split(':');
-  const bookingDateTime = `${date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00Z`;
+  const bookingDateTime = `${dateRaw}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00Z`;
 
   const submitBtn = document.getElementById('servicePickerSubmitBtn');
   if (submitBtn) {

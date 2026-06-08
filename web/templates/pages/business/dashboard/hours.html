@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Business Hours - SalesMee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+{{template "dashboard_navbar" .}}
+  <div class="flex">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">
+      <div class="max-w-3xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Business Hours</h1>
+            <p class="text-sm text-[var(--color-text-secondary)] mt-1">Set your weekly availability and manage special closures</p>
+          </div>
+        </div>
+
+        <!-- Accepting Bookings Toggle -->
+        <div class="card p-4 sm:p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-semibold text-[var(--color-text)]">Accepting Bookings</h3>
+              <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">When off, clients cannot book new appointments</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="acceptingToggle" class="sr-only peer"
+                {{if .IsAcceptingBookings}}checked{{end}}
+                onchange="toggleAccepting(this.checked)">
+              <div class="w-11 h-6 bg-[var(--color-surface-tertiary)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-success)]"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Weekly Hours -->
+        <div class="card p-4 sm:p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-[var(--color-text)]">Weekly Hours</h2>
+          </div>
+          <div id="weeklyHours" class="space-y-2"></div>
+          <div class="mt-4 flex justify-end">
+            <button onclick="saveWeeklyHours()" class="btn btn-primary btn-sm">
+              <i class="fas fa-save mr-1"></i> Save Weekly Hours
+            </button>
+          </div>
+        </div>
+
+        <!-- Buffer & Capacity -->
+        <div class="card p-4 sm:p-5">
+          <h2 class="text-base font-semibold text-[var(--color-text)] mb-4">Buffer & Capacity</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Buffer Time (minutes)</label>
+              <p class="text-xs text-[var(--color-text-secondary)] mb-2">Gap between consecutive bookings</p>
+              <input type="number" id="bufferTime" value="{{.BufferTime}}" min="0" max="120" step="5"
+                class="input w-full text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Max Bookings Per Time Slot</label>
+              <p class="text-xs text-[var(--color-text-secondary)] mb-2">How many clients can book the same slot</p>
+              <input type="number" id="maxPerSlot" value="{{.MaxBookingsPerSlot}}" min="1" max="50"
+                class="input w-full text-sm">
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Timezone</label>
+            <select id="timezoneSelect" class="input w-full sm:w-64 text-sm">
+              <option value="UTC" {{if eq .TimeZone "UTC"}}selected{{end}}>UTC</option>
+              <option value="US/Eastern" {{if eq .TimeZone "US/Eastern"}}selected{{end}}>US/Eastern</option>
+              <option value="US/Central" {{if eq .TimeZone "US/Central"}}selected{{end}}>US/Central</option>
+              <option value="US/Mountain" {{if eq .TimeZone "US/Mountain"}}selected{{end}}>US/Mountain</option>
+              <option value="US/Pacific" {{if eq .TimeZone "US/Pacific"}}selected{{end}}>US/Pacific</option>
+              <option value="Europe/London" {{if eq .TimeZone "Europe/London"}}selected{{end}}>Europe/London</option>
+              <option value="Europe/Paris" {{if eq .TimeZone "Europe/Paris"}}selected{{end}}>Europe/Paris</option>
+              <option value="Europe/Berlin" {{if eq .TimeZone "Europe/Berlin"}}selected{{end}}>Europe/Berlin</option>
+              <option value="Asia/Dubai" {{if eq .TimeZone "Asia/Dubai"}}selected{{end}}>Asia/Dubai</option>
+              <option value="Asia/Tokyo" {{if eq .TimeZone "Asia/Tokyo"}}selected{{end}}>Asia/Tokyo</option>
+              <option value="Australia/Sydney" {{if eq .TimeZone "Australia/Sydney"}}selected{{end}}>Australia/Sydney</option>
+            </select>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <button onclick="saveBufferSettings()" class="btn btn-primary btn-sm">
+              <i class="fas fa-save mr-1"></i> Save Settings
+            </button>
+          </div>
+        </div>
+
+        <!-- Special Hours / Closures -->
+        <div class="card p-4 sm:p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-[var(--color-text)]">Special Hours & Closures</h2>
+            <button onclick="addSpecialEntry()" class="btn btn-ghost btn-sm">
+              <i class="fas fa-plus mr-1"></i> Add Entry
+            </button>
+          </div>
+          <div id="specialHoursList" class="space-y-2"></div>
+          <div class="mt-4 flex justify-end">
+            <button onclick="saveSpecialHours()" class="btn btn-primary btn-sm">
+              <i class="fas fa-save mr-1"></i> Save Special Hours
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  {{template "dashboard_footer" .}}
+
+<script>
+var csrfToken = getCookie('csrf_token');
+
+// Data from server
+var serverHours = {};
+var serverSpecial = [];
+try { serverHours = {{json .BusinessHours}}; } catch(e) {}
+try { serverSpecial = {{json .SpecialHours}}; } catch(e) {}
+
+var dayMeta = [
+  {key:'monday', label:'Monday'},
+  {key:'tuesday', label:'Tuesday'},
+  {key:'wednesday', label:'Wednesday'},
+  {key:'thursday', label:'Thursday'},
+  {key:'friday', label:'Friday'},
+  {key:'saturday', label:'Saturday'},
+  {key:'sunday', label:'Sunday'}
+];
+
+function formatTime(h) {
+  if (!h) return '';
+  if (h.length === 5) return h;
+  return h;
+}
+
+function renderWeeklyHours() {
+  var container = document.getElementById('weeklyHours');
+  container.innerHTML = '';
+  dayMeta.forEach(function(day) {
+    var slots = serverHours[day.key] || [];
+    var rangesHtml = '';
+    if (slots.length === 0) {
+      rangesHtml = '<div class="text-sm text-[var(--color-text-muted)] closed-label">Closed</div>';
+    } else {
+      slots.forEach(function(slot) {
+        rangesHtml += '<div class="time-range flex items-center gap-2">' +
+          '<input type="time" value="' + formatTime(slot.open) + '" class="input open-time w-28 text-sm">' +
+          '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
+          '<input type="time" value="' + formatTime(slot.close) + '" class="input close-time w-28 text-sm">' +
+          '<button type="button" onclick="this.closest(\'.time-range\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
+          '<i class="fas fa-times"></i></button></div>';
+      });
+    }
+
+    var row = document.createElement('div');
+    row.className = 'day-row flex items-start gap-3 p-3 rounded-xl bg-[var(--color-surface-secondary)]';
+    row.dataset.day = day.key;
+    row.innerHTML =
+      '<div class="w-24 shrink-0 pt-1.5"><span class="text-sm font-medium text-[var(--color-text)]">' + day.label + '</span></div>' +
+      '<div class="flex-1 space-y-2" id="ranges-' + day.key + '">' + rangesHtml + '</div>' +
+      '<div class="shrink-0 flex gap-1 pt-1">' +
+      '<button type="button" onclick="addTimeRange(\'' + day.key + '\')" class="btn btn-ghost btn-sm text-xs"><i class="fas fa-plus"></i></button>' +
+      '<button type="button" onclick="toggleDayClosed(\'' + day.key + '\')" class="btn btn-ghost btn-sm text-xs" title="Toggle closed"><i class="fas fa-ban"></i></button></div>';
+    container.appendChild(row);
+  });
+}
+
+function addTimeRange(day) {
+  var container = document.getElementById('ranges-' + day);
+  var closedLabel = container.querySelector('.closed-label');
+  if (closedLabel) closedLabel.remove();
+  var div = document.createElement('div');
+  div.className = 'time-range flex items-center gap-2';
+  div.innerHTML = '<input type="time" value="09:00" class="input open-time w-28 text-sm">' +
+    '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
+    '<input type="time" value="17:00" class="input close-time w-28 text-sm">' +
+    '<button type="button" onclick="this.closest(\'.time-range\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
+    '<i class="fas fa-times"></i></button>';
+  container.appendChild(div);
+}
+
+function toggleDayClosed(day) {
+  var container = document.getElementById('ranges-' + day);
+  var hasRanges = container.querySelectorAll('.time-range').length > 0;
+  if (hasRanges) {
+    container.innerHTML = '<div class="text-sm text-[var(--color-text-muted)] closed-label">Closed</div>';
+  } else {
+    container.innerHTML = '';
+    addTimeRange(day);
+  }
+}
+
+function collectWeeklyHours() {
+  var hours = {};
+  dayMeta.forEach(function(day) {
+    var container = document.getElementById('ranges-' + day.key);
+    var ranges = container.querySelectorAll('.time-range');
+    var slots = [];
+    ranges.forEach(function(r) {
+      var open = r.querySelector('.open-time').value;
+      var close = r.querySelector('.close-time').value;
+      if (open && close) slots.push({open: open, close: close});
+    });
+    hours[day.key] = slots;
+  });
+  return hours;
+}
+
+function saveWeeklyHours() {
+  fetch('/business/hours', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+    body: JSON.stringify({
+      hours_json: JSON.stringify(collectWeeklyHours()),
+      timezone: document.getElementById('timezoneSelect').value,
+      buffer_time: parseInt(document.getElementById('bufferTime').value) || 0,
+      max_bookings_per_slot: parseInt(document.getElementById('maxPerSlot').value) || 1
+    })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) showNotification('Weekly hours saved', 'success');
+    else showNotification('Failed to save hours', 'error');
+  });
+}
+
+function saveBufferSettings() {
+  fetch('/business/hours', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+    body: JSON.stringify({
+      timezone: document.getElementById('timezoneSelect').value,
+      buffer_time: parseInt(document.getElementById('bufferTime').value) || 0,
+      max_bookings_per_slot: parseInt(document.getElementById('maxPerSlot').value) || 1
+    })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) showNotification('Settings saved', 'success');
+    else showNotification('Failed to save settings', 'error');
+  });
+}
+
+// Special Hours
+function renderSpecialHours() {
+  var list = document.getElementById('specialHoursList');
+  list.innerHTML = '';
+  serverSpecial.forEach(function(entry) {
+    var div = document.createElement('div');
+    div.className = 'special-entry flex flex-wrap items-center gap-2 p-3 rounded-xl bg-[var(--color-surface-secondary)]';
+    var isClosed = entry.is_closed || false;
+    var closedDisabled = isClosed ? 'opacity-30 pointer-events-none' : '';
+    div.innerHTML =
+      '<input type="date" value="' + (entry.date || '') + '" class="input special-date w-36 text-sm">' +
+      '<input type="text" value="' + (entry.reason || '') + '" placeholder="Reason" class="input special-reason w-40 text-sm">' +
+      '<label class="flex items-center gap-1.5 text-sm text-[var(--color-text)]">' +
+      '<input type="checkbox" class="special-closed" ' + (isClosed ? 'checked' : '') + ' onchange="toggleSpecialClosed(this)"> All day closed</label>' +
+      '<div class="special-hours-fields flex items-center gap-2 ' + closedDisabled + '">' +
+      '<input type="time" value="' + (entry.open || '') + '" class="input special-open w-24 text-sm" placeholder="Open">' +
+      '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
+      '<input type="time" value="' + (entry.close || '') + '" class="input special-close w-24 text-sm" placeholder="Close"></div>' +
+      '<button type="button" onclick="this.closest(\'.special-entry\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
+      '<i class="fas fa-times"></i></button>';
+    list.appendChild(div);
+  });
+}
+
+function addSpecialEntry() {
+  var list = document.getElementById('specialHoursList');
+  var div = document.createElement('div');
+  div.className = 'special-entry flex flex-wrap items-center gap-2 p-3 rounded-xl bg-[var(--color-surface-secondary)]';
+  div.innerHTML =
+    '<input type="date" class="input special-date w-36 text-sm">' +
+    '<input type="text" placeholder="Reason" class="input special-reason w-40 text-sm">' +
+    '<label class="flex items-center gap-1.5 text-sm text-[var(--color-text)]">' +
+    '<input type="checkbox" class="special-closed" onchange="toggleSpecialClosed(this)"> All day closed</label>' +
+    '<div class="special-hours-fields flex items-center gap-2">' +
+    '<input type="time" class="input special-open w-24 text-sm" placeholder="Open">' +
+    '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
+    '<input type="time" class="input special-close w-24 text-sm" placeholder="Close"></div>' +
+    '<button type="button" onclick="this.closest(\'.special-entry\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
+    '<i class="fas fa-times"></i></button>';
+  list.appendChild(div);
+}
+
+function toggleSpecialClosed(checkbox) {
+  var fields = checkbox.closest('.special-entry').querySelector('.special-hours-fields');
+  if (checkbox.checked) {
+    fields.classList.add('opacity-30', 'pointer-events-none');
+  } else {
+    fields.classList.remove('opacity-30', 'pointer-events-none');
+  }
+}
+
+function saveSpecialHours() {
+  var entries = document.querySelectorAll('.special-entry');
+  var special = [];
+  entries.forEach(function(e) {
+    var date = e.querySelector('.special-date').value;
+    var reason = e.querySelector('.special-reason').value;
+    var isClosed = e.querySelector('.special-closed').checked;
+    var open = e.querySelector('.special-open').value;
+    var close = e.querySelector('.special-close').value;
+    if (date) {
+      var entry = {date: date, reason: reason, is_closed: isClosed};
+      if (!isClosed && open && close) { entry.open = open; entry.close = close; }
+      special.push(entry);
+    }
+  });
+
+  fetch('/business/hours/special', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+    body: JSON.stringify({special_json: JSON.stringify(special)})
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) showNotification('Special hours saved', 'success');
+    else showNotification('Failed to save special hours', 'error');
+  });
+}
+
+function toggleAccepting(checked) {
+  fetch('/business/hours/toggle', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+    body: JSON.stringify({accepting: checked})
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success) showNotification('Failed to update', 'error');
+  });
+}
+
+// Init
+renderWeeklyHours();
+renderSpecialHours();
+</script>
+
+</body>
+</html>

@@ -3,6 +3,33 @@
 
   var toastCounter = 0;
 
+  function playNotificationSound() {
+    var enabled = localStorage.getItem('soundEnabled');
+    if (enabled === 'false') return;
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var g = ctx.createGain();
+      g.connect(ctx.destination);
+      g.gain.value = 0.12;
+
+      var o1 = ctx.createOscillator();
+      o1.type = 'sine';
+      o1.frequency.value = 523.25;
+      o1.connect(g);
+      o1.start(ctx.currentTime);
+      o1.stop(ctx.currentTime + 0.1);
+
+      var o2 = ctx.createOscillator();
+      o2.type = 'sine';
+      o2.frequency.value = 659.25;
+      o2.connect(g);
+      o2.start(ctx.currentTime + 0.1);
+      o2.stop(ctx.currentTime + 0.25);
+
+      setTimeout(function() { ctx.close(); }, 500);
+    } catch(e) {}
+  }
+
   function showNotification(message, type) {
     type = type || 'info';
     var id = 'toast-' + (++toastCounter);
@@ -48,6 +75,7 @@
       '</button>' +
       '<div class="toast-progress" style="width:100%"></div>';
 
+    playNotificationSound();
     container.appendChild(toast);
     requestAnimationFrame(function() {
       var progress = toast.querySelector('.toast-progress');
@@ -292,4 +320,5 @@
   window.removeToast = removeToast;
   window.getCookie = getCookie;
   window.toggleHeaderMenu = toggleHeaderMenu;
+  window.playNotificationSound = playNotificationSound;
 })();

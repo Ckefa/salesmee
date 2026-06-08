@@ -15,6 +15,7 @@ type Product struct {
 	SKU         string    `gorm:"unique" json:"sku"`
 	Stock       int       `gorm:"default:0" json:"stock"`
 	MinStock    int       `gorm:"default:0" json:"min_stock"`
+	LocationID  *uint     `gorm:"index;default:null" json:"location_id,omitempty"`
 	ImageURL    string    `json:"image_url"`
 	IsActive    bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt   time.Time      `json:"created_at"`

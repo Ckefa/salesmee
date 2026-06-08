@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Accept Invitation - SalesMee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="/static/js/core/theme.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)] min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold text-[var(--color-text)]">Accept Invitation</h1>
+      {{if .Error}}
+      <div class="mt-4 p-3 rounded-lg bg-[var(--color-error-light)] text-[var(--color-error)] text-sm">{{.Error}}</div>
+      {{else}}
+      <p class="text-sm text-[var(--color-text-secondary)] mt-1">You've been invited to join <strong>{{.Business}}</strong></p>
+    </div>
+    <div class="card p-6">
+      <div id="acceptError" class="hidden mb-4 p-3 rounded-lg bg-[var(--color-error-light)] text-[var(--color-error)] text-sm"></div>
+      <input type="hidden" id="token" value="{{.Token}}">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Email</label>
+          <input type="email" id="email" class="input w-full text-sm" value="{{.Email}}" disabled>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Name</label>
+          <input type="text" id="name" class="input w-full text-sm" value="{{.Name}}" disabled>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Password</label>
+          <input type="password" id="password" class="input w-full text-sm" placeholder="At least 6 characters" autocomplete="new-password">
+        </div>
+        <button onclick="acceptInvite()" class="btn btn-primary w-full">
+          <i class="fas fa-check mr-1"></i> Accept & Set Password
+        </button>
+      </div>
+      {{end}}
+    </div>
+  </div>
+  {{if not .Error}}
+  <script>
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  }
+  function acceptInvite() {
+    var password = document.getElementById('password').value;
+    var errorEl = document.getElementById('acceptError');
+    if (!password || password.length < 6) {
+      errorEl.textContent = 'Password must be at least 6 characters';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    fetch('/business/team/accept', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
+      body: JSON.stringify({token: document.getElementById('token').value, password: password})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) {
+        window.location.href = '/business/team/login?activated=1';
+      } else {
+        errorEl.textContent = data.error || 'Failed to accept invitation';
+        errorEl.classList.remove('hidden');
+      }
+    });
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') acceptInvite();
+  });
+  </script>
+  {{end}}
+</body>
+</html>

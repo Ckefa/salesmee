@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Team - SalesMee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+{{template "dashboard_navbar" .}}
+<div class="flex">
+  {{template "dashboard_sidebar" .}}
+  <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">
+    <div class="max-w-3xl mx-auto space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Team</h1>
+          <p class="text-sm text-[var(--color-text-secondary)] mt-1">Invite and manage team members</p>
+        </div>
+        <button onclick="showInviteModal()" class="btn btn-primary btn-sm">
+          <i class="fas fa-user-plus mr-1"></i> Invite Member
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        {{range .Members}}
+        <div class="card p-4 sm:p-5" data-member-id="{{.ID}}">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center text-[var(--color-primary)] font-semibold text-sm shrink-0">
+                {{slice .Name 0 1}}
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-[var(--color-text)]">{{.Name}}</span>
+                  <span class="badge text-xs {{if eq .Role `manager`}}badge-info{{else}}badge-neutral{{end}}">{{.Role}}</span>
+                  {{if not .IsActive}}<span class="badge badge-neutral text-xs">Inactive</span>{{end}}
+                  {{if .InviteToken}}<span class="badge badge-warning text-xs">Pending</span>{{end}}
+                </div>
+                <p class="text-sm text-[var(--color-text-secondary)]">{{.Email}}</p>
+                {{if .Locations}}
+                <div class="flex flex-wrap gap-1 mt-1">
+                  {{range .Locations}}
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)]">{{.Name}}</span>
+                  {{end}}
+                </div>
+                {{end}}
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              {{if .InviteToken}}
+              <button onclick="copyInviteLink('{{.InviteToken}}')" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-info)]" title="Copy invite link">
+                <i class="fas fa-link"></i>
+              </button>
+              {{end}}
+              <button onclick="editMember({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button onclick="deleteMember({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-error)]">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        {{else}}
+        <div class="card p-8 text-center">
+          <i class="fas fa-users text-3xl text-[var(--color-text-muted)] mb-3"></i>
+          <p class="text-[var(--color-text-secondary)]">No team members yet. Invite staff to help manage your business.</p>
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Invite/Edit Modal -->
+<div id="inviteModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeInviteModal()"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-4">
+    <div class="card p-5">
+      <h2 class="text-lg font-semibold text-[var(--color-text)] mb-1" id="inviteModalTitle">Invite Team Member</h2>
+      <p class="text-sm text-[var(--color-text-secondary)] mb-4" id="inviteModalDesc">They'll receive an email to set their password.</p>
+      <input type="hidden" id="editMemberId" value="">
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Name *</label>
+          <input type="text" id="memberName" class="input w-full text-sm" placeholder="Jane Smith">
+        </div>
+        <div id="memberEmailRow">
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Email *</label>
+          <input type="email" id="memberEmail" class="input w-full text-sm" placeholder="jane@example.com">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Role</label>
+            <select id="memberRole" class="input w-full text-sm">
+              <option value="staff">Staff</option>
+              <option value="manager">Manager</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Phone</label>
+            <input type="text" id="memberPhone" class="input w-full text-sm" placeholder="+1 555-0123">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Assigned Locations</label>
+          <div class="space-y-1 max-h-32 overflow-y-auto p-2 border border-[var(--color-border)] rounded-lg">
+            {{range .Locations}}
+            <label class="flex items-center gap-2 text-sm text-[var(--color-text)]">
+              <input type="checkbox" class="location-checkbox" value="{{.ID}}">
+              {{.Name}}
+            </label>
+            {{else}}
+            <p class="text-xs text-[var(--color-text-muted)]">No locations yet. <a href="/business/locations" class="text-[var(--color-primary)]">Create one first.</a></p>
+            {{end}}
+          </div>
+        </div>
+        <div class="hidden" id="editMemberActiveRow">
+          <label class="flex items-center gap-2 text-sm text-[var(--color-text)]">
+            <input type="checkbox" id="editMemberActive" checked>
+            Active
+          </label>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeInviteModal()" class="btn btn-ghost btn-sm">Cancel</button>
+        <button onclick="saveMember()" class="btn btn-primary btn-sm">
+          <i class="fas fa-save mr-1"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var csrfToken = getCookie('csrf_token');
+
+function showInviteModal() {
+  document.getElementById('inviteModalTitle').textContent = 'Invite Team Member';
+  document.getElementById('inviteModalDesc').textContent = "They'll receive an email to set their password.";
+  document.getElementById('editMemberId').value = '';
+  document.getElementById('memberName').value = '';
+  document.getElementById('memberEmail').value = '';
+  document.getElementById('memberEmailRow').classList.remove('hidden');
+  document.getElementById('memberRole').value = 'staff';
+  document.getElementById('memberPhone').value = '';
+  document.querySelectorAll('.location-checkbox').forEach(function(cb) { cb.checked = false; });
+  document.getElementById('editMemberActiveRow').classList.add('hidden');
+  document.getElementById('inviteModal').classList.remove('hidden');
+}
+
+function editMember(id) {
+  document.getElementById('inviteModalTitle').textContent = 'Edit Team Member';
+  document.getElementById('inviteModalDesc').textContent = 'Update role, locations, and status.';
+  document.getElementById('editMemberId').value = id;
+  document.getElementById('memberName').value = '';
+  document.getElementById('memberEmailRow').classList.add('hidden');
+  document.getElementById('editMemberActiveRow').classList.remove('hidden');
+  document.getElementById('editMemberActive').checked = true;
+  document.getElementById('inviteModal').classList.remove('hidden');
+
+  // Load current data via fetch
+  var btn = event.target.closest('button');
+  // We'll just reload on save instead
+}
+
+function closeInviteModal() {
+  document.getElementById('inviteModal').classList.add('hidden');
+}
+
+function saveMember() {
+  var id = document.getElementById('editMemberId').value;
+  var name = document.getElementById('memberName').value;
+  var email = document.getElementById('memberEmail').value;
+  var role = document.getElementById('memberRole').value;
+  var phone = document.getElementById('memberPhone').value;
+  var locationIds = [];
+  document.querySelectorAll('.location-checkbox:checked').forEach(function(cb) { locationIds.push(parseInt(cb.value)); });
+
+  if (!name) { showNotification('Name is required', 'error'); return; }
+  if (!id && !email) { showNotification('Email is required', 'error'); return; }
+
+  var data = {name: name, role: role, phone: phone, location_ids: locationIds};
+  if (!id) data.email = email;
+
+  var url = id ? '/business/team/' + id : '/business/team';
+  var method = id ? 'PUT' : 'POST';
+
+  fetch(url, {
+    method: method,
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); }).then(function(resp) {
+    if (resp.success) {
+      showNotification(id ? 'Team member updated' : 'Invitation sent', 'success');
+      setTimeout(function() { location.reload(); }, 500);
+    } else {
+      showNotification(resp.error || 'Failed to save', 'error');
+    }
+  });
+}
+
+function copyInviteLink(token) {
+  var link = window.location.origin + '/business/team/accept?token=' + token;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(function() {
+      showNotification('Invite link copied to clipboard', 'success');
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = link;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showNotification('Invite link copied to clipboard', 'success');
+  }
+}
+
+function deleteMember(id) {
+  if (!confirm('Remove this team member?')) return;
+  fetch('/business/team/' + id, {
+    method: 'DELETE',
+    headers: {'X-CSRF-Token': csrfToken}
+  }).then(function(r) { return r.json(); }).then(function(resp) {
+    if (resp.success) {
+      showNotification('Team member removed', 'success');
+      setTimeout(function() { location.reload(); }, 500);
+    } else {
+      showNotification('Failed to remove', 'error');
+    }
+  });
+}
+</script>
+
+{{template "dashboard_footer" .}}
+</body>
+</html>

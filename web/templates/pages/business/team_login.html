@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Staff Login - SalesMee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="/static/js/core/theme.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)] min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold text-[var(--color-text)]">Staff Login</h1>
+      <p class="text-sm text-[var(--color-text-secondary)] mt-1">Sign in to your team account</p>
+    </div>
+    <div class="card p-6">
+      <div id="loginError" class="hidden mb-4 p-3 rounded-lg bg-[var(--color-error-light)] text-[var(--color-error)] text-sm"></div>
+      {{if .Activated}}
+      <div class="mb-4 p-3 rounded-lg bg-[var(--color-success-light)] text-[var(--color-success)] text-sm">Account activated! Please sign in.</div>
+      {{end}}
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Email</label>
+          <input type="email" id="email" class="input w-full text-sm" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Password</label>
+          <input type="password" id="password" class="input w-full text-sm" placeholder="Enter your password" autocomplete="current-password">
+        </div>
+        <button onclick="login()" class="btn btn-primary w-full">
+          <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+        </button>
+      </div>
+    </div>
+    <p class="text-center text-xs text-[var(--color-text-muted)] mt-4">
+      Business owners <a href="/business/login" class="text-[var(--color-primary)]">login here</a>
+    </p>
+  </div>
+  <script>
+  function getCookie(name) {
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  }
+  function login() {
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    var errorEl = document.getElementById('loginError');
+    if (!email || !password) {
+      errorEl.textContent = 'Email and password are required';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    fetch('/business/team/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
+      body: JSON.stringify({email: email, password: password})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) {
+        window.location.href = '/business/dashboard';
+      } else {
+        errorEl.textContent = data.error || 'Login failed';
+        errorEl.classList.remove('hidden');
+      }
+    });
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') login();
+  });
+  </script>
+</body>
+</html>

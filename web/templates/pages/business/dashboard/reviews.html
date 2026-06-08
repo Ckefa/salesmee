@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Reviews - SalesMee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+{{template "dashboard_navbar" .}}
+  <div class="flex">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">
+      <div class="max-w-5xl mx-auto space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Reviews</h1>
+            <p class="text-sm text-[var(--color-text-secondary)] mt-1">Manage client feedback and ratings</p>
+          </div>
+        </div>
+
+        <div class="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6">
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="text-center">
+              <div class="text-4xl sm:text-5xl font-bold text-[var(--color-text)]">{{if gt .ReviewCount 0}}{{.AverageRating}}{{else}}--{{end}}</div>
+              <div class="text-sm text-[var(--color-text-secondary)] mt-1">out of 5</div>
+              <div class="flex items-center justify-center gap-0.5 mt-2 text-lg">
+                {{$avg := .AverageRating}}
+                {{range seq 1 5}}
+                {{if le (float .) $avg}}
+                <i class="fas fa-star text-[var(--color-warning)]"></i>
+                {{else if and (gt (float .) $avg) (lt (sub (float .) $avg) 1.0)}}
+                <i class="fas fa-star-half-alt text-[var(--color-warning)]"></i>
+                {{else}}
+                <i class="far fa-star text-[var(--color-text-muted)]"></i>
+                {{end}}
+                {{end}}
+              </div>
+              <div class="text-sm text-[var(--color-text-secondary)] mt-1">{{.ReviewCount}} review{{if ne .ReviewCount 1}}s{{end}}</div>
+            </div>
+            <div class="flex-1 w-full space-y-2">
+              {{$total := .ReviewCount}}
+              {{$c5 := .Rating5Count}}{{$c4 := .Rating4Count}}{{$c3 := .Rating3Count}}{{$c2 := .Rating2Count}}{{$c1 := .Rating1Count}}
+              {{range $i := seq 5 1}}
+              {{$count := 0}}{{$pct := 0}}
+              {{if eq $i 5}}{{$count = $c5}}{{else if eq $i 4}}{{$count = $c4}}{{else if eq $i 3}}{{$count = $c3}}{{else if eq $i 2}}{{$count = $c2}}{{else}}{{$count = $c1}}{{end}}
+              {{if gt $total 0}}{{$pct = percent $count $total}}{{end}}
+              <div class="flex items-center gap-2 text-sm">
+                <span class="w-3 text-right text-[var(--color-text-secondary)]">{{$i}}</span>
+                <i class="fas fa-star text-[var(--color-warning)] text-xs"></i>
+                <div class="flex-1 h-2 bg-[var(--color-surface-tertiary)] rounded-full overflow-hidden">
+                  <div class="h-full rounded-full bg-[var(--color-warning)]" style="width: {{$pct}}%"></div>
+                </div>
+                <span class="w-8 text-right text-[var(--color-text-secondary)] text-xs">{{$count}}</span>
+              </div>
+              {{end}}
+            </div>
+          </div>
+        </div>
+
+        {{if .Reviews}}
+        <div class="space-y-4">
+          {{range .Reviews}}
+          <div class="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center text-sm font-bold text-[var(--color-primary)]">
+                  {{if .Client.Name}}{{substr .Client.Name 0 1}}{{else}}?{{end}}
+                </div>
+                <div>
+                  <p class="font-semibold text-[var(--color-text)] text-sm">{{.Client.Name}}</p>
+                  <div class="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+                    <span>{{formatDate .CreatedAt}}</span>
+                    {{if .OrderID}}<span class="badge badge-neutral">Order</span>{{end}}
+                    {{if .BookingID}}<span class="badge badge-info">Booking</span>{{end}}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-0.5 text-sm text-[var(--color-warning)]">
+                {{$r := .Rating}}
+                {{range seq 1 5}}
+                {{if le . $r}}<i class="fas fa-star"></i>{{else}}<i class="far fa-star"></i>{{end}}
+                {{end}}
+              </div>
+            </div>
+            {{if .Title}}<h3 class="mt-3 font-medium text-[var(--color-text)] text-sm">{{.Title}}</h3>{{end}}
+            {{if .Content}}<p class="mt-1 text-sm text-[var(--color-text-secondary)]">{{.Content}}</p>{{end}}
+
+            {{if .Reply}}
+            <div class="mt-3 ml-6 pl-4 border-l-2 border-[var(--color-primary)] bg-[var(--color-surface-secondary)] rounded-r-lg p-3">
+              <div class="flex items-center gap-2 text-xs text-[var(--color-text-muted)] mb-1">
+                <i class="fas fa-reply"></i>
+                <span>Your reply{{if .ReplyAt}} — {{formatDate .ReplyAt}}{{end}}</span>
+              </div>
+              <p class="text-sm text-[var(--color-text)]">{{.Reply}}</p>
+            </div>
+            {{else}}
+            <button onclick="showReplyForm({{.ID}})" class="mt-3 text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">
+              <i class="fas fa-reply mr-1"></i>Reply
+            </button>
+            <div id="reply-form-{{.ID}}" class="hidden mt-3">
+              <textarea id="reply-input-{{.ID}}" rows="2" class="input w-full text-sm" placeholder="Write your reply..."></textarea>
+              <div class="flex gap-2 mt-2">
+                <button onclick="submitReply({{.ID}})" class="btn btn-primary btn-sm">Post Reply</button>
+                <button onclick="hideReplyForm({{.ID}})" class="btn btn-ghost btn-sm">Cancel</button>
+              </div>
+            </div>
+            {{end}}
+          </div>
+          {{end}}
+        </div>
+        {{else}}
+        <div class="text-center py-16 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)]">
+          <div class="w-16 h-16 rounded-full bg-[var(--color-surface-secondary)] flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-star text-[var(--color-text-muted)] text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-[var(--color-text)]">No reviews yet</h3>
+          <p class="text-sm text-[var(--color-text-secondary)] mt-1">Reviews from clients will appear here after they complete orders or bookings.</p>
+        </div>
+        {{end}}
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showReplyForm(id) {
+      document.getElementById('reply-form-' + id).classList.remove('hidden');
+    }
+    function hideReplyForm(id) {
+      document.getElementById('reply-form-' + id).classList.add('hidden');
+    }
+    function submitReply(id) {
+      var input = document.getElementById('reply-input-' + id);
+      var reply = input.value.trim();
+      if (!reply) return;
+      fetch('/business/reviews/' + id + '/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCookie('csrf_token') },
+        body: 'reply=' + encodeURIComponent(reply)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          showNotification('Reply posted!', 'success');
+          setTimeout(function() { location.reload(); }, 1000);
+        } else {
+          showNotification(d.error || 'Failed to post reply', 'error');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

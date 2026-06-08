@@ -46,6 +46,8 @@ type SubscriptionPageData struct {
 
 	// Provider
 	PaymentProvider string
+	AuthType        string
+	Role            string
 }
 
 type UpcomingInvoiceInfo struct {
@@ -70,6 +72,8 @@ type CheckoutPageData struct {
 	ServiceCount        int
 	PendingOrderCount   int
 	PendingBookingCount int
+	AuthType            string
+	Role                string
 }
 
 type PlansPageData struct {
@@ -79,10 +83,12 @@ type PlansPageData struct {
 	Current    *models.SubscriptionPlan
 
 	// Sidebar badge counts
-	ProductCount       int
-	ServiceCount       int
-	PendingOrderCount  int
+	ProductCount        int
+	ServiceCount        int
+	PendingOrderCount   int
 	PendingBookingCount int
+	AuthType            string
+	Role                string
 }
 
 func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
@@ -94,7 +100,7 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
+		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -232,7 +238,7 @@ func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found"})
+		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -252,6 +258,8 @@ func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
 		Business:   business,
 		Plans:      plans,
 		Current:    current,
+		AuthType:   c.GetString("auth_type"),
+		Role:       c.GetString("role"),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -306,6 +314,8 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 
 		PaddleClientToken: os.Getenv("PADDLE_CLIENT_TOKEN"),
 		PaddleEnvironment: paddleEnv,
+		AuthType:          c.GetString("auth_type"),
+		Role:              c.GetString("role"),
 	}
 
 	c.HTML(http.StatusOK, "checkout.html", data)

@@ -12,8 +12,32 @@ let pickerEditMode = false;
 let pickerGoBackToChat = false;
 let pickerEditOrderId = null;
 let pickerEditItems = [];
-let pickerEditNotes = '';
-let pickerEditAddress = '';
+
+function formatDateDDMMYY(date) {
+  var d = date.getDate().toString().padStart(2, '0');
+  var m = (date.getMonth() + 1).toString().padStart(2, '0');
+  var y = date.getFullYear().toString().slice(-2);
+  return d + '/' + m + '/' + y;
+}
+
+function isTodayOrFuture(date) {
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date >= today;
+}
+
+function syncDateDisplay(dateInput, displayId) {
+  var display = document.getElementById(displayId);
+  if (!display) return;
+  if (dateInput.value) {
+    var date = new Date(dateInput.value + 'T00:00:00');
+    if (!isNaN(date.getTime())) {
+      display.value = formatDateDDMMYY(date);
+    }
+  } else {
+    display.value = '';
+  }
+}
 
 function showProductPicker(mode, convId, bizId, clientId, editOrderId, editItems, editNotes, editAddress) {
   pickerMode = mode || 'business';
@@ -466,12 +490,14 @@ function pickerRenderCheckout() {
   });
   container.innerHTML = html;
 
-  // Set default delivery date to tomorrow
+  // Set default delivery date to today, restrict to future dates
   const dateInput = document.getElementById('pickerDeliveryDate');
-  if (dateInput && !dateInput.value) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    dateInput.value = tomorrow.toISOString().split('T')[0];
+  if (dateInput) {
+    dateInput.min = new Date().toISOString().split('T')[0];
+    if (!dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+      syncDateDisplay(dateInput, 'pickerDeliveryDateDisplay');
+    }
   }
 }
 
@@ -591,6 +617,22 @@ async function submitProductOrder() {
   const deliveryTimeSlot = document.getElementById('pickerDeliveryTimeSlot').value;
   const contactPhone = document.getElementById('pickerContactPhone').value.trim();
   const notes = document.getElementById('pickerNotes').value.trim();
+
+  if (deliveryDate) {
+    var parsedDate = new Date(deliveryDate + 'T00:00:00');
+    if (isNaN(parsedDate.getTime())) {
+      showNotification('Please enter a valid date', 'error');
+      var sb = document.getElementById('pickerSubmitOrderBtn');
+      if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> ' + (pickerEditMode ? 'Update Order' : (pickerMode === 'client' ? 'Place Order' : 'Create Order')); }
+      return;
+    }
+    if (!isTodayOrFuture(parsedDate)) {
+      showNotification('Delivery date must be today or a future date', 'error');
+      var sb = document.getElementById('pickerSubmitOrderBtn');
+      if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> ' + (pickerEditMode ? 'Update Order' : (pickerMode === 'client' ? 'Place Order' : 'Create Order')); }
+      return;
+    }
+  }
 
   const submitBtn = document.getElementById('pickerSubmitOrderBtn');
   if (submitBtn) {

@@ -1,12 +1,16 @@
 package business
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
+	"salesmee/internal/services"
+	"salesmee/internal/services/notifier"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -105,7 +109,11 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	startTime, endTime, _ := timeRangeBounds(r)
 
 	var bookings []models.Booking
-	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&bookings)
+	bookingQuery := h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime)
+	if locID := c.Query("location_id"); locID != "" {
+		bookingQuery = bookingQuery.Where("location_id = ?", locID)
+	}
+	bookingQuery.Find(&bookings)
 
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	var totalRevenue float64
@@ -124,6 +132,9 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		}
 	}
 
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
 	c.HTML(http.StatusOK, "bookings.html", gin.H{
 		"Business":        currentBusiness,
 		"Bookings":        bookings,
@@ -137,6 +148,9 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		"Countries":       data.Countries,
 		"Currencies":      data.Currencies,
 		"Onboarding":      h.onboardingData(businessID),
+		"Locations":       locations,
+		"AuthType":        c.GetString("auth_type"),
+		"Role":            c.GetString("role"),
 	})
 }
 
@@ -258,6 +272,39 @@ func (h *BusinessHandler) GetBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
+func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string) {
+	prefs, err := notifier.GetOrCreatePrefs(h.db, booking.BusinessID)
+	if err != nil || !prefs.BookingStatusChange {
+		return
+	}
+	var client models.Client
+	if err := h.db.First(&client, booking.ClientID).Error; err != nil || client.Email == "" {
+		return
+	}
+	var biz models.Business
+	if err := h.db.First(&biz, booking.BusinessID).Error; err != nil {
+		return
+	}
+
+	notifType := "booking_status"
+	rid := booking.ID
+	if notifier.HasBeenSent(h.db, booking.BusinessID, client.ID, notifType, &rid) {
+		return
+	}
+
+	statusLabel := status
+	if err := services.SendBookingStatusEmail(client.Email, client.Name, biz.Name, booking.BookingNumber, statusLabel); err != nil {
+		notifier.MarkNotificationSent(h.db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "failed")
+		return
+	}
+	notifier.MarkNotificationSent(h.db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "sent")
+	notifier.CreateInAppNotif(h.db, booking.BusinessID, &client.ID,
+		fmt.Sprintf("Booking %s", statusLabel),
+		fmt.Sprintf("Booking %s is now %s", booking.BookingNumber, statusLabel),
+		"fa-calendar-check",
+		fmt.Sprintf("/business/bookings/%d", booking.ID))
+}
+
 func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
@@ -276,7 +323,7 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", id, businessID).First(&booking).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", id, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -316,6 +363,8 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 		return
 	}
 
+	h.sendBookingNotif(booking, newStatus)
+
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
@@ -336,7 +385,7 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 	bookingID, _ := strconv.ParseUint(bookingIDStr, 10, 32)
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -359,6 +408,8 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 		Reference: "quick-paid",
 		Notes:     "Marked as paid from dashboard",
 	})
+
+	h.sendBookingNotif(booking, "paid")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
@@ -479,6 +530,7 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		BookingDate   string `json:"booking_date" binding:"required"`
 		Notes         string `json:"notes"`
 		MarkCompleted bool   `json:"mark_completed"`
+		LocationID    *uint  `json:"location_id"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -521,6 +573,12 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		return
 	}
 
+	// Validate against business hours & availability
+	if err := h.validateBookingSlot(businessID, bookingDate, service.Duration); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	status := "pending"
 	if request.MarkCompleted {
 		status = "completed"
@@ -537,6 +595,7 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		Duration:      service.Duration,
 		TotalAmount:   service.MaxPrice,
 		Notes:         request.Notes,
+		LocationID:    request.LocationID,
 	}
 
 	if request.MarkCompleted {
@@ -573,6 +632,9 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		h.db.Create(&payment)
 	}
 
+	// Send notification for new booking
+	h.sendBookingNotif(booking, "created")
+
 	// Auto-advance conversation progress
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", client.ID, businessID).First(&conv).Error; err == nil {
@@ -587,4 +649,115 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 }
 func generateBookingNumber() string {
 	return fmt.Sprintf("BOOK-%d", time.Now().Unix())
+}
+
+func (h *BusinessHandler) validateBookingSlot(businessID uint, scheduledAt time.Time, duration int) error {
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		return fmt.Errorf("business not found")
+	}
+
+	if !business.IsAcceptingBookings {
+		return fmt.Errorf("business is not accepting bookings at this time")
+	}
+
+	// Parse business hours
+	var hoursJSON map[string][]map[string]string
+	if business.BusinessHours != "" && business.BusinessHours != "{}" {
+		if err := json.Unmarshal([]byte(business.BusinessHours), &hoursJSON); err != nil {
+			return fmt.Errorf("invalid business hours configuration")
+		}
+	}
+
+	dayName := scheduledAt.Weekday().String()
+	dayKey := weekDayKey(dayName)
+
+	slots, hasHours := hoursJSON[dayKey]
+	if !hasHours || len(slots) == 0 {
+		return fmt.Errorf("business is closed on %s", dayName)
+	}
+
+	bookingTime := scheduledAt.Format("15:04")
+	var withinHours bool
+	for _, slot := range slots {
+		if bookingTime >= slot["open"] && bookingTime <= slot["close"] {
+			withinHours = true
+			break
+		}
+	}
+	if !withinHours {
+		return fmt.Errorf("booking time %s is outside business hours on %s", bookingTime, dayName)
+	}
+
+	// Check special hours / closures
+	if business.SpecialHours != "" && business.SpecialHours != "[]" {
+		var special []map[string]interface{}
+		if err := json.Unmarshal([]byte(business.SpecialHours), &special); err == nil {
+			dateStr := scheduledAt.Format("2006-01-02")
+			for _, s := range special {
+				if s["date"] == dateStr {
+					if closed, ok := s["is_closed"].(bool); ok && closed {
+						return fmt.Errorf("business is closed on this date")
+					}
+					if open, ok := s["open"].(string); ok && open != "" {
+						if close, ok := s["close"].(string); ok && close != "" {
+							if bookingTime < open || bookingTime > close {
+								return fmt.Errorf("booking time is outside special hours on this date")
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Check max bookings per slot
+	if business.MaxBookingsPerSlot > 0 {
+		slotStart := scheduledAt.Truncate(time.Hour)
+		slotEnd := slotStart.Add(time.Hour)
+		var existingCount int64
+		h.db.Model(&models.Booking{}).
+			Where("business_id = ? AND status NOT IN ('cancelled') AND scheduled_date >= ? AND scheduled_date < ?",
+				businessID, slotStart, slotEnd).
+			Count(&existingCount)
+		if existingCount >= int64(business.MaxBookingsPerSlot) {
+			return fmt.Errorf("this time slot is fully booked")
+		}
+	}
+
+	// Check buffer time
+	if business.BufferTime > 0 {
+		bufferStart := scheduledAt.Add(-time.Duration(business.BufferTime) * time.Minute)
+		bufferEnd := scheduledAt.Add(time.Duration(duration+business.BufferTime) * time.Minute)
+		var conflicting int64
+		h.db.Model(&models.Booking{}).
+			Where("business_id = ? AND status NOT IN ('cancelled','completed') AND ((scheduled_date >= ? AND scheduled_date < ?) OR (scheduled_date + (duration || ' minutes')::interval >= ? AND scheduled_date + (duration || ' minutes')::interval < ?))",
+				businessID, bufferStart, bufferEnd, bufferStart, bufferEnd).
+			Count(&conflicting)
+		if conflicting > 0 {
+			return fmt.Errorf("there is not enough buffer time between bookings")
+		}
+	}
+
+	return nil
+}
+
+func weekDayKey(dayName string) string {
+	switch dayName {
+	case "Monday":
+		return "monday"
+	case "Tuesday":
+		return "tuesday"
+	case "Wednesday":
+		return "wednesday"
+	case "Thursday":
+		return "thursday"
+	case "Friday":
+		return "friday"
+	case "Saturday":
+		return "saturday"
+	case "Sunday":
+		return "sunday"
+	}
+	return strings.ToLower(dayName)
 }

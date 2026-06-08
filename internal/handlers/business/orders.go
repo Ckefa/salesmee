@@ -7,6 +7,8 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
+	"salesmee/internal/services"
+	"salesmee/internal/services/notifier"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +32,7 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		DeliveryAddress string `json:"delivery_address"`
 		Notes           string `json:"notes"`
 		MarkCompleted   bool   `json:"mark_completed"`
+		LocationID      *uint  `json:"location_id"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -86,6 +89,7 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		TotalAmount:  float64(request.Quantity) * product.Price,
 		Notes:        fmt.Sprintf("Delivery: %s. %s", request.DeliveryAddress, request.Notes),
 		DeliveryDate: &[]time.Time{time.Now().AddDate(0, 0, 7)}[0],
+		LocationID:   request.LocationID,
 	}
 
 	if request.MarkCompleted {
@@ -169,7 +173,11 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	startTime, endTime, _ := timeRangeBounds(r)
 
 	var orders []models.Order
-	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
+	orderQuery := h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime)
+	if locID := c.Query("location_id"); locID != "" {
+		orderQuery = orderQuery.Where("location_id = ?", locID)
+	}
+	orderQuery.Find(&orders)
 
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	var totalRevenue float64
@@ -192,6 +200,9 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		totalRevenue += order.TotalAmount
 	}
 
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
 	c.HTML(http.StatusOK, "orders.html", gin.H{
 		"Business":             currentBusiness,
 		"Orders":               orders,
@@ -207,6 +218,9 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
 		"Onboarding":           h.onboardingData(businessID),
+		"Locations":            locations,
+		"AuthType":             c.GetString("auth_type"),
+		"Role":                 c.GetString("role"),
 	})
 }
 
@@ -336,7 +350,7 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", id, businessID).First(&order).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", id, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -346,6 +360,8 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
 		return
 	}
+
+	h.sendOrderNotif(order, request.Status)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -804,7 +820,7 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -819,6 +835,8 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 	now := time.Now()
 	order.UpdatedAt = now
 	h.db.Save(&order)
+
+	h.sendOrderNotif(order, "pending")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -847,7 +865,7 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -863,6 +881,8 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 	order.Status = "confirmed"
 	order.UpdatedAt = now
 	h.db.Save(&order)
+
+	h.sendOrderNotif(order, "confirmed")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -888,7 +908,7 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -901,6 +921,8 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	order.Status = "cancelled"
 	order.UpdatedAt = time.Now()
 	h.db.Save(&order)
+
+	h.sendOrderNotif(order, "cancelled")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -926,7 +948,7 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -943,6 +965,8 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fulfill order"})
 		return
 	}
+
+	h.sendOrderNotif(order, "completed")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -998,7 +1022,7 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 	orderID, _ := strconv.ParseUint(orderIDStr, 10, 32)
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -1023,6 +1047,8 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 		Notes:     "Marked as paid from dashboard",
 	})
 
+	h.sendOrderNotif(order, "paid")
+
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
@@ -1032,6 +1058,39 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 		"success": true,
 		"message": "Order marked as paid",
 	})
+}
+
+func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
+	prefs, err := notifier.GetOrCreatePrefs(h.db, order.BusinessID)
+	if err != nil || !prefs.OrderStatusChange {
+		return
+	}
+	var client models.Client
+	if err := h.db.First(&client, order.ClientID).Error; err != nil || client.Email == "" {
+		return
+	}
+	var biz models.Business
+	if err := h.db.First(&biz, order.BusinessID).Error; err != nil {
+		return
+	}
+
+	statusLabel := status
+	notifType := "order_status"
+	rid := order.ID
+	if notifier.HasBeenSent(h.db, order.BusinessID, client.ID, notifType, &rid) {
+		return
+	}
+
+	if err := services.SendOrderStatusEmail(client.Email, client.Name, biz.Name, order.OrderNumber, statusLabel); err != nil {
+		notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "failed")
+		return
+	}
+	notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "sent")
+	notifier.CreateInAppNotif(h.db, order.BusinessID, &client.ID,
+		fmt.Sprintf("Order %s", statusLabel),
+		fmt.Sprintf("Order %s is now %s", order.OrderNumber, statusLabel),
+		"fa-shopping-cart",
+		fmt.Sprintf("/business/orders/%d", order.ID))
 }
 
 // buildOrderData creates the rich order data map for templates

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Reports - SalesMee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="/static/js/modules/shared.js?v=1"></script>
+</head>
+<body class="bg-[var(--color-bg)]">
+{{template "dashboard_navbar" .}}
+
+  <div class="flex">
+    {{template "dashboard_sidebar" .}}
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">
+      <div class="max-w-6xl mx-auto">
+
+        <!-- Tab Navigation -->
+        <div class="flex items-center gap-1 bg-[var(--color-surface-secondary)] rounded-xl p-1 mb-6 overflow-x-auto" id="reportTabs">
+          <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap bg-[var(--color-primary)] text-white"
+            onclick="switchReportTab(this, 'revenue')"
+            hx-get="/business/reports/revenue?range=this_month"
+            hx-target="#reportContent"
+            hx-swap="innerHTML"
+            id="tab-revenue">
+            <i class="fas fa-chart-line mr-1.5"></i>Revenue
+          </button>
+          <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="switchReportTab(this, 'sales')"
+            hx-get="/business/reports/sales?range=this_month"
+            hx-target="#reportContent"
+            hx-swap="innerHTML"
+            id="tab-sales">
+            <i class="fas fa-box mr-1.5"></i>Sales by Product
+          </button>
+          <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="switchReportTab(this, 'clients')"
+            hx-get="/business/reports/clients?range=this_month"
+            hx-target="#reportContent"
+            hx-swap="innerHTML"
+            id="tab-clients">
+            <i class="fas fa-users mr-1.5"></i>Clients
+          </button>
+          <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="switchReportTab(this, 'tax')"
+            hx-get="/business/reports/tax?range=this_year"
+            hx-target="#reportContent"
+            hx-swap="innerHTML"
+            id="tab-tax">
+            <i class="fas fa-file-invoice-dollar mr-1.5"></i>Tax Summary
+          </button>
+        </div>
+
+        <!-- Date Range Pills -->
+        <div class="flex flex-wrap items-center gap-2 mb-6" id="rangePills">
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white"
+            onclick="loadRange('today', this)">Today</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="loadRange('this_week', this)">This Week</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="loadRange('this_month', this)">This Month</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="loadRange('last_month', this)">Last Month</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="loadRange('last_3_months', this)">Last 3M</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="loadRange('this_year', this)">Year to Date</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+            onclick="loadRange('last_year', this)">Last Year</button>
+          <div class="flex items-center gap-1 ml-2 pl-2 border-l border-[var(--color-border)]">
+            <input type="date" id="customStart" class="input text-xs py-1 px-2 w-32">
+            <span class="text-xs text-[var(--color-text-muted)]">—</span>
+            <input type="date" id="customEnd" class="input text-xs py-1 px-2 w-32">
+            <button onclick="applyCustomRange()" class="btn btn-primary btn-xs">Go</button>
+          </div>
+        </div>
+
+        <!-- Report Content -->
+        <div id="reportContent">
+          <div class="text-center py-16 text-[var(--color-text-muted)]">
+            <i class="fas fa-chart-pie text-4xl mb-3"></i>
+            <p>Select a report tab to get started</p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    var currentReportTab = 'revenue';
+
+    function switchReportTab(el, tab) {
+      currentReportTab = tab;
+      var tabs = document.querySelectorAll('#reportTabs button');
+      tabs.forEach(function(t) {
+        t.className = 'px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]';
+      });
+      el.className = 'px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap bg-[var(--color-primary)] text-white';
+      var customStart = document.getElementById('customStart').value;
+      var customEnd = document.getElementById('customEnd').value;
+      if (customStart && customEnd) {
+        htmx.ajax('GET', '/business/reports/' + tab + '?start=' + customStart + '&end=' + customEnd, {target: '#reportContent', swap: 'innerHTML'});
+      }
+    }
+
+    function loadRange(range, el) {
+      var pills = document.querySelectorAll('#rangePills button');
+      pills.forEach(function(p) {
+        p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]';
+      });
+      el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white';
+      htmx.ajax('GET', '/business/reports/' + currentReportTab + '?range=' + range, {target: '#reportContent', swap: 'innerHTML'});
+      document.getElementById('customStart').value = '';
+      document.getElementById('customEnd').value = '';
+    }
+
+    function applyCustomRange() {
+      var start = document.getElementById('customStart').value;
+      var end = document.getElementById('customEnd').value;
+      if (!start || !end) { showNotification('Please select both start and end dates', 'error'); return; }
+      htmx.ajax('GET', '/business/reports/' + currentReportTab + '?start=' + start + '&end=' + end, {target: '#reportContent', swap: 'innerHTML'});
+      var pills = document.querySelectorAll('#rangePills button');
+      pills.forEach(function(p) { p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]'; });
+    }
+
+    function loadTabWithRange(el, tab, range) {
+      currentReportTab = tab;
+      setActiveRangePill(el.parentElement ? el : el);
+      htmx.ajax('GET', '/business/reports/' + tab + '?range=' + range, {target: '#reportContent', swap: 'innerHTML'});
+    }
+
+    function printReport() {
+      window.print();
+    }
+  </script>
+</body>
+</html>

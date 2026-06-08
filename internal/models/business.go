@@ -20,11 +20,23 @@ type Business struct {
 	SubscriptionPlanID *uint     `gorm:"default:null" json:"subscription_plan_id"`
 	EmailVerified      bool      `gorm:"default:false" json:"email_verified"`
 	VerificationToken  string    `gorm:"default:null" json:"-"`
-	PaymentInstructions string   `gorm:"type:text" json:"payment_instructions"`
-	OnboardingStep     int       `gorm:"default:0" json:"onboarding_step"`
-	CreatedAt          time.Time `json:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	PaymentInstructions  string   `gorm:"type:text" json:"payment_instructions"`
+	OnboardingStep       int       `gorm:"default:0" json:"onboarding_step"`
+	TimeZone             string    `gorm:"default:'UTC'" json:"timezone"`
+	BufferTime           int       `gorm:"default:0" json:"buffer_time"`
+	MaxBookingsPerSlot   int       `gorm:"default:1" json:"max_bookings_per_slot"`
+	IsAcceptingBookings  bool      `gorm:"default:true" json:"is_accepting_bookings"`
+	BusinessHours        string    `gorm:"type:jsonb;default:'{}'" json:"business_hours"`
+	SpecialHours         string    `gorm:"type:jsonb;default:'[]'" json:"special_hours"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
 
-	Clients      []Client             `gorm:"foreignKey:BusinessID" json:"clients,omitempty"`
+	AverageRating float64   `gorm:"default:0"`
+	ReviewCount   int       `gorm:"default:0"`
+
+	Clients      []Client              `gorm:"foreignKey:BusinessID" json:"clients,omitempty"`
 	Subscription *BusinessSubscription `gorm:"foreignKey:BusinessID" json:"subscription,omitempty"`
+	Reviews      []Review              `gorm:"foreignKey:BusinessID" json:"reviews,omitempty"`
+	Locations    []Location            `gorm:"foreignKey:BusinessID" json:"locations,omitempty"`
+	TeamMembers  []TeamMember          `gorm:"foreignKey:BusinessID" json:"team_members,omitempty"`
 }

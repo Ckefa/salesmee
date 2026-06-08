@@ -369,3 +369,343 @@ func SendSubscriptionFailed(toEmail, businessName string) error {
 	log.Printf("Payment failed email sent to %s: %s", toEmail, sent.Id)
 	return nil
 }
+
+func SendBookingReminderEmail(toEmail, clientName, businessName, serviceName, date, time, duration string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Reminder — %s at %s", toEmail, serviceName, date)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128197;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Upcoming appointment reminder</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, this is a reminder for your upcoming appointment at <strong>%s</strong>.
+					</p>
+					<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f1f5f9; border-radius: 8px; padding: 16px;">
+						<tr><td style="padding: 4px 0;"><strong style="color: #1e293b; font-size: 14px;">Service:</strong></td><td style="color: #64748b; font-size: 14px;">%s</td></tr>
+						<tr><td style="padding: 4px 0;"><strong style="color: #1e293b; font-size: 14px;">Date:</strong></td><td style="color: #64748b; font-size: 14px;">%s</td></tr>
+						<tr><td style="padding: 4px 0;"><strong style="color: #1e293b; font-size: 14px;">Time:</strong></td><td style="color: #64748b; font-size: 14px;">%s</td></tr>
+						<tr><td style="padding: 4px 0;"><strong style="color: #1e293b; font-size: 14px;">Duration:</strong></td><td style="color: #64748b; font-size: 14px;">%s</td></tr>
+					</table>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, clientName, businessName, serviceName, date, time, duration)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("Reminder — %s at %s", serviceName, businessName),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send booking reminder email: %w", err)
+	}
+
+	log.Printf("Booking reminder email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
+func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Order %s — %s", toEmail, orderNumber, status)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128722;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Order status update</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, your order <strong>%s</strong> at %s is now: <strong>%s</strong>.
+					</p>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, clientName, orderNumber, businessName, status)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("Order %s — %s", orderNumber, status),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send order status email: %w", err)
+	}
+
+	log.Printf("Order status email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
+func SendBookingStatusEmail(toEmail, clientName, businessName, bookingNumber, status string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Booking %s — %s", toEmail, bookingNumber, status)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128197;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Booking status update</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, your booking <strong>%s</strong> at %s is now: <strong>%s</strong>.
+					</p>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, clientName, bookingNumber, businessName, status)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("Booking %s — %s", bookingNumber, status),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send booking status email: %w", err)
+	}
+
+	log.Printf("Booking status email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
+func SendPaymentReminderEmail(toEmail, clientName, businessName, refNumber, amount string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment reminder — %s", toEmail, refNumber)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #dc2626, #ea580c); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128179;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Payment reminder</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, this is a reminder regarding <strong>%s</strong> at %s.
+					</p>
+					<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f1f5f9; border-radius: 8px; padding: 16px;">
+						<tr><td style="padding: 4px 0;"><strong style="color: #1e293b; font-size: 14px;">Reference:</strong></td><td style="color: #64748b; font-size: 14px;">%s</td></tr>
+						<tr><td style="padding: 4px 0;"><strong style="color: #1e293b; font-size: 14px;">Amount due:</strong></td><td style="color: #64748b; font-size: 14px;">%s</td></tr>
+					</table>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, clientName, refNumber, businessName, refNumber, amount)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("Payment reminder — %s", refNumber),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send payment reminder email: %w", err)
+	}
+
+	log.Printf("Payment reminder email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
+func SendAbandonedCartEmail(toEmail, clientName, businessName, orderNumber, link string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Complete your order %s", toEmail, orderNumber)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128722;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">You left something behind!</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, you have an unfinished order (<strong>%s</strong>) at %s. Complete it now before it's too late!
+					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">Complete Order</a>
+					</div>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, clientName, orderNumber, businessName, link)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("Complete your order %s at %s", orderNumber, businessName),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send abandoned cart email: %w", err)
+	}
+
+	log.Printf("Abandoned cart email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}
+
+func SendInactiveClientEmail(toEmail, clientName, businessName, businessSlug string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: We miss you at %s", toEmail, businessName)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+	<table width="100%%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+		<tr><td align="center">
+			<table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+				<tr><td style="background: linear-gradient(135deg, #0d9488, #0891b2); padding: 32px; text-align: center;">
+					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">%s</h1>
+				</td></tr>
+				<tr><td style="padding: 32px;">
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128153;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">We miss you!</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, it's been a while since your last visit to <strong>%s</strong>. We'd love to see you again!
+					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488, #0891b2); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">Visit Us Again</a>
+					</div>
+				</td></tr>
+				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
+				</td></tr>
+			</table>
+		</td></tr>
+	</table>
+</body>
+</html>`, businessName, clientName, businessName, businessSlug)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("We miss you at %s", businessName),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send inactive client email: %w", err)
+	}
+
+	log.Printf("Inactive client email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}

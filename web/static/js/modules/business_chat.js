@@ -39,6 +39,7 @@ function fetchMessages() {
         currentMessages.innerHTML = newMessages.innerHTML;
         currentMessages.scrollTop = currentMessages.scrollHeight;
         markAsRead();
+        playNotificationSound();
       }
     })
     .catch(error => {

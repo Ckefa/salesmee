@@ -16,98 +16,7 @@
 </head>
 <body class="bg-[var(--color-bg)]">
 
-  <!-- Header -->
-  <header class="navbar-glass">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center gap-3">
-          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
-          <a href="/business" class="btn btn-ghost btn-icon" title="Back to Chats">
-            <i class="fas fa-arrow-left"></i>
-          </a>
-          <h1 class="text-xl font-semibold text-[var(--color-text)]">Dashboard</h1>
-        </div>
-        <div class="flex items-center gap-3">
-          <div hx-get="/business/subscription/badge" hx-trigger="load" hx-swap="innerHTML" class="flex items-center"></div>
-
-          <!-- Desktop: action items shown inline -->
-          <div class="hidden lg:flex items-center gap-3">
-            <button class="theme-toggle" title="Toggle theme">
-              <i class="fas fa-sun theme-sun"></i>
-              <i class="fas fa-moon theme-moon hidden"></i>
-            </button>
-            {{if gt .PendingOrderCount 0}}
-            <a href="/business/orders" class="badge badge-warning gap-1.5 px-3 py-1.5 text-xs">
-              <i class="fas fa-shopping-cart"></i>
-              {{.PendingOrderCount}} pending
-            </a>
-            {{end}}
-            {{if gt .PendingBookingCount 0}}
-            <a href="/business/bookings" class="badge badge-warning gap-1.5 px-3 py-1.5 text-xs">
-              <i class="fas fa-calendar-check"></i>
-              {{.PendingBookingCount}} pending
-            </a>
-            {{end}}
-            <a href="/business" class="btn btn-secondary btn-sm hide-mobile">
-              <i class="fas fa-users"></i>
-              Clients
-            </a>
-            <button id="profileTrigger" onclick="showBusinessProfile()" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              {{if .Business.Logo}}
-              <img src="/static/{{.Business.Logo}}" alt="Logo" class="avatar avatar-sm">
-              {{else}}
-              <div class="avatar avatar-sm avatar-placeholder"><i class="fas fa-store text-white text-[10px]"></i></div>
-              {{end}}
-              <span class="text-sm font-medium text-[var(--color-text)] hide-mobile">{{.Business.Name}}</span>
-            </button>
-            <a href="/business/logout" class="btn btn-ghost btn-icon hover:text-rose-500" title="Logout">
-              <i class="fas fa-sign-out-alt"></i>
-            </a>
-          </div>
-
-          <!-- Mobile: overflow menu trigger -->
-          <div class="relative lg:hidden">
-            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
-              <i class="fas fa-ellipsis-v text-lg"></i>
-            </button>
-            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-              <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-adjust w-5 text-center"></i>
-                <span>Toggle Theme</span>
-              </button>
-              {{if gt .PendingOrderCount 0}}
-              <a href="/business/orders" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-shopping-cart w-5 text-center"></i>
-                <span>{{.PendingOrderCount}} pending orders</span>
-              </a>
-              {{end}}
-              {{if gt .PendingBookingCount 0}}
-              <a href="/business/bookings" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-calendar-check w-5 text-center"></i>
-                <span>{{.PendingBookingCount}} pending bookings</span>
-              </a>
-              {{end}}
-              <a href="/business" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-users w-5 text-center"></i>
-                <span>Clients</span>
-              </a>
-              <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-store w-5 text-center"></i>
-                <span>Business Profile</span>
-              </button>
-              <div class="border-t border-[var(--color-border-light)] my-1"></div>
-              <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-sign-out-alt w-5 text-center"></i>
-                <span>Logout</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+{{template "dashboard_navbar" .}}
 
   {{template "verify_banner" .}}
 
@@ -320,11 +229,14 @@
     </div>
   </div>
 
+  {{template "assist_panel" .}}
+
   {{template "business_profile" .}}
 
   {{template "mobile_bottom_nav" .}}
 
   <script src="/static/js/modules/shared.js?v=1"></script>
+  <script src="/static/js/modules/assist.js?v=1"></script>
   <script src="/static/js/core/app.js?v=1"></script>
   {{template "business_profile_script" .}}
   <script>
@@ -544,6 +456,8 @@
 
     document.getElementById('quickOrderForm')?.addEventListener('submit', function(e) {
       e.preventDefault();
+      var locParams = new URLSearchParams(window.location.search);
+      var curLocId = locParams.get('location_id');
       var orderData = {
         product_id: parseInt(document.getElementById('orderProduct').value),
         quantity: parseInt(document.getElementById('orderQuantity').value),
@@ -552,7 +466,8 @@
         customer_phone: document.getElementById('orderCustomerPhone').value,
         delivery_address: document.getElementById('orderDeliveryAddress').value,
         notes: document.getElementById('orderNotes').value,
-        mark_completed: document.getElementById('orderCompleted').checked
+        mark_completed: document.getElementById('orderCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
       fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(orderData) })
         .then(function(r) { return r.json(); })
@@ -565,6 +480,8 @@
 
     document.getElementById('quickBookingForm')?.addEventListener('submit', function(e) {
       e.preventDefault();
+      var locParams = new URLSearchParams(window.location.search);
+      var curLocId = locParams.get('location_id');
       var bookingData = {
         service_id: parseInt(document.getElementById('bookingService').value),
         customer_name: document.getElementById('bookingCustomerName').value,
@@ -572,7 +489,8 @@
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: document.getElementById('bookingDateTime').value,
         notes: document.getElementById('bookingNotes').value,
-        mark_completed: document.getElementById('bookingCompleted').checked
+        mark_completed: document.getElementById('bookingCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
       fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(bookingData) })
         .then(function(r) { return r.json(); })

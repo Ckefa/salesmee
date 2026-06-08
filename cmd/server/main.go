@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/routes"
+	"salesmee/internal/services/notifier"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +30,7 @@ func main() {
 	db.Connect()
 
 	log.Println("🔄 Starting database auto-migration...")
-	db.DB.AutoMigrate(
+	migrateModels := []interface{}{
 		&models.Business{},
 		&models.Client{},
 		&models.Conversation{},
@@ -51,8 +53,19 @@ func main() {
 		&models.PasswordResetToken{},
 		&models.Admin{},
 		&models.AuditLog{},
-	)
-	log.Println("✅ Database auto-migration completed successfully")
+		&models.BusinessNotifPrefs{},
+		&models.NotificationLog{},
+		&models.InAppNotification{},
+		&models.Review{},
+		&models.Location{},
+		&models.TeamMember{},
+	}
+	for _, m := range migrateModels {
+		if err := db.DB.AutoMigrate(m); err != nil {
+			log.Printf("⚠️ Migration warning for %T: %v", m, err)
+		}
+	}
+	log.Println("✅ Database auto-migration completed")
 
 	// Schema sync: add missing columns for models modified after initial migration
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS customer_id INTEGER NOT NULL DEFAULT 0")
@@ -65,6 +78,29 @@ func main() {
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_messages INTEGER DEFAULT 0")
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS total_spent DOUBLE PRECISION DEFAULT 0")
 	db.DB.Exec("ALTER TABLE customer_insights ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS time_zone VARCHAR(50) DEFAULT 'UTC'")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS buffer_time INTEGER DEFAULT 0")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS max_bookings_per_slot INTEGER DEFAULT 1")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS is_accepting_bookings BOOLEAN DEFAULT true")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_hours JSONB DEFAULT '{}'")
+	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS special_hours JSONB DEFAULT '[]'")
+	db.DB.Exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS staff_id INTEGER REFERENCES team_members(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS commission_type VARCHAR(20) DEFAULT 'percentage'")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS commission_value DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE order_items ADD COLUMN IF NOT EXISTS commission_earned DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS staff_id INTEGER REFERENCES team_members(id) ON DELETE SET NULL")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS commission_type VARCHAR(20) DEFAULT 'percentage'")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS commission_value DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec("ALTER TABLE booking_items ADD COLUMN IF NOT EXISTS commission_earned DOUBLE PRECISION DEFAULT 0")
+	db.DB.Exec(`CREATE TABLE IF NOT EXISTS team_member_locations (
+		team_member_id INTEGER NOT NULL REFERENCES team_members(id) ON DELETE CASCADE,
+		location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+		PRIMARY KEY (team_member_id, location_id)
+	)`)
 	log.Println("✅ Schema sync completed")
 
 	// Data migration: copy old first_name/last_name to name/username for existing records
@@ -140,9 +176,9 @@ func main() {
 		"mul": func(a, b float64) float64 { return a * b },
 		"div": func(a, b float64) float64 { return a / b },
 		"float": func(i int) float64 { return float64(i) },
-		"json": func(v interface{}) string {
+		"json": func(v interface{}) template.JS {
 			b, _ := json.Marshal(v)
-			return string(b)
+			return template.JS(b)
 		},
 		"currencySymbol": func(code string) string {
 			for _, c := range data.Currencies {
@@ -165,6 +201,20 @@ func main() {
 			}
 			return int(float64(current) / float64(total) * 100)
 		},
+		"printf": func(format string, args ...interface{}) string {
+			return fmt.Sprintf(format, args...)
+		},
+		"substr": func(s string, start, length int) string {
+			runes := []rune(s)
+			if start >= len(runes) {
+				return ""
+			}
+			end := start + length
+			if end > len(runes) {
+				end = len(runes)
+			}
+			return string(runes[start:end])
+		},
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)
 
@@ -178,6 +228,9 @@ func main() {
 	routes.SetupBusinessRoutes(r)
 	routes.SetupClientRoutes(r)
 	routes.SetupAdminRoutes(r)
+
+	// Start background notification scheduler
+	notifier.StartNotificationScheduler(db.DB)
 
 	log.Println("🚀 Running on :" + os.Getenv("APP_PORT"))
 	r.Run(":" + os.Getenv("APP_PORT"))

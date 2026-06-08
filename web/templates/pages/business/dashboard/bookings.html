@@ -14,69 +14,10 @@
 </head>
 
 <body class="bg-[var(--color-bg)] h-screen">
-  <!-- Header -->
-  <header class="navbar-glass">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center">
-          <a href="/business/dashboard" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
-            <i class="fas fa-arrow-left"></i>
-          </a>
-          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
-          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Bookings</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <!-- Desktop: action items shown inline -->
-          <div class="hidden lg:flex items-center space-x-4">
-            <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
-              <i class="fas fa-sun theme-sun"></i>
-              <i class="fas fa-moon theme-moon hidden"></i>
-            </button>
-            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
-              {{if .Business.Logo}}
-              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-              {{else}}
-              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
-              </div>
-              {{end}}
-              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
-            </button>
-            <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
-          </div>
-
-      <!-- Mobile: overflow menu trigger -->
-      <div class="relative lg:hidden">
-        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost text-[var(--color-text-muted)]">
-          <i class="fas fa-ellipsis-v text-lg"></i>
-        </button>
-        <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-          <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-adjust w-5 text-center"></i>
-            <span>Toggle Theme</span>
-          </button>
-          <a href="/business/dashboard" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-chart-line w-5 text-center"></i>
-            <span>Dashboard</span>
-          </a>
-          <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-store w-5 text-center"></i>
-            <span>Business Profile</span>
-          </button>
-          <div class="border-t border-[var(--color-border-light)] my-1"></div>
-          <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-sign-out-alt w-5 text-center"></i>
-            <span>Logout</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
+{{template "dashboard_navbar" .}}
   {{template "verify_banner" .}}
 
-  <div class="flex h-screen pt-16">
+  <div class="flex h-[calc(100vh-4rem)]">
     {{template "dashboard_sidebar" .}}
     <main class="flex-1 overflow-y-auto pb-16">
       {{template "bookings_content" .}}
@@ -133,6 +74,12 @@
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <select id="bookingLocationFilter" class="input text-sm">
+            <option value="">All Locations</option>
+            {{range .Locations}}
+            <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
           <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
             <i class="fas fa-times mr-1"></i>Clear
           </button>
@@ -178,7 +125,8 @@
                 data-number="{{.BookingNumber}}"
                 data-customer-name="{{.Client.Name}}"
                 data-customer-email="{{.Client.Email}}"
-                data-created-at="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">
+                data-created-at="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}"
+                data-location-id="{{.LocationID}}">
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.BookingNumber}}</td>
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text)]">
                   <div class="font-medium">{{.Client.Name}}</div>
@@ -662,6 +610,8 @@
       const formattedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
       const bookingDateTime = `${bookingDate}T${formattedTime}`;
 
+      const locParams = new URLSearchParams(window.location.search);
+      const curLocId = locParams.get('location_id');
       const bookingData = {
         service_id: parseInt(document.getElementById('bookingService').value),
         customer_name: document.getElementById('bookingCustomerName').value,
@@ -669,7 +619,8 @@
         customer_phone: document.getElementById('bookingCustomerPhone').value,
         booking_date: bookingDateTime,
         notes: document.getElementById('bookingNotes').value,
-        mark_completed: document.getElementById('bookingCompleted').checked
+        mark_completed: document.getElementById('bookingCompleted').checked,
+        location_id: curLocId ? parseInt(curLocId) : null
       };
 
       // Check if this is an edit or create
@@ -725,6 +676,7 @@
       const field = document.getElementById('bookingSearchField').value;
       const status = document.getElementById('bookingStatusFilter').value;
       const period = document.getElementById('bookingPeriodFilter').value;
+      const location = document.getElementById('bookingLocationFilter').value;
       const rows = document.querySelectorAll('#bookingsTableBody tr[data-number]');
       let periodVisible = 0;
       let allVisible = 0;
@@ -742,6 +694,9 @@
         const rowStatus = row.getAttribute('data-status');
         const matchStatus = !status || rowStatus === status;
 
+        const rowLocation = row.getAttribute('data-location-id');
+        const matchLocation = !location || rowLocation === location;
+
         let matchSearch = true;
         if (search) {
           let targets = [];
@@ -757,12 +712,12 @@
           matchSearch = targets.some(t => t && t.toLowerCase().includes(search));
         }
 
-        const show = matchSearch && matchStatus;
+        const show = matchSearch && matchStatus && matchLocation;
         if (!show) row.style.display = 'none';
         if (show) allVisible++;
       });
 
-      const hasFilters = search || status;
+      const hasFilters = search || status || location;
       document.getElementById('clearBookingFilters').classList.toggle('hidden', !hasFilters);
       document.getElementById('noBookingsMsg').style.display = allVisible === 0 && periodVisible > 0 ? '' : 'none';
       document.getElementById('bookingResultsCount').textContent = hasFilters ? `${allVisible} of ${periodVisible} results` : '';
@@ -774,9 +729,9 @@
     }
 
     document.getElementById('bookingSearch').addEventListener('input', filterBookings);
-    document.getElementById('bookingServiceSearch')?.addEventListener('input', function() { renderBookingServices(this.value); });
     document.getElementById('bookingSearchField').addEventListener('change', filterBookings);
     document.getElementById('bookingStatusFilter').addEventListener('change', filterBookings);
+    document.getElementById('bookingLocationFilter').addEventListener('change', filterBookings);
     document.getElementById('clearBookingFilters').addEventListener('click', function() {
       document.getElementById('bookingSearch').value = '';
       document.getElementById('bookingSearchField').value = 'all';

@@ -5,7 +5,7 @@
       <h3 class="text-lg font-bold text-[var(--color-text)]">Rate Your Experience</h3>
       <button onclick="closeReviewModal()" class="btn btn-icon btn-ghost btn-icon-sm"><i class="fas fa-times"></i></button>
     </div>
-    <form id="reviewForm" onsubmit="return submitReview(event)">
+    <form id="reviewForm" method="POST" onsubmit="return submitReview(event)">
       <input type="hidden" name="business_id" id="reviewBusinessId">
       <input type="hidden" name="order_id" id="reviewOrderId">
       <input type="hidden" name="booking_id" id="reviewBookingId">

@@ -53,6 +53,8 @@ func SetupClientRoutes(r *gin.Engine) {
 		clientProtected.POST("/reviews", client.SubmitReview)
 		clientProtected.POST("/orders/:id/payment", businessHandler.ClientSubmitOrderPayment)
 		clientProtected.POST("/bookings/:id/payment", businessHandler.ClientSubmitBookingPayment)
+		clientProtected.POST("/assist/chat", client.ClientAssistChat)
+		clientProtected.GET("/assist/suggestions", client.ClientGetAssistSuggestions)
 	}
 
 }

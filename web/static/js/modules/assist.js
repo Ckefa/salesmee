@@ -4,6 +4,7 @@
   var messageHistory = [];
   var MAX_HISTORY = 10;
   var ASSIST_KEY = 'salesmeeAssistHistory';
+  var API_BASE = window.ASSIST_API_BASE || '/business/assist';
 
   function loadState() {
     try {
@@ -95,7 +96,7 @@
 
     var history = messageHistory.slice(-MAX_HISTORY);
 
-    fetch('/business/assist/chat', {
+    fetch(API_BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
       body: JSON.stringify({ message: text, history: history })
@@ -124,7 +125,7 @@
   }
 
   function loadSuggestions() {
-    fetch('/business/assist/suggestions')
+    fetch(API_BASE + '/suggestions')
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var container = document.getElementById('assistSuggestions');

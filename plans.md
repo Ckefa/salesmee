@@ -53,39 +53,33 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ### Tier 2 — Operations & Growth
 
-#### 3.2 Staff / Team Management
-- Staff profiles (name, role, photo, contact)
-- Assign staff to services
-- Commission tracking per order/booking per staff
-- Staff activity log
-
-#### 3.3 Broadcast / Announcements
+#### 3.2 Broadcast / Announcements
 - One-to-many messages to all clients or filtered segments
 - Promotional announcements, service updates
 - Opt-out per client
 
 ### Tier 3 — Monetization & Differentiation
 
-#### 3.4 Customer Loyalty / Rewards Program
+#### 3.3 Customer Loyalty / Rewards Program
 - Points-per-spend or per-visit
 - Redeem points for discounts or free services
 - Tie into existing CustomerInsight tier system
 - Birthday/anniversary automated rewards
 - Points balance visible in client dashboard
 
-#### 3.5 Gift Cards & Vouchers
+#### 3.4 Gift Cards & Vouchers
 - Sell gift cards (fixed amount or specific service)
 - Redeem at checkout
 - Balance tracking
 - Send via email
 
-#### 3.6 Invoice / Billing System
+#### 3.5 Invoice / Billing System
 - Formal invoices with invoice #, tax info, business details
 - PDF download + email to client
 - Payment terms (due on receipt, net 15/30)
 - Deposit / partial payment plans
 
-#### 3.7 Tax Configuration
+#### 3.6 Tax Configuration
 - Tax rates per country/location
 - Auto-apply tax to orders/bookings
 - Tax-inclusive or exclusive pricing
@@ -94,22 +88,16 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ### Tier 4 — Scale & Integrations
 
-#### 3.8 Multi-Location / Multi-Branch
-- Multiple locations per business account
-- Per-location inventory, staff, products, services
-- Location selector on public profile
-- Reporting by location
-
-#### 3.9 Product / Service Categories
+#### 3.7 Product / Service Categories
 - Categorize products and services
 - Category-based filtering on public page and dashboards
 
-#### 3.10 Waitlist
+#### 3.8 Waitlist
 - Join waitlist for fully booked slots
 - Auto-notify when slot opens
 - Priority based on client tier
 
-#### 3.11 Integrations
+#### 3.9 Integrations
 - Calendar sync (Google Calendar, iCal)
 - Accounting sync (QuickBooks, Xero)
 - SMS notifications (Twilio)
@@ -120,7 +108,6 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ## 4. Creative Additions (Backlog)
 
-- **"salesmee Assist"** — floating AI assistant chatbot
 - **Achievement badges** — "First Connect", "10 Orders", "5-Star Service"
 - **Sound design** — optional notification sounds
 - **"salesmee Streak"** — daily active usage counter

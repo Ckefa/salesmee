@@ -161,6 +161,16 @@ func GetMessages(c *gin.Context) {
 		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
 			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
 
+		var orderReview struct {
+			Rating int
+			Title  string
+		}
+		var orderHasReview bool
+		db.DB.Model(&models.Review{}).Where("order_id = ?", order.ID).Select("rating, title").Scan(&orderReview)
+		if orderReview.Rating > 0 {
+			orderHasReview = true
+		}
+
 		orderData := map[string]interface{}{
 			"id":                   order.ID,
 			"order_number":         order.OrderNumber,
@@ -177,6 +187,8 @@ func GetMessages(c *gin.Context) {
 			"pending_amount":       orderPendingAmt,
 			"remaining":            remaining,
 			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+			"has_review":           orderHasReview,
+			"review_rating":        orderReview.Rating,
 			"quantity":             order.Quantity,
 			"notes":                order.Notes,
 			"currency":             business.Currency,
@@ -237,6 +249,16 @@ func GetMessages(c *gin.Context) {
 			bookingActionRequired = "none"
 		}
 
+		var bookingReview struct {
+			Rating int
+			Title  string
+		}
+		var bookingHasReview bool
+		db.DB.Model(&models.Review{}).Where("booking_id = ?", booking.ID).Select("rating, title").Scan(&bookingReview)
+		if bookingReview.Rating > 0 {
+			bookingHasReview = true
+		}
+
 		bookingData := map[string]interface{}{
 			"id":                   booking.ID,
 			"booking_number":       booking.BookingNumber,
@@ -250,6 +272,8 @@ func GetMessages(c *gin.Context) {
 			"pending_amount":       bookingPendingAmt,
 			"remaining":            bookingRemaining,
 			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
+			"has_review":           bookingHasReview,
+			"review_rating":        bookingReview.Rating,
 			"notes":                booking.Notes,
 			"status":               booking.Status,
 			"sender":               booking.Sender,

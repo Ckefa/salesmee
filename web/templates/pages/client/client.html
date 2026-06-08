@@ -75,6 +75,7 @@
   {{template "product_picker" .}}
   {{template "service_picker" .}}
   {{template "review_modal" .}}
+  {{template "assist_panel" .}}
 
   {{template "csrf_script" .}}
   <script>
@@ -89,6 +90,8 @@
   <script src="/static/js/modules/product_picker.js?v=1"></script>
   <script src="/static/js/modules/service_picker.js?v=1"></script>
   <script src="/static/js/core/app.js?v=1"></script>
+  <script>window.ASSIST_API_BASE = '/client/assist';</script>
+  <script src="/static/js/modules/assist.js?v=1"></script>
   <script>
     function toggleClientSidebar() {
       var layout = document.getElementById('clientLayout');

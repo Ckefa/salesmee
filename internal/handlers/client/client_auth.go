@@ -13,6 +13,7 @@ import (
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/assist"
 
 	"github.com/gin-gonic/gin"
 )
@@ -171,8 +172,9 @@ func ClientDashboard(c *gin.Context) {
 	if err := db.DB.Raw(query, clientID).Scan(&businesses).Error; err != nil {
 		log.Printf("[ClientDashboard] ERROR running businesses query: %v", err)
 		c.HTML(500, "client.html", gin.H{
-			"Title": "Client Dashboard - SalesMee",
-			"Error": "Failed to load businesses",
+			"Title":         "Client Dashboard - SalesMee",
+			"Error":         "Failed to load businesses",
+			"AssistEnabled": assist.IsEnabled(),
 		})
 		return
 	}
@@ -192,9 +194,10 @@ func ClientDashboard(c *gin.Context) {
 	}
 
 	c.HTML(200, "client.html", gin.H{
-		"Title":      "Client Dashboard - SalesMee",
-		"Email":      email,
-		"Businesses": businesses,
+		"Title":         "Client Dashboard - SalesMee",
+		"Email":         email,
+		"Businesses":    businesses,
+		"AssistEnabled": assist.IsEnabled(),
 	})
 }
 
@@ -361,6 +364,9 @@ func GetClientMessages(c *gin.Context) {
 		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
 			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
 
+		var orderHasReview int64
+		db.DB.Model(&models.Review{}).Where("order_id = ?", order.ID).Count(&orderHasReview)
+
 		orderData := map[string]interface{}{
 			"id":                   order.ID,
 			"business_id":          order.BusinessID,
@@ -378,6 +384,7 @@ func GetClientMessages(c *gin.Context) {
 			"pending_amount":       orderPendingAmt,
 			"remaining":            remaining,
 			"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
+			"has_review":           orderHasReview > 0,
 			"quantity":             order.Quantity,
 			"notes":                order.Notes,
 			"currency":             business.Currency,
@@ -436,6 +443,9 @@ func GetClientMessages(c *gin.Context) {
 			bookingActionRequired = "none"
 		}
 
+		var bookingHasReview int64
+		db.DB.Model(&models.Review{}).Where("booking_id = ?", booking.ID).Count(&bookingHasReview)
+
 		bookingData := map[string]interface{}{
 			"id":                   booking.ID,
 			"business_id":          booking.BusinessID,
@@ -451,6 +461,7 @@ func GetClientMessages(c *gin.Context) {
 			"pending_amount":       bookingPendingAmt,
 			"remaining":            bookingRemaining,
 			"is_fully_paid":        booking.PaidAmount >= booking.TotalAmount,
+			"has_review":           bookingHasReview > 0,
 			"notes":                booking.Notes,
 			"sender":               booking.Sender,
 			"action_required":      bookingActionRequired,

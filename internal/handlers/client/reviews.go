@@ -53,8 +53,8 @@ func SubmitReview(c *gin.Context) {
 	}
 
 	// Verify client owns this business relationship
-	var client models.Client
-	if err := db.DB.Where("id = ? AND business_id = ?", clientID, businessID).First(&client).Error; err != nil {
+	var conv models.Conversation
+	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conv).Error; err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Client not associated with this business"})
 		return
 	}

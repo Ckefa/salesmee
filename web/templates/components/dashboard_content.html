@@ -31,21 +31,6 @@
 
     <div id="stats-container" class="relative">
       {{template "dashboard_stats" .}}
-      <div id="stats-skeleton" class="htmx-indicator">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {{range $i := seq 1 8}}
-          <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 rounded-md skeleton" style="width:48px;height:48px"></div>
-              <div class="ml-3 sm:ml-4 flex-1">
-                <div class="skeleton skeleton-text" style="width:60%"></div>
-                <div class="skeleton" style="width:40%;height:1.5rem;margin-top:0.25rem"></div>
-              </div>
-            </div>
-          </div>
-          {{end}}
-        </div>
-      </div>
     </div>
 
     <!-- Walk-in Quick Actions -->

@@ -44,68 +44,10 @@
 </head>
 
 <body class="bg-[var(--color-bg)]">
-  <!-- Header -->
-  <header class="navbar-glass">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center">
-          <a href="/business" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] mr-2">
-            <i class="fas fa-arrow-left"></i>
-          </a>
-          <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden mr-4">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
-          <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">Products Management</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <!-- Desktop: action items shown inline -->
-          <div class="hidden lg:flex items-center space-x-4">
-            <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
-              <i class="fas fa-sun theme-sun"></i>
-              <i class="fas fa-moon theme-moon hidden"></i>
-            </button>
-            <button onclick="showBusinessProfile()" class="flex items-center space-x-2 hover:opacity-80">
-              {{if .Business.Logo}}
-              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-              {{else}}
-              <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-                <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
-              </div>
-              {{end}}
-              <span class="text-sm font-medium text-[var(--color-text-secondary)]">{{.Business.Name}}</span>
-            </button>
-            <a href="/business/logout" class="text-sm text-[var(--color-error)] hover:text-[var(--color-error)]">Logout</a>
-          </div>
-
-          <!-- Mobile: overflow menu trigger -->
-          <div class="relative lg:hidden">
-            <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-              <div class="border-t border-[var(--color-border-light)] my-1"></div>
-              <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-adjust w-5 text-center"></i>
-                <span>Toggle Theme</span>
-              </button>
-              <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-store w-5 text-center"></i>
-                <span>Business Profile</span>
-              </button>
-              <div class="border-t border-[var(--color-border-light)] my-1"></div>
-              <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-                <i class="fas fa-sign-out-alt w-5 text-center"></i>
-                <span>Logout</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+{{template "dashboard_navbar" .}}
   {{template "verify_banner" .}}
 
-  <div class="flex h-screen pt-16">
+  <div class="flex h-[calc(100vh-4rem)]">
 {{template "dashboard_sidebar" .}}
 
     <!-- Main Content -->

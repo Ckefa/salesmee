@@ -700,23 +700,18 @@
     }
   }
 
-  /* --- Collapsible Stats (Mobile) --- */
+  /* --- Collapsible Stats --- */
   #statsGrid {
+    display: none;
+  }
+  #statsGrid.expanded {
     display: grid;
   }
-  @media (max-width: 1023px) {
-    #statsGrid {
-      display: none;
-    }
-    #statsGrid.expanded {
-      display: grid;
-    }
-    .stats-toggle .stats-chevron {
-      transition: transform 0.2s ease;
-    }
-    .stats-toggle.expanded .stats-chevron {
-      transform: rotate(180deg);
-    }
+  .stats-toggle .stats-chevron {
+    transition: transform 0.2s ease;
+  }
+  .stats-toggle.expanded .stats-chevron {
+    transform: rotate(180deg);
   }
 
   /* --- Dashboard Sidebar (Mobile) --- */

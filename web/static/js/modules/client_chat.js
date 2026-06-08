@@ -176,6 +176,7 @@ function startMessagePolling() {
           curMsgs.innerHTML = newMsgs.innerHTML;
           curMsgs.scrollTop = curMsgs.scrollHeight;
           markAsRead();
+          playNotificationSound();
         }
       })
       .catch(console.error);

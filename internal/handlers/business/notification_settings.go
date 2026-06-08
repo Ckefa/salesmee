@@ -54,6 +54,7 @@ func (h *BusinessHandler) UpdateNotificationSettings(c *gin.Context) {
 		ReEngagement        bool `json:"re_engagement"`
 		AbandonedCartHours  int  `json:"abandoned_cart_hours"`
 		InactiveDays        int  `json:"inactive_days"`
+		SoundEnabled        bool `json:"sound_enabled"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -72,6 +73,7 @@ func (h *BusinessHandler) UpdateNotificationSettings(c *gin.Context) {
 		ReEngagement:        request.ReEngagement,
 		AbandonedCartHours:  request.AbandonedCartHours,
 		InactiveDays:        request.InactiveDays,
+		SoundEnabled:        request.SoundEnabled,
 	}
 
 	if prefs.AbandonedCartHours <= 0 {

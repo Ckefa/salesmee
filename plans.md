@@ -1,57 +1,28 @@
-## 1. Multi-User Business Login + Roles (RBAC) — ❌ NOT STARTED
+## 1. General UX / System Improvements — ❌ NOT STARTED
 
-Enable multi-user access per business with role-based permissions.
-
-### Roles
-- **Manager** — manage users, view all analytics, edit settings, manage orders/bookings
-- **Regular User** — view assigned data, limited order/booking handling, no settings
-
-### Permissions System
-- `orders:read`, `orders:write`, `analytics:view`, `customers:manage`, `settings:manage`
-
-### Additional
-- User invitation system
-- Role assignment per business
-- Secure session handling per business context
-
----
-
-## 2. General UX / System Improvements — ⏳ IN PROGRESS
-
-### ✅ Implemented
-- Dark mode toggle (CSS vars + localStorage + prefers-color-scheme)
-- Stackable toast notification system with auto-dismiss progress bar
-- HTMX loading indicators on buttons
-- CSRF protection middleware
-- Rate limiting
-- Cookie consent banner
-- Responsive bottom nav on mobile
-
-### 🎯 Still Wanted
-
-#### UI/UX
+### UI/UX
 - Standardize UI components (buttons, cards, charts, modals)
 - Improve visual hierarchy (colors, spacing, typography)
 - Empty states for all list views (clients, orders, bookings, products, services)
 
-#### Performance
+### Performance
 - Optimize analytics queries
 - Add DB indexing for frequently queried fields
 - Implement pagination for large datasets
 
-#### UX Enhancements
+### UX Enhancements
 - Skeleton loaders for dashboard stats, progress tracking, analytics
 - Command palette (Cmd+K) for quick navigation and actions
 - Page transitions (CSS view transitions)
 - Animated micro-interactions (button scale, card hover)
 
-#### Responsiveness
+### Responsiveness
 - Ensure full mobile responsiveness across all modules
 - Breakpoints: desktop (1280+), tablet (768–1279), mobile (<768)
 
 ---
 
-## 3. Architecture Refactor: Hexagonal Architecture (Ports & Adapters) — ❌ NOT STARTED
+## 2. Architecture Refactor: Hexagonal Architecture (Ports & Adapters) — ❌ NOT STARTED
 
 ### Target
 Refactor into clean hexagonal architecture: Domain → Application → Infrastructure → Delivery.
@@ -70,11 +41,11 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ---
 
-## 4. Feature Roadmap
+## 3. Feature Roadmap
 
 ### Tier 1 — High Value, Launch-adjacent
 
-#### 4.1 Promotions, Discounts & Coupons
+#### 3.1 Promotions, Discounts & Coupons
 - Discount codes (%, fixed amount, BOGO, bundle deals)
 - Auto-apply promos (first-time client, seasonal, holiday)
 - Limited-time offers with expiry
@@ -82,39 +53,39 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ### Tier 2 — Operations & Growth
 
-#### 4.2 Staff / Team Management
+#### 3.2 Staff / Team Management
 - Staff profiles (name, role, photo, contact)
 - Assign staff to services
 - Commission tracking per order/booking per staff
 - Staff activity log
 
-#### 4.3 Broadcast / Announcements
+#### 3.3 Broadcast / Announcements
 - One-to-many messages to all clients or filtered segments
 - Promotional announcements, service updates
 - Opt-out per client
 
 ### Tier 3 — Monetization & Differentiation
 
-#### 4.4 Customer Loyalty / Rewards Program
+#### 3.4 Customer Loyalty / Rewards Program
 - Points-per-spend or per-visit
 - Redeem points for discounts or free services
 - Tie into existing CustomerInsight tier system
 - Birthday/anniversary automated rewards
 - Points balance visible in client dashboard
 
-#### 4.5 Gift Cards & Vouchers
+#### 3.5 Gift Cards & Vouchers
 - Sell gift cards (fixed amount or specific service)
 - Redeem at checkout
 - Balance tracking
 - Send via email
 
-#### 4.6 Invoice / Billing System
+#### 3.6 Invoice / Billing System
 - Formal invoices with invoice #, tax info, business details
 - PDF download + email to client
 - Payment terms (due on receipt, net 15/30)
 - Deposit / partial payment plans
 
-#### 4.7 Tax Configuration
+#### 3.7 Tax Configuration
 - Tax rates per country/location
 - Auto-apply tax to orders/bookings
 - Tax-inclusive or exclusive pricing
@@ -123,22 +94,22 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ### Tier 4 — Scale & Integrations
 
-#### 4.8 Multi-Location / Multi-Branch
+#### 3.8 Multi-Location / Multi-Branch
 - Multiple locations per business account
 - Per-location inventory, staff, products, services
 - Location selector on public profile
 - Reporting by location
 
-#### 4.9 Product / Service Categories
+#### 3.9 Product / Service Categories
 - Categorize products and services
 - Category-based filtering on public page and dashboards
 
-#### 4.10 Waitlist
+#### 3.10 Waitlist
 - Join waitlist for fully booked slots
 - Auto-notify when slot opens
 - Priority based on client tier
 
-#### 4.11 Integrations
+#### 3.11 Integrations
 - Calendar sync (Google Calendar, iCal)
 - Accounting sync (QuickBooks, Xero)
 - SMS notifications (Twilio)
@@ -147,7 +118,7 @@ Refactor into clean hexagonal architecture: Domain → Application → Infrastru
 
 ---
 
-## Creative Additions (Backlog)
+## 4. Creative Additions (Backlog)
 
 - **"salesmee Assist"** — floating AI assistant chatbot
 - **Achievement badges** — "First Connect", "10 Orders", "5-Star Service"

@@ -13,6 +13,7 @@ type BusinessNotifPrefs struct {
 	ReEngagement        bool  `gorm:"default:true"`
 	AbandonedCartHours  int   `gorm:"default:24"`
 	InactiveDays        int   `gorm:"default:30"`
+	SoundEnabled        bool  `gorm:"default:true"`
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }

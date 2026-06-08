@@ -320,11 +320,14 @@
     </div>
   </div>
 
+  {{template "assist_panel" .}}
+
   {{template "business_profile" .}}
 
   {{template "mobile_bottom_nav" .}}
 
   <script src="/static/js/modules/shared.js?v=1"></script>
+  <script src="/static/js/modules/assist.js?v=1"></script>
   <script src="/static/js/core/app.js?v=1"></script>
   {{template "business_profile_script" .}}
   <script>

@@ -234,6 +234,10 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.PUT("/team/:id", middleware.RequireOwner(), businessHandler.UpdateTeamMember)
 		protected.DELETE("/team/:id", middleware.RequireOwner(), businessHandler.DeleteTeamMember)
 
+		// Assist AI routes — all authenticated users
+		protected.POST("/assist/chat", businessHandler.AssistChat)
+		protected.GET("/assist/suggestions", businessHandler.GetAssistSuggestions)
+
 		// Notification routes — all authenticated users
 		protected.GET("/notifications", businessHandler.GetNotifications)
 		protected.GET("/notifications/count", businessHandler.GetNotificationCount)

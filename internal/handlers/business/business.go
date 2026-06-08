@@ -12,6 +12,7 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/onboarding"
 	"time"
 
@@ -66,6 +67,7 @@ type DashboardData struct {
 	QueryLocationID     string
 	AuthType            string
 	Role                string
+	AssistEnabled       bool
 }
 
 func (h *BusinessHandler) GetSharePage(c *gin.Context) {
@@ -234,6 +236,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"Onboarding":          h.onboardingData(businessID),
 		"AuthType":            c.GetString("auth_type"),
 		"Role":                c.GetString("role"),
+		"AssistEnabled":       assist.IsEnabled(),
 	})
 }
 
@@ -348,6 +351,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	data.ActivePage = "dashboard"
 	data.AuthType = c.GetString("auth_type")
 	data.Role = c.GetString("role")
+	data.AssistEnabled = assist.IsEnabled()
 	if c.GetHeader("HX-Request") == "true" {
 		c.HTML(http.StatusOK, "dashboard_content", data)
 	} else {

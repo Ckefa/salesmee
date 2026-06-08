@@ -16,7 +16,7 @@
 </head>
 <body class="h-screen overflow-hidden flex flex-col">
   <!-- Top Header -->
-  <header class="navbar-glass h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30 relative">
+  <header class="navbar-glass h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
     <div class="flex items-center gap-3">
       <button onclick="toggleSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden" id="sidebarToggle">
         <i class="fas fa-bars text-lg"></i>
@@ -209,6 +209,8 @@
 
   {{template "mobile_bottom_nav" .}}
 
+  {{template "assist_panel" .}}
+
   {{template "onboarding_panel" .}}
 
   <!-- Modals -->
@@ -292,6 +294,7 @@
   </div>
 
   <script src="/static/js/modules/shared.js?v=1"></script>
+  <script src="/static/js/modules/assist.js?v=1"></script>
   <script src="/static/js/modules/business.js?v=1"></script>
   <script src="/static/js/modules/product_picker.js?v=1"></script>
   <script src="/static/js/modules/service_picker.js?v=1"></script>

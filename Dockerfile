@@ -9,6 +9,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+RUN mkdir -p web/static/uploads/logos web/static/uploads/products
 RUN npm run css:build
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/app ./cmd/server/main.go
 

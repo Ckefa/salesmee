@@ -60,6 +60,10 @@ func Setup(r *gin.Engine) {
 	r.GET("/user-deletion", handlers.ShowUserDeletion)
 	r.POST("/user-deletion", handlers.SubmitUserDeletion)
 
+	// Landing AI assistant (public)
+	r.GET("/assist/suggestions", handlers.LandingGetAssistSuggestions)
+	r.POST("/assist/chat", handlers.LandingAssistChat)
+
 	// Public business profile
 	r.GET("/b/:slug", business.GetPublicProfile)
 

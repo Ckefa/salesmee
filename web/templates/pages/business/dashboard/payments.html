@@ -1,48 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Payments - SalesMee</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-  <style>
-    .table-row-hover:hover {
-      background-color: var(--color-surface-secondary);
-    }
-    .badge-status {
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .method-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; }
-    .pm-track { background: var(--color-surface-tertiary); transition: background 0.2s; }
-    .pm-toggle:checked + .pm-track { background: var(--color-success); }
-    .pm-dot { transition: transform 0.2s; transform: translateX(2px); }
-    .pm-toggle:checked ~ .pm-dot { transform: translateX(18px); }
-  </style>
-</head>
-<body class="bg-[var(--color-bg)]">
-{{template "dashboard_navbar" .}}
-  {{template "verify_banner" .}}
+{{template "dashboard_top" .}}
+{{template "dashboard/payments_content" .}}
+{{template "dashboard_bottom" .}}
 
-  <div class="flex h-[calc(100vh-4rem)]">
-{{template "dashboard_sidebar" .}}
-    <main class="flex-1 overflow-y-auto pb-16">
-      <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {{template "payments_content" .}}
-        </div>
-      </div>
-    </main>
-  </div>
+{{define "dashboard/payments_content"}}
+<style>
+  .method-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; }
+  .pm-track { background: var(--color-surface-tertiary); transition: background 0.2s; }
+  .pm-toggle:checked + .pm-track { background: var(--color-success); }
+  .pm-dot { transition: transform 0.2s; transform: translateX(2px); }
+  .pm-toggle:checked ~ .pm-dot { transform: translateX(18px); }
+</style>
 
-{{define "payments_content"}}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
 <div class="mb-8">
   <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Payments</h2>
   <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-2">Manage payment methods and track client payments</p>
@@ -210,70 +180,31 @@
             </table>
           </div>
         </div>
+
+        <div class="flex justify-between items-center mt-4 px-1">
+          <div class="text-xs text-[var(--color-text-muted)]">Page {{.Page}} of {{.TotalPages}} ({{.TotalCount}} payments)</div>
+          <div class="flex gap-1">
+            {{$prev := sub .Page 1}}
+            {{$next := add .Page 1}}
+            <a href="?page={{$prev}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
+               class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                      {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+               {{if eq .Page 1.0}}onclick="return false"{{end}}>
+              <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="?page={{$next}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
+               class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                      {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+               {{if ge .Page .TotalPages}}onclick="return false"{{end}}>
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
 </div>
-{{end}}
 
-{{define "payments_stats_grid"}}
-<div id="payments-stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-    <div class="flex items-center">
-      <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
-        <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
-      </div>
-      <div class="ml-2 sm:ml-3">
-        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
-        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalCompleted}}</p>
-      </div>
-    </div>
-  </div>
-  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-    <div class="flex items-center">
-      <div class="p-2 sm:p-2.5 bg-[var(--color-warning-light)] rounded-full">
-        <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
-      </div>
-      <div class="ml-2 sm:ml-3">
-        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
-        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPending}}</p>
-      </div>
-    </div>
-  </div>
-  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-    <div class="flex items-center">
-      <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
-        <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
-      </div>
-      <div class="ml-2 sm:ml-3">
-        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Failed</p>
-        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalFailed}}</p>
-      </div>
-    </div>
-  </div>
-  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
-    <div class="flex items-center">
-      <div class="p-2 sm:p-2.5 bg-[var(--color-primary-light)] rounded-full">
-        <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
-      </div>
-      <div class="ml-2 sm:ml-3">
-        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
-        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPaidRevenue}}</p>
-      </div>
-    </div>
-  </div>
-</div>
-{{end}}
-
-  </main>
-  </div>
-
-  {{template "business_profile" .}}
-  {{template "business_profile_script" .}}
-  {{template "payment_method_modal" .}}
-  {{template "mobile_bottom_nav" .}}
-  {{template "csrf_script" .}}
-
-  <script>
+<script>
   var paymentMethodsData = {{.PaymentMethods | json}};
 
   // ── Payment Methods CRUD ──
@@ -630,7 +561,55 @@
     if (loc) url += '?location_id=' + loc;
     window.location.href = url;
   }
-  </script>
-{{template "dashboard_footer" .}}
-</body>
-</html>
+</script>
+</div>
+{{end}}
+
+{{define "payments_stats_grid"}}
+<div id="payments-stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-success-light)] rounded-full">
+        <i class="fas fa-check text-[var(--color-success)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Completed</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalCompleted}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-warning-light)] rounded-full">
+        <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Pending</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPending}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-error-light)] rounded-full">
+        <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Failed</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalFailed}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-[var(--color-surface)] rounded-xl card p-3 sm:p-4">
+    <div class="flex items-center">
+      <div class="p-2 sm:p-2.5 bg-[var(--color-primary-light)] rounded-full">
+        <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
+      </div>
+      <div class="ml-2 sm:ml-3">
+        <p class="text-[10px] sm:text-sm text-[var(--color-text-secondary)]">Total Revenue</p>
+        <p class="text-lg sm:text-2xl font-bold text-[var(--color-text)]">{{currencySymbol .Business.Currency}}{{printf "%.2f" .TotalPaidRevenue}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

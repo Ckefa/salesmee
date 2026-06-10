@@ -41,6 +41,26 @@ func (h *BusinessHandler) GetReviews(c *gin.Context) {
 
 	stats := computeReviewStats(h.db, businessID)
 
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/reviews_content", gin.H{
+			"Business":       currentBusiness,
+			"ActivePage":     "reviews",
+			"Reviews":        reviews,
+			"AverageRating":  math.Round(stats.AverageRating*10) / 10,
+			"ReviewCount":    stats.ReviewCount,
+			"Rating5Count":   stats.Rating5Count,
+			"Rating4Count":   stats.Rating4Count,
+			"Rating3Count":   stats.Rating3Count,
+			"Rating2Count":   stats.Rating2Count,
+			"Rating1Count":   stats.Rating1Count,
+			"Onboarding":     h.onboardingData(businessID),
+			"AuthType":       c.GetString("auth_type"),
+			"Role":           c.GetString("role"),
+		})
+		return
+	}
+
 	c.HTML(http.StatusOK, "reviews.html", gin.H{
 		"Business":       currentBusiness,
 		"ActivePage":     "reviews",

@@ -362,9 +362,15 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
+		c.HTML(http.StatusNotFound, "payments.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize := pageSize()
 
 	// Get all orders and bookings for this business to find their payments
 	orderQuery := h.db.Model(&models.Order{}).Where("business_id = ?", businessID)
@@ -380,7 +386,21 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	var bookingIDs []uint
 	bookingQuery.Pluck("id", &bookingIDs)
 
-	// Fetch all related payments
+	// Count total payments
+	var totalCount int64
+	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
+		countQuery := h.db.Model(&models.Payment{})
+		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
+			countQuery = countQuery.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
+		} else if len(orderIDs) > 0 {
+			countQuery = countQuery.Where("order_id IN ?", orderIDs)
+		} else {
+			countQuery = countQuery.Where("booking_id IN ?", bookingIDs)
+		}
+		countQuery.Count(&totalCount)
+	}
+
+	// Fetch paginated payments
 	var payments []models.Payment
 	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
 		query := h.db.Preload("Client")
@@ -391,7 +411,7 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		} else {
 			query = query.Where("booking_id IN ?", bookingIDs)
 		}
-		query.Order("created_at DESC").Find(&payments)
+		query.Order("created_at DESC").Limit(pageSize).Offset((page - 1) * pageSize).Find(&payments)
 	}
 
 	// Enrich payments with order/booking info
@@ -463,6 +483,11 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	paidRevBookingQuery.Scan(&paidBookingsRevenue)
 	totalPaidRevenue := paidOrdersRevenue + paidBookingsRevenue
 
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
+	}
+
 	// Load payment methods
 	var paymentMethods []models.PaymentMethod
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
@@ -470,6 +495,32 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	// Load locations
 	var locations []models.Location
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/payments_content", gin.H{
+			"Business":          business,
+			"Countries":         data.Countries,
+			"Currencies":        data.Currencies,
+			"Payments":          rows,
+			"PaymentMethods":    paymentMethods,
+			"TotalCompleted":    totalCompleted,
+			"TotalPending":      totalPending,
+			"TotalFailed":       totalFailed,
+			"TotalPaidRevenue":  totalPaidRevenue,
+			"PaymentCount":      len(rows),
+			"Page":              float64(page),
+			"TotalPages":        float64(totalPages),
+			"TotalCount":        totalCount,
+			"Onboarding":        h.onboardingData(businessID),
+			"Locations":         locations,
+			"AuthType":          c.GetString("auth_type"),
+			"Role":              c.GetString("role"),
+			"ActivePage":        "payments",
+			"QueryLocationID":   locID,
+		})
+		return
+	}
 
 	c.HTML(http.StatusOK, "payments.html", gin.H{
 		"Business":          business,
@@ -483,6 +534,9 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		"TotalFailed":       totalFailed,
 		"TotalPaidRevenue":  totalPaidRevenue,
 		"PaymentCount":      len(rows),
+		"Page":              float64(page),
+		"TotalPages":        float64(totalPages),
+		"TotalCount":        totalCount,
 		"Onboarding":        h.onboardingData(businessID),
 		"Locations":         locations,
 		"AuthType":          c.GetString("auth_type"),
@@ -597,7 +651,7 @@ func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
 	var paymentMethods []models.PaymentMethod
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
 
-	c.HTML(http.StatusOK, "payments_content", gin.H{
+	c.HTML(http.StatusOK, "dashboard/payments_content", gin.H{
 		"Business":         business,
 		"ActivePage":       "payments",
 		"Payments":         rows,

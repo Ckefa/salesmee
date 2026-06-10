@@ -1,40 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "dashboard_top" .}}
+{{template "dashboard/analytics_content" .}}
+{{template "dashboard_bottom" .}}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Analytics - SalesMee</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-  <style>
-    .stat-card { transition: all 0.3s ease; }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
-    .bar { height: 8px; border-radius: 9999px; transition: width 0.6s ease; }
-  </style>
-</head>
+{{define "dashboard/analytics_content"}}
+<style>
+  .bar { height: 8px; border-radius: 9999px; transition: width 0.6s ease; }
+</style>
 
-<body class="bg-[var(--color-bg)]">
-{{template "dashboard_navbar" .}}
-  {{template "verify_banner" .}}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-  <div class="flex h-[calc(100vh-4rem)]">
-{{template "dashboard_sidebar" .}}
-
-    <main class="flex-1 overflow-y-auto pb-16">
-      <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {{template "analytics_content" .}}
-        </div>
-      </div>
-    </main>
-  </div>
-
-{{define "analytics_content"}}
 <!-- Date Range Filter Pills -->
 <div class="flex flex-wrap gap-2 mb-6" id="analytics-filter-pills">
   <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_month" hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
@@ -51,11 +25,11 @@
     class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Year</button>
 </div>
 
-<div id="analytics-content">
+<div id="analytics-content" class="space-y-6 sm:space-y-8">
   <div id="analytics-stats-container" class="relative">
     {{template "analytics_stats_grid" .}}
     <div id="analytics-stats-skeleton" class="htmx-indicator">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {{range $i := seq 1 4}}
         <div class="rounded-xl card p-4 sm:p-5">
           <div class="flex items-center justify-between">
@@ -75,7 +49,7 @@
   </div>
 
   <!-- Charts Row -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Order Status Breakdown -->
     <div class="rounded-xl card p-4 sm:p-5">
       <h2 class="text-base sm:text-lg font-semibold text-[var(--color-text)] mb-4">Order Status</h2>
@@ -241,11 +215,12 @@ function setActivePill(el) {
   el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white';
 }
 </script>
+</div>
 {{end}}
 
 {{define "analytics_stats_grid"}}
 <div id="analytics-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-  <div class="stat-card rounded-xl card p-4 sm:p-5">
+  <div class="card-hover rounded-xl card p-4 sm:p-5">
     <div class="flex items-center justify-between">
       <div>
         <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Total Revenue</p>
@@ -261,7 +236,7 @@ function setActivePill(el) {
     </div>
   </div>
 
-  <div class="stat-card rounded-xl card p-4 sm:p-5">
+  <div class="card-hover rounded-xl card p-4 sm:p-5">
     <div class="flex items-center justify-between">
       <div>
         <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Orders</p>
@@ -277,7 +252,7 @@ function setActivePill(el) {
     </div>
   </div>
 
-  <div class="stat-card rounded-xl card p-4 sm:p-5">
+  <div class="card-hover rounded-xl card p-4 sm:p-5">
     <div class="flex items-center justify-between">
       <div>
         <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Bookings</p>
@@ -293,7 +268,7 @@ function setActivePill(el) {
     </div>
   </div>
 
-  <div class="stat-card rounded-xl card p-4 sm:p-5">
+  <div class="card-hover rounded-xl card p-4 sm:p-5">
     <div class="flex items-center justify-between">
       <div>
         <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Active Clients</p>
@@ -308,11 +283,3 @@ function setActivePill(el) {
 </div>
 {{end}}
 
-  {{template "business_profile" .}}
-  {{template "business_profile_script" .}}
-  {{template "mobile_bottom_nav" .}}
-  {{template "csrf_script" .}}
-{{template "dashboard_footer" .}}
-</body>
-
-</html>

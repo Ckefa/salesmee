@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{.Title}}</title>
-  <meta name="color-scheme" content="light dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-</head>
+{{template "dashboard_head" .}}
 <body class="h-screen overflow-hidden flex flex-col">
   <!-- Top Header -->
   <header class="navbar-glass h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
@@ -35,7 +22,6 @@
     </div>
 
     <div class="flex items-center gap-1">
-      <div hx-get="/business/subscription/badge" hx-trigger="load" hx-swap="innerHTML" class="flex items-center"></div>
 
       <!-- Desktop: action items shown inline -->
       <div class="hidden lg:flex items-center gap-1">
@@ -139,55 +125,55 @@
   {{template "verify_banner" .}}
 
   <!-- Stats Widgets Bar -->
-  <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 lg:px-6 py-3 shrink-0" style="margin-top: 1px;">
+  <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 lg:px-6 py-3 shrink-0 mt-px">
     <button onclick="toggleStats()" class="flex items-center justify-between w-full text-sm font-medium text-[var(--color-text)] mb-0 stats-toggle expanded" type="button">
       <span><i class="fas fa-chart-simple mr-2"></i>Stats &amp; Overview</span>
       <i class="fas fa-chevron-down stats-chevron transition-transform duration-200"></i>
     </button>
     <div id="statsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-2 lg:mt-0 expanded">
-      <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent);">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 15%, transparent);">
-          <i class="fas fa-comments" style="color: var(--color-primary); font-size: 0.875rem;"></i>
+      <div class="biz-stat biz-stat-primary">
+        <div class="biz-stat-icon">
+          <i class="fas fa-comments"></i>
         </div>
         <div>
-          <p class="text-xs font-medium" style="color: var(--color-primary);">Conversations</p>
-          <p class="text-base sm:text-lg font-bold stat-counter" data-target="{{len .Clients}}" style="color: var(--color-primary-dark);">0</p>
+          <p class="biz-stat-label">Conversations</p>
+          <p class="biz-stat-value stat-counter" data-target="{{len .Clients}}">0</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 8%, transparent);">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: color-mix(in srgb, var(--color-warning) 15%, transparent);">
-          <i class="fas fa-shopping-cart" style="color: var(--color-warning); font-size: 0.875rem;"></i>
+      <div class="biz-stat biz-stat-warning">
+        <div class="biz-stat-icon">
+          <i class="fas fa-shopping-cart"></i>
         </div>
         <div>
-          <p class="text-xs font-medium" style="color: var(--color-warning);">Orders</p>
-          <p class="text-base sm:text-lg font-bold" style="color: #b45309;">{{.PendingOrderCount}}</p>
+          <p class="biz-stat-label">Orders</p>
+          <p class="biz-stat-value">{{.PendingOrderCount}}</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-info); background: color-mix(in srgb, var(--color-info) 8%, transparent);">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: color-mix(in srgb, var(--color-info) 15%, transparent);">
-          <i class="fas fa-calendar-check" style="color: var(--color-info); font-size: 0.875rem;"></i>
+      <div class="biz-stat biz-stat-info">
+        <div class="biz-stat-icon">
+          <i class="fas fa-calendar-check"></i>
         </div>
         <div>
-          <p class="text-xs font-medium" style="color: var(--color-info);">Bookings</p>
-          <p class="text-base sm:text-lg font-bold" style="color: #0369a1;">{{.PendingBookingCount}}</p>
+          <p class="biz-stat-label">Bookings</p>
+          <p class="biz-stat-value">{{.PendingBookingCount}}</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 8%, transparent);">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: color-mix(in srgb, var(--color-success) 15%, transparent);">
-          <i class="fas fa-circle" style="color: var(--color-success); font-size: 0.875rem;"></i>
+      <div class="biz-stat biz-stat-success">
+        <div class="biz-stat-icon">
+          <i class="fas fa-circle"></i>
         </div>
         <div>
-          <p class="text-xs font-medium" style="color: var(--color-success);">Online</p>
-          <p class="text-base sm:text-lg font-bold" style="color: #047857;">{{.OnlineCount}}</p>
+          <p class="biz-stat-label">Online</p>
+          <p class="biz-stat-value">{{.OnlineCount}}</p>
         </div>
       </div>
-      <div class="stat-card flex items-center gap-2.5 px-3.5 py-2 shrink-0" style="border-color: var(--color-info); background: color-mix(in srgb, var(--color-info) 8%, transparent);">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: color-mix(in srgb, var(--color-info) 15%, transparent);">
-          <i class="fas fa-users" style="color: var(--color-info); font-size: 0.875rem;"></i>
+      <div class="biz-stat biz-stat-info">
+        <div class="biz-stat-icon">
+          <i class="fas fa-users"></i>
         </div>
         <div>
-          <p class="text-xs font-medium" style="color: var(--color-info);">Total Clients</p>
-          <p class="text-base sm:text-lg font-bold stat-counter" data-target="{{len .Clients}}" style="color: #0369a1;">0</p>
+          <p class="biz-stat-label">Total Clients</p>
+          <p class="biz-stat-value stat-counter" data-target="{{len .Clients}}">0</p>
         </div>
       </div>
     </div>
@@ -398,15 +384,12 @@
       }
     });
   </script>
-  {{template "business_profile_script" .}}
-  {{template "csrf_script" .}}
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.body.addEventListener('htmx:configRequest', function(evt) {
-        evt.detail.headers['X-CSRF-Token'] = getCookie('csrf_token');
-      });
-    });
-  </script>
+
+{{template "quick_order_modal" .}}
+{{template "quick_booking_modal" .}}
+{{template "assist_panel" .}}
+{{template "csrf_script" .}}
+{{template "business_profile_script" .}}
 {{template "dashboard_footer" .}}
 </body>
 </html>

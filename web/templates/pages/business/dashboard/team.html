@@ -1,22 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Team - SalesMee</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-</head>
-<body class="bg-[var(--color-bg)]">
-{{template "dashboard_navbar" .}}
-<div class="flex">
-  {{template "dashboard_sidebar" .}}
-  <main class="flex-1 p-4 sm:p-6 lg:p-8 min-h-screen overflow-y-auto">
-    <div class="max-w-3xl mx-auto space-y-6">
+{{template "dashboard_top" .}}
+{{template "dashboard/team_content" .}}
+{{template "dashboard_bottom" .}}
+
+{{define "dashboard/team_content"}}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Team</h1>
@@ -75,8 +62,6 @@
         {{end}}
       </div>
     </div>
-  </main>
-</div>
 
 <!-- Invite/Edit Modal -->
 <div id="inviteModal" class="fixed inset-0 z-50 hidden">
@@ -238,7 +223,5 @@ function deleteMember(id) {
   });
 }
 </script>
+{{end}}
 
-{{template "dashboard_footer" .}}
-</body>
-</html>

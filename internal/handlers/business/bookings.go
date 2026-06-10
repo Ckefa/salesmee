@@ -108,32 +108,88 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
 
-	var bookings []models.Booking
-	bookingQuery := h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime)
-	if locID := c.Query("location_id"); locID != "" {
-		bookingQuery = bookingQuery.Where("location_id = ?", locID)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
 	}
-	bookingQuery.Find(&bookings)
+	pageSize := pageSize()
 
+	baseWhere := "business_id = ? AND created_at BETWEEN ? AND ?"
+	baseArgs := []interface{}{businessID, startTime, endTime}
+	if locID := c.Query("location_id"); locID != "" {
+		baseWhere += " AND location_id = ?"
+		baseArgs = append(baseArgs, locID)
+	}
+
+	// Status counts for full date range
+	var statusCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
-	var totalRevenue float64
-
-	for _, booking := range bookings {
-		switch booking.Status {
+	for _, sc := range statusCounts {
+		switch sc.Status {
 		case "pending":
-			pendingCount++
+			pendingCount = sc.Count
 		case "client_confirmed":
-			confirmedCount++
+			confirmedCount = sc.Count
 		case "completed":
-			completedCount++
-			totalRevenue += booking.TotalAmount
+			completedCount = sc.Count
 		case "cancelled":
-			cancelledCount++
+			cancelledCount = sc.Count
 		}
+	}
+
+	// Total revenue for full date range
+	var totalRevenue float64
+	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+
+	// Total count for pagination
+	var totalCount int64
+	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+
+	// Paginated bookings
+	var bookings []models.Booking
+	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
+		Where(baseWhere, baseArgs...).
+		Order("created_at DESC").
+		Limit(pageSize).Offset((page - 1) * pageSize).
+		Find(&bookings)
+
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
 	}
 
 	var locations []models.Location
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/bookings_content", gin.H{
+			"Business":        currentBusiness,
+			"Bookings":        bookings,
+			"PendingCount":    pendingCount,
+			"ConfirmedCount":  confirmedCount,
+			"CompletedCount":  completedCount,
+			"CancelledCount":  cancelledCount,
+			"TotalBookings":   totalCount,
+			"TotalRevenue":    totalRevenue,
+			"Page":            float64(page),
+			"TotalPages":      float64(totalPages),
+			"PageSize":        pageSize,
+			"Range":           r,
+			"Countries":       data.Countries,
+			"Currencies":      data.Currencies,
+			"Onboarding":      h.onboardingData(businessID),
+			"Locations":       locations,
+			"AuthType":        c.GetString("auth_type"),
+			"Role":            c.GetString("role"),
+			"ActivePage":      "bookings",
+		})
+		return
+	}
 
 	c.HTML(http.StatusOK, "bookings.html", gin.H{
 		"Business":        currentBusiness,
@@ -142,15 +198,19 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		"ConfirmedCount":  confirmedCount,
 		"CompletedCount":  completedCount,
 		"CancelledCount":  cancelledCount,
-		"TotalBookings":   len(bookings),
+		"TotalBookings":   totalCount,
 		"TotalRevenue":    totalRevenue,
-		"ActivePage":      "bookings",
+		"Page":            float64(page),
+		"TotalPages":      float64(totalPages),
+		"PageSize":        pageSize,
+		"Range":           r,
 		"Countries":       data.Countries,
 		"Currencies":      data.Currencies,
 		"Onboarding":      h.onboardingData(businessID),
 		"Locations":       locations,
 		"AuthType":        c.GetString("auth_type"),
 		"Role":            c.GetString("role"),
+		"ActivePage":      "bookings",
 	})
 }
 
@@ -170,36 +230,76 @@ func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
 
-	var bookings []models.Booking
-	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&bookings)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize := pageSize()
 
+	baseWhere := "business_id = ? AND created_at BETWEEN ? AND ?"
+	baseArgs := []interface{}{businessID, startTime, endTime}
+	if locID := c.Query("location_id"); locID != "" {
+		baseWhere += " AND location_id = ?"
+		baseArgs = append(baseArgs, locID)
+	}
+
+	var statusCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
-	var totalRevenue float64
-
-	for _, booking := range bookings {
-		switch booking.Status {
+	for _, sc := range statusCounts {
+		switch sc.Status {
 		case "pending":
-			pendingCount++
+			pendingCount = sc.Count
 		case "client_confirmed":
-			confirmedCount++
+			confirmedCount = sc.Count
 		case "completed":
-			completedCount++
-			totalRevenue += booking.TotalAmount
+			completedCount = sc.Count
 		case "cancelled":
-			cancelledCount++
+			cancelledCount = sc.Count
 		}
 	}
 
-	c.HTML(http.StatusOK, "bookings_content", gin.H{
+	var totalRevenue float64
+	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+
+	var totalCount int64
+	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+
+	var bookings []models.Booking
+	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
+		Where(baseWhere, baseArgs...).
+		Order("created_at DESC").
+		Limit(pageSize).Offset((page - 1) * pageSize).
+		Find(&bookings)
+
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
+	}
+
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
+	c.HTML(http.StatusOK, "dashboard/bookings_content", gin.H{
 		"Business":        currentBusiness,
 		"Bookings":        bookings,
 		"PendingCount":    pendingCount,
 		"ConfirmedCount":  confirmedCount,
 		"CompletedCount":  completedCount,
 		"CancelledCount":  cancelledCount,
-		"TotalBookings":   len(bookings),
+		"TotalBookings":   totalCount,
 		"TotalRevenue":    totalRevenue,
+		"Page":            float64(page),
+		"TotalPages":      float64(totalPages),
+		"PageSize":        pageSize,
+		"Range":           r,
 		"ActivePage":      "bookings",
+		"Locations":       locations,
+		"AuthType":        c.GetString("auth_type"),
+		"Role":            c.GetString("role"),
 	})
 }
 
@@ -219,25 +319,33 @@ func (h *BusinessHandler) GetBookingsStatsGrid(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
 
-	var bookings []models.Booking
-	h.db.Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&bookings)
+	baseWhere := "business_id = ? AND created_at BETWEEN ? AND ?"
+	baseArgs := []interface{}{businessID, startTime, endTime}
 
+	var statusCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
-	var totalRevenue float64
-
-	for _, booking := range bookings {
-		switch booking.Status {
+	for _, sc := range statusCounts {
+		switch sc.Status {
 		case "pending":
-			pendingCount++
+			pendingCount = sc.Count
 		case "client_confirmed":
-			confirmedCount++
+			confirmedCount = sc.Count
 		case "completed":
-			completedCount++
-			totalRevenue += booking.TotalAmount
+			completedCount = sc.Count
 		case "cancelled":
-			cancelledCount++
+			cancelledCount = sc.Count
 		}
 	}
+
+	var totalBookings int64
+	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalBookings)
+
+	var totalRevenue float64
+	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	c.HTML(http.StatusOK, "bookings_stats_grid", gin.H{
 		"Business":       currentBusiness,
@@ -245,7 +353,7 @@ func (h *BusinessHandler) GetBookingsStatsGrid(c *gin.Context) {
 		"ConfirmedCount":  int(confirmedCount),
 		"CompletedCount":  int(completedCount),
 		"CancelledCount":  int(cancelledCount),
-		"TotalBookings":   len(bookings),
+		"TotalBookings":   int(totalBookings),
 		"TotalRevenue":    totalRevenue,
 	})
 }

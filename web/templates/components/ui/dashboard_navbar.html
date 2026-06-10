@@ -1,6 +1,10 @@
 {{define "dashboard_navbar"}}
-{{$pageTitles := dict "dashboard" "Dashboard" "products" "Products" "services" "Services" "orders" "Orders" "bookings" "Bookings" "payments" "Payments" "analytics" "Analytics" "reports" "Reports" "reviews" "Reviews" "notifications" "Notifications" "hours" "Business Hours" "share" "Share Your Business" "subscription" "Subscription" "locations" "Locations" "team" "Team" "customers" "Customers" "checkout" "Checkout"}}
+{{$pageTitles := dict "dashboard" "Dashboard" "products" "Products" "services" "Services" "orders" "Orders" "bookings"
+"Bookings" "payments" "Payments" "analytics" "Analytics" "reports" "Reports" "reviews" "Reviews" "notifications"
+"Notifications" "hours" "Business Hours" "share" "Share Your Business" "subscription" "Subscription" "locations"
+"Locations" "team" "Team" "customers" "Customers" "checkout" "Checkout"}}
 {{$title := index $pageTitles .ActivePage | default "Dashboard"}}
+
 <header class="navbar-glass">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
@@ -15,10 +19,13 @@
       </div>
       <div class="flex items-center gap-3">
         <div class="hidden lg:flex items-center gap-3">
-          <button class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Toggle theme">
+          <button
+            class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+            title="Toggle theme">
             <i class="fas fa-sun theme-sun"></i>
             <i class="fas fa-moon theme-moon hidden"></i>
           </button>
+          <div hx-get="/business/subscription/badge" hx-trigger="load" hx-target="this" hx-swap="innerHTML" class="flex items-center"></div>
           <a href="/business" class="btn btn-ghost btn-icon" title="Chats with Clients">
             <i class="fas fa-comments"></i>
           </a>
@@ -40,21 +47,26 @@
           <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
             <i class="fas fa-ellipsis-v text-lg"></i>
           </button>
-          <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-            <a href="/business" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+          <div id="headerMenu"
+            class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
+            <a href="/business"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
               <i class="fas fa-comments w-5 text-center"></i>
               <span>Chats</span>
             </a>
-            <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <button onclick="SalesMeeTheme.toggle()"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
               <i class="fas fa-adjust w-5 text-center"></i>
               <span>Toggle Theme</span>
             </button>
-            <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <button onclick="showBusinessProfile()"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
               <i class="fas fa-store w-5 text-center"></i>
               <span>Business Profile</span>
             </button>
             <div class="border-t border-[var(--color-border-light)] my-1"></div>
-            <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+            <a href="/business/logout"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
               <i class="fas fa-sign-out-alt w-5 text-center"></i>
               <span>Logout</span>
             </a>

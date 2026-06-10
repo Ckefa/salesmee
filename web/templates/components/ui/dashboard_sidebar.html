@@ -1,10 +1,12 @@
 {{define "dashboard_sidebar"}}
+
 {{$active := .ActivePage}}
 {{$isOwner := eq .AuthType "owner"}}
 {{$isManager := eq .Role "manager"}}
 {{$isStaff := eq .Role "staff"}}
 {{$showMgmt := or $isOwner $isManager}}
-<aside class="w-64 dashboard-sidebar bg-[var(--color-surface)] border-r border-[var(--color-border)] overflow-y-auto scrollbar-thin">
+<aside
+  class="w-64 dashboard-sidebar bg-[var(--color-surface)] border-r border-[var(--color-border)] overflow-y-auto scrollbar-thin">
   <div class="lg:hidden flex items-center justify-between px-4 pt-4 pb-2 border-b border-[var(--color-border)] mb-2">
     <span class="text-sm font-semibold text-[var(--color-text)]">Dashboard</span>
     <button onclick="toggleDashboardSidebar()" class="btn btn-icon btn-ghost btn-icon-sm">
@@ -12,130 +14,133 @@
     </button>
   </div>
   <nav class="mt-2 px-3 space-y-1">
-    <a href="/business/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
-      {{if eq $active `dashboard`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <div hx-get="/business/dashboard" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav{{if eq .ActivePage `dashboard`}} bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]{{else}} text-[var(--color-text-secondary)]{{end}} hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-chart-line w-4"></i>
       Dashboard Overview
-    </a>
+    </div>
     {{if $showMgmt}}
-    <a href="/business/products" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
-      {{if eq $active `products`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <div hx-get="/business/products" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-box w-4"></i>
       Products
       {{if .ProductCount}}<span class="ml-auto badge badge-neutral">{{.ProductCount}}</span>{{end}}
-    </a>
-    <a href="/business/services" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
-      {{if eq $active `services`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    </div>
+    <a hx-get="/business/services" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-concierge-bell w-4"></i>
       Services
       {{if .ServiceCount}}<span class="ml-auto badge badge-neutral">{{.ServiceCount}}</span>{{end}}
     </a>
     {{end}}
-    <a href="/business/orders" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
-      {{if eq $active `orders`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/orders" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-shopping-cart w-4"></i>
       Orders
       {{if .PendingOrderCount}}<span class="ml-auto badge badge-warning">{{.PendingOrderCount}}</span>{{end}}
     </a>
-    <a href="/business/bookings" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl 
-      {{if eq $active `bookings`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/bookings" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-calendar-check w-4"></i>
       Bookings
       {{if .PendingBookingCount}}<span class="ml-auto badge badge-info">{{.PendingBookingCount}}</span>{{end}}
     </a>
     {{if $showMgmt}}
-    <a href="/business/payments" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `payments`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/payments" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-credit-card w-4"></i>
       Payments
     </a>
-    <a href="/business/analytics" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `analytics`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/analytics" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-chart-bar w-4"></i>
       Analytics
     </a>
-    <a href="/business/reports" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `reports`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/reports" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-file-alt w-4"></i>
       Reports
     </a>
-    <a href="/business/reviews" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `reviews`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/reviews" hx-target="#main-content" hx-push-url="true"
+      class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-star w-4"></i>
       Reviews
+      {{if .Business.ReviewCount}}<span class="ml-auto badge badge-secondary">{{.Business.ReviewCount}}</span>{{end}}
     </a>
+    <script>
+      // Temporary: Active sidebar highlight after navigation
+      document.addEventListener('htmx:afterSwap', function (event) {
+        if (event.detail.target && event.detail.target.id === 'main-content') {
+          // Clear all
+          document.querySelectorAll('.dash-nav').forEach(el => el.classList.remove('bg-[var(--color-primary-light)]', 'text-[var(--color-primary-dark)]'));
+          // Find the nav link for current path
+          let path = window.location.pathname;
+          let matching = Array.from(document.querySelectorAll('.dash-nav')).find(el => el.getAttribute('href') === path || el.getAttribute('hx-get') === path);
+          if (matching) {
+            matching.classList.add('bg-[var(--color-primary-light)]', 'text-[var(--color-primary-dark)]');
+            matching.classList.remove('text-[var(--color-text-secondary)]');
+          }
+        }
+      });
+      // Run on first load
+      document.addEventListener('DOMContentLoaded', function () {
+        let path = window.location.pathname;
+        let matching = Array.from(document.querySelectorAll('.dash-nav')).find(el => el.getAttribute('href') === path || el.getAttribute('hx-get') === path);
+        if (matching) {
+          matching.classList.add('bg-[var(--color-primary-light)]', 'text-[var(--color-primary-dark)]');
+          matching.classList.remove('text-[var(--color-text-secondary)]');
+        }
+      });
+    </script>
+
     {{end}}
-    <a href="/business/notification-settings" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `notifications`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/notification-settings" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-bell w-4"></i>
       Notifications
     </a>
     {{if $isOwner}}
-    <a href="/business/hours" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `hours`}}bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/hours" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-clock w-4"></i>
       Hours
     </a>
-    <a href="/business/share" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `share`}}bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/share" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-share-alt w-4"></i>
       Share
     </a>
-    <a href="/business/subscription" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `subscription`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/subscription" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-crown w-4"></i>
       <span class="flex-1">Subscription</span>
-      <span hx-get="/business/subscription/badge-sidebar" hx-trigger="load" hx-swap="innerHTML" class="text-[10px] font-semibold"></span>
+      <span hx-get="/business/subscription/badge-sidebar" hx-trigger="load" hx-target="this" hx-swap="innerHTML" hx-push-url="false"
+        class="text-[10px] font-semibold"></span>
     </a>
-    <a href="/business/locations" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `locations`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/locations" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-map-marker-alt w-4"></i>
       Locations
     </a>
-    <a href="/business/team" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `team`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
+    <a hx-get="/business/team" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-users-cog w-4"></i>
       Team
     </a>
     {{end}}
-    <a href="/business" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl {{if eq $active `customers`}}bg-[var(--color-primary-light)]
-      text-[var(--color-primary-dark)]{{else}}text-[var(--color-text-secondary)]
-      hover:bg-[var(--color-surface-secondary)] transition-colors{{end}}">
-      <i class="fas fa-users w-4"></i>
-      Customers
+    <a href="/business" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+      <i class="fas fa-comments w-4"></i>
+      Chats
     </a>
   </nav>
 </aside>
-<div id="dashboardSidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="toggleDashboardSidebar()"></div>
+<div id="dashboardSidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden"
+  onclick="toggleDashboardSidebar()"></div>
 <script>
-function toggleDashboardSidebar() {
-  var overlay = document.getElementById('dashboardSidebarOverlay');
-  var sidebar = document.querySelector('.dashboard-sidebar');
-  if (!sidebar) return;
-  sidebar.classList.toggle('open');
-  if (sidebar.classList.contains('open')) {
-    if (overlay) overlay.classList.remove('hidden');
-  } else {
-    if (overlay) overlay.classList.add('hidden');
+  function toggleDashboardSidebar() {
+    var overlay = document.getElementById('dashboardSidebarOverlay');
+    var sidebar = document.querySelector('.dashboard-sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('open');
+    if (sidebar.classList.contains('open')) {
+      if (overlay) overlay.classList.remove('hidden');
+    } else {
+      if (overlay) overlay.classList.add('hidden');
+    }
   }
-}
 </script>
 {{end}}

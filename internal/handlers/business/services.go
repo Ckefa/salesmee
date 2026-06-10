@@ -39,26 +39,71 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 		return
 	}
 
-	var services []models.Service
-	query := h.db.Where("business_id = ?", businessID)
-	if locID := c.Query("location_id"); locID != "" {
-		query = query.Where("(location_id IS NULL OR location_id = ?)", locID)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
 	}
-	query.Order("created_at DESC").Find(&services)
+	pageSize := pageSize()
+
+	baseWhere := "business_id = ?"
+	baseArgs := []interface{}{businessID}
+	locID := c.Query("location_id")
+	if locID != "" {
+		baseWhere += " AND (location_id IS NULL OR location_id = ?)"
+		baseArgs = append(baseArgs, locID)
+	}
+
+	var totalCount int64
+	h.db.Model(&models.Service{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+
+	var services []models.Service
+	h.db.Where(baseWhere, baseArgs...).
+		Order("created_at DESC").
+		Limit(pageSize).Offset((page - 1) * pageSize).
+		Find(&services)
+
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
+	}
 
 	var locations []models.Location
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/services_content", gin.H{
+			"Business":         currentBusiness,
+			"Services":         services,
+			"Page":             float64(page),
+			"TotalPages":       float64(totalPages),
+			"TotalCount":       totalCount,
+			"Countries":        data.Countries,
+			"Currencies":       data.Currencies,
+			"Onboarding":       h.onboardingData(businessID),
+			"Locations":        locations,
+			"AuthType":         c.GetString("auth_type"),
+			"Role":             c.GetString("role"),
+			"QueryLocationID":  locID,
+			"ActivePage":       "services",
+		})
+		return
+	}
+
 	c.HTML(http.StatusOK, "services.html", gin.H{
-		"Business":   currentBusiness,
-		"Services":   services,
-		"ActivePage": "services",
-		"Countries":  data.Countries,
-		"Currencies": data.Currencies,
-		"Onboarding": h.onboardingData(businessID),
-		"Locations":  locations,
-		"AuthType":   c.GetString("auth_type"),
-		"Role":       c.GetString("role"),
+		"Business":         currentBusiness,
+		"Services":         services,
+		"Page":             float64(page),
+		"TotalPages":       float64(totalPages),
+		"TotalCount":       totalCount,
+		"ActivePage":       "services",
+		"Countries":        data.Countries,
+		"Currencies":       data.Currencies,
+		"Onboarding":       h.onboardingData(businessID),
+		"Locations":        locations,
+		"AuthType":         c.GetString("auth_type"),
+		"Role":             c.GetString("role"),
+		"QueryLocationID":  locID,
 	})
 }
 

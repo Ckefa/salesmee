@@ -1,30 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "dashboard_top" .}}
+{{template "dashboard/bookings_content" .}}
+{{template "dashboard_bottom" .}}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Bookings - SalesMee</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-</head>
-
-<body class="bg-[var(--color-bg)] h-screen">
-{{template "dashboard_navbar" .}}
-  {{template "verify_banner" .}}
-
-  <div class="flex h-[calc(100vh-4rem)]">
-    {{template "dashboard_sidebar" .}}
-    <main class="flex-1 overflow-y-auto pb-16">
-      {{template "bookings_content" .}}
-    </main>
-  </div>
-
-{{define "bookings_content"}}
+{{define "dashboard/bookings_content"}}
 <div class="py-6">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Page Header -->
@@ -210,6 +188,29 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center mt-4 px-1">
+        <div class="text-xs text-[var(--color-text-muted)]">Page {{.Page}} of {{.TotalPages}} ({{.TotalBookings}} bookings)</div>
+        <div class="flex gap-1">
+          {{$prev := sub .Page 1}}
+          {{$next := add .Page 1}}
+          {{$range := $.Range}}
+          <a href="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}"
+             hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-content" hx-swap="outerHTML"
+             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                    {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+             {{if eq .Page 1.0}}onclick="return false"{{end}}>
+            <i class="fas fa-chevron-left"></i>
+          </a>
+          <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
+             hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-content" hx-swap="outerHTML"
+             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                    {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+             {{if ge .Page .TotalPages}}onclick="return false"{{end}}>
+            <i class="fas fa-chevron-right"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -724,8 +725,7 @@
     }
 
     function onPeriodChange(el) {
-      htmx.ajax('GET', '/business/bookings/stats-grid?range=' + el.value, {target: '#bookings-stats-grid', swap: 'outerHTML'});
-      filterBookings();
+      htmx.ajax('GET', '/business/bookings/stats?range=' + el.value + '&page=1', {target: '#bookings-content', swap: 'outerHTML'});
     }
 
     document.getElementById('bookingSearch').addEventListener('input', filterBookings);
@@ -753,11 +753,3 @@
     });
   </script>
 
-  {{template "business_profile" .}}
-  {{template "business_profile_script" .}}
-  {{template "mobile_bottom_nav" .}}
-  {{template "csrf_script" .}}
-{{template "dashboard_footer" .}}
-</body>
-
-</html>

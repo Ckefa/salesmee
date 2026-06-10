@@ -1,210 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "dashboard_top" .}}
+{{template "dashboard/services_content" .}}
+{{template "dashboard_bottom" .}}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Services Management - SalesMee</title>
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-  <style>
-    .sidebar-item {
-      transition: all 0.3s ease;
-    }
+{{define "dashboard/services_content"}}
+  <div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Page Header -->
+      <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Services Management</h2>
+          <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">Manage your service offerings</p>
+        </div>
+        <button onclick="showAddServiceModal()"
+          class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
+          <i class="fas fa-plus"></i>
+          <span>Add Service</span>
+        </button>
+      </div>
 
-    .sidebar-item:hover {
-      transform: translateX(4px);
-    }
-
-    .service-card {
-      transition: all 0.3s ease;
-    }
-
-    .service-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-row-hover:hover {
-      background-color: var(--color-surface-secondary);
-    }
-
-    .badge-price {
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-  </style>
-</head>
-
-<body class="bg-[var(--color-bg)]">
-{{template "dashboard_navbar" .}}
-  {{template "verify_banner" .}}
-
-  <div class="flex h-[calc(100vh-4rem)]">
-{{template "dashboard_sidebar" .}}
-
-    <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto pb-16">
-      <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <!-- Page Header -->
-          <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Services Management</h2>
-              <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">Manage your service offerings</p>
+      <!-- Search and Filter -->
+      <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex-1 min-w-0">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-search text-[var(--color-text-muted)]"></i>
             </div>
-            <button onclick="showAddServiceModal()"
-              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
-              <i class="fas fa-plus"></i>
-              <span>Add Service</span>
-            </button>
+            <input type="text" id="searchInput" placeholder="Search services..." class="input pl-10">
           </div>
+        </div>
+        <div class="mt-3 sm:mt-0 sm:ml-4">
+          <select id="statusFilter" class="input">
+            <option value="">All Services</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="negotiable">Negotiable</option>
+          </select>
+        </div>
+        <div class="mt-3 sm:mt-0 sm:ml-4">
+          <select id="locationFilter" onchange="window.location.href=this.value" class="input">
+            <option value="/business/services">All Locations</option>
+            {{range .Locations}}
+            <option value="/business/services?location_id={{.ID}}">{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+      </div>
 
-          <!-- Search and Filter -->
-          <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex-1 min-w-0">
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i class="fas fa-search text-[var(--color-text-muted)]"></i>
-                </div>
-                <input type="text" id="searchInput" placeholder="Search services..."
-                  class="input pl-10">
-              </div>
-            </div>
-            <div class="mt-3 sm:mt-0 sm:ml-4">
-              <select id="statusFilter"
-                class="input">
-                <option value="">All Services</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="negotiable">Negotiable</option>
-              </select>
-            </div>
-            <div class="mt-3 sm:mt-0 sm:ml-4">
-              <select id="locationFilter" onchange="window.location.href=this.value"
-                class="input">
-                <option value="/business/services">All Locations</option>
-                {{range .Locations}}
-                <option value="/business/services?location_id={{.ID}}">{{.Name}}</option>
-                {{end}}
-              </select>
-            </div>
-          </div>
-
-          <!-- Services Grid -->
-          <div id="servicesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {{range .Services}}
-            <div class="service-card bg-[var(--color-surface)] rounded-xl card overflow-hidden" data-service-id="{{.ID}}">
-              <div class="relative">
-                {{if .ImageURL}}
-                <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
-                {{else}}
-                <div class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
-                  <i class="fas fa-concierge-bell text-[var(--color-primary)] text-4xl"></i>
-                </div>
-                {{end}}
-                {{if not .IsActive}}
-                <div class="absolute top-2 right-2 bg-[var(--color-error)] text-white px-2 py-1 rounded text-xs">
-                  Inactive
-                </div>
-                {{end}}
-                {{if .IsNegotiable}}
-                <div class="absolute top-2 left-2 bg-[var(--color-success)] text-white px-2 py-1 rounded text-xs">
-                  <i class="fas fa-handshake mr-1"></i>Negotiable
-                </div>
-                {{end}}
-              </div>
-              <div class="p-4">
-                <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">{{.Name}}</h3>
-                <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1">{{.Description}}</p>
-                <div class="mt-4">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs sm:text-sm text-[var(--color-text-muted)]">Price Range:</span>
-                    <div class="text-right">
-                      <span class="badge-price bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
-                        {{currencySymbol $.Business.Currency}}{{.MinPrice}} - {{currencySymbol $.Business.Currency}}{{.MaxPrice}}
-                      </span>
-                    </div>
-                  </div>
-                  {{if .Duration}}
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs sm:text-sm text-[var(--color-text-muted)]">Duration:</span>
-                    <span class="text-xs sm:text-sm font-medium text-[var(--color-text)]" data-duration="{{.Duration}}">{{.Duration}}
-                      minutes</span>
-                  </div>
-                  {{end}}
-                </div>
-                <div class="mt-4 flex space-x-2">
-                  <button onclick="editService(this.closest('[data-service-id]').dataset.serviceId)"
-                    class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                    <i class="fas fa-edit sm:mr-1"></i> <span class="hidden sm:inline">Edit</span>
-                  </button>
-                  <button onclick="deleteService(this.closest('[data-service-id]').dataset.serviceId)"
-                    class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                    <i class="fas fa-trash sm:mr-1"></i> <span class="hidden sm:inline">Delete</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+      <!-- Services Grid -->
+      <div id="servicesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{range .Services}}
+        <div class="service-card bg-[var(--color-surface)] rounded-xl card overflow-hidden" data-service-id="{{.ID}}">
+          <div class="relative">
+            {{if .ImageURL}}
+            <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
             {{else}}
-            <div class="col-span-full text-center py-12">
-              <i class="fas fa-concierge-bell text-[var(--color-text-muted)] text-5xl mb-4"></i>
-              <p class="text-sm text-[var(--color-text-secondary)]">No services found</p>
-              <button onclick="showAddServiceModal()"
-                class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
-                <i class="fas fa-plus mr-2"></i>Add your first service
-              </button>
+            <div
+              class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
+              <i class="fas fa-concierge-bell text-[var(--color-primary)] text-4xl"></i>
+            </div>
+            {{end}}
+            {{if not .IsActive}}
+            <div class="absolute top-2 right-2 bg-[var(--color-error)] text-white px-2 py-1 rounded text-xs">
+              Inactive
+            </div>
+            {{end}}
+            {{if .IsNegotiable}}
+            <div class="absolute top-2 left-2 bg-[var(--color-success)] text-white px-2 py-1 rounded text-xs">
+              <i class="fas fa-handshake mr-1"></i>Negotiable
             </div>
             {{end}}
           </div>
+          <div class="p-4">
+            <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">{{.Name}}</h3>
+            <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1">{{.Description}}</p>
+            <div class="mt-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs sm:text-sm text-[var(--color-text-muted)]">Price Range:</span>
+                <div class="text-right">
+                  <span class="badge-status bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+                    {{currencySymbol $.Business.Currency}}{{.MinPrice}} - {{currencySymbol
+                    $.Business.Currency}}{{.MaxPrice}}
+                  </span>
+                </div>
+              </div>
+              {{if .Duration}}
+              <div class="flex items-center justify-between">
+                <span class="text-xs sm:text-sm text-[var(--color-text-muted)]">Duration:</span>
+                <span class="text-xs sm:text-sm font-medium text-[var(--color-text)]"
+                  data-duration="{{.Duration}}">{{.Duration}}
+                  minutes</span>
+              </div>
+              {{end}}
+            </div>
+            <div class="mt-4 flex space-x-2">
+              <button onclick="editService(this.closest('[data-service-id]').dataset.serviceId)"
+                class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
+                <i class="fas fa-edit sm:mr-1"></i> <span class="hidden sm:inline">Edit</span>
+              </button>
+              <button onclick="deleteService(this.closest('[data-service-id]').dataset.serviceId)"
+                class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
+                <i class="fas fa-trash sm:mr-1"></i> <span class="hidden sm:inline">Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        {{else}}
+        <div class="col-span-full text-center py-12">
+          <i class="fas fa-concierge-bell text-[var(--color-text-muted)] text-5xl mb-4"></i>
+          <p class="text-sm text-[var(--color-text-secondary)]">No services found</p>
+          <button onclick="showAddServiceModal()"
+            class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
+            <i class="fas fa-plus mr-2"></i>Add your first service
+          </button>
+        </div>
+        {{end}}
+      </div>
+
+      <div class="flex justify-between items-center mt-6 px-1">
+        <div class="text-xs text-[var(--color-text-muted)]">Page {{.Page}} of {{.TotalPages}} ({{.TotalCount}} services)
+        </div>
+        <div class="flex gap-1">
+          {{$prev := sub .Page 1}}
+          {{$next := add .Page 1}}
+          <a href="?page={{$prev}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                  {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}" {{if eq .Page 1.0}}onclick="return false" {{end}}>
+            <i class="fas fa-chevron-left"></i>
+          </a>
+          <a href="?page={{$next}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                  {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}" {{if ge .Page .TotalPages}}onclick="return false"
+            {{end}}>
+            <i class="fas fa-chevron-right"></i>
+          </a>
         </div>
       </div>
-    </main>
+    </div>
   </div>
+  {{end}}
 
   <!-- Add/Edit Service Modal -->
   <div id="serviceModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-[60]">
-    <div class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-3 sm:mx-4 max-h-[80vh] overflow-y-auto p-4 sm:p-5 pb-16">
+    <div
+      class="bg-[var(--color-surface)] rounded-lg shadow-xl max-w-md w-full mx-3 sm:mx-4 max-h-[80vh] overflow-y-auto p-4 sm:p-5 pb-16">
       <div class="mt-3">
         <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]" id="modalTitle">Add Service</h3>
         <form id="serviceForm" class="mt-4 space-y-4">
           <input type="hidden" id="serviceId">
           <div>
             <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Service Name</label>
-            <input type="text" id="serviceName" required
-              class="input mt-1">
+            <input type="text" id="serviceName" required class="input mt-1">
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Description</label>
-            <textarea id="serviceDescription" rows="3"
-              class="input mt-1"></textarea>
+            <textarea id="serviceDescription" rows="3" class="input mt-1"></textarea>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Min Price</label>
-              <input type="number" id="serviceMinPrice" step="0.01" required
-                class="input mt-1">
+              <input type="number" id="serviceMinPrice" step="0.01" required class="input mt-1">
             </div>
             <div>
               <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Max Price</label>
-              <input type="number" id="serviceMaxPrice" step="0.01" required
-                class="input mt-1">
+              <input type="number" id="serviceMaxPrice" step="0.01" required class="input mt-1">
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Duration</label>
             <div class="grid grid-cols-2 gap-2">
-              <input type="number" id="serviceDuration" min="1" placeholder="Value"
-                class="input mt-1">
-              <select id="serviceDurationUnit"
-                class="input mt-1">
+              <input type="number" id="serviceDuration" min="1" placeholder="Value" class="input mt-1">
+              <select id="serviceDurationUnit" class="input mt-1">
                 <option value="minutes">Minutes</option>
                 <option value="hours">Hours</option>
                 <option value="days">Days</option>
@@ -215,13 +180,13 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Image URL</label>
-            <input type="url" id="serviceImageURL"
-              class="input mt-1">
+            <input type="url" id="serviceImageURL" class="input mt-1">
           </div>
           <div class="flex items-center">
             <input type="checkbox" id="serviceIsNegotiable"
               class="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
-            <label for="serviceIsNegotiable" class="ml-2 block text-sm text-[var(--color-text)]">Price is negotiable</label>
+            <label for="serviceIsNegotiable" class="ml-2 block text-sm text-[var(--color-text)]">Price is
+              negotiable</label>
           </div>
           <div class="flex items-center">
             <input type="checkbox" id="serviceIsActive" checked
@@ -233,7 +198,8 @@
               class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Cancel
             </button>
-            <button type="submit" class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
+            <button type="submit"
+              class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
               Save Service
             </button>
           </div>
@@ -339,12 +305,6 @@
       const inpUnit = document.getElementById('serviceDurationUnit');
       const outHidden = document.getElementById('serviceDurationInMinutes');
 
-      /**
-       * Convert the selected value+unit into *total minutes*.
-       *  - 1 hour = 60 minutes
-       *  - 1 day  = 24 × 60 minutes
-       *  - 1 month= 30 × 24 × 60 minutes  (assumes 30‑day months)
-       */
       const recalc = () => {
         const num = Number(inpVal.value) || 0;
         const unit = inpUnit.value;
@@ -361,11 +321,8 @@
         outHidden.value = minutes;
       };
 
-      // Whenever either control changes, recalc
       inpVal.addEventListener('input', recalc);
       inpUnit.addEventListener('change', recalc);
-
-      // Initialise on page load
       recalc();
     })();
 
@@ -373,12 +330,10 @@
     function formatDuration(minutes) {
       if (!minutes || minutes <= 0) return '';
 
-      // If less than 60 minutes, show in minutes
       if (minutes < 60) {
         return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
       }
 
-      // If less than 24 hours (1440 minutes), show in hours
       if (minutes < 1440) {
         const hours = Math.floor(minutes / 60);
         const remainingMinutes = minutes % 60;
@@ -390,7 +345,6 @@
         }
       }
 
-      // If less than 30 days (43200 minutes), show in days
       if (minutes < 43200) {
         const days = Math.floor(minutes / (24 * 60));
         const remainingHours = Math.floor((minutes % (24 * 60)) / 60);
@@ -402,7 +356,6 @@
         }
       }
 
-      // Otherwise show in months (30 days each)
       const months = Math.floor(minutes / (30 * 24 * 60));
       const remainingDays = Math.floor((minutes % (30 * 24 * 60)) / (24 * 60));
 
@@ -520,10 +473,3 @@
     }
   </script>
 
-  {{template "business_profile" .}}
-  {{template "business_profile_script" .}}
-  {{template "mobile_bottom_nav" .}}
-  {{template "csrf_script" .}}
-</body>
-
-</html>

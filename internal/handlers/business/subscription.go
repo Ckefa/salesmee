@@ -16,6 +16,7 @@ import (
 )
 
 type SubscriptionPageData struct {
+	Title        string
 	ActivePage   string
 	Business     models.Business
 	Subscription *models.BusinessSubscription
@@ -48,15 +49,11 @@ type SubscriptionPageData struct {
 	PaymentProvider string
 	AuthType        string
 	Role            string
-}
-
-type UpcomingInvoiceInfo struct {
-	Amount   float64
-	Date     string
-	Interval string
+	ContentTemplate string
 }
 
 type CheckoutPageData struct {
+	Title      string
 	ActivePage string
 	Business   models.Business
 	Plan       *models.SubscriptionPlan
@@ -74,9 +71,11 @@ type CheckoutPageData struct {
 	PendingBookingCount int
 	AuthType            string
 	Role                string
+	ContentTemplate     string
 }
 
 type PlansPageData struct {
+	Title      string
 	ActivePage string
 	Business   models.Business
 	Plans      []models.SubscriptionPlan
@@ -89,7 +88,16 @@ type PlansPageData struct {
 	PendingBookingCount int
 	AuthType            string
 	Role                string
+	ContentTemplate     string
 }
+
+type UpcomingInvoiceInfo struct {
+	Amount   float64
+	Date     string
+	Interval string
+}
+
+
 
 func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
@@ -100,7 +108,7 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
+		c.HTML(http.StatusNotFound, "subscription.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -223,7 +231,7 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
-		c.HTML(http.StatusOK, "subscription_content", data)
+		c.HTML(http.StatusOK, "dashboard/subscription_content", data)
 	} else {
 		c.HTML(http.StatusOK, "subscription.html", data)
 	}
@@ -238,7 +246,7 @@ func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
+		c.HTML(http.StatusNotFound, "subscription_plans.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -263,7 +271,7 @@ func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
-		c.HTML(http.StatusOK, "subscription_plans_content", data)
+		c.HTML(http.StatusOK, "dashboard/subscription_plans_content", data)
 	} else {
 		c.HTML(http.StatusOK, "subscription_plans.html", data)
 	}

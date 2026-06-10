@@ -172,36 +172,94 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
 
-	var orders []models.Order
-	orderQuery := h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime)
-	if locID := c.Query("location_id"); locID != "" {
-		orderQuery = orderQuery.Where("location_id = ?", locID)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
 	}
-	orderQuery.Find(&orders)
+	pageSize := pageSize()
 
+	baseWhere := "business_id = ? AND created_at BETWEEN ? AND ?"
+	baseArgs := []interface{}{businessID, startTime, endTime}
+	if locID := c.Query("location_id"); locID != "" {
+		baseWhere += " AND location_id = ?"
+		baseArgs = append(baseArgs, locID)
+	}
+
+	// Status counts for full date range
+	var statusCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
-	var totalRevenue float64
-
-	for _, order := range orders {
-		switch order.Status {
+	for _, sc := range statusCounts {
+		switch sc.Status {
 		case "draft":
-			draftCount++
+			draftCount = sc.Count
 		case "pending":
-			pendingCount++
+			pendingCount = sc.Count
 		case "client_confirmed":
-			clientConfirmedCount++
+			clientConfirmedCount = sc.Count
 		case "confirmed":
-			confirmedCount++
+			confirmedCount = sc.Count
 		case "fulfilled":
-			fulfilledCount++
+			fulfilledCount = sc.Count
 		case "cancelled":
-			cancelledCount++
+			cancelledCount = sc.Count
 		}
-		totalRevenue += order.TotalAmount
+	}
+
+	// Total revenue for full date range
+	var totalRevenue float64
+	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+
+	// Total count for pagination
+	var totalCount int64
+	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+
+	// Paginated orders
+	var orders []models.Order
+	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
+		Where(baseWhere, baseArgs...).
+		Order("created_at DESC").
+		Limit(pageSize).Offset((page - 1) * pageSize).
+		Find(&orders)
+
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
 	}
 
 	var locations []models.Location
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/orders_content", gin.H{
+			"Business":             currentBusiness,
+			"Orders":               orders,
+			"DraftCount":           draftCount,
+			"PendingCount":         pendingCount,
+			"ClientConfirmedCount": clientConfirmedCount,
+			"ConfirmedCount":       confirmedCount,
+			"FulfilledCount":       fulfilledCount,
+			"CancelledCount":       cancelledCount,
+			"TotalOrders":          totalCount,
+			"TotalRevenue":         totalRevenue,
+			"Page":                 float64(page),
+			"TotalPages":           float64(totalPages),
+			"PageSize":             pageSize,
+			"Range":                r,
+			"Countries":            data.Countries,
+			"Currencies":           data.Currencies,
+			"Onboarding":           h.onboardingData(businessID),
+			"Locations":            locations,
+			"AuthType":             c.GetString("auth_type"),
+			"Role":                 c.GetString("role"),
+			"ActivePage":           "orders",
+		})
+		return
+	}
 
 	c.HTML(http.StatusOK, "orders.html", gin.H{
 		"Business":             currentBusiness,
@@ -212,15 +270,19 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"ConfirmedCount":       confirmedCount,
 		"FulfilledCount":       fulfilledCount,
 		"CancelledCount":       cancelledCount,
-		"TotalOrders":          len(orders),
+		"TotalOrders":          totalCount,
 		"TotalRevenue":         totalRevenue,
-		"ActivePage":           "orders",
+		"Page":                 float64(page),
+		"TotalPages":           float64(totalPages),
+		"PageSize":             pageSize,
+		"Range":                r,
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
 		"Onboarding":           h.onboardingData(businessID),
 		"Locations":            locations,
 		"AuthType":             c.GetString("auth_type"),
 		"Role":                 c.GetString("role"),
+		"ActivePage":           "orders",
 	})
 }
 
@@ -240,31 +302,68 @@ func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
 
-	var orders []models.Order
-	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize := pageSize()
 
-	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
-	var totalRevenue float64
-
-	for _, order := range orders {
-		switch order.Status {
-		case "draft":
-			draftCount++
-		case "pending":
-			pendingCount++
-		case "client_confirmed":
-			clientConfirmedCount++
-		case "confirmed":
-			confirmedCount++
-		case "fulfilled":
-			fulfilledCount++
-		case "cancelled":
-			cancelledCount++
-		}
-		totalRevenue += order.TotalAmount
+	baseWhere := "business_id = ? AND created_at BETWEEN ? AND ?"
+	baseArgs := []interface{}{businessID, startTime, endTime}
+	if locID := c.Query("location_id"); locID != "" {
+		baseWhere += " AND location_id = ?"
+		baseArgs = append(baseArgs, locID)
 	}
 
-	c.HTML(http.StatusOK, "orders_content", gin.H{
+	// Status counts for full date range
+	var statusCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
+	for _, sc := range statusCounts {
+		switch sc.Status {
+		case "draft":
+			draftCount = sc.Count
+		case "pending":
+			pendingCount = sc.Count
+		case "client_confirmed":
+			clientConfirmedCount = sc.Count
+		case "confirmed":
+			confirmedCount = sc.Count
+		case "fulfilled":
+			fulfilledCount = sc.Count
+		case "cancelled":
+			cancelledCount = sc.Count
+		}
+	}
+
+	// Total revenue for full date range
+	var totalRevenue float64
+	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+
+	// Total count for pagination
+	var totalCount int64
+	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+
+	// Paginated orders
+	var orders []models.Order
+	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
+		Where(baseWhere, baseArgs...).
+		Order("created_at DESC").
+		Limit(pageSize).Offset((page - 1) * pageSize).
+		Find(&orders)
+
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
+	}
+
+	var locations []models.Location
+	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+
+	c.HTML(http.StatusOK, "dashboard/orders_content", gin.H{
 		"Business":             currentBusiness,
 		"Orders":               orders,
 		"DraftCount":           draftCount,
@@ -273,9 +372,16 @@ func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
 		"ConfirmedCount":       confirmedCount,
 		"FulfilledCount":       fulfilledCount,
 		"CancelledCount":       cancelledCount,
-		"TotalOrders":          len(orders),
+		"TotalOrders":          totalCount,
 		"TotalRevenue":         totalRevenue,
+		"Page":                 float64(page),
+		"TotalPages":           float64(totalPages),
+		"PageSize":             pageSize,
+		"Range":                r,
 		"ActivePage":           "orders",
+		"Locations":            locations,
+		"AuthType":             c.GetString("auth_type"),
+		"Role":                 c.GetString("role"),
 	})
 }
 
@@ -295,29 +401,37 @@ func (h *BusinessHandler) GetOrdersStatsGrid(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	startTime, endTime, _ := timeRangeBounds(r)
 
-	var orders []models.Order
-	h.db.Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Find(&orders)
+	baseWhere := "business_id = ? AND created_at BETWEEN ? AND ?"
+	baseArgs := []interface{}{businessID, startTime, endTime}
 
-	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
-	var totalRevenue float64
-
-	for _, order := range orders {
-		switch order.Status {
-		case "draft":
-			draftCount++
-		case "pending":
-			pendingCount++
-		case "client_confirmed":
-			clientConfirmedCount++
-		case "confirmed":
-			confirmedCount++
-		case "fulfilled":
-			fulfilledCount++
-		case "cancelled":
-			cancelledCount++
-		}
-		totalRevenue += order.TotalAmount
+	var statusCounts []struct {
+		Status string
+		Count  int64
 	}
+	h.db.Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
+	for _, sc := range statusCounts {
+		switch sc.Status {
+		case "draft":
+			draftCount = sc.Count
+		case "pending":
+			pendingCount = sc.Count
+		case "client_confirmed":
+			clientConfirmedCount = sc.Count
+		case "confirmed":
+			confirmedCount = sc.Count
+		case "fulfilled":
+			fulfilledCount = sc.Count
+		case "cancelled":
+			cancelledCount = sc.Count
+		}
+	}
+
+	var totalOrders int64
+	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalOrders)
+
+	var totalRevenue float64
+	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	c.HTML(http.StatusOK, "orders_stats_grid", gin.H{
 		"Business":             currentBusiness,
@@ -327,7 +441,7 @@ func (h *BusinessHandler) GetOrdersStatsGrid(c *gin.Context) {
 		"ConfirmedCount":       int(confirmedCount),
 		"FulfilledCount":       int(fulfilledCount),
 		"CancelledCount":       int(cancelledCount),
-		"TotalOrders":          len(orders),
+		"TotalOrders":          int(totalOrders),
 		"TotalRevenue":         totalRevenue,
 	})
 }

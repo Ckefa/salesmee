@@ -149,7 +149,8 @@
     if (container) container.classList.add('hidden');
     var chip = document.querySelector('.assist-chip[onclick*="' + id + '"]');
     var prompt = chip ? chip.getAttribute('data-prompt') : '';
-    if (prompt) sendMessage(prompt + ' (regarding my business)');
+    var suffix = API_BASE === '/assist' ? '' : ' (regarding my business)';
+    if (prompt) sendMessage(prompt + suffix);
   }
 
   function escapeHtml(text) {

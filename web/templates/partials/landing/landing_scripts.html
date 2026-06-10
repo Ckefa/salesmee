@@ -1,5 +1,14 @@
 {{define "landing_scripts"}}
 <script>
+  window.ASSIST_API_BASE = '/assist';
+  function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+</script>
+<script src="/static/js/modules/assist.js?v=1"></script>
+<script>
   if (localStorage.getItem('cookies_accepted') === 'true') {
     {{if .AnalyticsID}}
     (function() {

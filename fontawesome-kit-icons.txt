@@ -1,0 +1,150 @@
+Font Awesome Kit Icons for SalesMee
+====================================
+Create a kit at https://kit.fontawesome.com and add these 116 icons.
+
+After creating the kit and copying your kit ID (looks like abc123def), run:
+  sed -i 's|cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css|kit.fontawesome.com/YOUR_KIT_ID.js|' web/templates/**/*.html web/templates/**/**/*.html
+  sed -i 's|<link|<script src="https://kit.fontawesome.com/YOUR_KIT_ID.js" crossorigin="anonymous"></script>|' web/templates/**/*.html web/templates/**/**/*.html
+  (Then remove the old <link> line that remains)
+
+Or simpler: just replace YOUR_KIT_ID with your actual ID everywhere:
+  sed -i 's|YOUR_KIT_ID|your-actual-kit-id|g' web/templates/**/*.html web/templates/**/**/*.html
+
+Icons:
+
+fas fa-adjust
+fas fa-arrow-left
+fas fa-arrow-right
+fas fa-arrow-up
+fas fa-bag-shopping
+fas fa-ban
+fas fa-bars
+fas fa-bell
+fas fa-book-open
+fas fa-box
+fas fa-box-open
+fas fa-boxes
+fas fa-briefcase
+fas fa-building
+fas fa-calendar
+fas fa-calendar-alt
+fas fa-calendar-check
+fas fa-calendar-day
+fas fa-calendar-days
+fas fa-calendar-plus
+fas fa-camera
+fas fa-car
+fas fa-chart-bar
+fas fa-chart-line
+fas fa-chart-pie
+fas fa-chart-simple
+fas fa-check
+fas fa-check-circle
+fas fa-check-double
+fas fa-chevron-down
+fas fa-chevron-left
+fas fa-chevron-right
+fas fa-circle
+fas fa-clipboard-list
+fas fa-clock
+fas fa-comment-dots
+fas fa-comments
+fas fa-compass
+fas fa-concierge-bell
+fas fa-copy
+fas fa-credit-card
+fas fa-crown
+fas fa-cut
+fas fa-dollar-sign
+fas fa-download
+fas fa-dumbbell
+fas fa-edit
+fas fa-ellipsis
+fas fa-ellipsis-h
+fas fa-ellipsis-v
+fas fa-envelope
+fas fa-exclamation-circle
+fas fa-exclamation-triangle
+fas fa-external-link-alt
+fas fa-eye
+fas fa-feather
+fas fa-file-alt
+fas fa-file-invoice
+fas fa-file-invoice-dollar
+fas fa-gem
+fas fa-globe
+fas fa-graduation-cap
+fas fa-handshake
+fas fa-heart-pulse
+fas fa-home
+fas fa-hourglass-half
+fas fa-inbox
+fas fa-infinity
+fas fa-info-circle
+fas fa-key
+fas fa-layer-group
+fas fa-link
+fas fa-location-dot
+fas fa-lock
+fas fa-map-marker-alt
+fas fa-message
+fas fa-minus
+fas fa-moon
+fas fa-paper-plane
+fas fa-paperclip
+fas fa-pen
+fas fa-phone
+fas fa-plus
+fas fa-print
+fas fa-receipt
+fas fa-redo
+fas fa-reply
+fas fa-rocket
+fas fa-rotate
+fas fa-save
+fas fa-search
+fas fa-share-alt
+fas fa-shield-alt
+fas fa-shield-halved
+fas fa-shopping-cart
+fas fa-sign-in-alt
+fas fa-sign-out-alt
+fas fa-smile (far)
+fas fa-spa
+fas fa-sparkles
+fas fa-spinner
+fas fa-star
+fas fa-star-half-alt
+fas fa-steps
+fas fa-sticky-note (far)
+fas fa-store
+fas fa-store-slash
+fas fa-sun
+fas fa-sync-alt
+fas fa-tag
+fas fa-times
+fas fa-times-circle
+fas fa-tractor
+fas fa-trash
+fas fa-trash-alt
+fas fa-user
+fas fa-user-check
+fas fa-user-clock
+fas fa-user-plus
+fas fa-user-tie
+fas fa-users
+fas fa-users-cog
+fas fa-utensils
+fas fa-wand-magic-sparkles
+fas fa-water
+fas fa-wrench
+
+Brand icons (fab):
+fab fa-discord
+fab fa-facebook
+fab fa-facebook-f
+fab fa-github
+fab fa-linkedin-in
+fab fa-twitter
+fab fa-whatsapp
+fab fa-x-twitter

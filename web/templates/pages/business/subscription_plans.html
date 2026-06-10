@@ -1,35 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plans - SalesMee</title>
-  <meta name="color-scheme" content="light dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-</head>
-<body class="bg-[var(--color-bg)]">
-{{template "dashboard_navbar" .}}
-  {{template "verify_banner" .}}
+{{template "dashboard_top" .}}
+{{template "dashboard/subscription_plans_content" .}}
+{{template "dashboard_bottom" .}}
 
-  <div class="flex h-[calc(100vh-4rem)]">
-    {{template "dashboard_sidebar" .}}
-    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)] pb-16">
-      {{template "subscription_plans_content" .}}
-    </main>
-  </div>
-  {{template "mobile_bottom_nav" .}}
-  {{template "csrf_script" .}}
-</body>
-</html>
-
-{{define "subscription_plans_content"}}
+{{define "dashboard/subscription_plans_content"}}
 <div class="max-w-5xl mx-auto p-6">
   <div class="text-center mb-6">
     <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Pick the right plan for you</h2>

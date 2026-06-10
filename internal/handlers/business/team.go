@@ -37,14 +37,21 @@ func (h *BusinessHandler) GetTeam(c *gin.Context) {
 	var locations []models.Location
 	h.db.Where("business_id = ? AND is_active = ?", businessID, true).Order("name ASC").Find(&locations)
 
-	c.HTML(http.StatusOK, "team.html", gin.H{
+	data := gin.H{
 		"Business":   business,
 		"Members":    members,
 		"Locations":  locations,
 		"ActivePage": "team",
 		"AuthType":   c.GetString("auth_type"),
 		"Role":       c.GetString("role"),
-	})
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "dashboard/team_content", data)
+		return
+	}
+
+	c.HTML(http.StatusOK, "team.html", data)
 }
 
 func (h *BusinessHandler) InviteTeamMember(c *gin.Context) {

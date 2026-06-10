@@ -30,23 +30,65 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		return
 	}
 
-	var products []models.Product
-	query := h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
-		return db.Order("sort_order ASC")
-	}).Where("business_id = ?", businessID)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize := pageSize()
 
-	if locID := c.Query("location_id"); locID != "" {
-		query = query.Where("(location_id IS NULL OR location_id = ?)", locID)
+	baseWhere := "business_id = ?"
+	baseArgs := []interface{}{businessID}
+	locID := c.Query("location_id")
+	if locID != "" {
+		baseWhere += " AND (location_id IS NULL OR location_id = ?)"
+		baseArgs = append(baseArgs, locID)
 	}
 
-	query.Order("created_at DESC").Find(&products)
+	var totalCount int64
+	h.db.Model(&models.Product{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+
+	var products []models.Product
+	h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order ASC")
+	}).Where(baseWhere, baseArgs...).
+		Order("created_at DESC").
+		Limit(pageSize).Offset((page - 1) * pageSize).
+		Find(&products)
+
+	totalPages := int(totalCount) / pageSize
+	if int(totalCount)%pageSize != 0 {
+		totalPages++
+	}
 
 	var locations []models.Location
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/products_content", gin.H{
+			"Business":   currentBusiness,
+			"Products":   products,
+			"Page":       float64(page),
+			"TotalPages": float64(totalPages),
+			"TotalCount": totalCount,
+			"Countries":  data.Countries,
+			"Currencies": data.Currencies,
+			"Onboarding": h.onboardingData(businessID),
+			"Locations":  locations,
+			"AuthType":   c.GetString("auth_type"),
+			"Role":       c.GetString("role"),
+			"QueryLocationID": locID,
+			"ActivePage": "products",
+		})
+		return
+	}
+
 	c.HTML(http.StatusOK, "products.html", gin.H{
 		"Business":   currentBusiness,
 		"Products":   products,
+		"Page":       float64(page),
+		"TotalPages": float64(totalPages),
+		"TotalCount": totalCount,
 		"ActivePage": "products",
 		"Countries":  data.Countries,
 		"Currencies": data.Currencies,
@@ -54,6 +96,7 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		"Locations":  locations,
 		"AuthType":   c.GetString("auth_type"),
 		"Role":       c.GetString("role"),
+		"QueryLocationID": locID,
 	})
 }
 

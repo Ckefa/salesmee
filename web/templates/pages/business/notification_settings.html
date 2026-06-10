@@ -1,24 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Notification Settings — SalesMee</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-</head>
-<body class="bg-[var(--color-bg)]">
-{{template "dashboard_navbar" .}}
-  {{template "verify_banner" .}}
+{{template "dashboard_top" .}}
+{{template "dashboard/notification_settings_content" .}}
+{{template "dashboard_bottom" .}}
 
-  <div class="flex h-[calc(100vh-4rem)]">
-    {{template "dashboard_sidebar" .}}
-    <main class="flex-1 overflow-y-auto bg-[var(--color-bg)] pb-16">
-      <div class="p-6 max-w-3xl">
+{{define "dashboard/notification_settings_content"}}
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="mb-6">
           <h1 class="text-xl font-bold text-[var(--color-text)]">Notification Settings</h1>
           <p class="text-sm text-[var(--color-text-muted)] mt-1">Control which notifications are sent to your clients</p>
@@ -122,45 +107,39 @@
           </div>
         </div>
       </div>
-    </main>
-  </div>
 
-  {{template "mobile_bottom_nav" .}}
-  {{template "csrf_script" .}}
-  {{template "dashboard_footer" .}}
+<script>
+document.getElementById('abandoned_cart').addEventListener('change', function() {
+  document.getElementById('abandonedCartOptions').classList.toggle('hidden', !this.checked);
+});
+document.getElementById('re_engagement').addEventListener('change', function() {
+  document.getElementById('reEngagementOptions').classList.toggle('hidden', !this.checked);
+});
 
-  <script>
-  document.getElementById('abandoned_cart').addEventListener('change', function() {
-    document.getElementById('abandonedCartOptions').classList.toggle('hidden', !this.checked);
+function saveNotifSettings() {
+  var soundEnabled = document.getElementById('sound_enabled').checked;
+  var data = {
+    booking_reminder_1h: document.getElementById('booking_reminder_1h').checked,
+    booking_reminder_24h: document.getElementById('booking_reminder_24h').checked,
+    order_status_change: document.getElementById('order_status_change').checked,
+    booking_status_change: document.getElementById('booking_status_change').checked,
+    payment_due_reminder: document.getElementById('payment_due_reminder').checked,
+    abandoned_cart: document.getElementById('abandoned_cart').checked,
+    re_engagement: document.getElementById('re_engagement').checked,
+    abandoned_cart_hours: parseInt(document.getElementById('abandoned_cart_hours').value) || 24,
+    inactive_days: parseInt(document.getElementById('inactive_days').value) || 30,
+    sound_enabled: soundEnabled
+  };
+  localStorage.setItem('soundEnabled', soundEnabled);
+  fetch('/business/notification-settings', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); }).then(function(resp) {
+    if (resp.success) { showNotification('Settings saved', 'success'); }
+    else { showNotification(resp.error || 'Failed to save', 'error'); }
   });
-  document.getElementById('re_engagement').addEventListener('change', function() {
-    document.getElementById('reEngagementOptions').classList.toggle('hidden', !this.checked);
-  });
+}
+</script>
+{{end}}
 
-  function saveNotifSettings() {
-    var soundEnabled = document.getElementById('sound_enabled').checked;
-    var data = {
-      booking_reminder_1h: document.getElementById('booking_reminder_1h').checked,
-      booking_reminder_24h: document.getElementById('booking_reminder_24h').checked,
-      order_status_change: document.getElementById('order_status_change').checked,
-      booking_status_change: document.getElementById('booking_status_change').checked,
-      payment_due_reminder: document.getElementById('payment_due_reminder').checked,
-      abandoned_cart: document.getElementById('abandoned_cart').checked,
-      re_engagement: document.getElementById('re_engagement').checked,
-      abandoned_cart_hours: parseInt(document.getElementById('abandoned_cart_hours').value) || 24,
-      inactive_days: parseInt(document.getElementById('inactive_days').value) || 30,
-      sound_enabled: soundEnabled
-    };
-    localStorage.setItem('soundEnabled', soundEnabled);
-    fetch('/business/notification-settings', {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
-      body: JSON.stringify(data)
-    }).then(function(r) { return r.json(); }).then(function(resp) {
-      if (resp.success) { showNotification('Settings saved', 'success'); }
-      else { showNotification(resp.error || 'Failed to save', 'error'); }
-    });
-  }
-  </script>
-</body>
-</html>

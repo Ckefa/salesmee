@@ -101,7 +101,18 @@ func main() {
 		location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
 		PRIMARY KEY (team_member_id, location_id)
 	)`)
-	log.Println("✅ Schema sync completed")
+	// Add indexes for frequently queried fields
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_orders_biz_status_date ON orders (business_id, status, created_at)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_bookings_biz_status_date ON bookings (business_id, status, created_at)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_orders_client_status ON orders (client_id, status)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_bookings_client_status ON bookings (client_id, status)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments (created_at)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_messages_conv_created ON messages (conversation_id, created_at)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_products_biz_active ON products (business_id, is_active)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_services_biz_active ON services (business_id, is_active)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_clients_biz_name ON clients (business_id, name)")
+	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_clients_conversation ON clients (conversation_id)")
+	log.Println("✅ Indexes created")
 
 	// Data migration: copy old first_name/last_name to name/username for existing records
 	log.Println("🔄 Running data migration for business fields...")

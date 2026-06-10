@@ -14,13 +14,13 @@
     <span class="assist-header-star assist-header-star-1">✦</span>
     <span class="assist-header-star assist-header-star-2">✦</span>
     <span class="assist-header-star assist-header-star-3">✦</span>
-    <div class="flex items-center gap-2" style="position:relative;z-index:1">
-      <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,0.2);color:#fff">
+    <div class="assist-header-content">
+      <div class="assist-header-icon">
         <i class="fas fa-wand-magic-sparkles text-xs"></i>
       </div>
       <div>
-        <p class="text-sm font-semibold" style="color:#fff">salesmee Assist</p>
-        <p class="text-[10px]" style="color:rgba(255,255,255,0.7)">AI-powered business assistant</p>
+        <p class="text-sm font-semibold assist-header-title">salesmee Assist</p>
+        <p class="assist-header-subtitle">AI-powered business assistant</p>
       </div>
     </div>
     <button onclick="closeAssist()" class="assist-close" title="Close">
@@ -30,9 +30,9 @@
 
   <div id="assistMessages" class="assist-messages">
     <div class="assist-empty">
-      <i class="fas fa-wand-magic-sparkles text-2xl mb-2" style="color:var(--color-primary)"></i>
-      <p class="text-sm font-medium" style="color:var(--color-text-secondary)">How can I help you?</p>
-      <p class="text-xs" style="color:var(--color-text-muted)">Ask me to draft replies, suggest products, or help with SalesMee.</p>
+      <i class="fas fa-wand-magic-sparkles text-2xl mb-2 assist-empty-icon"></i>
+      <p class="text-sm font-medium assist-empty-text">How can I help you?</p>
+      <p class="text-xs assist-empty-hint">Ask me to draft replies, suggest products, or help with SalesMee.</p>
     </div>
   </div>
 

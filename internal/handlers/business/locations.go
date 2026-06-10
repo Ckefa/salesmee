@@ -23,13 +23,20 @@ func (h *BusinessHandler) GetLocations(c *gin.Context) {
 	var locations []models.Location
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
-	c.HTML(http.StatusOK, "locations.html", gin.H{
+	data := gin.H{
 		"Business":   business,
 		"Locations":  locations,
 		"ActivePage": "locations",
 		"AuthType":   c.GetString("auth_type"),
 		"Role":       c.GetString("role"),
-	})
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "dashboard/locations_content", data)
+		return
+	}
+
+	c.HTML(http.StatusOK, "locations.html", data)
 }
 
 func (h *BusinessHandler) CreateLocation(c *gin.Context) {

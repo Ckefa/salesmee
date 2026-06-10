@@ -2,14 +2,11 @@ package business
 
 import (
 	"net/http"
-	"sort"
 	dataPkg "salesmee/internal/data"
 	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
-
-var _ = models.Order{}
 
 type TopProduct struct {
 	Name    string
@@ -36,6 +33,36 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 	}
 
 	data := h.computeAnalyticsData(businessID, "this_month")
+
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/analytics_content", gin.H{
+			"Business":          currentBusiness,
+			"TotalRevenue":      data.TotalRevenue,
+			"OrdersRevenue":     data.OrdersRevenue,
+			"BookingsRevenue":   data.BookingsRevenue,
+			"TotalOrders":       data.TotalOrders,
+			"PendingOrders":     data.PendingOrders,
+			"ConfirmedOrders":   data.ConfirmedOrders,
+			"FulfilledOrders":   data.FulfilledOrders,
+			"CancelledOrders":   data.CancelledOrders,
+			"TotalBookings":     data.TotalBookings,
+			"PendingBookings":   data.PendingBookings,
+			"ConfirmedBookings": data.ConfirmedBookings,
+			"CompletedBookings": data.CompletedBookings,
+			"CancelledBookings": data.CancelledBookings,
+			"TopProducts":       data.TopProducts,
+			"ActiveClients":     data.ActiveClients,
+			"MonthlyRevenue":    data.MonthlyRevenue,
+			"Countries":         dataPkg.Countries,
+			"Currencies":        dataPkg.Currencies,
+			"Onboarding":        h.onboardingData(businessID),
+			"AuthType":          c.GetString("auth_type"),
+			"Role":              c.GetString("role"),
+			"ActivePage":        "analytics",
+		})
+		return
+	}
 
 	c.HTML(http.StatusOK, "analytics.html", gin.H{
 		"Business":          currentBusiness,
@@ -77,27 +104,63 @@ type analyticsData struct {
 
 func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string) analyticsData {
 	startTime, endTime, _ := timeRangeBounds(rangeKey)
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
 
 	var d analyticsData
-	var tmp int64
 
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.TotalOrders = int(tmp)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&tmp); d.PendingOrders = int(tmp)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "confirmed").Count(&tmp); d.ConfirmedOrders = int(tmp)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "fulfilled").Count(&tmp); d.FulfilledOrders = int(tmp)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&tmp); d.CancelledOrders = int(tmp)
+	// Order counts by status (1 query instead of 5)
+	var orderCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Order{}).
+		Select("status, COUNT(*) as count").
+		Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).
+		Group("status").
+		Scan(&orderCounts)
+	for _, sc := range orderCounts {
+		switch sc.Status {
+		case "pending":
+			d.PendingOrders = int(sc.Count)
+		case "confirmed":
+			d.ConfirmedOrders = int(sc.Count)
+		case "fulfilled":
+			d.FulfilledOrders = int(sc.Count)
+		case "cancelled":
+			d.CancelledOrders = int(sc.Count)
+		}
+		d.TotalOrders += int(sc.Count)
+	}
 
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.TotalBookings = int(tmp)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&tmp); d.PendingBookings = int(tmp)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "client_confirmed").Count(&tmp); d.ConfirmedBookings = int(tmp)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "completed").Count(&tmp); d.CompletedBookings = int(tmp)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&tmp); d.CancelledBookings = int(tmp)
+	// Booking counts by status (1 query instead of 5)
+	var bookingCounts []struct {
+		Status string
+		Count  int64
+	}
+	h.db.Model(&models.Booking{}).
+		Select("status, COUNT(*) as count").
+		Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).
+		Group("status").
+		Scan(&bookingCounts)
+	for _, sc := range bookingCounts {
+		switch sc.Status {
+		case "pending":
+			d.PendingBookings = int(sc.Count)
+		case "client_confirmed":
+			d.ConfirmedBookings = int(sc.Count)
+		case "completed":
+			d.CompletedBookings = int(sc.Count)
+		case "cancelled":
+			d.CancelledBookings = int(sc.Count)
+		}
+		d.TotalBookings += int(sc.Count)
+	}
 
+	// Revenue sums
 	h.db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, startTime, endTime).Scan(&d.OrdersRevenue)
 	h.db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, startTime, endTime).Scan(&d.BookingsRevenue)
 	d.TotalRevenue = d.OrdersRevenue + d.BookingsRevenue
 
+	// Top products
 	h.db.Raw(`
 		SELECT p.name, SUM(oi.total_price) as revenue, SUM(oi.quantity) as count
 		FROM order_items oi
@@ -109,36 +172,46 @@ func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string)
 		LIMIT 10
 	`, businessID, startTime, endTime).Scan(&d.TopProducts)
 
-	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&tmp); d.ActiveClients = int(tmp)
+	// Active clients
+	var tmp int64
+	h.db.Model(&models.Conversation{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Count(&tmp)
+	d.ActiveClients = int(tmp)
 
-	// Review stats
-	h.db.Model(&models.Review{}).Where("business_id = ?", businessID).Select("COALESCE(AVG(rating), 0)").Scan(&d.AverageRating)
-	var reviewCount int64
-	h.db.Model(&models.Review{}).Where("business_id = ?", businessID).Count(&reviewCount)
-	d.ReviewCount = int(reviewCount)
-
-	var orders []models.Order
-	h.db.Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"confirmed", "fulfilled"}).Find(&orders)
-
-	var bookings []models.Booking
-	h.db.Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"client_confirmed", "completed"}).Find(&bookings)
-
-	monthMap := make(map[string]float64)
-	for _, o := range orders {
-		month := o.CreatedAt.Format("2006-01")
-		monthMap[month] += o.TotalAmount
+	// Review stats (1 query instead of 2)
+	var rs struct {
+		AvgRating   float64
+		ReviewCount int64
 	}
-	for _, b := range bookings {
-		month := b.CreatedAt.Format("2006-01")
-		monthMap[month] += b.TotalAmount
-	}
+	h.db.Model(&models.Review{}).
+		Where("business_id = ?", businessID).
+		Select("COALESCE(AVG(rating), 0) as avg_rating, COUNT(*) as review_count").
+		Scan(&rs)
+	d.AverageRating = rs.AvgRating
+	d.ReviewCount = int(rs.ReviewCount)
 
-	for month, revenue := range monthMap {
-		d.MonthlyRevenue = append(d.MonthlyRevenue, MonthlyRevenue{Month: month, Revenue: revenue})
+	// Monthly revenue via SQL date_trunc (eliminates in-memory loading)
+	type monthRow struct {
+		Month   string
+		Revenue float64
 	}
-	sort.Slice(d.MonthlyRevenue, func(i, j int) bool {
-		return d.MonthlyRevenue[i].Month < d.MonthlyRevenue[j].Month
-	})
+	var monthly []monthRow
+	h.db.Raw(`
+		SELECT TO_CHAR(date_trunc('month', created_at), 'YYYY-MM') as month,
+		       SUM(total_amount) as revenue
+		FROM (
+			SELECT created_at, total_amount FROM orders
+			WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')
+			UNION ALL
+			SELECT created_at, total_amount FROM bookings
+			WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')
+		) combined
+		GROUP BY month
+		ORDER BY month
+	`, businessID, startTime, endTime, businessID, startTime, endTime).Scan(&monthly)
+
+	for _, mr := range monthly {
+		d.MonthlyRevenue = append(d.MonthlyRevenue, MonthlyRevenue{Month: mr.Month, Revenue: mr.Revenue})
+	}
 	if len(d.MonthlyRevenue) > 6 {
 		d.MonthlyRevenue = d.MonthlyRevenue[len(d.MonthlyRevenue)-6:]
 	}
@@ -162,7 +235,7 @@ func (h *BusinessHandler) GetAnalyticsStats(c *gin.Context) {
 	r := c.DefaultQuery("range", "this_month")
 	data := h.computeAnalyticsData(businessID, r)
 
-	c.HTML(http.StatusOK, "analytics_content", gin.H{
+	c.HTML(http.StatusOK, "dashboard/analytics_content", gin.H{
 		"Business":          currentBusiness,
 		"ActivePage":        "analytics",
 		"TotalRevenue":      data.TotalRevenue,

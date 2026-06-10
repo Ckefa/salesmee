@@ -56,7 +56,7 @@ func (h *BusinessHandler) GetBusinessHours(c *gin.Context) {
 		specialObj = []interface{}{}
 	}
 
-	c.HTML(http.StatusOK, "hours.html", gin.H{
+	data := gin.H{
 		"Title":               "Business Hours - SalesMee",
 		"ActivePage":          "hours",
 		"Business":            business,
@@ -68,7 +68,14 @@ func (h *BusinessHandler) GetBusinessHours(c *gin.Context) {
 		"SpecialHours":        specialObj,
 		"AuthType":            c.GetString("auth_type"),
 		"Role":                c.GetString("role"),
-	})
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "dashboard/hours_content", data)
+		return
+	}
+
+	c.HTML(http.StatusOK, "hours.html", data)
 }
 
 func (h *BusinessHandler) UpdateBusinessHours(c *gin.Context) {

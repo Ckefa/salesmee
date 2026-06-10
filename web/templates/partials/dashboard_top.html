@@ -1,0 +1,14 @@
+{{define "dashboard_top"}}
+<!DOCTYPE html>
+<html lang="en">
+{{template "dashboard_head" .}}
+
+<body class="bg-[var(--color-bg)]">
+
+  {{template "dashboard_navbar" .}}
+  {{template "verify_banner" .}}
+
+  <div class="flex h-[calc(100vh-4rem)]">
+    {{template "dashboard_sidebar" .}}
+    <main id="main-content" class="flex-1 overflow-y-auto pb-16">
+{{end}}

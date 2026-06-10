@@ -1,0 +1,102 @@
+{{define "quick_order_modal"}}
+<div id="quickOrderModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden overflow-y-auto z-50 animate-fade-in" onclick="hideQuickOrderModal()">
+  <div class="relative top-10 sm:top-20 max-w-lg p-4 sm:p-5 card shadow-xl animate-scale-in mx-3 sm:mx-auto" onclick="event.stopPropagation()">
+    <h3 class="text-base sm:text-lg font-semibold text-[var(--color-text)]">New Order</h3>
+
+    <!-- Step Indicator -->
+    <div class="flex items-center justify-center gap-0 mt-4 mb-6">
+      <span id="ordStep1Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-warning)] text-white shadow-sm transition-all duration-300">1</span>
+      <span id="ordStep1Label" class="text-xs font-medium text-[var(--color-warning)] ml-1.5 transition-colors duration-300">Browse</span>
+      <div id="ordStep1to2" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-warning)] transition-colors duration-300"></div>
+      <span id="ordStep2Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">2</span>
+      <span id="ordStep2Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Details</span>
+      <div id="ordStep2to3" class="w-8 sm:w-12 h-px mx-2 bg-[var(--color-border)] transition-colors duration-300"></div>
+      <span id="ordStep3Indicator" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] shadow-sm transition-all duration-300">3</span>
+      <span id="ordStep3Label" class="text-xs font-medium text-[var(--color-text-muted)] ml-1.5 transition-colors duration-300">Confirm</span>
+    </div>
+
+    <form id="quickOrderForm" class="space-y-4">
+      <!-- Step 1: Browse -->
+      <div id="ordStep1">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Product</label>
+          <div class="relative mt-1">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+            <input type="text" id="orderProductSearch" placeholder="Type to search..." class="input pl-10 text-sm">
+          </div>
+          <div id="orderProductResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
+            <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading products...</div>
+          </div>
+          <div id="orderProductCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
+          <div id="orderProductSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
+            <i class="fas fa-check-circle mr-1"></i><span id="orderProductSelectedName"></span>
+          </div>
+          <input type="hidden" id="orderProduct" value="">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Quantity</label>
+          <input type="number" id="orderQuantity" min="1" required class="input mt-1">
+        </div>
+      </div>
+
+      <!-- Step 2: Details -->
+      <div id="ordStep2" class="hidden">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Name</label>
+          <input type="text" id="orderCustomerName" required class="input mt-1">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Email</label>
+          <input type="email" id="orderCustomerEmail" class="input mt-1">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Customer Phone</label>
+          <input type="tel" id="orderCustomerPhone" class="input mt-1">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Delivery Address</label>
+          <textarea id="orderDeliveryAddress" rows="2" class="input mt-1"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Notes</label>
+          <textarea id="orderNotes" rows="2" class="input mt-1"></textarea>
+        </div>
+      </div>
+
+      <!-- Step 3: Confirm -->
+      <div id="ordStep3" class="hidden">
+        <div class="bg-[var(--color-surface-secondary)] rounded-lg p-3 sm:p-4 space-y-2">
+          <div class="flex justify-between text-xs sm:text-sm">
+            <span class="text-[var(--color-text-secondary)]">Product</span>
+            <span id="ordConfirmProduct" class="font-medium text-[var(--color-text)] text-right">&#8212;</span>
+          </div>
+          <div class="flex justify-between text-xs sm:text-sm">
+            <span class="text-[var(--color-text-secondary)]">Quantity</span>
+            <span id="ordConfirmQty" class="font-medium text-[var(--color-text)]">&#8212;</span>
+          </div>
+          <div class="flex justify-between text-xs sm:text-sm">
+            <span class="text-[var(--color-text-secondary)]">Customer</span>
+            <span id="ordConfirmCustomer" class="font-medium text-[var(--color-text)] text-right">&#8212;</span>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer mt-3">
+          <input type="checkbox" id="orderCompleted" class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-success)] focus:ring-[var(--color-success)]">
+          <span class="text-xs sm:text-sm text-[var(--color-text-secondary)]">Mark as paid &amp; completed &#8212; for walk-in customers</span>
+        </label>
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
+        <button type="button" id="ordBackBtn" onclick="ordGoToStep(ordStep - 1)" class="btn btn-secondary hidden">
+          <i class="fas fa-arrow-left mr-1"></i>Back
+        </button>
+        <div class="flex gap-3 ml-auto">
+          <button type="button" id="ordCancelBtn" onclick="hideQuickOrderModal()" class="btn btn-secondary">Cancel</button>
+          <button type="button" id="ordNextBtn" class="btn btn-primary" onclick="ordNextStep()">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+          <button type="submit" id="ordSubmitBtn" class="btn btn-primary hidden">Create Order</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}

@@ -45,6 +45,19 @@ func (h *BusinessHandler) GetReportsPage(c *gin.Context) {
 		return
 	}
 
+	// HX-Request: Return only content partial
+	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
+		c.HTML(http.StatusOK, "dashboard/reports_page_content", gin.H{
+			"Business":   currentBusiness,
+			"ActivePage": "reports",
+			"ActiveTab":  "revenue",
+			"Onboarding": h.onboardingData(businessID),
+			"AuthType":   c.GetString("auth_type"),
+			"Role":       c.GetString("role"),
+		})
+		return
+	}
+
 	c.HTML(http.StatusOK, "reports.html", gin.H{
 		"Business":   currentBusiness,
 		"ActivePage": "reports",
@@ -101,7 +114,7 @@ func (h *BusinessHandler) GetRevenueReport(c *gin.Context) {
 		totalBookingsRev += d.BookingsRevenue
 	}
 
-	c.HTML(http.StatusOK, "reports_content", gin.H{
+	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":         "revenue",
 		"RangeLabel":        label,
 		"DailyRevenue":      daily,
@@ -185,7 +198,7 @@ func (h *BusinessHandler) GetSalesReport(c *gin.Context) {
 		})
 	}
 
-	c.HTML(http.StatusOK, "reports_content", gin.H{
+	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":    "sales",
 		"RangeLabel":   label,
 		"SalesRows":    salesRows,
@@ -227,7 +240,7 @@ func (h *BusinessHandler) GetClientReport(c *gin.Context) {
 	var recentClients []models.Client
 	h.db.Where("business_id = ?", businessID).Order("created_at DESC").Limit(20).Find(&recentClients)
 
-	c.HTML(http.StatusOK, "reports_content", gin.H{
+	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":        "clients",
 		"RangeLabel":       label,
 		"NewClients":       newClients,
@@ -278,7 +291,7 @@ func (h *BusinessHandler) GetTaxReport(c *gin.Context) {
 	h.db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, start, end).Count(&totalOrders)
 	h.db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, start, end).Count(&totalBookings)
 
-	c.HTML(http.StatusOK, "reports_content", gin.H{
+	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":      "tax",
 		"RangeLabel":     label,
 		"MonthlyRevenue": monthly,
@@ -298,7 +311,7 @@ func (h *BusinessHandler) ExportOrdersCSV(c *gin.Context) {
 	}
 
 	var orders []models.Order
-	h.db.Where("business_id = ?", businessID).Preload("Client").Preload("OrderItems").Order("created_at DESC").Find(&orders)
+	h.db.Where("business_id = ?", businessID).Preload("Client").Preload("OrderItems.Product").Order("created_at DESC").Find(&orders)
 
 	c.Header("Content-Type", "text/csv")
 	c.Header("Content-Disposition", "attachment; filename=orders.csv")
@@ -328,7 +341,7 @@ func (h *BusinessHandler) ExportBookingsCSV(c *gin.Context) {
 	}
 
 	var bookings []models.Booking
-	h.db.Where("business_id = ?", businessID).Preload("Client").Preload("BookingItems").Order("created_at DESC").Find(&bookings)
+	h.db.Where("business_id = ?", businessID).Preload("Client").Preload("BookingItems.Service").Order("created_at DESC").Find(&bookings)
 
 	c.Header("Content-Type", "text/csv")
 	c.Header("Content-Disposition", "attachment; filename=bookings.csv")

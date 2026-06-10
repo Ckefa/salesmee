@@ -42,6 +42,7 @@ func (h *BusinessHandler) onboardingData(businessID uint) *onboarding.Onboarding
 
 // DashboardData structure
 type DashboardData struct {
+	Title               string
 	Business            models.Business
 	ProductCount        int64
 	ServiceCount        int64
@@ -68,6 +69,7 @@ type DashboardData struct {
 	AuthType            string
 	Role                string
 	AssistEnabled       bool
+	ContentTemplate     string
 }
 
 func (h *BusinessHandler) GetSharePage(c *gin.Context) {
@@ -75,7 +77,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
+		c.HTML(http.StatusNotFound, "business_share.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
@@ -94,7 +96,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 	var totalProducts int64
 	h.db.Model(&models.Product{}).Where("business_id = ?", businessID).Count(&totalProducts)
 
-	c.HTML(http.StatusOK, "business_share.html", gin.H{
+	data := gin.H{
 		"Title":          "Share - " + business.Name,
 		"Business":       business,
 		"ProfileURL":     fullURL,
@@ -106,7 +108,14 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 		"Onboarding":     h.onboardingData(businessID),
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
-	})
+	}
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "dashboard/share_content", data)
+		return
+	}
+
+	c.HTML(http.StatusOK, "business_share.html", data)
 }
 
 func (h *BusinessHandler) GetBizHome(c *gin.Context) {

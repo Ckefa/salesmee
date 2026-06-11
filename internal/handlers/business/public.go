@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"salesmee/internal/db"
+	"salesmee/internal/services/onboarding"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -105,6 +107,37 @@ func ShowConnect(c *gin.Context) {
 			"Error": "Business not found",
 		}))
 		return
+	}
+
+	token, _ := c.Cookie("client_token")
+	if token != "" {
+		token = strings.TrimPrefix(token, "Bearer ")
+		claims, err := services.ValidateToken(token)
+		if err == nil && claims.Subject == "client" {
+			clientID := claims.UserID
+
+			now := time.Now()
+			db.DB.Model(&models.Client{}).Where("id = ?", clientID).Updates(map[string]interface{}{
+				"is_online":    true,
+				"last_seen_at": &now,
+			})
+
+			var conversation models.Conversation
+			err = db.DB.Where("client_id = ? AND business_id = ?", clientID, business.ID).
+				First(&conversation).Error
+			if err != nil {
+				conversation = models.Conversation{
+					ClientID:   clientID,
+					BusinessID: business.ID,
+				}
+				db.DB.Create(&conversation)
+			}
+
+			onboarding.DetectStep(db.DB, &business)
+
+			c.Redirect(http.StatusFound, fmt.Sprintf("/client?business_id=%d", business.ID))
+			return
+		}
 	}
 
 	c.HTML(http.StatusOK, "client_connect.html", middleware.TemplateData(c, gin.H{

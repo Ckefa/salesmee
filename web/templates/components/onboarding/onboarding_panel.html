@@ -1,7 +1,10 @@
 {{define "onboarding_panel"}}
 {{$o := .Onboarding}}
 {{if not $o.Completed}}
-{{$firstClient := index .Clients 0}}
+{{$firstClient := false}}
+{{if .Clients}}
+  {{$firstClient = index .Clients 0}}
+{{end}}
 <div id="onboardingPanel" data-slug="{{.Business.Slug}}" data-biz-id="{{.Business.ID}}"{{if $firstClient}} data-first-client-id="{{$firstClient.ID}}" data-first-conv-id="{{$firstClient.ConversationID}}"{{end}} class="fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ease-out" style="opacity:1;">
   <!-- Backdrop -->
   <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="onboardingMinimize()"></div>

@@ -18,7 +18,7 @@ func DetectStep(db *gorm.DB, business *models.Business) (*OnboardingData, error)
 
 	db.Model(&models.Product{}).Where("business_id = ?", business.ID).Count(&productCount)
 	db.Model(&models.Service{}).Where("business_id = ?", business.ID).Count(&serviceCount)
-	db.Model(&models.Client{}).Where("business_id = ?", business.ID).Count(&clientCount)
+	db.Model(&models.Conversation{}).Where("business_id = ?", business.ID).Count(&clientCount)
 	db.Model(&models.Order{}).Where("business_id = ?", business.ID).Count(&orderCount)
 	db.Model(&models.Booking{}).Where("business_id = ?", business.ID).Count(&bookingCount)
 

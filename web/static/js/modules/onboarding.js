@@ -151,6 +151,30 @@
     }, 300);
   };
 
+  window.onboardingStartBooking = function() {
+    var panel = document.getElementById('onboardingPanel');
+    if (!panel) return;
+    var clientId = panel.getAttribute('data-first-client-id');
+    var convId = panel.getAttribute('data-first-conv-id');
+    if (!clientId || !convId) {
+      if (typeof showNotification !== 'undefined') {
+        showNotification('No clients yet — share your profile link first!', 'warning');
+      }
+      return;
+    }
+    window.onboardingClose();
+    if (typeof loadClient !== 'undefined') {
+      loadClient(clientId);
+    }
+    setTimeout(function() {
+      if (typeof openServicePicker !== 'undefined') {
+        openServicePicker(clientId);
+      } else {
+        window.location.href = '/business';
+      }
+    }, 300);
+  };
+
   window.onboardingNavigate = function() {
     // Panel stays open during navigation — page reload will refresh state
   };

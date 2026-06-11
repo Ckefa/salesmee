@@ -15,25 +15,139 @@
   </div>
 </div>
 <script>
+  var countdownCircum = 2 * Math.PI * 40;
+  var countdownCancel = null;
+
   function resendVerification() {
     var btn = event.target.closest('button');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Sending'; }
+    if (!btn) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Sending';
+
+    // Start countdown immediately — 60s from now
+    startCooldown(btn, 60);
+
     fetch('/business/verify/send', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        if (d.message || d.message === 'Email already verified') {
-          document.getElementById('verifyBanner').remove();
-          showNotification(d.message || 'Email verified!', 'success');
+        if (d.message && d.message === 'Email already verified') {
+          if (countdownCancel) countdownCancel();
+          var b = document.getElementById('verifyBanner');
+          if (b) b.remove();
+          var m = document.getElementById('verifyModal');
+          if (m) m.remove();
+          showNotification('Email already verified!', 'success');
+          return;
+        }
+        if (d.message) {
+          showNotification(d.message || 'Email sent!', 'success');
+          // keep the running countdown, just update button text
+          if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend';
+          // if server sent a smaller cooldown, restart with that instead
+          if (d.cooldown && d.cooldown < 60) {
+            if (countdownCancel) countdownCancel();
+            startCooldown(btn, d.cooldown);
+          }
         } else {
           showNotification(d.error || 'Failed to send', 'error');
-          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend'; }
+          if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend';
         }
       })
       .catch(function() {
-        showNotification('Failed to send verification email', 'error');
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend'; }
+        showNotification('Failed to send verification email. Check your connection.', 'error');
+        if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend';
       });
   }
+
+  function startCooldown(btn, seconds) {
+    if (countdownCancel) countdownCancel();
+    btn.disabled = true;
+    var container = document.getElementById('countdownContainer');
+    if (container) {
+      startModalCountdown(container, btn, seconds);
+    } else {
+      startBannerCountdown(btn, seconds);
+    }
+  }
+
+  function startModalCountdown(container, btn, seconds) {
+    container.classList.remove('hidden');
+    container.innerHTML =
+      '<div class="flex flex-col items-center gap-1.5 animate-fade-in">' +
+        '<svg class="countdown-ring" width="88" height="88" viewBox="0 0 100 100">' +
+          '<circle class="countdown-ring-bg" cx="50" cy="50" r="40"/>' +
+          '<circle class="countdown-ring-fg" id="countdownCircle" cx="50" cy="50" r="40" ' +
+            'stroke-dasharray="' + countdownCircum + '" stroke-dashoffset="0"/>' +
+        '</svg>' +
+        '<span class="countdown-number text-xl font-bold text-[var(--color-text)]" id="countdownText">' + seconds + '</span>' +
+        '<span class="text-xs text-[var(--color-text-muted)]">Resend available in</span>' +
+      '</div>';
+    var circle = document.getElementById('countdownCircle');
+    var text = document.getElementById('countdownText');
+    var start = performance.now();
+    var dur = seconds * 1000;
+    var cancelled = false;
+    countdownCancel = function() { cancelled = true; container.classList.add('hidden'); container.innerHTML = ''; };
+    function tick(now) {
+      if (cancelled) return;
+      var elapsed = now - start;
+      var remaining = Math.max(0, dur - elapsed);
+      var frac = remaining / dur;
+      var secs = Math.ceil(remaining / 1000);
+      circle.setAttribute('stroke-dashoffset', Math.round(countdownCircum * (1 - frac)));
+      text.textContent = secs;
+      if (remaining > 0) {
+        requestAnimationFrame(tick);
+      } else {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend Verification Email';
+        if (countdownCancel === arguments.callee) countdownCancel = null;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function startBannerCountdown(btn, seconds) {
+    var parent = btn.parentElement;
+    var oldPill = document.getElementById('bannerCountdownPill');
+    if (oldPill) oldPill.remove();
+    var pill = document.createElement('span');
+    pill.id = 'bannerCountdownPill';
+    pill.className = 'inline-flex items-center gap-1.5 text-xs font-mono text-amber-700 dark:text-amber-300 animate-fade-in';
+    pill.innerHTML =
+      '<span class="w-12 h-1.5 rounded-full bg-amber-300 dark:bg-amber-700 overflow-hidden">' +
+        '<span id="bannerCountdownBar" class="block h-full bg-amber-600 dark:bg-amber-400 rounded-full" style="width:100%"></span>' +
+      '</span>' +
+      '<span id="bannerCountdownText">' + seconds + 's</span>';
+    parent.appendChild(pill);
+    var bar = document.getElementById('bannerCountdownBar');
+    var txt = document.getElementById('bannerCountdownText');
+    var start = performance.now();
+    var dur = seconds * 1000;
+    var cancelled = false;
+    countdownCancel = function() { cancelled = true; if (pill.parentNode) pill.parentNode.removeChild(pill); };
+    function tick(now) {
+      if (cancelled) return;
+      var elapsed = now - start;
+      var remaining = Math.max(0, dur - elapsed);
+      var frac = remaining / dur;
+      var secs = Math.ceil(remaining / 1000);
+      bar.style.width = (frac * 100) + '%';
+      txt.textContent = secs + 's';
+      if (remaining > 0) {
+        requestAnimationFrame(tick);
+      } else {
+        if (pill.parentNode) pill.parentNode.removeChild(pill);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-envelope mr-1.5"></i>Resend Email';
+        if (countdownCancel === arguments.callee) countdownCancel = null;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
   function dismissVerifyBanner() {
     var el = document.getElementById('verifyBanner');
     if (el) el.remove();

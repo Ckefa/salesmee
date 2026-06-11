@@ -84,7 +84,9 @@ func main() {
 	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS is_accepting_bookings BOOLEAN DEFAULT true")
 	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_hours JSONB DEFAULT '{}'")
 	db.DB.Exec("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS special_hours JSONB DEFAULT '[]'")
+	db.DB.Exec("UPDATE businesses SET business_hours = ?::jsonb WHERE business_hours IS NULL OR business_hours = '{}'::jsonb", `{"monday":[{"open":"08:00","close":"19:00"}],"tuesday":[{"open":"08:00","close":"19:00"}],"wednesday":[{"open":"08:00","close":"19:00"}],"thursday":[{"open":"08:00","close":"19:00"}],"friday":[{"open":"08:00","close":"19:00"}]}`)
 	db.DB.Exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
+	db.DB.Exec(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uni_products_sku') AND NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'uni_products_sku') THEN ALTER TABLE products ADD CONSTRAINT uni_products_sku UNIQUE (sku); END IF; END $$;`)
 	db.DB.Exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
 	db.DB.Exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
 	db.DB.Exec("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL")
@@ -113,12 +115,6 @@ func main() {
 	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_clients_biz_name ON clients (business_id, name)")
 	db.DB.Exec("CREATE INDEX IF NOT EXISTS idx_clients_conversation ON clients (conversation_id)")
 	log.Println("✅ Indexes created")
-
-	// Data migration: copy old first_name/last_name to name/username for existing records
-	log.Println("🔄 Running data migration for business fields...")
-	db.DB.Exec("UPDATE businesses SET name = first_name WHERE (name IS NULL OR name = '') AND (first_name IS NOT NULL AND first_name != '')")
-	db.DB.Exec("UPDATE businesses SET username = last_name WHERE (username IS NULL OR username = '') AND (last_name IS NOT NULL AND last_name != '')")
-	log.Println("✅ Data migration completed")
 
 	// Seed default subscription plans
 	seedSubscriptionPlans(db.DB)

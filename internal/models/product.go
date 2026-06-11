@@ -12,7 +12,7 @@ type Product struct {
 	Name        string    `gorm:"not null" json:"name"`
 	Description string    `gorm:"type:text" json:"description"`
 	Price       float64   `gorm:"not null" json:"price"`
-	SKU         string    `gorm:"unique" json:"sku"`
+	SKU         string    `json:"sku"`
 	Stock       int       `gorm:"default:0" json:"stock"`
 	MinStock    int       `gorm:"default:0" json:"min_stock"`
 	LocationID  *uint     `gorm:"index;default:null" json:"location_id,omitempty"`

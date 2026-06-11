@@ -54,6 +54,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		// Business Dashboard routes
 		// Email verification (protected)
 		protected.POST("/verify/send", handlers.SendBusinessVerification)
+		protected.POST("/verify/status", handlers.CheckVerificationStatus)
 
 		protected.GET("/", businessHandler.GetBizHome)
 		protected.GET("/dashboard", businessHandler.GetDashboard)

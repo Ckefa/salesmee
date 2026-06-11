@@ -223,11 +223,15 @@
         <button onclick="resendVerification()" class="btn btn-primary w-full">
           <i class="fas fa-envelope mr-2"></i>Resend Verification Email
         </button>
-        <button onclick="dismissVerifyModal()" class="btn btn-ghost w-full text-sm text-[var(--color-text-secondary)]">
+        <button onclick="checkVerificationStatus()" class="btn w-full text-sm text-[var(--color-info)] hover:bg-[var(--color-info)] hover:text-white bg-transparent" style="border:1px solid var(--color-info)">
+          <i class="fas fa-sync-alt mr-2"></i>Check Status
+        </button>
+        <button onclick="dismissVerifyModal()" class="btn w-full text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-surface-secondary)]" style="border:1px solid var(--color-border)">
           I'll do this later
         </button>
       </div>
-      <p class="text-xs text-[var(--color-text-muted)] mt-5">
+      <div id="countdownContainer" class="hidden my-5"></div>
+      <p class="text-xs text-[var(--color-text-muted)]">
         Didn't receive the email? Check your spam folder or click resend above.
       </p>
     </div>
@@ -235,6 +239,26 @@
   <script>
     function dismissVerifyModal() {
       document.getElementById('verifyModal').remove();
+    }
+    function checkVerificationStatus() {
+      var btn = event.target.closest('button');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Checking'; }
+      fetch('/business/verify/status', {method:'POST', headers:{'X-CSRF-Token':getCookie('csrf_token')}})
+        .then(function(r){return r.json()})
+        .then(function(data){
+          if (data.verified) {
+            showNotification('Email verified! Reloading...', 'success');
+            setTimeout(function(){ location.reload(); }, 1200);
+          } else {
+            showNotification('Email not yet verified. Check your spam folder or click Resend above.', 'warning');
+          }
+        })
+        .catch(function(){
+          showNotification('Could not check status. Try again.', 'error');
+        })
+        .finally(function(){
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Check Status'; }
+        });
     }
   </script>
   {{end}}

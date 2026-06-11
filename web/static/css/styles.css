@@ -271,6 +271,27 @@
     font-size: 0.75rem;
   }
 
+  /* --- Countdown Ring --- */
+  .countdown-ring {
+    transform: rotate(-90deg);
+  }
+  .countdown-ring-bg {
+    fill: none;
+    stroke: var(--color-surface-tertiary);
+    stroke-width: 4;
+  }
+  .countdown-ring-fg {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: none;
+  }
+  .countdown-number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
   /* --- Inputs --- */
   .input {
     width: 100%;

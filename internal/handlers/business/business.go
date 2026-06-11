@@ -231,6 +231,10 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	var unreadNotifCount int64
 	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadNotifCount)
 
+	var bizProductCount, bizServiceCount int64
+	h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizProductCount)
+	h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizServiceCount)
+
 	c.HTML(200, "business.html", gin.H{
 		"Title":               "SalesMee",
 		"Business":            business,
@@ -246,6 +250,8 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"AuthType":            c.GetString("auth_type"),
 		"Role":                c.GetString("role"),
 		"AssistEnabled":       assist.IsEnabled(),
+		"ProductCount":        bizProductCount,
+		"ServiceCount":        bizServiceCount,
 	})
 }
 

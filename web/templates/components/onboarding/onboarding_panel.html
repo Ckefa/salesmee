@@ -94,7 +94,7 @@
         <div id="onboardingStep1" class="onboarding-step {{if ne $o.Step 1}}hidden{{end}}">
           <div class="text-center mb-4">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-primary)]/20 flex items-center justify-center mx-auto mb-3 shadow-lg">
-              <i class="fas fa-hand-wave text-[var(--color-primary)] text-2xl"></i>
+              <img src="/static/images/salesmee.ico" alt="SalesMee" class="w-12 h-12">
             </div>
             <h4 class="text-lg font-bold text-[var(--color-text)]">Welcome to SalesMee!</h4>
             <p class="text-sm text-[var(--color-text-secondary)] mt-1 leading-relaxed">Let's get your business up and running. We'll guide you through <strong>5 quick steps</strong> to set up your profile, add your offerings, and get your first client.</p>
@@ -201,11 +201,20 @@
               </div>
             </div>
           </div>
-          <button onclick="onboardingStartOrder()" class="block w-full py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/25 text-center">
-            <i class="fas fa-shopping-cart mr-1"></i> Send an Order
-          </button>
+          <div class="flex gap-2">
+            {{if gt .ProductCount 0}}
+            <button onclick="onboardingStartOrder()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/25 text-center">
+              <i class="fas fa-shopping-cart mr-1"></i> Send an Order
+            </button>
+            {{end}}
+            {{if gt .ServiceCount 0}}
+            <button onclick="onboardingStartBooking()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-info)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-secondary)]/25 text-center">
+              <i class="fas fa-calendar-check mr-1"></i> Create a Booking
+            </button>
+            {{end}}
+          </div>
           <button onclick="onboardingCheck('order')" class="w-full mt-2 py-2 rounded-lg bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] text-xs font-medium hover:bg-[var(--color-surface-tertiary)] transition-colors">
-            <i class="fas fa-sync mr-1"></i> I've placed one — check my progress
+            <i class="fas fa-sync mr-1"></i> Check my progress
           </button>
           <p class="text-[11px] text-[var(--color-text-muted)] mt-2 text-center">Auto-advances once you have an order or booking</p>
         </div>

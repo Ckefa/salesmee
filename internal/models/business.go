@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Business struct {
 	ID                 uint      `gorm:"primaryKey" json:"id"`
@@ -39,4 +43,11 @@ type Business struct {
 	Reviews      []Review              `gorm:"foreignKey:BusinessID" json:"reviews,omitempty"`
 	Locations    []Location            `gorm:"foreignKey:BusinessID" json:"locations,omitempty"`
 	TeamMembers  []TeamMember          `gorm:"foreignKey:BusinessID" json:"team_members,omitempty"`
+}
+
+func (b *Business) BeforeCreate(tx *gorm.DB) error {
+	if b.BusinessHours == "" || b.BusinessHours == "{}" {
+		b.BusinessHours = `{"monday":[{"open":"08:00","close":"19:00"}],"tuesday":[{"open":"08:00","close":"19:00"}],"wednesday":[{"open":"08:00","close":"19:00"}],"thursday":[{"open":"08:00","close":"19:00"}],"friday":[{"open":"08:00","close":"19:00"}]}`
+	}
+	return nil
 }

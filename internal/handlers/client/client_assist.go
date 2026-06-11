@@ -14,6 +14,7 @@ import (
 type chatRequest struct {
 	Message  string           `json:"message"`
 	History  []assist.Message `json:"history,omitempty"`
+	Page     string           `json:"page,omitempty"`
 }
 
 type suggestionItem struct {
@@ -44,6 +45,13 @@ func ClientAssistChat(c *gin.Context) {
 	db.DB.Model(&models.Conversation{}).Where("client_id = ?", clientID).Count(&businessCount)
 
 	systemPrompt := assist.BuildClientSystemPrompt(int(businessCount))
+
+	if req.Page != "" {
+		ctx := assist.BuildDataContext(db.DB, 0, req.Page, req.Message)
+		if ctx != "" {
+			systemPrompt += "\n\n" + ctx
+		}
+	}
 
 	messages := req.History
 	if messages == nil {

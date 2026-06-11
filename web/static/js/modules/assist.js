@@ -99,7 +99,7 @@
     fetch(API_BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
-      body: JSON.stringify({ message: text, history: history })
+      body: JSON.stringify({ message: text, history: history, page: window.location.pathname })
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {

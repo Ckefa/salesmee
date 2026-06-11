@@ -106,13 +106,16 @@
       loadingEl.remove();
       if (data.reply) {
         addMessage('assistant', data.reply);
+        playNotificationSound();
       } else {
         addMessage('assistant', 'Sorry, I had trouble processing that. Please try again.');
+        playNotificationSound();
       }
     })
     .catch(function() {
       loadingEl.remove();
       addMessage('assistant', 'Sorry, I\'m temporarily unavailable. Please try again later.');
+      playNotificationSound();
     });
   }
 

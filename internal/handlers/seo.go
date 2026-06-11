@@ -19,17 +19,18 @@ type url struct {
 }
 
 func SitemapXML(c *gin.Context) {
+	base := "https://" + c.Request.Host
 	c.XML(http.StatusOK, urlset{
 		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		URLs: []url{
-			{Loc: "/", Priority: "1.0"},
-			{Loc: "/guide", Priority: "0.9"},
-			{Loc: "/privacy", Priority: "0.5"},
-			{Loc: "/terms", Priority: "0.5"},
-			{Loc: "/cookies", Priority: "0.4"},
-			{Loc: "/user-deletion", Priority: "0.3"},
-			{Loc: "/business/login", Priority: "0.6"},
-			{Loc: "/business/register", Priority: "0.8"},
+			{Loc: base + "/", Priority: "1.0"},
+			{Loc: base + "/guide", Priority: "0.9"},
+			{Loc: base + "/privacy", Priority: "0.5"},
+			{Loc: base + "/terms", Priority: "0.5"},
+			{Loc: base + "/cookies", Priority: "0.4"},
+			{Loc: base + "/user-deletion", Priority: "0.3"},
+			{Loc: base + "/business/login", Priority: "0.6"},
+			{Loc: base + "/business/register", Priority: "0.8"},
 		},
 	})
 }

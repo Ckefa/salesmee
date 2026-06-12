@@ -1,6 +1,6 @@
 {{define "client_chat_header"}}
-<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
-  <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-3 sm:p-4 flex items-center flex-shrink-0">
+  <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-[1_1_0%]">
     {{if .Business.Logo}}
     <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0">
     {{else}}
@@ -13,7 +13,18 @@
       <p class="text-xs sm:text-sm text-[var(--color-text-muted)] truncate">{{.Business.BusinessType}}</p>
     </div>
   </div>
-  <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+  <div class="hidden sm:flex items-center justify-center flex-[1_1_0%] text-xs sm:text-sm font-medium space-x-2 sm:space-x-3">
+    <a href="#" hx-get="/client/businesses/{{.Business.ID}}/products-page" hx-target="#chat-area" hx-swap="innerHTML"
+       class="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
+      <i class="fas fa-box mr-1"></i>Products
+    </a>
+    <span class="text-[var(--color-border)]">|</span>
+    <a href="#" hx-get="/client/businesses/{{.Business.ID}}/services-page" hx-target="#chat-area" hx-swap="innerHTML"
+       class="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
+      <i class="fas fa-concierge-bell mr-1"></i>Services
+    </a>
+  </div>
+  <div class="flex items-center space-x-1 sm:space-x-2 flex-[1_1_0%] justify-end">
     <span class="inline-block w-2 h-2 bg-[var(--color-success)] rounded-full shrink-0"></span>
     <span class="text-xs sm:text-sm text-[var(--color-text-muted)] hide-mobile">Online</span>
   </div>

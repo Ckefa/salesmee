@@ -418,8 +418,8 @@ function pickerRenderCart() {
   pickerCart.forEach(item => {
     const lineTotal = item.quantity * item.product.price;
     html += `
-      <div class="flex items-center gap-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border-light)] rounded-xl hover:border-[var(--color-border)] transition cart-item" data-cart-item-id="${item.product.id}">
-        <div class="w-14 h-14 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] flex items-center justify-center text-xl text-[var(--color-text-muted)]">
+      <div class="flex flex-wrap items-center gap-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border-light)] rounded-xl hover:border-[var(--color-border)] transition cart-item" data-cart-item-id="${item.product.id}">
+        <div class="w-10 sm:w-14 h-10 sm:h-14 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] flex items-center justify-center text-xl text-[var(--color-text-muted)]">
           ${item.product.imgUrl ? `<img src="${item.product.imgUrl}" class="w-full h-full object-cover">` : '<i class="fas fa-box"></i>'}
         </div>
         <div class="flex-1 min-w-0">
@@ -428,7 +428,7 @@ function pickerRenderCart() {
           <p class="text-xs text-[var(--color-text-muted)] mt-0.5">${
             item.product.price.toFixed(2)} each</p>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
           <div class="flex items-center border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-surface)]">
             <button onclick="pickerCartDecrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-primary)] text-xs transition ${item.quantity <= 1 ? 'text-[var(--color-error)] hover:text-[var(--color-error)]' : ''}">
               <i class="fas fa-${item.quantity <= 1 ? 'trash-alt' : 'minus'}"></i>

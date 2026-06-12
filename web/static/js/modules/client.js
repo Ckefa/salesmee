@@ -85,11 +85,6 @@ function hideClientOrderModal() {
   document.getElementById('clientOrderForm')?.reset();
 }
 
-function hideClientBookingModal() {
-  document.getElementById('clientBookingModal')?.classList.add('hidden');
-  document.getElementById('clientBookingForm')?.reset();
-}
-
 function submitOrderForm() {
   const productSelect = document.getElementById('clientOrderProduct');
   const quantityInput = document.getElementById('clientOrderQuantity');

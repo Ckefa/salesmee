@@ -64,6 +64,10 @@
       <i class="fas fa-box"></i>
       <span>Products</span>
     </a>
+    <a class="bottom-nav-item" id="bottomNavServices" onclick="openServicesFromBottomNav(); setActiveTab(this)">
+      <i class="fas fa-concierge-bell"></i>
+      <span>Services</span>
+    </a>
     <a href="/client/discover" class="bottom-nav-item" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="setActiveTab(this)">
       <i class="fas fa-compass"></i>
       <span>Discover</span>
@@ -71,7 +75,6 @@
   </nav>
 
   {{template "client_order" .}}
-  {{template "client_booking" .}}
   {{template "product_picker" .}}
   {{template "service_picker" .}}
   {{template "review_modal" .}}
@@ -130,6 +133,22 @@
           '<div class="empty-state-icon empty-state-icon-primary"><i class="fas fa-box"></i></div>' +
           '<h3 class="empty-state-title">Select a conversation</h3>' +
           '<p class="empty-state-text">Choose a business from your chats to browse their products.</p>' +
+          '<div class="empty-state-cta">' +
+          '<a href="/client" class="btn btn-primary btn-sm"><i class="fas fa-comments"></i> Go to Chats</a>' +
+          '</div></div>';
+      }
+    }
+
+    function openServicesFromBottomNav() {
+      var bizId = window.businessId || (typeof currentBusinessId !== 'undefined' ? currentBusinessId : null);
+      if (bizId) {
+        htmx.ajax('GET', '/client/businesses/' + bizId + '/services-page', {target: '#chat-area', swap: 'innerHTML'});
+      } else {
+        document.getElementById('chat-area').innerHTML =
+          '<div class="flex-1 flex items-center justify-center empty-state">' +
+          '<div class="empty-state-icon empty-state-icon-primary"><i class="fas fa-concierge-bell"></i></div>' +
+          '<h3 class="empty-state-title">Select a conversation</h3>' +
+          '<p class="empty-state-text">Choose a business from your chats to browse their services.</p>' +
           '<div class="empty-state-cta">' +
           '<a href="/client" class="btn btn-primary btn-sm"><i class="fas fa-comments"></i> Go to Chats</a>' +
           '</div></div>';

@@ -435,7 +435,7 @@ func GetClientMessages(c *gin.Context) {
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
 		var bookingActionRequired string
-		if booking.Status == "pending" {
+		if booking.Status == "pending" && booking.Sender == "business" {
 			bookingActionRequired = "client"
 		} else if booking.Status == "client_confirmed" && booking.PaidAmount < booking.TotalAmount {
 			bookingActionRequired = "client"
@@ -769,6 +769,11 @@ func ClientConfirmOrder(c *gin.Context) {
 		return
 	}
 
+	if order.Sender == "client" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order is pending business approval"})
+		return
+	}
+
 	// Update client-side items if quantities changed
 	var request struct {
 		Items []struct {
@@ -991,6 +996,11 @@ func ClientConfirmBooking(c *gin.Context) {
 
 	if booking.Status != "pending" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking cannot be confirmed in current status"})
+		return
+	}
+
+	if booking.Sender == "client" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking is pending business approval"})
 		return
 	}
 

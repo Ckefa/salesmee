@@ -430,17 +430,34 @@ func SendBookingReminderEmail(toEmail, clientName, businessName, serviceName, da
 	return nil
 }
 
-func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status string) error {
-	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Order %s — %s", toEmail, orderNumber, status)
-		return nil
+func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status, chatLink string) error {
+	var statusEmoji, statusLine, ctaLabel string
+	switch status {
+	case "pending":
+		statusEmoji = "&#128276;"
+		statusLine = "is awaiting your confirmation"
+		ctaLabel = "Review in Chat"
+	case "confirmed", "client_confirmed":
+		statusEmoji = "&#9989;"
+		statusLine = "has been confirmed"
+		ctaLabel = "View in Chat"
+	case "paid":
+		statusEmoji = "&#128179;"
+		statusLine = "has been paid"
+		ctaLabel = "View in Chat"
+	case "completed", "fulfilled":
+		statusEmoji = "&#127881;"
+		statusLine = "is complete"
+		ctaLabel = "View Receipt"
+	case "cancelled":
+		statusEmoji = "&#128683;"
+		statusLine = "has been cancelled"
+		ctaLabel = "View in Chat"
+	default:
+		statusEmoji = "&#128722;"
+		statusLine = "has been updated"
+		ctaLabel = "View in Chat"
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("RESEND_API_KEY not set")
-	}
-
-	client := resend.NewClient(apiKey)
 
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
@@ -453,11 +470,14 @@ func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status
 					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
-					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128722;</div>
-					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Order status update</h2>
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">%s</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Order %s</h2>
 					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
-						Hi %s, your order <strong>%s</strong> at %s is now: <strong>%s</strong>.
+						Hi %s, your order <strong>%s</strong> at %s %s.
 					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488, #0891b2); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">%s</a>
+					</div>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
 					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
@@ -466,7 +486,18 @@ func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status
 		</td></tr>
 	</table>
 </body>
-</html>`, clientName, orderNumber, businessName, status)
+</html>`, statusEmoji, status, clientName, orderNumber, businessName, statusLine, chatLink, ctaLabel)
+
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Order %s — %s\n  Chat: %s", toEmail, orderNumber, status, chatLink)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
 
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),
@@ -484,17 +515,34 @@ func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status
 	return nil
 }
 
-func SendBookingStatusEmail(toEmail, clientName, businessName, bookingNumber, status string) error {
-	if !isResendEnabled() {
-		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Booking %s — %s", toEmail, bookingNumber, status)
-		return nil
+func SendBookingStatusEmail(toEmail, clientName, businessName, bookingNumber, status, chatLink string) error {
+	var statusEmoji, statusLine, ctaLabel string
+	switch status {
+	case "pending":
+		statusEmoji = "&#128276;"
+		statusLine = "is awaiting confirmation"
+		ctaLabel = "Review in Chat"
+	case "client_confirmed", "confirmed":
+		statusEmoji = "&#9989;"
+		statusLine = "has been confirmed"
+		ctaLabel = "View in Chat"
+	case "paid":
+		statusEmoji = "&#128179;"
+		statusLine = "has been paid"
+		ctaLabel = "View in Chat"
+	case "completed":
+		statusEmoji = "&#127881;"
+		statusLine = "is complete"
+		ctaLabel = "View Receipt"
+	case "cancelled":
+		statusEmoji = "&#128683;"
+		statusLine = "has been cancelled"
+		ctaLabel = "View in Chat"
+	default:
+		statusEmoji = "&#128197;"
+		statusLine = "has been updated"
+		ctaLabel = "View in Chat"
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("RESEND_API_KEY not set")
-	}
-
-	client := resend.NewClient(apiKey)
 
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
@@ -507,11 +555,14 @@ func SendBookingStatusEmail(toEmail, clientName, businessName, bookingNumber, st
 					<h1 style="color: #ffffff; font-size: 22px; margin: 0;">salesmee</h1>
 				</td></tr>
 				<tr><td style="padding: 32px;">
-					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#128197;</div>
-					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Booking status update</h2>
+					<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">%s</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Booking %s</h2>
 					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
-						Hi %s, your booking <strong>%s</strong> at %s is now: <strong>%s</strong>.
+						Hi %s, your booking <strong>%s</strong> at %s %s.
 					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488, #0891b2); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">%s</a>
+					</div>
 				</td></tr>
 				<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
 					<p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; 2026 salesmee. All rights reserved.</p>
@@ -520,7 +571,18 @@ func SendBookingStatusEmail(toEmail, clientName, businessName, bookingNumber, st
 		</td></tr>
 	</table>
 </body>
-</html>`, clientName, bookingNumber, businessName, status)
+</html>`, statusEmoji, status, clientName, bookingNumber, businessName, statusLine, chatLink, ctaLabel)
+
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Booking %s — %s\n  Chat: %s", toEmail, bookingNumber, status, chatLink)
+		return nil
+	}
+	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(apiKey)
 
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),

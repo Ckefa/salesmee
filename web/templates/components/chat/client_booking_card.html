@@ -139,18 +139,18 @@
 
       {{else if $isPending}}
       <div class="flex gap-2">
-        <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
+        <button class="flex-1 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
           onclick="cancelBooking({{$booking.id}})">
           <i class="fas fa-times mr-1"></i>Cancel
         </button>
         {{if eq $booking.sender "business"}}
-        <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
+        <button class="flex-[2] py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="clientConfirmBooking({{$booking.id}})">
           <i class="fas fa-check mr-1"></i>Approve Booking
         </button>
         {{else}}
-        <div class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-info-light)] text-[var(--color-info)] text-xs sm:text-sm font-medium text-center">
-          <i class="fas fa-clock mr-1"></i>Waiting for business
+        <div class="flex-[2] py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-[var(--color-info-light)] text-[var(--color-info)] text-xs sm:text-sm font-medium text-center">
+          <i class="fas fa-clock mr-1"></i>Waiting Approval
         </div>
         {{end}}
       </div>

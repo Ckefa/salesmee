@@ -48,6 +48,11 @@
           {{if eq $actionRequired "client"}}
           <span class="text-[10px] sm:text-xs font-bold text-[var(--color-warning)] animate-pulse hide-mobile">REQUIRES ACTION</span>
           {{end}}
+          {{if and $isPending $order.editable}}
+          <button onclick="cancelOrder({{$order.id}})" class="text-[var(--color-error)] hover:opacity-80 text-xs p-1" title="Cancel Order">
+            <i class="fas fa-times"></i>
+          </button>
+          {{end}}
           <button onclick="openClientEditOrderPicker({{$order.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Order">
             <i class="fas fa-edit"></i>
           </button>
@@ -156,16 +161,22 @@
       </div>
 
       {{else if eq $s1 "active"}}
+      <div class="flex gap-2">
+        <button class="flex-1 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
+          onclick="cancelOrder({{$order.id}})">
+          <i class="fas fa-times mr-1"></i>Cancel
+        </button>
         {{if eq $actionRequired "client"}}
-        <button class="w-full py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
+        <button class="flex-[2] py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="clientConfirmOrder({{$order.id}})">
           <i class="fas fa-check mr-1"></i>Confirm Order
         </button>
         {{else}}
-        <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-info-light)] rounded-lg text-[var(--color-info)] text-xs sm:text-sm font-medium">
-          <i class="fas fa-clock mr-1"></i>Waiting for business
+        <div class="flex-[2] py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-[var(--color-info-light)] text-[var(--color-info)] text-xs sm:text-sm font-medium text-center">
+          <i class="fas fa-clock mr-1"></i>Waiting Approval
         </div>
         {{end}}
+      </div>
 
       {{else if eq $s2 "active"}}
       <div class="mb-2 sm:mb-3">

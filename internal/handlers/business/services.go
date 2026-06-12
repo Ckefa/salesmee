@@ -225,3 +225,35 @@ func (h *BusinessHandler) DeleteService(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
+
+func (h *BusinessHandler) ShowClientServicesPage(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	if clientID == 0 {
+		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Client not authenticated"})
+		return
+	}
+
+	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "client.html", gin.H{"error": "Invalid business ID"})
+		return
+	}
+
+	var business models.Business
+	if err := h.db.First(&business, businessID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "client.html", gin.H{"error": "Business not found"})
+		return
+	}
+
+	var services []models.Service
+	h.db.Where("business_id = ? AND is_active = ?", businessID, true).Order("created_at DESC").Find(&services)
+
+	var client models.Client
+	h.db.First(&client, clientID)
+
+	c.HTML(http.StatusOK, "client_services.html", gin.H{
+		"Business": business,
+		"Client":   client,
+		"Services": services,
+	})
+}

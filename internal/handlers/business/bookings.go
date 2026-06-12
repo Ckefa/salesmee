@@ -436,7 +436,7 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 
 	newStatus := request.Status
 	validTransitions := map[string][]string{
-		"pending":          {"cancelled"},
+		"pending":          {"client_confirmed", "cancelled"},
 		"client_confirmed": {"completed", "cancelled"},
 		"completed":        {},
 		"cancelled":        {},

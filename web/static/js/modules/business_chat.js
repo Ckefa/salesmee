@@ -282,7 +282,7 @@ function orderItemDecrement(orderId, productId, btn) {
 }
 
 function updateBookingStatusFromCard(bookingId, newStatus) {
-  const action = newStatus === 'confirmed' ? 'confirm' : newStatus === 'completed' ? 'complete' : 'cancel';
+  const action = newStatus === 'client_confirmed' ? 'confirm' : newStatus === 'completed' ? 'complete' : 'cancel';
   showConfirmModal({ title: action.charAt(0).toUpperCase() + action.slice(1) + ' Booking', message: 'Are you sure you want to ' + action + ' this booking?', confirmText: action.charAt(0).toUpperCase() + action.slice(1), confirmClass: newStatus === 'cancelled' ? 'bg-[var(--color-error)] text-white' : 'bg-[var(--color-primary)] text-white' }).then(function(confirmed) {
     if (!confirmed) return;
 

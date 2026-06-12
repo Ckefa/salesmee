@@ -143,10 +143,16 @@
           onclick="cancelBooking({{$booking.id}})">
           <i class="fas fa-times mr-1"></i>Cancel
         </button>
+        {{if eq $booking.sender "business"}}
         <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="clientConfirmBooking({{$booking.id}})">
           <i class="fas fa-check mr-1"></i>Approve Booking
         </button>
+        {{else}}
+        <div class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-info-light)] text-[var(--color-info)] text-xs sm:text-sm font-medium text-center">
+          <i class="fas fa-clock mr-1"></i>Waiting for business
+        </div>
+        {{end}}
       </div>
 
       {{else if eq $s3 "active"}}

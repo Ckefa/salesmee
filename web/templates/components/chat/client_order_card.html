@@ -12,8 +12,7 @@
 {{$s1 := "pending"}}{{$s2 := "pending"}}{{$s3 := "pending"}}{{$s4 := "pending"}}
 {{if $isDraft}}{{$s1 = "active"}}
 {{else if $isPending}}{{$s1 = "active"}}
-{{else if $isClientConfirmed}}{{$s1 = "completed"}}{{$s2 = "active"}}
-{{else if $isConfirmed}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{if $order.is_fully_paid}}{{$s3 = "completed"}}{{$s4 = "active"}}{{else}}{{$s3 = "active"}}{{end}}
+{{else if or $isClientConfirmed $isConfirmed}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{if $order.is_fully_paid}}{{$s3 = "completed"}}{{$s4 = "active"}}{{else}}{{$s3 = "active"}}{{end}}
 {{else if $isFulfilled}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "completed"}}
 {{end}}
 <div class="flex {{if eq .Sender "client"}}justify-end{{else}}justify-start{{end}}">

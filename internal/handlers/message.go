@@ -243,7 +243,9 @@ func GetMessages(c *gin.Context) {
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
 		var bookingActionRequired string
-		if booking.Status == "client_confirmed" && !(booking.PaidAmount >= booking.TotalAmount) {
+		if booking.Status == "pending" && booking.Sender == "client" {
+			bookingActionRequired = "business"
+		} else if booking.Status == "client_confirmed" && !(booking.PaidAmount >= booking.TotalAmount) {
 			bookingActionRequired = "business"
 		} else {
 			bookingActionRequired = "none"

@@ -10,16 +10,6 @@ function hideClientOrderModal() {
   document.getElementById('clientOrderForm').reset();
 }
 
-function openClientBookingModal() {
-  loadClientServices();
-  document.getElementById('clientBookingModal').classList.remove('hidden');
-}
-
-function hideClientBookingModal() {
-  document.getElementById('clientBookingModal').classList.add('hidden');
-  document.getElementById('clientBookingForm').reset();
-}
-
 async function loadClientProducts() {
   try {
     const response = await fetch(`/client/businesses/${businessId}/products`);
@@ -34,36 +24,6 @@ async function loadClientProducts() {
     });
   } catch (error) {
     console.error('Error loading products:', error);
-  }
-}
-
-async function loadClientServices() {
-  try {
-    const response = await fetch(`/client/businesses/${businessId}/services`);
-    if (!response.ok) {
-      if (response.status === 401) {
-        showNotification('Please login to access services', 'error');
-        return;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const services = await response.json();
-    const select = document.getElementById('clientBookingService');
-    select.innerHTML = '<option value="">Choose a service...</option>';
-    if (services.length === 0) {
-      select.innerHTML = '<option value="">No services available</option>';
-      showNotification('No services available for booking', 'warning');
-      return;
-    }
-    services.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = `${s.name} - $${s.min_price || s.max_price || 'Price not set'}`;
-      select.appendChild(opt);
-    });
-  } catch (error) {
-    console.error('Error loading services:', error);
-    showNotification('Failed to load services', 'error');
   }
 }
 
@@ -102,43 +62,6 @@ function submitOrderForm() {
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to send order request', 'error'); });
-}
-
-function submitBookingForm() {
-  const serviceSelect = document.getElementById('clientBookingService');
-  const dateInput = document.getElementById('clientBookingDate');
-  const timeInput = document.getElementById('clientBookingTime');
-  const notesInput = document.getElementById('clientBookingNotes');
-
-  if (!serviceSelect.value) return showNotification('Please select a service', 'error');
-  if (!dateInput.value) return showNotification('Please select a date', 'error');
-  if (!timeInput.value) return showNotification('Please select a time', 'error');
-
-  const bookingDateTime = `${dateInput.value}T${timeInput.value}:00Z`;
-
-  fetch('/client/bookings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
-    body: JSON.stringify({
-      service_id: parseInt(serviceSelect.value),
-      scheduled_date: bookingDateTime,
-      notes: notesInput.value,
-      business_id: businessId
-    })
-  })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        hideClientBookingModal();
-        if (data.booking) {
-          addBookingMessageToChat({ ...data.booking, service_name: data.service_name });
-        }
-        showNotification('Booking request sent successfully!', 'success');
-      } else {
-        showNotification(data.error || 'Failed to send booking request', 'error');
-      }
-    })
-    .catch(e => { console.error(e); showNotification('Failed to send booking request', 'error'); });
 }
 
 scrollToBottom();

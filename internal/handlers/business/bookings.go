@@ -3,6 +3,7 @@ package business
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
@@ -399,7 +400,12 @@ func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string
 	}
 
 	statusLabel := status
-	if err := services.SendBookingStatusEmail(client.Email, client.Name, biz.Name, booking.BookingNumber, statusLabel); err != nil {
+	chatLink := fmt.Sprintf("https://%s/client/businesses/%d/messages", os.Getenv("APP_DOMAIN"), biz.ID)
+	if os.Getenv("APP_DOMAIN") == "" {
+		chatLink = fmt.Sprintf("/client/businesses/%d/messages", biz.ID)
+	}
+
+	if err := services.SendBookingStatusEmail(client.Email, client.Name, biz.Name, booking.BookingNumber, statusLabel, chatLink); err != nil {
 		notifier.MarkNotificationSent(h.db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "failed")
 		return
 	}

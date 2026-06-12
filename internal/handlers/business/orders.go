@@ -3,6 +3,7 @@ package business
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
@@ -1067,7 +1068,7 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "confirmed" {
+	if order.Status != "confirmed" && order.Status != "client_confirmed" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before fulfillment"})
 		return
 	}
@@ -1195,7 +1196,12 @@ func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
 		return
 	}
 
-	if err := services.SendOrderStatusEmail(client.Email, client.Name, biz.Name, order.OrderNumber, statusLabel); err != nil {
+	chatLink := fmt.Sprintf("https://%s/client/businesses/%d/messages", os.Getenv("APP_DOMAIN"), biz.ID)
+	if os.Getenv("APP_DOMAIN") == "" {
+		chatLink = fmt.Sprintf("/client/businesses/%d/messages", biz.ID)
+	}
+
+	if err := services.SendOrderStatusEmail(client.Email, client.Name, biz.Name, order.OrderNumber, statusLabel, chatLink); err != nil {
 		notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "failed")
 		return
 	}

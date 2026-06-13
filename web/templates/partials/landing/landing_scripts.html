@@ -33,16 +33,7 @@
 <script src="/static/js/modules/assist.js?v=1"></script>
 <script>
   if (localStorage.getItem('cookies_accepted') === 'true') {
-    {{if .AnalyticsID}}
-    (function() {
-      var analyticsUrl = 'https://{{.AnalyticsID}}.s.salesmee.com/js/script.js';
-      var script = document.createElement('script');
-      script.src = analyticsUrl;
-      script.defer = true;
-      script.dataset.domain = 'salesmee.com';
-      document.head.appendChild(script);
-    })();
-    {{end}}
+    {{template "analytics_script" .}}
   }
 </script>
 <script>

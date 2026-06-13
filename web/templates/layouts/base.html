@@ -49,15 +49,7 @@
       if (parts.length === 2) return parts.pop().split(';').shift();
     }
     if (localStorage.getItem('cookies_accepted') === 'true') {
-      {{if .AnalyticsID}}
-      (function() {
-        var s = document.createElement('script');
-        s.src = 'https://{{.AnalyticsID}}.s.salesmee.com/js/script.js';
-        s.defer = true;
-        s.dataset.domain = 'salesmee.com';
-        document.head.appendChild(s);
-      })();
-      {{end}}
+      {{template "analytics_script" .}}
     }
   </script>
 

@@ -142,5 +142,17 @@
       if (overlay) overlay.classList.add('hidden');
     }
   }
+
+  document.addEventListener('click', function(e) {
+    var item = e.target.closest('.dash-nav');
+    if (item && window.innerWidth < 1024) {
+      var sidebar = document.querySelector('.dashboard-sidebar');
+      var overlay = document.getElementById('dashboardSidebarOverlay');
+      if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.add('hidden');
+      }
+    }
+  });
 </script>
 {{end}}

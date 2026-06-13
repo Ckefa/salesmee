@@ -37,13 +37,9 @@
 
   <!-- Modals -->
   {{template "new-client" .}}
-  {{template "quick-order" .}}
-  {{template "quick-booking" .}}
   {{template "product_picker" .}}
   {{template "service_picker" .}}
   {{template "business_profile" .}}
-  {{template "quick_order_modal" .}}
-  {{template "quick_booking_modal" .}}
 
   {{if not .Business.EmailVerified}}
   <div id="verifyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -234,18 +230,6 @@
         else if (diff < 86400) { el.textContent = Math.floor(diff / 3600) + 'h ago'; }
         else { el.textContent = Math.floor(diff / 86400) + 'd ago'; }
       });
-    }
-
-    function showQuickOrderModal(clientId) {
-      var modal = document.getElementById('quickOrderModal');
-      if (modal) modal.classList.remove('hidden');
-      if (clientId && typeof setQuickOrderClient === 'function') setQuickOrderClient(clientId);
-    }
-
-    function showQuickBookingModal(clientId) {
-      var modal = document.getElementById('quickBookingModal');
-      if (modal) modal.classList.remove('hidden');
-      if (clientId && typeof setQuickBookingClient === 'function') setQuickBookingClient(clientId);
     }
 
     function scrollMessagesToBottom() {

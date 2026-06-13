@@ -20,11 +20,11 @@
     </span>
   </div>
   <div class="wa-chat-header-actions">
-    <button onclick="openBusinessProductPicker({{$customer.ID}})" class="wa-chat-icon-btn" title="Products">
-      <i class="fas fa-box"></i>
+    <button onclick="openBusinessProductPicker({{$customer.ID}})" class="wa-chat-icon-btn bg-[var(--color-warning-light)] text-[var(--color-warning)] hover:bg-[var(--color-warning)] hover:text-white" title="Products">
+      <i class="fas fa-shopping-cart"></i>
     </button>
-    <button onclick="openServicePicker({{$customer.ID}})" class="wa-chat-icon-btn" title="Services">
-      <i class="fas fa-concierge-bell"></i>
+    <button onclick="openServicePicker({{$customer.ID}})" class="wa-chat-icon-btn bg-[var(--color-secondary-light)] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)] hover:text-white" title="Bookings">
+      <i class="fas fa-calendar-check"></i>
     </button>
     <button onclick="waToggleChatMenu()" class="wa-chat-icon-btn" title="Menu" id="chatMenuBtn">
       <i class="fas fa-ellipsis-v"></i>
@@ -43,14 +43,6 @@
     <span>salesmee Assist</span>
   </button>
   {{end}}
-  <button onclick="showQuickOrderModal({{$customer.ID}})" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-    <i class="fas fa-shopping-cart w-5 text-center text-[var(--color-warning)]"></i>
-    <span>Quick Order</span>
-  </button>
-  <button onclick="showQuickBookingModal({{$customer.ID}})" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-    <i class="fas fa-calendar-check w-5 text-center text-[var(--color-secondary)]"></i>
-    <span>Quick Booking</span>
-  </button>
   <div class="border-t border-[var(--color-border-light)] my-1"></div>
   <button onclick="deleteClient('{{$customer.ID}}', '{{$customer.Name}}')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
     <i class="fas fa-trash-alt w-5 text-center"></i>

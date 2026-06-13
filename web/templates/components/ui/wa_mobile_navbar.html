@@ -1,7 +1,9 @@
 {{define "wa_mobile_navbar"}}
 <nav class="wa-mobile-navbar" id="waMobileNavbar">
   <a href="/business/dashboard" class="wa-mobile-brand">
-    <img src="/static/images/salesmeebrand.png" alt="SalesMee">
+    <div class="bg-white rounded-lg p-1 flex items-center">
+      <img src="/static/images/salesmee.svg" alt="SalesMee" class="h-5 sm:h-7">
+    </div>
   </a>
   <div class="wa-mobile-nav-items">
     <a href="/business/dashboard" class="wa-mobile-nav-item" data-nav="dashboard" title="Dashboard">
@@ -12,6 +14,9 @@
       <i class="fas fa-wand-magic-sparkles"></i>
     </button>
     {{end}}
+    <button onclick="toggleNotifications()" class="wa-mobile-nav-item" data-nav="notifications-mobile" title="Notifications">
+      <i class="fas fa-bell"></i>
+    </button>
     <a href="/business/share" class="wa-mobile-nav-item" title="Share">
       <i class="fas fa-share-alt"></i>
     </a>

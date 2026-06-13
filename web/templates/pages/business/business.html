@@ -27,13 +27,8 @@
 
   </div>
 
-  <div id="notifContainer" class="fixed top-3 right-3 z-50">
-    <div id="notifDropdown" class="hidden"
-         hx-get="/business/notifications"
-         hx-trigger="load, every 60s"
-         hx-swap="innerHTML"
-         hx-target="this">
-    </div>
+  <div id="notifContainer" class="hidden fixed z-50 rounded-xl shadow-2xl overflow-hidden" style="left: 76px; width: 360px; max-height: 480px; background: var(--color-surface); border: 1px solid var(--color-border);">
+    <div id="notifDropdown"></div>
   </div>
 
   {{template "onboarding_panel" .}}
@@ -196,23 +191,57 @@
     });
 
     function toggleNotifications() {
+      var container = document.getElementById('notifContainer');
       var dd = document.getElementById('notifDropdown');
-      if (dd) {
-        var wasHidden = dd.classList.contains('hidden');
-        dd.classList.toggle('hidden');
-        if (wasHidden) htmx.trigger(dd, 'load');
+      if (!container || !dd) return;
+      if (!container.classList.contains('hidden')) {
+        container.classList.add('hidden');
+        return;
       }
+      var isMobile = window.innerWidth < 1024;
+      var bell = isMobile ? document.querySelector('[data-nav="notifications-mobile"]') : document.querySelector('[data-nav="notifications"]');
+      if (bell) {
+        var rect = bell.getBoundingClientRect();
+        if (isMobile) {
+          var left = rect.left + (rect.width / 2) - 180;
+          if (left + 360 > window.innerWidth) {
+            left = window.innerWidth - 376;
+          }
+          if (left < 16) {
+            left = 16;
+          }
+          container.style.left = left + 'px';
+          container.style.top = (rect.bottom + 4) + 'px';
+        } else {
+          container.style.left = '76px';
+          container.style.top = rect.top + 'px';
+        }
+      } else {
+        container.style.left = '76px';
+        container.style.top = '12px';
+      }
+      container.classList.remove('hidden');
+      dd.innerHTML = '<div class="p-4 text-center text-sm text-[var(--color-text-muted)]"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+      fetch('/business/notifications')
+        .then(function(r) { return r.text(); })
+        .then(function(html) { dd.innerHTML = html; })
+        .catch(function() { dd.innerHTML = '<div class="p-4 text-center text-sm text-[var(--color-text-muted)]">Failed to load notifications</div>'; });
     }
 
     document.addEventListener('click', function(e) {
-      var c = document.getElementById('notifContainer');
-      if (c && !c.contains(e.target)) { var dd = document.getElementById('notifDropdown'); if (dd) dd.classList.add('hidden'); }
+      var container = document.getElementById('notifContainer');
+      var bell = document.querySelector('[data-nav="notifications"]');
+      var mBell = document.querySelector('[data-nav="notifications-mobile"]');
+      if (container && !container.classList.contains('hidden') && !container.contains(e.target) && 
+          (!bell || !bell.contains(e.target)) && (!mBell || !mBell.contains(e.target))) {
+        container.classList.add('hidden');
+      }
     });
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
-        var dd = document.getElementById('notifDropdown');
-        if (dd) dd.classList.add('hidden');
+        var container = document.getElementById('notifContainer');
+        if (container) container.classList.add('hidden');
       }
     });
 

@@ -442,6 +442,31 @@ func MarkConversationAsRead(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "ok"})
 }
 
+func ClearChat(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid client ID"})
+		return
+	}
+
+	now := time.Now()
+	if err := db.DB.Model(&models.Message{}).
+		Where("conversation_id IN (SELECT id FROM conversations WHERE business_id = ? AND client_id = ?)", businessID, clientID).
+		Delete(&models.Message{}).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to clear chat"})
+		return
+	}
+
+	db.DB.Model(&models.Conversation{}).
+		Where("business_id = ? AND client_id = ?", businessID, clientID).
+		Updates(map[string]interface{}{
+			"last_read_by_business_at": &now,
+		})
+
+	c.JSON(200, gin.H{"success": true})
+}
+
 func MarkClientConversationAsRead(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)

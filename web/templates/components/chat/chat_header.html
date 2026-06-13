@@ -1,0 +1,80 @@
+{{define "chat_header"}}
+{{$customer := .Customer}}
+{{$progress := .Progress}}
+<div class="wa-chat-header">
+  <button onclick="waBackToChatList()" class="wa-chat-back" title="Back to chats" id="chatBackBtn">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+  <div class="wa-chat-header-avatar" onclick="showBusinessProfile()">
+    <div class="avatar avatar-placeholder avatar-sm">
+      <i class="fas fa-user text-white text-xs"></i>
+    </div>
+  </div>
+  <div class="wa-chat-header-info">
+    <h2 class="wa-chat-header-name">{{$customer.Name}}</h2>
+    <span class="wa-chat-header-status">
+      {{if $customer.IsOnline}}online{{else}}offline{{end}}
+      {{if $progress.CurrentStage}}
+      · {{$progress.CurrentStage}}
+      {{end}}
+    </span>
+  </div>
+  <div class="wa-chat-header-actions">
+    <button onclick="openBusinessProductPicker({{$customer.ID}})" class="wa-chat-icon-btn" title="Products">
+      <i class="fas fa-box"></i>
+    </button>
+    <button onclick="openServicePicker({{$customer.ID}})" class="wa-chat-icon-btn" title="Services">
+      <i class="fas fa-concierge-bell"></i>
+    </button>
+    <button onclick="waToggleChatMenu()" class="wa-chat-icon-btn" title="Menu" id="chatMenuBtn">
+      <i class="fas fa-ellipsis-v"></i>
+    </button>
+  </div>
+</div>
+
+<div id="chatMenuDropdown" class="hidden absolute top-14 right-2 z-50 w-56 card shadow-xl overflow-hidden py-1">
+  <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-id-card w-5 text-center text-[var(--color-text-muted)]"></i>
+    <span>Contact Info</span>
+  </button>
+  {{if .AssistEnabled}}
+  <button onclick="openAssistFromChat()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-wand-magic-sparkles w-5 text-center text-[var(--color-primary)]"></i>
+    <span>salesmee Assist</span>
+  </button>
+  {{end}}
+  <button onclick="showQuickOrderModal({{$customer.ID}})" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-shopping-cart w-5 text-center text-[var(--color-warning)]"></i>
+    <span>Quick Order</span>
+  </button>
+  <button onclick="showQuickBookingModal({{$customer.ID}})" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-calendar-check w-5 text-center text-[var(--color-secondary)]"></i>
+    <span>Quick Booking</span>
+  </button>
+  <div class="border-t border-[var(--color-border-light)] my-1"></div>
+  <button onclick="deleteClient('{{$customer.ID}}', '{{$customer.Name}}')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-trash-alt w-5 text-center"></i>
+    <span>Delete Chat</span>
+  </button>
+</div>
+
+<script>
+function waToggleChatMenu() {
+  var dd = document.getElementById('chatMenuDropdown');
+  dd.classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('chatMenuBtn');
+  var dd = document.getElementById('chatMenuDropdown');
+  if (dd && !dd.classList.contains('hidden') && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.add('hidden');
+  }
+});
+
+function openAssistFromChat() {
+  var dd = document.getElementById('chatMenuDropdown');
+  if (dd) dd.classList.add('hidden');
+  if (typeof toggleAssist === 'function') toggleAssist();
+}
+</script>
+{{end}}

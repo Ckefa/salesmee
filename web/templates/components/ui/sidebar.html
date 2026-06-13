@@ -1,22 +1,59 @@
 {{ define "biz-sidebar" }}
-<aside class="sidebar" id="bizSidebar">
-  <div class="lg:hidden flex items-center justify-between px-4 pt-4 pb-2 border-b border-[var(--color-border)] shrink-0">
-    <span class="text-sm font-semibold text-[var(--color-text)]">Clients</span>
-    <button onclick="toggleSidebar()" class="btn btn-icon btn-ghost btn-icon-sm">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-  <div class="p-3 border-b border-[var(--color-border)] shrink-0">
-    <div class="input-with-icon">
-      <i class="fas fa-search input-icon"></i>
-      <input type="text" id="clientSearch" placeholder="Search clients..." oninput="filterClients()" class="input">
-      {{if and .Clients .OnlineCount}}
-      <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
-        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>{{.OnlineCount}} online</span>
-      </div>
-      {{end}}
+<aside class="wa-sidebar" id="bizSidebar">
+  <div class="wa-sidebar-header">
+    {{if .Business.Logo}}
+    <img src="/static/{{.Business.Logo}}" class="wa-sidebar-avatar">
+    {{else}}
+    <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+    {{end}}
+    <div class="wa-sidebar-header-info">
+      <h2 class="wa-sidebar-business-name">{{.Business.Name}}</h2>
+      <span class="wa-sidebar-status">{{.OnlineCount}} online</span>
+    </div>
+    <div class="wa-sidebar-header-actions">
+      <button onclick="showNewClientModal()" class="wa-sidebar-icon-btn" title="New Customer">
+        <i class="fas fa-user-plus"></i>
+      </button>
+      <button onclick="waToggleSidebarMenu()" class="wa-sidebar-icon-btn" title="Menu">
+        <i class="fas fa-ellipsis-v"></i>
+      </button>
     </div>
   </div>
+
+  <div id="sidebarMenuDropdown" class="hidden absolute top-14 right-2 z-50 w-56 card shadow-xl overflow-hidden py-1">
+    <button onclick="showNewClientModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+      <i class="fas fa-user-plus w-5 text-center text-[var(--color-text-muted)]"></i>
+      <span>New Customer</span>
+    </button>
+    <a href="/business/share" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+      <i class="fas fa-share-alt w-5 text-center text-[var(--color-text-muted)]"></i>
+      <span>Share Business</span>
+    </a>
+    <div class="border-t border-[var(--color-border-light)] my-1"></div>
+    <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+      <i class="fas fa-sign-out-alt w-5 text-center"></i>
+      <span>Logout</span>
+    </a>
+  </div>
+
+  <div class="wa-search-container">
+    <i class="fas fa-search wa-search-icon"></i>
+    <input type="text" id="clientSearch" placeholder="Search or start new chat" oninput="filterClients()" class="wa-search-input">
+  </div>
+
   {{ template "client-list" .}}
 </aside>
+<script>
+function waToggleSidebarMenu() {
+  var dd = document.getElementById('sidebarMenuDropdown');
+  dd.classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+  var btn = document.querySelector('.wa-sidebar-header-actions button:last-child');
+  var dd = document.getElementById('sidebarMenuDropdown');
+  if (dd && !dd.classList.contains('hidden') && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.add('hidden');
+  }
+});
+</script>
 {{end}}

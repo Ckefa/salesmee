@@ -1,18 +1,12 @@
 {{define "empty_state"}}
-<div class="flex-1 flex items-center justify-center empty-state">
-  <div class="empty-state-icon empty-state-icon-primary">
-    <i class="fas fa-comments"></i>
+<div class="wa-empty-state">
+  <img src="/static/images/salesmeebrand.png" class="wa-empty-state-logo">
+  <h2 class="wa-empty-state-title">SalesMee</h2>
+  <p class="wa-empty-state-text">Send and receive messages, orders, and payments with your customers.</p>
+  <div class="wa-empty-state-hint">
+    <i class="fas fa-lock text-[10px] mr-1"></i>
+    Messages are end-to-end encrypted.
   </div>
-  <h3 class="empty-state-title">{{if $.Title}}{{$.Title}}{{else}}{{.}}{{end}}</h3>
-  <p class="empty-state-text">{{if $.Description}}{{$.Description}}{{else}}Get started by selecting a conversation from the sidebar.{{end}}</p>
-  {{if $.CTA}}
-  <div class="empty-state-cta">
-    <a href="{{$.CTA.URL}}" class="btn btn-primary btn-sm">
-      {{if $.CTA.Icon}}<i class="fas fa-{{$.CTA.Icon}}"></i>{{end}}
-      {{$.CTA.Label}}
-    </a>
-  </div>
-  {{end}}
 </div>
 {{end}}
 

@@ -1,57 +1,64 @@
 {{ define "client-list" }}
-<div class="flex-1 overflow-y-auto scrollbar-thin" id="client-list">
+<div class="wa-chat-list" id="client-list">
   {{range .Clients}}
-  <div class="stagger-item client-item group px-3 py-2.5 hover:bg-[var(--color-surface-secondary)] cursor-pointer border-b border-[var(--color-border-light)] transition-colors"
-    onclick="loadClient('{{.ID}}')" data-client-id="{{.ID}}" data-last-message-at="{{.LastMessageAt}}">
-    <div class="flex items-center gap-3">
-      <div class="relative">
-        <div class="avatar avatar-placeholder">
-          <i class="fas fa-user text-white text-sm"></i>
-        </div>
-        {{if .IsOnline}}
-        <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[var(--color-surface)] rounded-full flex items-center justify-center">
-          <div class="w-2.5 h-2.5 bg-[var(--color-success)] rounded-full border-2 border-[var(--color-surface)]"></div>
-        </div>
-        {{end}}
+  <div class="wa-chat-item group" onclick="loadClient('{{.ID}}')" oncontextmenu="waShowCtxMenu(event, '{{.ID}}')"
+    data-client-id="{{.ID}}"
+    data-last-message-at="{{.LastMessageAt}}"
+    data-client-name="{{.Name}}"
+    data-client-email="{{.Email}}"
+    data-unread="{{.UnreadCount}}"
+    role="row">
+    <div class="wa-chat-avatar-wrapper">
+      <div class="wa-chat-avatar avatar-placeholder">
+        <i class="fas fa-user text-white"></i>
       </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2">
-          <h3 class="font-medium text-xs sm:text-sm text-[var(--color-text)] truncate">{{.Name}}</h3>
-          {{if .IsOnline}}<span class="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] shrink-0"></span>{{end}}
+      {{if .IsOnline}}
+      <span class="wa-online-dot"></span>
+      {{end}}
+    </div>
+    <div class="wa-chat-info">
+      <div class="wa-chat-top">
+        <span class="wa-chat-name">{{.Name}}</span>
+        <div class="wa-chat-top-right">
+          <span class="wa-chat-time time-ago" data-time="{{.LastMessageAt}}"></span>
+          {{if gt .UnreadCount 0}}
+          <span class="wa-unread-badge">{{if gt .UnreadCount 99}}99+{{else}}{{.UnreadCount}}{{end}}</span>
+          {{end}}
         </div>
-        <p class="text-xs text-[var(--color-text-muted)] truncate">{{.Email}}</p>
-        <p class="text-xs text-[var(--color-text-muted)] truncate mt-0.5 last-message-preview">
-          {{if .LastMessage}}{{.LastMessage}}{{else}}<span class="italic opacity-60">No messages yet</span>{{end}}
-        </p>
       </div>
-      <div class="flex flex-col items-end gap-1 shrink-0">
-        <span class="time-ago text-[10px] text-[var(--color-text-muted)]" data-time="{{.LastMessageAt}}"></span>
-        {{template "unread-badge" .}}
-        <span class="badge badge-{{if eq .Status "new"}}info{{else if eq .Status "active"}}success{{else if eq .Status "awaiting_payment"}}warning{{else}}neutral{{end}}">
-          {{.Status}}
-        </span>
+      <div class="wa-chat-bottom">
+        <span class="wa-chat-preview">{{if .LastMessage}}{{.LastMessage}}{{else}}<span class="opacity-60 italic">No messages yet</span>{{end}}</span>
       </div>
-      <button onclick="event.stopPropagation(); deleteClient('{{.ID}}', '{{.Name}}')"
-        class="btn btn-icon btn-icon-sm btn-ghost opacity-0 group-hover:opacity-100 text-[var(--color-error)] hover:opacity-80 hover:bg-[var(--color-error-light)] transition-all shrink-0"
-        title="Delete conversation">
-        <i class="fas fa-trash-alt text-xs"></i>
-      </button>
     </div>
   </div>
   {{else}}
-  <div class="empty-state">
-    <div class="empty-state-icon empty-state-icon-primary">
-      <i class="fas fa-users"></i>
-    </div>
-    <h3 class="empty-state-title">No clients yet</h3>
-    <p class="empty-state-text">Share your business link so clients can discover and connect with you.</p>
-    <div class="empty-state-cta">
-      <a href="/business/share" class="btn btn-primary btn-sm">
-        <i class="fas fa-share-alt"></i>
-        Share Your Business
-      </a>
-    </div>
+  <div class="wa-empty-chat-list">
+    <div class="wa-empty-chat-list-icon"><i class="fas fa-inbox"></i></div>
+    <h3>No chats yet</h3>
+    <p>Share your business link so clients can discover and connect with you.</p>
+    <a href="/business/share" class="btn btn-primary btn-sm mt-2">
+      <i class="fas fa-share-alt"></i> Share Your Business
+    </a>
   </div>
   {{end}}
 </div>
+
+<!-- Right-click Context Menu -->
+<div id="ctxMenu" class="wa-ctx-menu hidden">
+  <button class="wa-ctx-item" data-action="mark-read" onclick="waCtxMarkRead()">
+    <i class="fas fa-check-circle"></i>
+    <span>Mark as read</span>
+  </button>
+  <button class="wa-ctx-item" data-action="clear-chat" onclick="waCtxClearChat()">
+    <i class="fas fa-eraser"></i>
+    <span>Clear chat</span>
+  </button>
+  <div class="wa-ctx-divider"></div>
+  <button class="wa-ctx-item wa-ctx-danger" data-action="delete" onclick="waCtxDeleteChat()">
+    <i class="fas fa-trash-alt"></i>
+    <span>Delete chat</span>
+  </button>
+</div>
+
+{{template "csrf_script" .}}
 {{end}}

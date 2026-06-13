@@ -1,201 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 {{template "dashboard_head" .}}
-<body class="h-screen overflow-hidden flex flex-col">
-  <!-- Top Header -->
-  <header class="navbar-glass h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
-    <div class="flex items-center gap-3">
-      <button onclick="toggleSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden" id="sidebarToggle">
-        <i class="fas fa-bars text-lg"></i>
-      </button>
-      <a href="/business" class="flex items-center gap-2.5">
-        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
-      </a>
-    </div>
+<body class="wa-body">
+  <div class="wa-layout" id="mainLayout">
+    <!-- Mobile overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="waBackFromChat()"></div>
 
-    <div class="hidden md:flex items-center">
-      <button onclick="openCommandPalette()" class="btn btn-ghost text-xs text-[var(--color-text-muted)] gap-2 px-3 py-1.5 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface-secondary)]">
-        <i class="fas fa-search text-[10px]"></i>
-        <span>Quick actions...</span>
-        <kbd class="px-1.5 py-0.5 rounded bg-[var(--color-surface-tertiary)] text-[10px] font-mono text-[var(--color-text-muted)]">⌘K</kbd>
-      </button>
-    </div>
+    <!-- Left Icon Navbar -->
+    {{template "wa_navbar" .}}
 
-    <div class="flex items-center gap-1">
-
-      <!-- Desktop: action items shown inline -->
-      <div class="hidden lg:flex items-center gap-1">
-        <!-- Theme Toggle -->
-        <button class="theme-toggle" title="Toggle theme">
-          <i class="fas fa-sun theme-sun"></i>
-          <i class="fas fa-moon theme-moon hidden"></i>
-        </button>
-
-        <!-- Notification Bell -->
-        <div class="relative" id="notifContainer">
-          <button onclick="toggleNotifications()" class="btn btn-icon btn-ghost relative">
-            <i class="fas fa-bell text-lg"></i>
-            {{if gt .UnreadNotifCount 0}}
-            <span id="notifBadge" class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.UnreadNotifCount}}</span>
-            {{else if gt .TotalPending 0}}
-            <span id="notifBadge" class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
-            {{end}}
-          </button>
-          <div id="notifDropdown" class="hidden"
-               hx-get="/business/notifications"
-               hx-trigger="load, every 60s"
-               hx-swap="innerHTML"
-               hx-target="this">
-          </div>
-        </div>
-
-        <!-- Profile -->
-        <button onclick="showBusinessProfile()" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition-colors">
-          {{if .Business.Logo}}
-          <img src="/static/{{.Business.Logo}}" class="avatar avatar-sm">
-          {{else}}
-          <div class="avatar avatar-sm avatar-placeholder"><i class="fas fa-store text-white text-[10px]"></i></div>
-          {{end}}
-          <span class="text-sm font-medium text-[var(--color-text)] hide-mobile hidden sm:block">{{.Business.Name}}</span>
-        </button>
-
-        <div class="flex items-center gap-1">
-          <a href="/business/share" class="btn btn-icon btn-ghost" title="Share">
-            <i class="fas fa-share-alt text-sm"></i>
-          </a>
-          <a href="/business/dashboard" class="btn btn-icon btn-ghost relative" title="Dashboard">
-            <i class="fas fa-chart-line text-sm"></i>
-            {{if gt .TotalPending 0}}
-            <span class="animate-shake absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center p-0 min-w-0" style="background: var(--color-info)">{{.TotalPending}}</span>
-            {{end}}
-          </a>
-          <button onclick="showNewClientModal()" class="btn btn-icon btn-ghost" title="New Customer">
-            <i class="fas fa-plus text-sm"></i>
-          </button>
-          <a href="/business/logout" class="btn btn-icon btn-ghost hover:text-rose-500" title="Logout">
-            <i class="fas fa-sign-out-alt text-sm"></i>
-          </a>
-        </div>
-      </div>
-
-      <!-- Mobile: overflow menu trigger -->
-      <div class="relative lg:hidden">
-        <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
-          <i class="fas fa-ellipsis-v text-lg"></i>
-        </button>
-        <div id="headerMenu" class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
-          <button onclick="SalesMeeTheme.toggle()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-adjust w-5 text-center"></i>
-            <span>Toggle Theme</span>
-          </button>
-          <button onclick="toggleNotifications()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors relative">
-            <i class="fas fa-bell w-5 text-center"></i>
-            <span>Notifications</span>
-            {{if gt .UnreadNotifCount 0}}
-            <span class="ml-auto w-5 h-5 text-white text-[9px] font-bold rounded-full flex items-center justify-center" style="background: var(--color-info)">{{.UnreadNotifCount}}</span>
-            {{end}}
-          </button>
-          <div class="border-t border-[var(--color-border-light)] my-1"></div>
-          <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-store w-5 text-center"></i>
-            <span>Business Profile</span>
-          </button>
-          <a href="/business/share" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-share-alt w-5 text-center"></i>
-            <span>Share</span>
-          </a>
-          <a href="/business/dashboard" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-chart-line w-5 text-center"></i>
-            <span>Dashboard</span>
-          </a>
-          <button onclick="showNewClientModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-plus w-5 text-center"></i>
-            <span>New Customer</span>
-          </button>
-          <div class="border-t border-[var(--color-border-light)] my-1"></div>
-          <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-            <i class="fas fa-sign-out-alt w-5 text-center"></i>
-            <span>Logout</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  {{template "verify_banner" .}}
-
-  <!-- Stats Widgets Bar -->
-  <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 lg:px-6 py-3 shrink-0 mt-px">
-    <button onclick="toggleStats()" class="flex items-center justify-between w-full text-sm font-medium text-[var(--color-text)] mb-0 stats-toggle expanded" type="button">
-      <span><i class="fas fa-chart-simple mr-2"></i>Stats &amp; Overview</span>
-      <i class="fas fa-chevron-down stats-chevron transition-transform duration-200"></i>
-    </button>
-    <div id="statsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-2 lg:mt-0 expanded">
-      <div class="biz-stat biz-stat-primary">
-        <div class="biz-stat-icon">
-          <i class="fas fa-comments"></i>
-        </div>
-        <div>
-          <p class="biz-stat-label">Conversations</p>
-          <p class="biz-stat-value stat-counter" data-target="{{len .Clients}}">0</p>
-        </div>
-      </div>
-      <div class="biz-stat biz-stat-warning">
-        <div class="biz-stat-icon">
-          <i class="fas fa-shopping-cart"></i>
-        </div>
-        <div>
-          <p class="biz-stat-label">Orders</p>
-          <p class="biz-stat-value">{{.PendingOrderCount}}</p>
-        </div>
-      </div>
-      <div class="biz-stat biz-stat-info">
-        <div class="biz-stat-icon">
-          <i class="fas fa-calendar-check"></i>
-        </div>
-        <div>
-          <p class="biz-stat-label">Bookings</p>
-          <p class="biz-stat-value">{{.PendingBookingCount}}</p>
-        </div>
-      </div>
-      <div class="biz-stat biz-stat-success">
-        <div class="biz-stat-icon">
-          <i class="fas fa-circle"></i>
-        </div>
-        <div>
-          <p class="biz-stat-label">Online</p>
-          <p class="biz-stat-value">{{.OnlineCount}}</p>
-        </div>
-      </div>
-      <div class="biz-stat biz-stat-info">
-        <div class="biz-stat-icon">
-          <i class="fas fa-users"></i>
-        </div>
-        <div>
-          <p class="biz-stat-label">Total Clients</p>
-          <p class="biz-stat-value stat-counter" data-target="{{len .Clients}}">0</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Layout -->
-  <div class="flex flex-1 min-h-0" id="mainLayout">
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    <!-- Sidebar (Chat List) -->
     {{ template "biz-sidebar" .}}
-    <main class="flex-1 flex flex-col min-w-0 bg-[var(--color-bg)] pb-16 lg:pb-0" id="chat-area">
+
+    <!-- Main Chat Area -->
+    <main class="wa-chat-area" id="chat-area">
       <div id="skeleton-area" class="hidden">
         {{template "skeleton_chat" .}}
       </div>
       <div id="content-area">
-        {{template "empty_state" dict "Title" "Select a client to start chatting" "Description" "Choose a conversation from the sidebar to view messages, send orders, and manage bookings."}}
+        {{template "empty_state" dict "Title" "SalesMee" "Description" "Send and receive messages, orders, and payments with your customers."}}
       </div>
     </main>
+
   </div>
 
-  {{template "mobile_bottom_nav" .}}
-
-  {{template "assist_panel" .}}
+  <div id="notifContainer" class="fixed top-3 right-3 z-50">
+    <div id="notifDropdown" class="hidden"
+         hx-get="/business/notifications"
+         hx-trigger="load, every 60s"
+         hx-swap="innerHTML"
+         hx-target="this">
+    </div>
+  </div>
 
   {{template "onboarding_panel" .}}
 
@@ -206,11 +42,12 @@
   {{template "product_picker" .}}
   {{template "service_picker" .}}
   {{template "business_profile" .}}
+  {{template "quick_order_modal" .}}
+  {{template "quick_booking_modal" .}}
 
   {{if not .Business.EmailVerified}}
-  <!-- Email Verification Modal -->
-  <div id="verifyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-    <div class="w-full max-w-md card p-8 shadow-2xl animate-scale-in text-center" onclick="event.stopPropagation()">
+  <div id="verifyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md card p-8 shadow-2xl text-center" onclick="event.stopPropagation()">
       <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-5">
         <i class="fas fa-shield-halved text-amber-600 dark:text-amber-400 text-2xl"></i>
       </div>
@@ -230,8 +67,7 @@
           I'll do this later
         </button>
       </div>
-      <div id="countdownContainer" class="hidden my-5"></div>
-      <p class="text-xs text-[var(--color-text-muted)]">
+      <p class="text-xs text-[var(--color-text-muted)] mt-4">
         Didn't receive the email? Check your spam folder or click resend above.
       </p>
     </div>
@@ -263,9 +99,9 @@
   </script>
   {{end}}
 
-  <!-- Command Palette Overlay -->
-  <div id="cmdOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-center pt-[15vh] animate-fade-in" onclick="closeCommandPalette(event)">
-    <div class="w-full max-w-lg mx-4 card shadow-xl overflow-hidden animate-scale-in" onclick="event.stopPropagation()">
+  <!-- Command Palette -->
+  <div id="cmdOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-center pt-[15vh]" onclick="closeCommandPalette(event)">
+    <div class="w-full max-w-lg mx-4 card shadow-xl overflow-hidden" onclick="event.stopPropagation()">
       <div class="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]">
         <i class="fas fa-search text-[var(--color-text-muted)] text-sm"></i>
         <input type="text" id="cmdInput" placeholder="Search clients, pages, or actions..."
@@ -277,12 +113,10 @@
         <a href="/business/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
           <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center dark:bg-purple-900/30"><i class="fas fa-chart-line text-purple-600 dark:text-purple-400 text-xs"></i></div>
           Dashboard
-          <span class="ml-auto text-[10px] text-[var(--color-text-muted)]">Analytics & metrics</span>
         </a>
         <a href="/business/share" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
           <div class="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center dark:bg-teal-900/30"><i class="fas fa-share-alt text-teal-600 dark:text-teal-400 text-xs"></i></div>
           Share Business
-          <span class="ml-auto text-[10px] text-[var(--color-text-muted)]">Links & QR code</span>
         </a>
         <div class="px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mt-1">Clients</div>
         <div id="cmdClientResults">
@@ -290,7 +124,6 @@
           <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors cursor-pointer" onclick="loadClient('{{.ID}}'); closeCommandPalette()" data-client-id="{{.ID}}">
             <div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center dark:bg-teal-900/30"><i class="fas fa-user text-teal-600 dark:text-teal-400 text-xs"></i></div>
             <div><span class="font-medium">{{.Name}}</span><span class="text-[var(--color-text-muted)] ml-2 text-xs">{{.Email}}</span></div>
-            {{if .IsOnline}}<span class="ml-auto flex items-center gap-1 text-[10px] text-green-600"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Online</span>{{end}}
           </div>
           {{end}}
         </div>
@@ -303,15 +136,31 @@
     </div>
   </div>
 
+  {{template "assist_panel" .}}
+  {{template "csrf_script" .}}
+  {{template "business_profile_script" .}}
+  {{template "dashboard_footer" .}}
+
   <script src="/static/js/modules/shared.js?v=1"></script>
   <script src="/static/js/modules/assist.js?v=1"></script>
-  <script src="/static/js/modules/business.js?v=1"></script>
+  <script src="/static/js/modules/business.js?v=2"></script>
   <script src="/static/js/modules/product_picker.js?v=1"></script>
   <script src="/static/js/modules/service_picker.js?v=1"></script>
   <script src="/static/js/modules/onboarding.js?v=1"></script>
   <script src="/static/js/core/app.js?v=1"></script>
 
   <script>
+    function waBackToChatList() {
+      var layout = document.getElementById('mainLayout');
+      layout.classList.remove('wa-chat-open');
+      var overlay = document.getElementById('sidebarOverlay');
+      if (overlay) overlay.classList.add('hidden');
+    }
+
+    function waBackFromChat() {
+      waBackToChatList();
+    }
+
     function toggleSidebar() {
       var layout = document.getElementById('mainLayout');
       var overlay = document.getElementById('sidebarOverlay');
@@ -355,34 +204,20 @@
         if (wasHidden) htmx.trigger(dd, 'load');
       }
     }
+
     document.addEventListener('click', function(e) {
       var c = document.getElementById('notifContainer');
       if (c && !c.contains(e.target)) { var dd = document.getElementById('notifDropdown'); if (dd) dd.classList.add('hidden'); }
     });
 
-    function markNotifRead(id) {
-      fetch('/business/notifications/' + id + '/read', { method: 'POST', headers: {'X-CSRF-Token': getCookie('csrf_token')} });
-    }
-    function markAllNotifRead() {
-      var btn = event.target;
-      btn.textContent = 'Reading...';
-      fetch('/business/notifications/read-all', { method: 'POST', headers: {'X-CSRF-Token': getCookie('csrf_token')} }).then(function() {
-        htmx.trigger(document.getElementById('notifDropdown'), 'load');
-      });
-    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var dd = document.getElementById('notifDropdown');
+        if (dd) dd.classList.add('hidden');
+      }
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('.stat-counter').forEach(function(el) {
-        var target = parseInt(el.dataset.target) || 0;
-        if (target === 0) { el.textContent = '0'; return; }
-        var current = 0;
-        var step = Math.max(1, Math.floor(target / 30));
-        var interval = setInterval(function() {
-          current += step;
-          if (current >= target) { current = target; clearInterval(interval); }
-          el.textContent = current;
-        }, 40);
-      });
       updateTimeAgo();
       setInterval(updateTimeAgo, 30000);
     });
@@ -401,19 +236,24 @@
       });
     }
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        var dd = document.getElementById('notifDropdown');
-        if (dd) dd.classList.add('hidden');
-      }
-    });
-  </script>
+    function showQuickOrderModal(clientId) {
+      var modal = document.getElementById('quickOrderModal');
+      if (modal) modal.classList.remove('hidden');
+      if (clientId && typeof setQuickOrderClient === 'function') setQuickOrderClient(clientId);
+    }
 
-{{template "quick_order_modal" .}}
-{{template "quick_booking_modal" .}}
-{{template "assist_panel" .}}
-{{template "csrf_script" .}}
-{{template "business_profile_script" .}}
-{{template "dashboard_footer" .}}
+    function showQuickBookingModal(clientId) {
+      var modal = document.getElementById('quickBookingModal');
+      if (modal) modal.classList.remove('hidden');
+      if (clientId && typeof setQuickBookingClient === 'function') setQuickBookingClient(clientId);
+    }
+
+    function scrollMessagesToBottom() {
+      var container = document.getElementById('messages-container');
+      if (container) {
+        setTimeout(function() { container.scrollTop = container.scrollHeight; }, 50);
+      }
+    }
+  </script>
 </body>
 </html>

@@ -1,8 +1,9 @@
 <div class="wa-chat-container" id="waChatContainer">
   {{template "chat_header" .}}
 
-  <div class="wa-progress-bar">
+  <div class="wa-progress-bar" style="position: relative;">
     {{template "progress_controls" .}}
+    <div id="insights-drawer"></div>
   </div>
 
   <div class="wa-messages-area" id="messages-container">

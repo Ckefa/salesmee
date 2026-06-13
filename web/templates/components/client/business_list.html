@@ -1,88 +1,70 @@
 {{define "business_list"}}
-{{$typeColors := dict
-  "dental" "bg-[var(--color-info-light)] text-[var(--color-info)]"
-  "fitness" "bg-[var(--color-success-light)] text-[var(--color-success)]"
-  "salon" "bg-[var(--color-error-light)] text-[var(--color-error)]"
-  "restaurant" "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-  "consulting" "bg-[var(--color-secondary-light)] text-[var(--color-secondary)]"
-  "medical" "bg-[var(--color-error-light)] text-[var(--color-error)]"
-  "legal" "bg-[var(--color-info-light)] text-[var(--color-info)]"
-  "education" "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-  "retail" "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
-}}
-<aside class="sidebar" id="clientSidebar">
-  <div class="p-3 sm:p-4 border-b border-[var(--color-border)] shrink-0">
-    <div class="flex items-center justify-between">
-      <h2 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Your Businesses</h2>
-      <button onclick="toggleClientSidebar()" class="lg:hidden btn btn-icon btn-ghost text-[var(--color-text-muted)] hover:text-[var(--color-text)] -mr-1" title="Close sidebar" aria-label="Close sidebar">
-        <i class="fas fa-times text-sm sm:text-lg"></i>
-      </button>
+<aside class="wa-sidebar" id="clientSidebar">
+  <div class="wa-sidebar-header">
+    {{if .Businesses}}
+    <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+    <div class="wa-sidebar-header-info">
+      <h2 class="wa-sidebar-business-name">{{.Title}}</h2>
+      <span class="wa-sidebar-status">{{len .Businesses}} business{{if ne (len .Businesses) 1}}es{{end}}</span>
     </div>
-    <div class="input-with-icon mt-2">
-      <i class="fas fa-search input-icon"></i>
-      <input type="text" id="businessSearch" placeholder="Search businesses..."
-        oninput="filterBusinesses()" class="input text-sm">
+    {{end}}
+    <div class="wa-sidebar-header-actions">
+      <a href="/client/discover" class="wa-sidebar-icon-btn" title="Discover businesses">
+        <i class="fas fa-compass"></i>
+      </a>
     </div>
   </div>
 
-  <div class="flex-1 overflow-y-auto scrollbar-thin" id="business-list">
+  <div class="wa-search-container">
+    <i class="fas fa-search wa-search-icon"></i>
+    <input type="text" id="businessSearch" placeholder="Search businesses..." oninput="filterBusinesses()" class="wa-search-input">
+  </div>
+
+  <div class="wa-chat-list" id="business-list">
     {{range .Businesses}}
-    <div class="stagger-item business-item group px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-[var(--color-surface-secondary)] cursor-pointer border-b border-[var(--color-border-light)] transition-colors"
-      data-business-id="{{.ID}}" data-business-name="{{.Name}}" data-business-type="{{.BusinessType}}">
-      <div class="flex items-center gap-2 sm:gap-3">
-        <div class="relative shrink-0">
-          {{if .Logo}}
-          <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover">
-          {{else}}
-          <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-            <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
-          </div>
-          {{end}}
-          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 bg-[var(--color-surface)] rounded-full flex items-center justify-center">
-            <div class="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[var(--color-success)] rounded-full border-2 border-[var(--color-surface)]"></div>
-          </div>
+    <div class="wa-chat-item business-item" data-business-id="{{.ID}}" data-business-name="{{.Name}}" data-business-type="{{.BusinessType}}" oncontextmenu="showBizCtxMenu(event, {{.ID}}, '{{.Name}}')">
+      <div class="wa-chat-avatar-wrapper">
+        {{if .Logo}}
+        <img src="/static/{{.Logo}}" alt="{{.Name}}" class="wa-chat-avatar">
+        {{else}}
+        <div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+        {{end}}
+        <div class="wa-online-dot"></div>
+      </div>
+      <div class="wa-chat-info">
+        <div class="wa-chat-top">
+          <span class="wa-chat-name">{{.Name}}</span>
+          <span class="wa-chat-time time-ago" data-time="{{.LastMessageAt}}"></span>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1 sm:gap-1.5">
-            <h3 class="font-semibold text-[var(--color-text)] text-xs sm:text-sm truncate">{{.Name}}</h3>
-            <button onclick="event.stopPropagation(); togglePinBusiness({{.ID}})"
-              class="pin-btn text-[var(--color-text-muted)] hover:text-[var(--color-warning)] transition-colors text-[10px] sm:text-xs shrink-0"
-              title="Pin to top">
-              <i class="fas fa-star"></i>
-            </button>
-          </div>
-          <span class="badge badge-neutral text-[8px] sm:text-[10px] mt-0.5
-            {{index $typeColors .BusinessType | default "badge-neutral"}}">{{.BusinessType}}</span>
-          <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate mt-0.5 last-message-preview">
+        <div class="wa-chat-bottom">
+          <span class="wa-chat-preview">
             {{if .LastMessage}}{{.LastMessage}}{{else}}<span class="italic opacity-60">No messages yet</span>{{end}}
-          </p>
-        </div>
-        <div class="flex flex-col items-end gap-0.5 sm:gap-1 shrink-0">
-          <span class="time-ago text-[8px] sm:text-[10px] text-[var(--color-text-muted)]" data-time="{{.LastMessageAt}}"></span>
-          {{if gt .UnreadCount 0}}
-          <span class="text-[10px] font-bold text-white bg-[var(--color-primary)] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1"
-            title="{{.UnreadCount}} unread message{{if gt .UnreadCount 1}}s{{end}}"
-            onclick="event.stopPropagation()">
-            {{if gt .UnreadCount 99}}99+{{else}}{{.UnreadCount}}{{end}}
           </span>
+          {{if gt .UnreadCount 0}}
+          <span class="wa-unread-badge">{{if gt .UnreadCount 99}}99+{{else}}{{.UnreadCount}}{{end}}</span>
           {{end}}
         </div>
+      </div>
+      <div class="flex items-center gap-0.5 ml-auto shrink-0">
+        <button onclick="event.stopPropagation(); togglePinBusiness({{.ID}})"
+          class="pin-btn wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-amber-500" title="Pin to top">
+          <i class="fas fa-star text-[10px]"></i>
+        </button>
         <button onclick="event.stopPropagation(); disconnectBusiness({{.ID}})"
-          class="btn btn-icon btn-icon-sm btn-ghost text-[var(--color-error)] hover:text-[var(--color-error)] hover:bg-[var(--color-error-light)] shrink-0"
-          title="Remove business">
-          <i class="fas fa-trash-alt text-[10px] sm:text-xs"></i>
+          class="wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-[var(--color-error)]" title="Remove business">
+          <i class="fas fa-trash-alt text-[10px]"></i>
         </button>
       </div>
     </div>
     {{else}}
-    <div class="empty-state">
-      <div class="empty-state-icon empty-state-icon-primary">
-        <i class="fas fa-store"></i>
-      </div>
-      <h3 class="empty-state-title">No businesses connected yet</h3>
-      <p class="empty-state-text">Discover and connect with businesses to start chatting, ordering, and booking services.</p>
-      <div class="empty-state-cta">
-        <a href="/client/discover" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="toggleClientSidebar()" class="btn btn-primary btn-sm">
+    <div class="wa-empty-chat-list">
+      <div class="flex flex-col items-center justify-center py-12 px-6 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-[var(--color-primary-light)] flex items-center justify-center mb-4">
+          <i class="fas fa-store text-[var(--color-primary)] text-2xl"></i>
+        </div>
+        <h3 class="text-base font-semibold text-[var(--color-text)] mb-1">No businesses connected yet</h3>
+        <p class="text-sm text-[var(--color-text-muted)] mb-5">Discover and connect with businesses to start chatting, ordering, and booking services.</p>
+        <a href="/client/discover" class="btn btn-primary btn-sm">
           <i class="fas fa-compass"></i>
           Find Businesses
         </a>
@@ -91,12 +73,21 @@
     {{end}}
   </div>
 
-  <div class="p-3 border-t border-[var(--color-border)] shrink-0">
-    <a href="/client/discover" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="toggleClientSidebar()"
-      class="flex items-center justify-center gap-2 btn btn-ghost w-full text-sm">
-      <i class="fas fa-compass"></i>
-      <span>Discover Businesses</span>
-    </a>
-  </div>
+<!-- Right-click Context Menu -->
+<div id="bizCtxMenu" class="wa-ctx-menu hidden">
+  <button class="wa-ctx-item" data-action="mark-read" onclick="bizCtxMarkRead()">
+    <i class="fas fa-check-circle"></i>
+    <span>Mark as read</span>
+  </button>
+  <button class="wa-ctx-item" data-action="toggle-pin" onclick="bizCtxTogglePin()">
+    <i class="fas fa-star"></i>
+    <span>Pin to top</span>
+  </button>
+  <div class="wa-ctx-divider"></div>
+  <button class="wa-ctx-item wa-ctx-danger" data-action="remove" onclick="bizCtxRemove()">
+    <i class="fas fa-trash-alt"></i>
+    <span>Remove business</span>
+  </button>
+</div>
 </aside>
 {{end}}

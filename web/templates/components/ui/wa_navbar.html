@@ -28,6 +28,11 @@
     <button class="theme-toggle wa-nav-item" title="Toggle theme">
       <i class="fas fa-moon"></i>
     </button>
+    {{if .AssistEnabled}}
+    <button onclick="toggleAssist()" class="wa-nav-item" title="salesmee Assist">
+      <i class="fas fa-wand-magic-sparkles"></i>
+    </button>
+    {{end}}
     <button onclick="showNewClientModal()" class="wa-nav-item" title="New Customer">
       <i class="fas fa-user-plus"></i>
     </button>

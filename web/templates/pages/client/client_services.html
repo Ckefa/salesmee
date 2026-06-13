@@ -1,25 +1,4 @@
-<div class="flex flex-col h-full">
-  <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
-    <div class="flex items-center space-x-2 sm:space-x-3">
-      <button hx-get="/client/businesses/{{.Business.ID}}/messages" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] flex items-center space-x-1 mr-2 sm:mr-4 hide-mobile">
-        <i class="fas fa-arrow-left text-base sm:text-lg"></i>
-        <span class="text-sm">Chats</span>
-      </button>
-      {{if .Business.Logo}}
-      <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover">
-      {{else}}
-      <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-        <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-base"></i>
-      </div>
-      {{end}}
-      <div class="min-w-0">
-        <h2 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">{{.Business.Name}}</h2>
-        <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Services</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="flex-1 overflow-y-auto p-3 sm:p-4">
+<div class="overflow-y-auto p-3 sm:p-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
       {{range .Services}}
       <div class="service-card rounded-xl card overflow-hidden" data-service-id="{{.ID}}">

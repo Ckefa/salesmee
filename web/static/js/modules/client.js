@@ -1,11 +1,19 @@
 let currentBusinessId = null;
 let heartbeatInterval = null;
+let bizCtxBusinessId = null;
+let bizCtxBusinessName = '';
 
 document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('click', function (e) {
+    hideBizCtxMenu();
     const item = e.target.closest('.business-item');
-    if (item) {
+    if (item && !e.target.closest('.pin-btn') && !e.target.closest('.wa-chat-icon-btn')) {
       loadBusiness(item.getAttribute('data-business-id'));
+    }
+  });
+  document.addEventListener('contextmenu', function (e) {
+    if (!e.target.closest('.business-item') && !e.target.closest('#bizCtxMenu')) {
+      hideBizCtxMenu();
     }
   });
   startHeartbeat();
@@ -29,29 +37,80 @@ function stopHeartbeat() {
 
 window.addEventListener('beforeunload', stopHeartbeat);
 
+function showBizCtxMenu(e, bizId, bizName) {
+  e.preventDefault();
+  bizCtxBusinessId = bizId;
+  bizCtxBusinessName = bizName;
+  var menu = document.getElementById('bizCtxMenu');
+  if (!menu) return;
+  // Update pin label based on current state
+  var pins = JSON.parse(localStorage.getItem('pinned_businesses') || '[]');
+  var pinBtn = menu.querySelector('[data-action="toggle-pin"]');
+  if (pinBtn) {
+    var isPinned = pins.indexOf(bizId) > -1;
+    pinBtn.innerHTML = (isPinned ? '<i class="fas fa-star"></i><span>Unpin</span>' : '<i class="fas fa-star"></i><span>Pin to top</span>');
+  }
+  var x = e.clientX, y = e.clientY;
+  var w = window.innerWidth, h = window.innerHeight;
+  var mw = 200, mh = menu.offsetHeight || 128;
+  if (x + mw > w) x = w - mw - 8;
+  if (y + mh > h) y = h - mh - 8;
+  if (x < 8) x = 8;
+  if (y < 8) y = 8;
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.classList.remove('hidden');
+}
+
+function hideBizCtxMenu() {
+  var menu = document.getElementById('bizCtxMenu');
+  if (menu) menu.classList.add('hidden');
+  bizCtxBusinessId = null;
+  bizCtxBusinessName = '';
+}
+
+function bizCtxMarkRead() {
+  if (!bizCtxBusinessId) return;
+  fetch('/client/businesses/' + bizCtxBusinessId + '/read', {
+    method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  }).then(function() {
+    var badge = document.querySelector('.business-item[data-business-id="' + bizCtxBusinessId + '"] .wa-unread-badge');
+    if (badge) badge.remove();
+    showNotification('Marked as read', 'success');
+  }).catch(console.error);
+  hideBizCtxMenu();
+}
+
+function bizCtxTogglePin() {
+  if (!bizCtxBusinessId) return;
+  togglePinBusiness(bizCtxBusinessId);
+  hideBizCtxMenu();
+}
+
+function bizCtxRemove() {
+  if (!bizCtxBusinessId) return;
+  disconnectBusiness(bizCtxBusinessId);
+  hideBizCtxMenu();
+}
+
 function loadBusiness(businessId) {
   currentBusinessId = businessId;
   window.businessId = businessId;
   document.querySelectorAll('.business-item').forEach(item => {
-    item.classList.remove('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
+    item.classList.remove('selected');
   });
   const el = document.querySelector(`[data-business-id="${businessId}"]`);
-  if (el) el.classList.add('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
+  if (el) el.classList.add('selected');
   htmx.ajax('GET', `/client/businesses/${businessId}/messages`, {
     target: '#chat-area',
     swap: 'innerHTML'
   });
-  // Auto-close sidebar on mobile and activate Chats tab
+  // On mobile, show chat area (replaces sidebar entirely)
   var layout = document.getElementById('clientLayout');
-  var overlay = document.getElementById('clientSidebarOverlay');
-  if (layout && layout.classList.contains('sidebar-open')) {
-    layout.classList.remove('sidebar-open');
-    if (overlay) overlay.classList.add('hidden');
+  if (layout) {
+    layout.classList.add('wa-chat-open');
   }
-  document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
-    item.classList.remove('active');
-    if (item.querySelector('.fa-comments')) item.classList.add('active');
-  });
 }
 
 function sendMessage() {

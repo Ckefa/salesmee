@@ -11,6 +11,13 @@ class SalesMeeApp {
         if (typeof htmx !== 'undefined') {
             htmx.config.globalViewTransitions = true;
             htmx.config.revalidateOnLoad = false;
+            document.addEventListener('htmx:configRequest', function(event) {
+                var token = (window.getCookie || function(name) {
+                    var value = '; ' + document.cookie, parts = value.split('; ' + name + '=');
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                })('csrf_token');
+                if (token) event.detail.headers['X-CSRF-Token'] = token;
+            });
         }
     }
 

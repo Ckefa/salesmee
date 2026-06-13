@@ -1,0 +1,16 @@
+{{define "analytics_script"}}
+<script>
+if (localStorage.getItem('cookies_accepted') === 'true') {
+  (function() {
+    var s = document.createElement('script');
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-E51BLXZ6ZG';
+    s.async = true;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-E51BLXZ6ZG');
+  })();
+}
+</script>
+{{end}}

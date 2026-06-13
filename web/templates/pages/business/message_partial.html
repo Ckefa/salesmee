@@ -1,58 +1,58 @@
-<div class="flex {{if eq .Message.Sender "business"}}justify-end{{else}}justify-start{{end}}">
-  <div class="max-w-xs lg:max-w-md">
+{{$isSelf := eq .Message.Sender "business"}}
+<div class="msg {{if $isSelf}}out{{else}}in{{end}} message-item">
+  <div class="msg-bbl">
+    {{if $isSelf}}
+    <svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet">
+      <path fill="var(--color-bg)" d="M9,3L0,14V1H7C8.5,1,9.5,2,9,3z"></path>
+      <path fill="currentColor" d="M9,2L0,13V0H7C8.5,0,9.5,1,9,2z"></path>
+    </svg>
+    {{else}}
+    <svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet">
+      <path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path>
+      <path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path>
+    </svg>
+    {{end}}
     {{if .Message.MediaURL}}
-    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg overflow-hidden">
       {{if eq .Message.MediaType "image"}}
-      <img src="/static/{{.Message.MediaURL}}" alt="Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)" loading="lazy">
+      <img src="/static/{{.Message.MediaURL}}" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .Message.MediaType "document"}}
-      <div class="px-4 py-3">
-        <a href="/static/{{.Message.MediaURL}}" target="_blank" class="flex items-center gap-3 text-xs sm:text-sm hover:underline">
-          <i class="fas fa-file-alt text-lg {{if eq .Message.Sender "business"}}text-white/80{{else}}text-blue-500{{end}}"></i>
-          <span class="font-medium">{{if .Message.Content}}{{.Message.Content}}{{else}}Document{{end}}</span>
-          <i class="fas fa-external-link-alt text-xs ml-auto opacity-60"></i>
-        </a>
+      <div class="wa-media-doc">
+        <i class="fas fa-file-alt wa-media-doc-icon"></i>
+        <a href="/static/{{.Message.MediaURL}}" target="_blank" class="wa-media-doc-link">{{if .Message.Content}}{{.Message.Content}}{{else}}Document{{end}}</a>
+        <i class="fas fa-external-link-alt wa-media-doc-ext"></i>
       </div>
       {{else if eq .Message.MediaType "audio"}}
-      <div class="px-2 py-2">
-        <audio controls class="w-full h-10" preload="metadata">
+      <div class="wa-media-audio">
+        <audio controls class="wa-audio-player" preload="metadata">
           <source src="/static/{{.Message.MediaURL}}">
         </audio>
       </div>
       {{end}}
-    </div>
-    {{if .Message.Content}}
-    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg px-4 py-2 -mt-1">
-      <p class="text-xs sm:text-sm">{{.Message.Content}}</p>
-    </div>
     {{end}}
-    {{else}}
-    <div class="{{if eq .Message.Sender "business"}}bg-teal-600 text-white{{else}}bg-gray-200 text-gray-800{{end}} rounded-lg px-4 py-2">
-      <p class="text-xs sm:text-sm">{{.Message.Content}}</p>
-    </div>
-    {{end}}
-    <div class="flex items-center justify-between mt-1">
-      <p class="text-xs text-gray-500">{{.Message.CreatedAt.Format "3:04 PM"}}</p>
-      {{if eq .Message.Sender "client"}}
-      <div class="flex space-x-1">
-        <button data-message-id="{{.Message.ID}}"
-          class="enhanced-action-btn text-xs sm:text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
-          title="Create Detailed Action">
-          <i class="fas fa-plus mr-1"></i>Action
-        </button>
-        <button data-message-id="{{.Message.ID}}" data-action-type="task"
-          class="quick-action-btn text-xs sm:text-xs text-blue-600 hover:text-blue-800" title="Quick Task">
-          <i class="fas fa-tasks"></i>
-        </button>
-        <button data-message-id="{{.Message.ID}}" data-action-type="reminder"
-          class="quick-action-btn text-xs sm:text-xs text-yellow-600 hover:text-yellow-800" title="Quick Reminder">
-          <i class="fas fa-bell"></i>
-        </button>
-        <button data-message-id="{{.Message.ID}}" data-action-type="booking"
-          class="quick-action-btn text-xs sm:text-xs text-green-600 hover:text-green-800" title="Quick Booking">
-          <i class="fas fa-calendar"></i>
-        </button>
-      </div>
-      {{end}}
-    </div>
+    {{if .Message.Content}}<span class="msg-txt">{{.Message.Content}}</span>{{end}}
+    <span class="msg-meta">
+      <span class="msg-time">{{.Message.CreatedAt.Format "3:04 PM"}}</span>
+    </span>
   </div>
+  {{if not $isSelf}}
+  <div class="flex items-start ml-2" style="margin-top:2px;">
+    <button data-message-id="{{.Message.ID}}"
+      class="enhanced-action-btn text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+      title="Create Detailed Action">
+      <i class="fas fa-plus mr-1"></i>Action
+    </button>
+    <button data-message-id="{{.Message.ID}}" data-action-type="task"
+      class="quick-action-btn text-xs text-blue-600 hover:text-blue-800 ml-1" title="Quick Task">
+      <i class="fas fa-tasks"></i>
+    </button>
+    <button data-message-id="{{.Message.ID}}" data-action-type="reminder"
+      class="quick-action-btn text-xs text-yellow-600 hover:text-yellow-800 ml-1" title="Quick Reminder">
+      <i class="fas fa-bell"></i>
+    </button>
+    <button data-message-id="{{.Message.ID}}" data-action-type="booking"
+      class="quick-action-btn text-xs text-green-600 hover:text-green-800 ml-1" title="Quick Booking">
+      <i class="fas fa-calendar"></i>
+    </button>
+  </div>
+  {{end}}
 </div>

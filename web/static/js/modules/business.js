@@ -133,7 +133,7 @@ function deleteClient(clientId, clientName) {
               '<div class="wa-empty-state">' +
               '<img src="/static/images/salesmeebrand.png" class="wa-empty-state-logo">' +
               '<h2 class="wa-empty-state-title">SalesMee</h2>' +
-              '<p class="wa-empty-state-text">Send and receive messages, orders, and payments with your customers.</p>' +
+              '<p class="wa-empty-state-text">Send and receive messages, Track orders, bookings, and payments from clients in one Platform.</p>' +
               '</div>';
           }
           currentClientId = null;

@@ -12,7 +12,7 @@
 {{else if $isConfirmed}}{{if $booking.is_fully_paid}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "active"}}{{else}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "active"}}{{end}}
 {{else if $isCompleted}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "completed"}}
 {{end}}
-<div class="flex {{if eq .Sender "business"}}justify-end{{else}}justify-start{{end}}">
+<div class="msg {{if eq .Sender "business"}}out{{else}}in{{end}} message-item">
   <div class="max-w-sm lg:max-w-md w-full">
     <div class="rounded-xl border-2 p-4 shadow-sm transition-all duration-200
       {{if $isCancelled}}border-[var(--color-error)]/40 bg-[var(--color-error-light)]{{else if $isCompleted}}border-[var(--color-success)]/40 bg-[var(--color-success-light)]{{else if $isConfirmed}}border-[var(--color-info)]/40 bg-[var(--color-info-light)]{{else}}border-[var(--color-warning)]/40 bg-[var(--color-warning-light)]{{end}}"

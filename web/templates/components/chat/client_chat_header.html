@@ -1,32 +1,40 @@
 {{define "client_chat_header"}}
-<div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-3 sm:p-4 flex items-center flex-shrink-0">
-  <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-[1_1_0%]">
+<div class="wa-chat-header">
+  <button onclick="clientBackFromChat()" class="wa-chat-back" title="Back">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+  <div class="wa-chat-header-avatar">
     {{if .Business.Logo}}
-    <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0">
+    <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="wa-chat-avatar">
     {{else}}
-    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center shrink-0">
-      <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-base"></i>
-    </div>
+    <div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
     {{end}}
-    <div class="min-w-0">
-      <h2 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">{{.Business.Name}}</h2>
-      <p class="text-xs sm:text-sm text-[var(--color-text-muted)] truncate">{{.Business.BusinessType}}</p>
+  </div>
+  <div class="wa-chat-header-info">
+    <div class="wa-chat-header-name">{{.Business.Name}}</div>
+    <div class="wa-chat-header-status flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 bg-[var(--color-success)] rounded-full"></span>
+      <span>{{.Business.BusinessType}}</span>
     </div>
   </div>
-  <div class="hidden sm:flex items-center justify-center flex-[1_1_0%] text-xs sm:text-sm font-medium space-x-2 sm:space-x-3">
-    <a href="#" hx-get="/client/businesses/{{.Business.ID}}/products-page" hx-target="#chat-area" hx-swap="innerHTML"
-       class="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
-      <i class="fas fa-box mr-1"></i>Products
-    </a>
-    <span class="text-[var(--color-border)]">|</span>
-    <a href="#" hx-get="/client/businesses/{{.Business.ID}}/services-page" hx-target="#chat-area" hx-swap="innerHTML"
-       class="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
-      <i class="fas fa-concierge-bell mr-1"></i>Services
-    </a>
-  </div>
-  <div class="flex items-center space-x-1 sm:space-x-2 flex-[1_1_0%] justify-end">
-    <span class="inline-block w-2 h-2 bg-[var(--color-success)] rounded-full shrink-0"></span>
-    <span class="text-xs sm:text-sm text-[var(--color-text-muted)] hide-mobile">Online</span>
+  <div class="flex items-center gap-1 ml-auto">
+    <button class="client-tab active" data-tab="chats"
+      onclick="switchToChats({{.Business.ID}})">
+      <i class="fas fa-comment-dots"></i>
+      <span>Chats</span>
+    </button>
+    <button class="client-tab" data-tab="products"
+      hx-get="/client/businesses/{{.Business.ID}}/products-page" hx-target="#chat-content" hx-swap="innerHTML"
+      onclick="setClientActiveTab(this)">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
+    </button>
+    <button class="client-tab" data-tab="services"
+      hx-get="/client/businesses/{{.Business.ID}}/services-page" hx-target="#chat-content" hx-swap="innerHTML"
+      onclick="setClientActiveTab(this)">
+      <i class="fas fa-concierge-bell"></i>
+      <span>Services</span>
+    </button>
   </div>
 </div>
 {{end}}

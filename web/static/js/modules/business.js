@@ -1,4 +1,87 @@
 let currentClientId = null;
+let ctxMenuClientId = null;
+
+function waShowCtxMenu(e, clientId) {
+  e.preventDefault();
+  e.stopPropagation();
+  ctxMenuClientId = clientId;
+  var menu = document.getElementById('ctxMenu');
+  if (!menu) return;
+
+  var x = e.clientX;
+  var y = e.clientY;
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  var mw = 200;
+  var mh = menu.offsetHeight || 128;
+  if (x + mw > w) x = w - mw - 8;
+  if (y + mh > h) y = h - mh - 8;
+  if (x < 8) x = 8;
+  if (y < 8) y = 8;
+
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.classList.remove('hidden');
+}
+
+function waHideCtxMenu() {
+  var menu = document.getElementById('ctxMenu');
+  if (menu) menu.classList.add('hidden');
+  ctxMenuClientId = null;
+}
+
+function waCtxMarkRead() {
+  if (!ctxMenuClientId) return;
+  fetch('clients/' + ctxMenuClientId + '/read', {
+    method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === 'ok') {
+        showNotification('Marked as read', 'success');
+        var el = document.querySelector('[data-client-id="' + ctxMenuClientId + '"]');
+        if (el) {
+          el.setAttribute('data-unread', '0');
+          var badge = el.querySelector('.wa-unread-badge');
+          if (badge) badge.remove();
+        }
+      }
+    })
+    .catch(function() { showNotification('Failed to mark as read', 'error'); })
+    .finally(function() { waHideCtxMenu(); });
+}
+
+function waCtxClearChat() {
+  if (!ctxMenuClientId) return;
+  if (!confirm('Clear all messages in this chat? This cannot be undone.')) { waHideCtxMenu(); return; }
+  fetch('clients/' + ctxMenuClientId + '/messages', {
+    method: 'DELETE',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        showNotification('Chat cleared', 'success');
+        if (currentClientId == ctxMenuClientId) {
+          htmx.ajax('GET', 'clients/' + ctxMenuClientId + '/messages', {
+            target: '#chat-area',
+            swap: 'innerHTML'
+          });
+        }
+      } else {
+        showNotification(d.error || 'Failed to clear chat', 'error');
+      }
+    })
+    .catch(function() { showNotification('Failed to clear chat', 'error'); })
+    .finally(function() { waHideCtxMenu(); });
+}
+
+function waCtxDeleteChat() {
+  if (!ctxMenuClientId) return;
+  var el = document.querySelector('[data-client-id="' + ctxMenuClientId + '"]');
+  var name = el ? el.getAttribute('data-client-name') : 'this client';
+  deleteClient(ctxMenuClientId, name);
+  waHideCtxMenu();
+}
 
 function showNewClientModal() {
   document.getElementById('new-client-modal').classList.remove('hidden');
@@ -11,21 +94,27 @@ function hideNewClientModal() {
 
 function loadClient(clientId) {
   currentClientId = clientId;
-  document.querySelectorAll('.client-item').forEach(function(item) {
-    item.classList.remove('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
+  var layout = document.getElementById('mainLayout');
+
+  document.querySelectorAll('.wa-chat-item').forEach(function(item) {
+    item.classList.remove('selected');
   });
   var el = document.querySelector('[data-client-id="' + clientId + '"]');
-  if (el) el.classList.add('bg-[var(--color-info-light)]', 'border-l-4', 'border-[var(--color-info)]');
+  if (el) el.classList.add('selected');
+
   htmx.ajax('GET', 'clients/' + clientId + '/messages', {
     target: '#chat-area',
     swap: 'innerHTML'
   });
+
   if (window.innerWidth < 1024) {
-    var layout = document.getElementById('mainLayout');
-    var overlay = document.getElementById('sidebarOverlay');
-    if (layout) layout.classList.remove('sidebar-open');
-    if (overlay) overlay.classList.add('hidden');
+    layout.classList.add('wa-chat-open');
   }
+}
+
+function waBackToChatList() {
+  var layout = document.getElementById('mainLayout');
+  layout.classList.remove('wa-chat-open');
 }
 
 function deleteClient(clientId, clientName) {
@@ -38,12 +127,17 @@ function deleteClient(clientId, clientName) {
         var el = document.querySelector('[data-client-id="' + clientId + '"]');
         if (el) el.remove();
         if (currentClientId == clientId) {
-          document.getElementById('chat-area').innerHTML =
-            '<div class="flex-1 flex items-center justify-center text-[var(--color-text-muted)]">' +
-            '<div class="text-center text-[var(--color-text-muted)]">' +
-            '<i class="fas fa-comments text-6xl mb-4"></i>' +
-            '<p>Select a client to start chatting</p></div></div>';
+          var chatArea = document.getElementById('chat-area');
+          if (chatArea) {
+            chatArea.innerHTML =
+              '<div class="wa-empty-state">' +
+              '<img src="/static/images/salesmeebrand.png" class="wa-empty-state-logo">' +
+              '<h2 class="wa-empty-state-title">SalesMee</h2>' +
+              '<p class="wa-empty-state-text">Send and receive messages, Track orders, bookings, and payments from clients in one Platform.</p>' +
+              '</div>';
+          }
           currentClientId = null;
+          waBackToChatList();
         }
       } else {
         showNotification(data.error || 'Failed to delete client', 'error');
@@ -52,18 +146,17 @@ function deleteClient(clientId, clientName) {
     .catch(function() { showNotification('Failed to delete client', 'error'); });
 }
 
-// Client search filter
 function filterClients() {
   var q = document.getElementById('clientSearch').value.toLowerCase().trim();
-  document.querySelectorAll('.client-item').forEach(function(el) {
-    var name = el.querySelector('h3')?.textContent?.toLowerCase() || '';
-    var email = el.querySelector('.text-slate-400')?.textContent?.toLowerCase() || '';
-    el.style.display = (!q || name.includes(q) || email.includes(q)) ? '' : 'none';
+  document.querySelectorAll('.wa-chat-item').forEach(function(el) {
+    var name = el.getAttribute('data-client-name')?.toLowerCase() || '';
+    var email = el.getAttribute('data-client-email')?.toLowerCase() || '';
+    var preview = el.querySelector('.wa-chat-preview')?.textContent?.toLowerCase() || '';
+    el.style.display = (!q || name.includes(q) || email.includes(q) || preview.includes(q)) ? '' : 'none';
   });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  // New client form
   var form = document.getElementById('new-client-form');
   if (form) {
     form.addEventListener('submit', function(e) {
@@ -83,24 +176,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Click delegation for client items and progress buttons
   document.addEventListener('click', function(e) {
+    var ctxMenu = document.getElementById('ctxMenu');
+    if (ctxMenu && !ctxMenu.classList.contains('hidden') && !ctxMenu.contains(e.target)) {
+      waHideCtxMenu();
+    }
     var saveBtn = e.target.closest('.save-progress-btn');
     if (saveBtn) {
       var id = saveBtn.getAttribute('data-customer-id');
       var dd = document.querySelector('.conversation-progress-dropdown[data-customer-id="' + id + '"]');
       if (dd && dd.value) saveConversationProgress(id, dd.value);
     }
-    var item = e.target.closest('.client-item');
+    var item = e.target.closest('.wa-chat-item');
     if (item && !e.target.closest('.conversation-progress-dropdown') && !e.target.closest('.save-progress-btn')) {
       loadClient(item.getAttribute('data-client-id'));
     }
   });
+
+  document.addEventListener('contextmenu', function(e) {
+    if (!e.target.closest('.wa-chat-item') && !e.target.closest('#ctxMenu')) {
+      waHideCtxMenu();
+    }
+  });
+
+  var assistContainer = document.getElementById('assist-overlay-container');
+  if (assistContainer && assistContainer.querySelector('.assist-panel')) {
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.assist-backdrop') || e.target.closest('.assist-close')) {
+        assistContainer.classList.add('hidden');
+      }
+    });
+  }
 });
 
 function openPaymentModal(clientId) {
-  var conversationId = document.querySelector('[data-client-id="' + clientId + '"]')?.closest?.('[data-conversation-id]');
-  // Implement payment modal via the existing RequestPayment endpoint
   htmx.ajax('GET', '/business/clients/' + clientId + '/request-payment', {
     target: '#payment-modal',
     swap: 'innerHTML'
@@ -113,32 +222,6 @@ function openPaymentModal(clientId) {
     document.body.appendChild(modal);
   }
   modal.classList.remove('hidden');
-}
-
-function toggleStats() {
-  var grid = document.getElementById('statsGrid');
-  var btn = document.querySelector('.stats-toggle');
-  if (grid) grid.classList.toggle('expanded');
-  if (btn) btn.classList.toggle('expanded');
-}
-
-function toggleActionButtons() {
-  var buttons = document.getElementById('action-buttons');
-  var icon = document.getElementById('action-icon');
-  var mainBtn = document.getElementById('main-action-btn');
-  if (buttons.classList.contains('hidden')) {
-    buttons.classList.remove('hidden');
-    icon.classList.replace('fa-plus', 'fa-times');
-    if (mainBtn) mainBtn.classList.add('rotate-45');
-    buttons.querySelectorAll('button').forEach(function(btn, i) {
-      btn.style.cssText = 'opacity:0;transform:translateY(20px)';
-      setTimeout(function() { btn.style.cssText = 'opacity:1;transform:translateY(0)'; }, i * 50);
-    });
-  } else {
-    buttons.classList.add('hidden');
-    icon.classList.replace('fa-times', 'fa-plus');
-    if (mainBtn) mainBtn.classList.remove('rotate-45');
-  }
 }
 
 function sendMessage() { var form = document.getElementById('message-form'); if (form) form.submit(); }
@@ -178,7 +261,7 @@ function toggleMediaTray() {
   var icon = document.getElementById('media-icon');
   if (tray) {
     tray.classList.toggle('hidden');
-    icon.classList.toggle('fa-paperclip');
+    icon.classList.toggle('fa-plus');
     icon.classList.toggle('fa-times');
   }
 }
@@ -190,7 +273,7 @@ function triggerMediaUpload(type) {
   if (tray && !tray.classList.contains('hidden')) {
     tray.classList.add('hidden');
     var icon = document.getElementById('media-icon');
-    icon.classList.replace('fa-times', 'fa-paperclip');
+    icon.classList.replace('fa-times', 'fa-plus');
   }
 }
 
@@ -215,7 +298,7 @@ document.addEventListener('click', function(e) {
     tray.classList.add('hidden');
     var icon = document.getElementById('media-icon');
     if (icon) {
-      icon.classList.replace('fa-times', 'fa-paperclip');
+      icon.classList.replace('fa-times', 'fa-plus');
     }
   }
 });

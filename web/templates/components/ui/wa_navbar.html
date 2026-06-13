@@ -1,0 +1,74 @@
+{{define "wa_navbar"}}
+<nav class="wa-navbar" id="waNavbar">
+  <div class="wa-navbar-top">
+    <a href="/business/dashboard" class="wa-nav-item" data-nav="dashboard" title="Dashboard">
+      <i class="fas fa-chart-line"></i>
+    </a>
+    <a href="/business/orders" class="wa-nav-item" data-nav="orders" title="Orders">
+      <i class="fas fa-shopping-cart"></i>
+      {{if gt .PendingOrderCount 0}}
+      <span class="wa-nav-badge">{{.PendingOrderCount}}</span>
+      {{end}}
+    </a>
+    <a href="/business/bookings" class="wa-nav-item" data-nav="bookings" title="Bookings">
+      <i class="fas fa-calendar-check"></i>
+      {{if gt .PendingBookingCount 0}}
+      <span class="wa-nav-badge">{{.PendingBookingCount}}</span>
+      {{end}}
+    </a>
+    <button onclick="toggleNotifications()" class="wa-nav-item" data-nav="notifications" title="Notifications">
+      <i class="fas fa-bell"></i>
+      {{if gt .UnreadNotifCount 0}}
+      <span class="wa-nav-badge">{{.UnreadNotifCount}}</span>
+      {{end}}
+    </button>
+  </div>
+  <div class="wa-navbar-divider"></div>
+  <div class="wa-navbar-bottom">
+    <button class="theme-toggle wa-nav-item" title="Toggle theme">
+      <i class="fas fa-moon"></i>
+    </button>
+    {{if .AssistEnabled}}
+    <button onclick="toggleAssist()" class="wa-nav-item" title="salesmee Assist">
+      <i class="fas fa-wand-magic-sparkles"></i>
+    </button>
+    {{end}}
+    <button onclick="showNewClientModal()" class="wa-nav-item" title="New Customer">
+      <i class="fas fa-user-plus"></i>
+    </button>
+    <button onclick="waToggleNavMenu()" class="wa-nav-item" title="Menu" id="navMenuBtn">
+      <i class="fas fa-ellipsis-h"></i>
+    </button>
+    <button onclick="showBusinessProfile()" class="wa-nav-item wa-nav-avatar" title="Business Profile">
+      {{if .Business.Logo}}
+      <img src="/static/{{.Business.Logo}}" class="wa-nav-avatar-img">
+      {{else}}
+      <div class="wa-nav-avatar-placeholder"><i class="fas fa-store"></i></div>
+      {{end}}
+    </button>
+  </div>
+</nav>
+<div id="navMenuDropdown" class="hidden fixed left-[68px] bottom-16 z-50 w-56 card shadow-xl overflow-hidden py-1">
+  <a href="/business/share" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-share-alt w-5 text-center text-[var(--color-text-muted)]"></i>
+    <span>Share Business</span>
+  </a>
+  <a href="/business/logout" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+    <i class="fas fa-sign-out-alt w-5 text-center"></i>
+    <span>Logout</span>
+  </a>
+</div>
+<script>
+function waToggleNavMenu() {
+  var dd = document.getElementById('navMenuDropdown');
+  dd.classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('navMenuBtn');
+  var dd = document.getElementById('navMenuDropdown');
+  if (dd && !dd.classList.contains('hidden') && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.add('hidden');
+  }
+});
+</script>
+{{end}}

@@ -106,6 +106,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/clients/:id/messages", handlers.CreateMessage)
 		protected.PUT("/messages/:message_id", handlers.UpdateMessage)
 		protected.PUT("/clients/:id/read", handlers.MarkConversationAsRead)
+		protected.DELETE("/clients/:id/messages", handlers.ClearChat)
 
 		// Action routes — accessible to all authenticated users
 		protected.POST("/messages/:message_id/actions", handlers.CreateAction)

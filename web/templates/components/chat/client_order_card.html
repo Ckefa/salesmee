@@ -15,7 +15,7 @@
 {{else if or $isClientConfirmed $isConfirmed}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{if $order.is_fully_paid}}{{$s3 = "completed"}}{{$s4 = "active"}}{{else}}{{$s3 = "active"}}{{end}}
 {{else if $isFulfilled}}{{$s1 = "completed"}}{{$s2 = "completed"}}{{$s3 = "completed"}}{{$s4 = "completed"}}
 {{end}}
-<div class="flex {{if eq .Sender "client"}}justify-end{{else}}justify-start{{end}}">
+<div class="msg {{if eq .Sender "client"}}out{{else}}in{{end}} message-item">
   <div class="max-w-sm lg:max-w-md w-full">
     <div class="rounded-xl border-2 p-3 sm:p-4 shadow-sm transition-all duration-200
       {{if $isDraft}}border-dashed border-[var(--color-border)] bg-[var(--color-surface-secondary)]{{else if $isCancelled}}border-[var(--color-error-light)] bg-[var(--color-error-light)]{{else if $isFulfilled}}border-[var(--color-success)] bg-[var(--color-success-light)]{{else if or $isConfirmed $isClientConfirmed}}border-[var(--color-info)] bg-[var(--color-info-light)]{{else}}border-[var(--color-warning)] bg-[var(--color-warning-light)]{{end}}"

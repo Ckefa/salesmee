@@ -1,0 +1,26 @@
+{{define "wa_mobile_navbar"}}
+<nav class="wa-mobile-navbar" id="waMobileNavbar">
+  <a href="/business/dashboard" class="wa-mobile-brand">
+    <img src="/static/images/salesmeebrand.png" alt="SalesMee">
+  </a>
+  <div class="wa-mobile-nav-items">
+    <a href="/business/dashboard" class="wa-mobile-nav-item" data-nav="dashboard" title="Dashboard">
+      <i class="fas fa-chart-line"></i>
+    </a>
+    {{if .AssistEnabled}}
+    <button onclick="toggleAssist()" class="wa-mobile-nav-item" title="salesmee Assist">
+      <i class="fas fa-wand-magic-sparkles"></i>
+    </button>
+    {{end}}
+    <a href="/business/share" class="wa-mobile-nav-item" title="Share">
+      <i class="fas fa-share-alt"></i>
+    </a>
+    <button class="theme-toggle wa-mobile-nav-item" title="Toggle theme">
+      <i class="fas fa-moon"></i>
+    </button>
+    <a href="/business/logout" class="wa-mobile-nav-item" title="Logout">
+      <i class="fas fa-sign-out-alt"></i>
+    </a>
+  </div>
+</nav>
+{{end}}

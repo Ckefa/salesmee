@@ -1,6 +1,6 @@
 {{define "csrf_script"}}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  (function() {
     var csrfToken = getCookie('csrf_token');
     if (csrfToken) {
       document.querySelectorAll('form').forEach(function(form) {
@@ -14,7 +14,7 @@
         }
       });
     }
-  });
+  })();
   function getCookie(name) {
     var value = '; ' + document.cookie;
     var parts = value.split('; ' + name + '=');

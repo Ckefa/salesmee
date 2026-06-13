@@ -14,38 +14,62 @@
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
 </head>
-<body class="h-screen overflow-hidden flex flex-col">
-  <!-- Header -->
-  <header class="navbar-glass">
-    <div class="px-4 lg:px-6">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center gap-3">
-          <button onclick="toggleClientSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden" id="clientSidebarToggle">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
-          <div class="flex items-center gap-2.5">
-            <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
-            <span class="badge badge-neutral text-xs">Customer Portal</span>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button class="theme-toggle" title="Toggle theme">
-            <i class="fas fa-sun theme-sun"></i>
-            <i class="fas fa-moon theme-moon hidden"></i>
-          </button>
-          <span class="text-sm text-[var(--color-text-secondary)] hide-mobile">{{.Email}}</span>
-          <a href="/client/logout" class="btn btn-ghost btn-icon hover:text-rose-500" title="Logout">
-            <i class="fas fa-sign-out-alt"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
+<body class="wa-body">
+  <div class="wa-layout" id="clientLayout">
+    <!-- Mobile overlay -->
+    <div id="clientSidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="clientBackFromChat()"></div>
 
-  <div class="flex flex-1 min-h-0 relative overflow-hidden" id="clientLayout">
-    <div id="clientSidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 hidden lg:hidden" onclick="toggleClientSidebar()"></div>
+    <!-- Mobile Top Navbar -->
+    <nav class="wa-mobile-navbar" id="waMobileNavbar">
+      <a href="/client/" class="wa-mobile-brand">
+        <img src="/static/images/salesmeebrand.png" alt="SalesMee">
+      </a>
+      <div class="wa-mobile-nav-items">
+        <a href="/client/discover" class="wa-mobile-nav-item" title="Discover">
+          <i class="fas fa-compass"></i>
+        </a>
+        <button class="theme-toggle wa-mobile-nav-item" title="Toggle theme">
+          <i class="fas fa-moon"></i>
+        </button>
+        {{if .AssistEnabled}}
+        <button onclick="toggleAssist()" class="wa-mobile-nav-item" title="Assist">
+          <i class="fas fa-wand-magic-sparkles"></i>
+        </button>
+        {{end}}
+        <a href="/client/logout" class="wa-mobile-nav-item" title="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Left Icon Navbar (desktop) -->
+    <nav class="wa-navbar" id="waNavbar">
+      <div class="wa-navbar-top">
+        <a href="/client/discover" class="wa-nav-item" title="Discover">
+          <i class="fas fa-compass"></i>
+        </a>
+      </div>
+      <div class="wa-navbar-divider"></div>
+      <div class="wa-navbar-bottom">
+        <button class="theme-toggle wa-nav-item" title="Toggle theme">
+          <i class="fas fa-moon"></i>
+        </button>
+        {{if .AssistEnabled}}
+        <button onclick="toggleAssist()" class="wa-nav-item" title="Assist">
+          <i class="fas fa-wand-magic-sparkles"></i>
+        </button>
+        {{end}}
+        <a href="/client/logout" class="wa-nav-item" title="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Sidebar (Business List) -->
     {{template "business_list" .}}
-    <main class="flex-1 flex flex-col bg-[var(--color-bg)] min-w-0 pb-16 lg:pb-0" id="chat-area">
+
+    <!-- Main Chat Area -->
+    <main class="wa-chat-area" id="chat-area">
       <div id="skeleton-area" class="hidden">
         {{template "skeleton_chat" .}}
       </div>
@@ -54,26 +78,6 @@
       </div>
     </main>
   </div>
-
-  <!-- Mobile Bottom Navigation -->
-  <nav class="bottom-nav hide-desktop hide-tablet">
-    <button class="bottom-nav-item active" onclick="onChatsTabClick(); setActiveTab(this)">
-      <i class="fas fa-comments"></i>
-      <span>Chats</span>
-    </button>
-    <a class="bottom-nav-item" id="bottomNavProducts" onclick="openProductsFromBottomNav(); setActiveTab(this)">
-      <i class="fas fa-box"></i>
-      <span>Products</span>
-    </a>
-    <a class="bottom-nav-item" id="bottomNavServices" onclick="openServicesFromBottomNav(); setActiveTab(this)">
-      <i class="fas fa-concierge-bell"></i>
-      <span>Services</span>
-    </a>
-    <a href="/client/discover" class="bottom-nav-item" hx-get="/client/discover-page" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" onclick="setActiveTab(this)">
-      <i class="fas fa-compass"></i>
-      <span>Discover</span>
-    </a>
-  </nav>
 
   {{template "client_order" .}}
   {{template "product_picker" .}}
@@ -97,34 +101,14 @@
   <script>window.ASSIST_API_BASE = '/client/assist';</script>
   <script src="/static/js/modules/assist.js?v=1"></script>
   <script>
-    function toggleClientSidebar() {
+    function clientBackFromChat() {
       var layout = document.getElementById('clientLayout');
+      layout.classList.remove('wa-chat-open');
       var overlay = document.getElementById('clientSidebarOverlay');
-      if (!layout) return;
-      var isOpen = layout.classList.toggle('sidebar-open');
-      if (overlay) overlay.classList.toggle('hidden', !isOpen);
+      if (overlay) overlay.classList.add('hidden');
     }
 
-    function setActiveTab(el) {
-      document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
-        item.classList.remove('active');
-      });
-      el.classList.add('active');
-    }
-
-    function onChatsTabClick() {
-      var layout = document.getElementById('clientLayout');
-      var sidebarOpen = layout && layout.classList.contains('sidebar-open');
-      if (sidebarOpen) {
-        toggleClientSidebar();
-      } else if (window.businessId) {
-        htmx.ajax('GET', '/client/businesses/' + window.businessId + '/messages', {target: '#chat-area', swap: 'innerHTML'});
-      } else {
-        toggleClientSidebar();
-      }
-    }
-
-    function openProductsFromBottomNav() {
+    function openClientProducts() {
       var bizId = window.businessId || (typeof currentBusinessId !== 'undefined' ? currentBusinessId : null);
       if (bizId) {
         htmx.ajax('GET', '/client/businesses/' + bizId + '/products-page', {target: '#chat-area', swap: 'innerHTML'});
@@ -140,7 +124,7 @@
       }
     }
 
-    function openServicesFromBottomNav() {
+    function openClientServices() {
       var bizId = window.businessId || (typeof currentBusinessId !== 'undefined' ? currentBusinessId : null);
       if (bizId) {
         htmx.ajax('GET', '/client/businesses/' + bizId + '/services-page', {target: '#chat-area', swap: 'innerHTML'});
@@ -179,6 +163,16 @@
         else if (diff < 86400) { el.textContent = Math.floor(diff / 3600) + 'h ago'; }
         else { el.textContent = Math.floor(diff / 86400) + 'd ago'; }
       });
+    }
+
+    function setClientActiveTab(btn) {
+      document.querySelectorAll('.client-tab').forEach(function(t) { t.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    function switchToChats(bizId) {
+      setClientActiveTab(document.querySelector('.client-tab[data-tab="chats"]'));
+      htmx.ajax('GET', '/client/businesses/' + bizId + '/messages', {target: '#chat-area', swap: 'innerHTML'});
     }
 
     function filterBusinesses() {
@@ -223,7 +217,7 @@
       });
       document.querySelector('#clientSidebarOverlay')?.addEventListener('click', function() {
         var layout = document.getElementById('clientLayout');
-        if (layout) layout.classList.remove('sidebar-open');
+        if (layout) layout.classList.remove('wa-chat-open');
         this.classList.add('hidden');
       });
     });

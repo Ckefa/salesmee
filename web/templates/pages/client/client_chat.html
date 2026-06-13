@@ -1,6 +1,8 @@
+<div class="wa-chat-container">
 {{template "client_chat_header" .}}
 
-<div class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" id="messages-container">
+<div id="chat-content">
+<div class="wa-messages-area" id="messages-container">
   {{if .MessageObjs}}
   {{range .MessageObjs}}
   {{if eq .MsgType "order"}}
@@ -22,6 +24,8 @@
 </div>
 
 {{template "client_message_input" .}}
+</div>
+</div>
 
 {{template "csrf_script" .}}
 <script>
@@ -68,4 +72,3 @@ if (typeof showNotification === 'function') showNotification('Payment recorded! 
     });
 }
 </script>
-

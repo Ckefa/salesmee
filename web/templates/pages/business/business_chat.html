@@ -36,11 +36,11 @@
 
 {{template "csrf_script" .}}
 <script>
-  const clientId = '{{.Customer.ID}}';
-  const sender = "business";
-  const businessId = null;
-  const conversationId = '{{.Customer.ConversationID}}';
-  const currencySymbol = '{{currencySymbol .Business.Currency}}';
+  var clientId = '{{.Customer.ID}}';
+  var sender = "business";
+  var businessId = '{{.Business.ID}}';
+  var conversationId = '{{.Customer.ConversationID}}';
+  var currencySymbol = '{{currencySymbol .Business.Currency}}';
 </script>
 <script src="/static/js/modules/business_chat.js?v=2"></script>
 <script>

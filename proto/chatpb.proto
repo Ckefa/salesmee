@@ -1,0 +1,86 @@
+syntax = "proto3";
+package chatpb;
+option go_package = "salesmee/internal/chatpb";
+
+enum WsEventType {
+  EVENT_UNKNOWN    = 0;
+  NEW_MESSAGE      = 1;
+  READ_RECEIPT     = 2;
+  TYPING_START     = 3;
+  TYPING_STOP      = 4;
+  PRESENCE_UPDATE  = 5;
+  ORDER_UPDATE     = 6;
+  BOOKING_UPDATE   = 7;
+  UNREAD_COUNT     = 8;
+  PING             = 9;
+  PONG             = 10;
+}
+
+message WsFrame {
+  WsEventType event_type       = 1;
+  string      conversation_id  = 2;
+  string      sender_id        = 3;
+  string      sender_type      = 4;
+  int64       timestamp        = 5;
+
+  oneof payload {
+    NewMessage      new_message      = 10;
+    ReadReceipt     read_receipt     = 11;
+    TypingIndicator typing           = 12;
+    PresenceUpdate  presence         = 13;
+    OrderUpdate     order_update     = 14;
+    BookingUpdate   booking_update   = 15;
+    UnreadCount     unread_count     = 16;
+  }
+}
+
+message NewMessage {
+  string id         = 1;
+  string content    = 2;
+  string sender     = 3;
+  string media_url  = 4;
+  string media_type = 5;
+  string msg_type   = 6;
+  int64  created_at = 7;
+  bytes  data_json  = 8;
+}
+
+message ReadReceipt {
+  string message_id      = 1;
+  string reader_id       = 2;
+  string reader_type     = 3;
+  string conversation_id = 4;
+}
+
+message TypingIndicator {
+  string user_id         = 1;
+  string user_type       = 2;
+  string conversation_id = 3;
+  string client_id       = 4;
+  string business_id     = 5;
+}
+
+message PresenceUpdate {
+  string client_id  = 1;
+  bool   is_online  = 2;
+  int64  last_seen  = 3;
+}
+
+message OrderUpdate {
+  string order_id     = 1;
+  string status       = 2;
+  double paid_amount  = 3;
+  double total_amount = 4;
+}
+
+message BookingUpdate {
+  string booking_id   = 1;
+  string status       = 2;
+  double paid_amount  = 3;
+  double total_amount = 4;
+}
+
+message UnreadCount {
+  string conversation_id = 1;
+  int32  count           = 2;
+}

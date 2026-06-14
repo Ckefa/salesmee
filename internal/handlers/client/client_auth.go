@@ -14,9 +14,16 @@ import (
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/assist"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
+
+var wsHub *ws.Hub
+
+func SetWSHub(hub *ws.Hub) {
+	wsHub = hub
+}
 
 func ShowClientLogin(c *gin.Context) {
 	if token, err := c.Cookie("client_token"); err == nil && token != "" {
@@ -122,7 +129,7 @@ func VerifyClientOTP(c *gin.Context) {
 	}
 
 	// Set cookie and redirect
-	c.SetCookie("client_token", token, 86400, "/", "", false, true)
+	c.SetCookie("client_token", token, 86400, "/", "", false, false)
 	c.Redirect(http.StatusFound, "/client")
 }
 
@@ -511,10 +518,11 @@ func GetClientMessages(c *gin.Context) {
 	}
 
 	c.HTML(200, "client_chat.html", gin.H{
-		"Business":    business,
-		"Client":      client,
-		"Messages":    messages,
-		"MessageObjs": messageObjs,
+		"Business":       business,
+		"Client":         client,
+		"ConversationID": conversation.ID,
+		"Messages":       messages,
+		"MessageObjs":    messageObjs,
 	})
 }
 
@@ -570,6 +578,25 @@ func CreateClientMessage(c *gin.Context) {
 
 	log.Printf("Message created: ID=%d, ConvoID=%d, Content='%s', Sender='%s'",
 		message.ID, message.ConversationID, message.Content, message.Sender)
+
+	if wsHub != nil {
+		var dataJSON []byte
+		ws.BroadcastNewMessage(
+			wsHub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(clientID)),
+			"client",
+			strconv.Itoa(int(message.ID)),
+			message.Content,
+			message.MediaURL,
+			message.MediaType,
+			message.Type,
+			dataJSON,
+			message.CreatedAt,
+			strconv.FormatUint(uint64(businessID), 10),
+			strconv.Itoa(int(clientID)),
+		)
+	}
 
 	// Return the newly created message as MessageObj for HTMX
 	messageObj := MessageObj{

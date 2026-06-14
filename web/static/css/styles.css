@@ -2497,4 +2497,35 @@
   color: var(--color-text);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
+/* ============================================
+   Typing Indicator — Chat Animated Dots
+   ============================================ */
+.message-bubble.typing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+}
+.typing-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  opacity: 0.55;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.35; }
+  40% { transform: scale(1); opacity: 0.85; }
+}
 }

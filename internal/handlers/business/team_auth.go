@@ -65,7 +65,7 @@ func (h *BusinessHandler) TeamLogin(c *gin.Context) {
 	}
 
 	c.SetCookie("token", "", -1, "/business", "", false, true)
-	c.SetCookie("team_token", token, 86400*7, "/", "", false, true)
+	c.SetCookie("team_token", token, 86400*7, "/", "", false, false)
 	c.Set("team_member_id", member.ID)
 	c.Set("business_id", member.BusinessID)
 	c.Set("role", member.Role)

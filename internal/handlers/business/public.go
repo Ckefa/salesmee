@@ -255,6 +255,6 @@ func VerifyConnectOTP(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("client_token", token, 86400, "/", "", false, true)
+	c.SetCookie("client_token", token, 86400, "/", "", false, false)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/client?business_id=%d", business.ID))
 }

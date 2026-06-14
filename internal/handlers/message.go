@@ -7,9 +7,16 @@ import (
 
 	"salesmee/internal/db"
 	"salesmee/internal/models"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
+
+var wsHub *ws.Hub
+
+func SetWSHub(hub *ws.Hub) {
+	wsHub = hub
+}
 
 type MessageObj struct {
 	ID          uint        `json:"id"`
@@ -442,6 +449,24 @@ func CreateMessage(c *gin.Context) {
 
 	AutoCalculateProgress(conversation.ID)
 
+	if wsHub != nil {
+		ws.BroadcastNewMessage(
+			wsHub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(businessID)),
+			"business",
+			strconv.Itoa(int(message.ID)),
+			message.Content,
+			message.MediaURL,
+			message.MediaType,
+			message.Type,
+			nil,
+			message.CreatedAt,
+			strconv.Itoa(int(businessID)),
+			strconv.FormatUint(clientID, 10),
+		)
+	}
+
 	// Return message partial
 	c.HTML(200, "message_partial.html", gin.H{
 		"Message": message,
@@ -507,16 +532,28 @@ func MarkConversationAsRead(c *gin.Context) {
 		return
 	}
 
+	if wsHub != nil {
+		ws.BroadcastReadReceipt(
+			wsHub,
+			"",
+			strconv.Itoa(int(businessID)),
+			"business",
+			"",
+			strconv.Itoa(int(businessID)),
+			strconv.FormatUint(clientID, 10),
+		)
+	}
+
 	c.JSON(200, gin.H{"status": "ok"})
 }
 
 func MarkMessageAsRead(c *gin.Context) {
-	businessID := c.GetUint("business_id")
 	messageID, err := strconv.ParseUint(c.Param("message_id"), 10, 32)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid message ID"})
 		return
 	}
+	businessID := c.GetUint("business_id")
 
 	// Only regular messages (not synthetic order/booking cards)
 	if messageID >= 10000 {
@@ -594,6 +631,18 @@ func MarkClientConversationAsRead(c *gin.Context) {
 		}).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to mark messages as read"})
 		return
+	}
+
+	if wsHub != nil {
+		ws.BroadcastReadReceipt(
+			wsHub,
+			"",
+			strconv.Itoa(int(clientID)),
+			"client",
+			"",
+			strconv.FormatUint(businessID, 10),
+			strconv.Itoa(int(clientID)),
+		)
 	}
 
 	c.JSON(200, gin.H{"status": "ok"})

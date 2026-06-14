@@ -3,9 +3,17 @@ package routes
 import (
 	"salesmee/internal/handlers"
 	"salesmee/internal/handlers/business"
+	"salesmee/internal/handlers/client"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
+
+var wsHub *ws.Hub
+
+func SetWSHub(hub *ws.Hub) {
+	wsHub = hub
+}
 
 func Setup(r *gin.Engine) {
 	// Main routes
@@ -71,5 +79,17 @@ func Setup(r *gin.Engine) {
 	r.GET("/api/connect/:slug", business.ShowConnect)
 	r.POST("/api/connect/:slug/send-otp", business.SendConnectOTP)
 	r.POST("/api/connect/:slug/verify-otp", business.VerifyConnectOTP)
+
+	// Wire WebSocket hub into handler packages
+	if wsHub != nil {
+		handlers.SetWSHub(wsHub)
+		client.SetWSHub(wsHub)
+	}
+
+	// WebSocket routes (auth via query param token)
+	if wsHub != nil {
+		r.GET("/ws/business", ws.ServeBusinessWS(wsHub))
+		r.GET("/ws/client", ws.ServeClientWS(wsHub))
+	}
 
 }

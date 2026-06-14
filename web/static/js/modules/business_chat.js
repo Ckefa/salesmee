@@ -1,8 +1,11 @@
-let pollingInterval = null;
+if (window.wsClient) window.wsClient.disconnect();
+var wsClient = null;
+if (window.typingTimeout) clearTimeout(window.typingTimeout);
+var typingTimeout = null;
 
 scrollToBottom();
 markAsRead();
-startMessagePolling();
+startWsClient();
 
 function scrollToBottom() {
   var container = document.getElementById('messages-container');
@@ -20,31 +23,117 @@ function markAsRead() {
     .catch(console.error);
 }
 
-function startMessagePolling() {
-  pollingInterval = setInterval(function() {
-    fetchMessages();
-  }, 5000);
+function wsToken() {
+  return getCookie('token') || getCookie('team_token') || '';
 }
 
-function fetchMessages() {
-  fetch(`/business/clients/${clientId}/messages`)
-    .then(response => response.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const newMessages = doc.getElementById('messages-container');
-      const currentMessages = document.getElementById('messages-container');
+function startWsClient() {
+  if (wsClient) wsClient.disconnect();
+  wsClient = new WsClient();
+  var token = wsToken();
+  if (!token) return;
+  wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
 
-      if (newMessages && currentMessages && newMessages.innerHTML !== currentMessages.innerHTML) {
-        currentMessages.innerHTML = newMessages.innerHTML;
-        currentMessages.scrollTop = currentMessages.scrollHeight;
-        markAsRead();
-        playNotificationSound();
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching messages:', error);
-    });
+  wsClient.on(1, function(frame) {
+    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
+    if (frame.sender_type === 'business') return;
+    var container = document.getElementById('messages-container');
+    if (!container) return;
+    var msg = frame.new_message;
+    if (!msg) return;
+    var html = '';
+    if (msg.msg_type === 'order') {
+      html = '<div class="order-card" data-order-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.msg_type === 'booking') {
+      html = '<div class="booking-card" data-booking-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.media_url) {
+      html = renderMediaMessage(msg);
+    } else {
+      html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
+    }
+    container.insertAdjacentHTML('beforeend', html);
+    scrollToBottom();
+    playNotificationSound();
+  });
+
+  wsClient.on(3, function(frame) {
+    showTypingIndicator(frame.typing);
+  });
+  wsClient.on(4, function(frame) {
+    hideTypingIndicator(frame.typing);
+  });
+
+  wsClient.on(6, function(frame) {
+    var upd = frame.order_update;
+    if (!upd) return;
+    var card = document.querySelector('.order-card[data-order-id="' + upd.order_id + '"]');
+    if (card) {
+      card.querySelector('.order-status').textContent = upd.status;
+    }
+  });
+
+  wsClient.on(8, function(frame) {
+    var badge = document.querySelector('.wa-unread-badge');
+    if (badge && frame.unread_count) {
+      badge.textContent = frame.unread_count.count;
+    }
+  });
+}
+
+function renderMediaMessage(msg) {
+  var url = '/static/' + escapeHtml(msg.media_url);
+  var mediaTag = '';
+  if (msg.media_type === 'image') {
+    mediaTag = '<img src="' + url + '" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">';
+  } else if (msg.media_type === 'document') {
+    mediaTag = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><a href="' + url + '" target="_blank" class="wa-media-doc-link">' + escapeHtml(msg.media_url.split('/').pop()) + '</a><i class="fas fa-external-link-alt wa-media-doc-ext"></i></div>';
+  } else if (msg.media_type === 'audio') {
+    mediaTag = '<div class="wa-media-audio"><audio controls class="wa-audio-player" preload="metadata"><source src="' + url + '"></audio></div>';
+  } else {
+    mediaTag = '<a href="' + url + '" target="_blank" class="wa-media-doc-link"><i class="fas fa-file"></i> ' + escapeHtml(msg.media_url.split('/').pop()) + '</a>';
+  }
+  var inner = mediaTag + (msg.content ? '<p>' + escapeHtml(msg.content) + '</p>' : '') + '<span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span>';
+  return '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl" style="padding:3px;"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg>' + inner + '</div></div>';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = new Date(Number(ts));
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function showTypingIndicator(typing) {
+  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  var el = document.getElementById('typingIndicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'typingIndicator';
+    el.className = 'message client';
+    el.innerHTML = '<div class="message-bubble typing"><span class="typing-label">Typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+    document.getElementById('messages-container').appendChild(el);
+  }
+  scrollToBottom();
+}
+
+function hideTypingIndicator(typing) {
+  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  var el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function playNotificationSound() {
+  try {
+    var audio = new Audio('/static/sounds/notification.mp3');
+    audio.volume = 0.3;
+    audio.play();
+  } catch(e) {}
 }
 
 // ========== Context Menu ==========
@@ -98,7 +187,6 @@ function deleteContextMenuItem() {
     .then(function(data) {
       if (data.success) {
         showNotification('Deleted', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to delete', 'error');
       }
@@ -131,9 +219,7 @@ function markMessageRead() {
 }
 
 window.addEventListener('beforeunload', function() {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-  }
+  if (wsClient) wsClient.disconnect();
 });
 
 document.addEventListener('click', function(e) {
@@ -196,7 +282,6 @@ function sendOrderToClient(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order sent to client!', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to send order', 'error');
       }
@@ -212,8 +297,6 @@ function confirmOrderBusiness(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order confirmed!', 'success');
-        fetchMessages();
-      } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
     })
@@ -229,7 +312,6 @@ function rejectOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order rejected', 'info');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to reject order', 'error');
       }
@@ -246,7 +328,6 @@ function confirmAllOrderPayments(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -263,7 +344,6 @@ function fulfillOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order completed!', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to complete order', 'error');
       }
@@ -280,7 +360,6 @@ function cancelDraftOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Draft discarded', 'info');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to discard draft', 'error');
       }
@@ -303,7 +382,6 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
     .then(data => {
       if (data.success) {
         showNotification(`Booking ${action}ed successfully!`, 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || `Failed to ${action} booking`, 'error');
       }
@@ -326,6 +404,19 @@ function onMessageInput(input) {
       qr.classList.add('hidden');
     }
   }
+
+  // Typing indicator via WebSocket
+  if (wsClient && wsClient.isConnected) {
+    if (typingTimeout) clearTimeout(typingTimeout);
+    if (val.length > 0) {
+      wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
+    } else {
+      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    }
+    typingTimeout = setTimeout(function() {
+      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    }, 3000);
+  }
 }
 
 function onMessageKeydown(event) {
@@ -334,6 +425,17 @@ function onMessageKeydown(event) {
     qr.classList.add('hidden');
     var input = document.getElementById('messageInput');
     if (input) input.value = input.value.replace(/\/$/, '');
+  }
+
+  // Send typing stop on Enter (message sent)
+  if (event.key === 'Enter' && !event.shiftKey) {
+    if (wsClient && wsClient.isConnected) {
+      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    }
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+      typingTimeout = null;
+    }
   }
 }
 

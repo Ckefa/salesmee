@@ -15,7 +15,7 @@ var businessHandler *business.BusinessHandler
 func SetupBusinessRoutes(r *gin.Engine) {
 
 	// Initialize business handler
-	businessHandler = business.NewBusinessHandler(db.DB)
+	businessHandler = business.NewBusinessHandler(db.DB, wsHub)
 
 	// PUBLIC - Business Auth Routes
 	r.GET("/business/login", handlers.ShowLogin)

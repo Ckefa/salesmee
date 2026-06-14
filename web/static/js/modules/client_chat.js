@@ -42,11 +42,14 @@ function submitOrderForm() {
     .catch(e => { console.error(e); showNotification('Failed to send order request', 'error'); });
 }
 
-let pollingInterval = null;
+if (window.wsClient) window.wsClient.disconnect();
+var wsClient = null;
+if (window.typingTimeout) clearTimeout(window.typingTimeout);
+var typingTimeout = null;
 
 scrollToBottom();
 markAsRead();
-startMessagePolling();
+startWsClient();
 
 function scrollToBottom() {
   var container = document.getElementById('messages-container');
@@ -64,23 +67,89 @@ function markAsRead() {
     .catch(console.error);
 }
 
-function startMessagePolling() {
-  pollingInterval = setInterval(function () {
-    fetch(`/client/businesses/${businessId}/messages`)
-      .then(r => r.text())
-      .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const newMsgs = doc.getElementById('messages-container');
-        const curMsgs = document.getElementById('messages-container');
-        if (newMsgs && curMsgs && newMsgs.innerHTML !== curMsgs.innerHTML) {
-          curMsgs.innerHTML = newMsgs.innerHTML;
-          curMsgs.scrollTop = curMsgs.scrollHeight;
-          markAsRead();
-        }
-      })
-      .catch(console.error);
-  }, 5000);
+function startWsClient() {
+  if (wsClient) wsClient.disconnect();
+  wsClient = new WsClient();
+  var token = getCookie('client_token');
+  if (!token) return;
+  wsClient.connect('/ws/client?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+
+  wsClient.on(1, function(frame) {
+    if (frame.sender_type === 'client') return;
+    var container = document.getElementById('messages-container');
+    if (!container) return;
+    var msg = frame.new_message;
+    if (!msg) return;
+    var html = '';
+    if (msg.msg_type === 'order') {
+      html = '<div class="client-order-card" data-order-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.msg_type === 'booking') {
+      html = '<div class="client-booking-card" data-booking-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.media_url) {
+      html = renderMediaMessage(msg);
+    } else {
+      html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
+    }
+    container.insertAdjacentHTML('beforeend', html);
+    scrollToBottom();
+  });
+
+  wsClient.on(3, function(frame) {
+    if (!frame.typing) return;
+    var el = document.getElementById('typingIndicator');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'typingIndicator';
+      el.className = 'message business';
+      el.innerHTML = '<div class="message-bubble typing"><span class="typing-label">Typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+      document.getElementById('messages-container').appendChild(el);
+    }
+    scrollToBottom();
+  });
+
+  wsClient.on(4, function() {
+    var el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  });
+
+  wsClient.on(6, function(frame) {
+    var upd = frame.order_update;
+    if (!upd) return;
+    var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
+    if (card) {
+      var statusEl = card.querySelector('.order-status');
+      if (statusEl) statusEl.textContent = upd.status;
+    }
+  });
+}
+
+function renderMediaMessage(msg) {
+  var url = '/static/' + escapeHtml(msg.media_url);
+  var mediaTag = '';
+  if (msg.media_type === 'image') {
+    mediaTag = '<img src="' + url + '" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">';
+  } else if (msg.media_type === 'document') {
+    mediaTag = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><a href="' + url + '" target="_blank" class="wa-media-doc-link">' + escapeHtml(msg.media_url.split('/').pop()) + '</a><i class="fas fa-external-link-alt wa-media-doc-ext"></i></div>';
+  } else if (msg.media_type === 'audio') {
+    mediaTag = '<div class="wa-media-audio"><audio controls class="wa-audio-player" preload="metadata"><source src="' + url + '"></audio></div>';
+  } else {
+    mediaTag = '<a href="' + url + '" target="_blank" class="wa-media-doc-link"><i class="fas fa-file"></i> ' + escapeHtml(msg.media_url.split('/').pop()) + '</a>';
+  }
+  var inner = mediaTag + (msg.content ? '<p>' + escapeHtml(msg.content) + '</p>' : '') + '<span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span>';
+  return '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl" style="padding:3px;"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg>' + inner + '</div></div>';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = new Date(Number(ts));
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function addOrderMessageToChat(order) {
@@ -147,20 +216,6 @@ function clientConfirmOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Order confirmed!', 'success');
-        // Trigger polling refresh
-        setTimeout(() => {
-          fetch(`/client/businesses/${businessId}/messages`)
-            .then(r => r.text())
-            .then(html => {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(html, 'text/html');
-              const newMsgs = doc.getElementById('messages-container');
-              const curMsgs = document.getElementById('messages-container');
-              if (newMsgs && curMsgs) {
-                curMsgs.innerHTML = newMsgs.innerHTML;
-              }
-            });
-        }, 500);
       } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
@@ -248,12 +303,42 @@ function clientConfirmBooking(bookingId) {
     .then(data => {
       if (data.success) {
         showNotification('Booking confirmed!', 'success');
-        if (typeof startMessagePolling === 'function') startMessagePolling();
       } else {
         showNotification(data.error || 'Failed to confirm booking', 'error');
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to confirm booking', 'error'); });
+  });
+}
+
+// ========== Typing Indicator ==========
+
+var messageInput = document.getElementById('messageInput');
+if (messageInput) {
+  messageInput.addEventListener('input', function() {
+    if (wsClient && wsClient.isConnected) {
+      if (typingTimeout) clearTimeout(typingTimeout);
+      if (this.value.length > 0) {
+        wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
+      } else {
+        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      }
+      typingTimeout = setTimeout(function() {
+        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      }, 3000);
+    }
+  });
+
+  messageInput.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      if (wsClient && wsClient.isConnected) {
+        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      }
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        typingTimeout = null;
+      }
+    }
   });
 }
 
@@ -378,17 +463,6 @@ function deleteContextMenuItem() {
     .then(function(data) {
       if (data.success) {
         showNotification('Deleted', 'success');
-        if (typeof startMessagePolling === 'function') {
-          fetch('/client/businesses/' + businessId + '/messages')
-            .then(function(r) { return r.text(); })
-            .then(function(html) {
-              var parser = new DOMParser();
-              var doc = parser.parseFromString(html, 'text/html');
-              var newMsgs = doc.getElementById('messages-container');
-              var curMsgs = document.getElementById('messages-container');
-              if (newMsgs && curMsgs) curMsgs.innerHTML = newMsgs.innerHTML;
-            });
-        }
       } else {
         showNotification(data.error || 'Failed to delete', 'error');
       }
@@ -396,3 +470,7 @@ function deleteContextMenuItem() {
     .catch(function(e) { console.error(e); showNotification('Failed to delete', 'error'); });
   });
 }
+
+window.addEventListener('beforeunload', function() {
+  if (wsClient) wsClient.disconnect();
+});

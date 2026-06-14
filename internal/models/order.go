@@ -18,6 +18,7 @@ type Order struct {
 	Notes              string     `gorm:"type:text" json:"notes"`
 	ConfirmedByClient   bool       `gorm:"default:false" json:"confirmed_by_client"`
 	ConfirmedByBusiness bool      `gorm:"default:false" json:"confirmed_by_business"`
+	HiddenFromChat      bool      `gorm:"default:false" json:"hidden_from_chat"`
 	LocationID          *uint     `gorm:"index;default:null" json:"location_id,omitempty"`
 	ConfirmedByClientAt *time.Time `json:"confirmed_by_client_at,omitempty"`
 	ConfirmedByBusinessAt *time.Time `json:"confirmed_by_business_at,omitempty"`
@@ -61,10 +62,11 @@ type Booking struct {
 	Duration      int       `gorm:"not null" json:"duration"` // in minutes
 	TotalAmount   float64   `gorm:"not null" json:"total_amount"`
 	PaidAmount    float64   `gorm:"default:0" json:"paid_amount"`
-	Notes         string    `gorm:"type:text" json:"notes"`
-	LocationID    *uint     `gorm:"index;default:null" json:"location_id,omitempty"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	Notes           string    `gorm:"type:text" json:"notes"`
+	HiddenFromChat  bool      `gorm:"default:false" json:"hidden_from_chat"`
+	LocationID      *uint     `gorm:"index;default:null" json:"location_id,omitempty"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 
 	// Relationships
 	Business     Business      `gorm:"foreignKey:BusinessID" json:"business,omitempty"`

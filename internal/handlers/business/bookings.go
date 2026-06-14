@@ -10,6 +10,7 @@ import (
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
+	"salesmee/internal/ws"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -414,7 +415,7 @@ func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string
 		fmt.Sprintf("Booking %s", statusLabel),
 		fmt.Sprintf("Booking %s is now %s", booking.BookingNumber, statusLabel),
 		"fa-calendar-check",
-		fmt.Sprintf("/business/bookings/%d", booking.ID))
+		"/business/bookings")
 }
 
 func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
@@ -482,6 +483,10 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 		handlers.AutoCalculateProgress(conv.ID)
 	}
 
+	if h.hub != nil {
+		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
@@ -526,6 +531,10 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
+	}
+
+	if h.hub != nil {
+		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

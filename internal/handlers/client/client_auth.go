@@ -14,9 +14,16 @@ import (
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/assist"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
+
+var wsHub *ws.Hub
+
+func SetWSHub(hub *ws.Hub) {
+	wsHub = hub
+}
 
 func ShowClientLogin(c *gin.Context) {
 	if token, err := c.Cookie("client_token"); err == nil && token != "" {
@@ -122,7 +129,7 @@ func VerifyClientOTP(c *gin.Context) {
 	}
 
 	// Set cookie and redirect
-	c.SetCookie("client_token", token, 86400, "/", "", false, true)
+	c.SetCookie("client_token", token, 86400, "/", "", false, false)
 	c.Redirect(http.StatusFound, "/client")
 }
 
@@ -202,14 +209,16 @@ func ClientDashboard(c *gin.Context) {
 }
 
 type MessageObj struct {
-	ID        uint        `json:"id"`
-	MsgType   string      `json:"msgtype"` // "message", "order", "booking"
-	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
-	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
-	Sender    string      `json:"sender"`
-	MediaURL  string      `json:"media_url"`
-	MediaType string      `json:"media_type"`
-	CreatedAt time.Time   `json:"created_at"`
+	ID          uint        `json:"id"`
+	MsgType     string      `json:"msgtype"` // "message", "order", "booking"
+	Value       string      `json:"value"`   // string content for normal messages, empty for orders/bookings
+	Data        interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
+	Sender      string      `json:"sender"`
+	MediaURL    string      `json:"media_url"`
+	MediaType   string      `json:"media_type"`
+	CreatedAt   time.Time   `json:"created_at"`
+	IsDelivered bool        `json:"is_delivered"`
+	IsRead      bool        `json:"is_read"`
 }
 
 // Helper function to get or create conversation by client email and business ID
@@ -279,22 +288,30 @@ func GetClientMessages(c *gin.Context) {
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
 	for _, msg := range messages {
+		isSelf := msg.Sender == "client"
+		var isDelivered, isRead bool
+		if isSelf {
+			isDelivered = conversation.LastReadByBusinessAt != nil && msg.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+			isRead = msg.ReadByBusiness
+		}
 		messageObj := MessageObj{
-			ID:        msg.ID,
-			MsgType:   "message",
-			Value:     msg.Content,
-			Data:      msg,
-			Sender:    msg.Sender,
-			MediaURL:  msg.MediaURL,
-			MediaType: msg.MediaType,
-			CreatedAt: msg.CreatedAt,
+			ID:          msg.ID,
+			MsgType:     "message",
+			Value:       msg.Content,
+			Data:        msg,
+			Sender:      msg.Sender,
+			MediaURL:    msg.MediaURL,
+			MediaType:   msg.MediaType,
+			CreatedAt:   msg.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      isRead,
 		}
 		messageObjs = append(messageObjs, messageObj)
 	}
 
 	// Fetch orders
 	var orders []models.Order
-	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&orders)
+	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
 	for _, order := range orders {
 		var orderItems []models.OrderItem
 		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
@@ -394,19 +411,24 @@ func GetClientMessages(c *gin.Context) {
 			"payment_methods":      orderPaymentMethods,
 		}
 
+		isSelf := order.Sender == "client"
+		isDelivered := isSelf && conversation.LastReadByBusinessAt != nil && order.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        order.ID + 10000,
-			MsgType:   "order",
-			Value:     "",
-			Data:      orderData,
-			Sender:    order.Sender,
-			CreatedAt: order.CreatedAt,
+			ID:          order.ID + 10000,
+			MsgType:     "order",
+			Value:       "",
+			Data:        orderData,
+			Sender:      order.Sender,
+			CreatedAt:   order.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
 	// Fetch bookings
 	var bookings []models.Booking
-	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&bookings)
+	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
 	for _, booking := range bookings {
 		var bookingItems []models.BookingItem
 		db.DB.Where("booking_id = ?", booking.ID).Find(&bookingItems)
@@ -471,13 +493,18 @@ func GetClientMessages(c *gin.Context) {
 			"payment_methods":      bookingPaymentMethods,
 		}
 
+		isSelf := booking.Sender == "client"
+		isDelivered := isSelf && conversation.LastReadByBusinessAt != nil && booking.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        booking.ID + 20000,
-			MsgType:   "booking",
-			Value:     "",
-			Data:      bookingData,
-			Sender:    booking.Sender,
-			CreatedAt: booking.CreatedAt,
+			ID:          booking.ID + 20000,
+			MsgType:     "booking",
+			Value:       "",
+			Data:        bookingData,
+			Sender:      booking.Sender,
+			CreatedAt:   booking.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
@@ -491,10 +518,11 @@ func GetClientMessages(c *gin.Context) {
 	}
 
 	c.HTML(200, "client_chat.html", gin.H{
-		"Business":    business,
-		"Client":      client,
-		"Messages":    messages,
-		"MessageObjs": messageObjs,
+		"Business":       business,
+		"Client":         client,
+		"ConversationID": conversation.ID,
+		"Messages":       messages,
+		"MessageObjs":    messageObjs,
 	})
 }
 
@@ -550,6 +578,25 @@ func CreateClientMessage(c *gin.Context) {
 
 	log.Printf("Message created: ID=%d, ConvoID=%d, Content='%s', Sender='%s'",
 		message.ID, message.ConversationID, message.Content, message.Sender)
+
+	if wsHub != nil {
+		var dataJSON []byte
+		ws.BroadcastNewMessage(
+			wsHub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(clientID)),
+			"client",
+			strconv.Itoa(int(message.ID)),
+			message.Content,
+			message.MediaURL,
+			message.MediaType,
+			message.Type,
+			dataJSON,
+			message.CreatedAt,
+			strconv.FormatUint(uint64(businessID), 10),
+			strconv.Itoa(int(clientID)),
+		)
+	}
 
 	// Return the newly created message as MessageObj for HTMX
 	messageObj := MessageObj{
@@ -1013,4 +1060,49 @@ func ClientConfirmBooking(c *gin.Context) {
 		"booking": booking,
 		"message": "Booking confirmed! Waiting for business to complete.",
 	})
+}
+
+func DeleteClientMessage(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	messageIDStr := c.Param("message_id")
+	messageID, err := strconv.ParseUint(messageIDStr, 10, 32)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid message ID"})
+		return
+	}
+
+	switch {
+	case messageID >= 20000:
+		bookingID := messageID - 20000
+		var booking models.Booking
+		if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Booking not found"})
+			return
+		}
+		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		c.JSON(200, gin.H{"success": true, "type": "booking", "id": bookingID})
+
+	case messageID >= 10000:
+		orderID := messageID - 10000
+		var order models.Order
+		if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Order not found"})
+			return
+		}
+		db.DB.Model(&order).Update("hidden_from_chat", true)
+		c.JSON(200, gin.H{"success": true, "type": "order", "id": orderID})
+
+	default:
+		var msg models.Message
+		if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Message not found"})
+			return
+		}
+		if msg.Conversation.ClientID != clientID {
+			c.JSON(403, gin.H{"error": "Unauthorized"})
+			return
+		}
+		db.DB.Delete(&msg)
+		c.JSON(200, gin.H{"success": true, "type": "message", "id": messageID})
+	}
 }

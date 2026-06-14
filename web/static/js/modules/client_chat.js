@@ -1,30 +1,8 @@
 
 
-function openClientOrderModal() {
-  loadClientProducts();
-  document.getElementById('clientOrderModal').classList.remove('hidden');
-}
-
 function hideClientOrderModal() {
   document.getElementById('clientOrderModal').classList.add('hidden');
   document.getElementById('clientOrderForm').reset();
-}
-
-async function loadClientProducts() {
-  try {
-    const response = await fetch(`/client/businesses/${businessId}/products`);
-    const products = await response.json();
-    const select = document.getElementById('clientOrderProduct');
-    select.innerHTML = '<option value="">Choose a product...</option>';
-    products.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.name} - $${p.price}`;
-      select.appendChild(opt);
-    });
-  } catch (error) {
-    console.error('Error loading products:', error);
-  }
 }
 
 function submitOrderForm() {
@@ -64,9 +42,14 @@ function submitOrderForm() {
     .catch(e => { console.error(e); showNotification('Failed to send order request', 'error'); });
 }
 
+if (window.wsClient) window.wsClient.disconnect();
+var wsClient = null;
+if (window.typingTimeout) clearTimeout(window.typingTimeout);
+var typingTimeout = null;
+
 scrollToBottom();
 markAsRead();
-startMessagePolling();
+startWsClient();
 
 function scrollToBottom() {
   var container = document.getElementById('messages-container');
@@ -74,8 +57,6 @@ function scrollToBottom() {
     container.scrollTop = container.scrollHeight;
   });
 }
-
-let pollingInterval = null;
 
 function markAsRead() {
   fetch(`/client/businesses/${businessId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
@@ -86,24 +67,103 @@ function markAsRead() {
     .catch(console.error);
 }
 
-function startMessagePolling() {
-  pollingInterval = setInterval(function () {
-    fetch(`/client/businesses/${businessId}/messages`)
-      .then(r => r.text())
-      .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const newMsgs = doc.getElementById('messages-container');
-        const curMsgs = document.getElementById('messages-container');
-        if (newMsgs && curMsgs && newMsgs.innerHTML !== curMsgs.innerHTML) {
-          curMsgs.innerHTML = newMsgs.innerHTML;
-          curMsgs.scrollTop = curMsgs.scrollHeight;
-          markAsRead();
-          playNotificationSound();
-        }
-      })
-      .catch(console.error);
-  }, 5000);
+function startWsClient() {
+  if (wsClient) wsClient.disconnect();
+  wsClient = new WsClient();
+  var token = getCookie('client_token');
+  if (!token) return;
+  wsClient.connect('/ws/client?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+
+  wsClient.on(1, function(frame) {
+    if (frame.sender_type === 'client') return;
+    var container = document.getElementById('messages-container');
+    if (!container) return;
+    var msg = frame.new_message;
+    if (!msg) return;
+    var html = '';
+    if (msg.msg_type === 'order') {
+      html = '<div class="client-order-card" data-order-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.msg_type === 'booking') {
+      html = '<div class="client-booking-card" data-booking-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.media_url) {
+      html = renderMediaMessage(msg);
+    } else {
+      html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
+    }
+    container.insertAdjacentHTML('beforeend', html);
+    scrollToBottom();
+  });
+
+  wsClient.on(3, function(frame) {
+    if (!frame.typing) return;
+    var el = document.getElementById('typingIndicator');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'typingIndicator';
+      el.className = 'message business';
+      el.innerHTML = '<div class="message-bubble typing"><span class="typing-label">Typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+      document.getElementById('messages-container').appendChild(el);
+    }
+    scrollToBottom();
+  });
+
+  wsClient.on(4, function() {
+    var el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  });
+
+  wsClient.on(6, function(frame) {
+    var upd = frame.order_update;
+    if (!upd) return;
+    var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
+    if (card) {
+      var statusEl = card.querySelector('.order-status');
+      if (statusEl) statusEl.textContent = upd.status;
+    }
+  });
+
+  wsClient.on(2, function(frame) {
+    var rr = frame.read_receipt;
+    if (!rr) return;
+    if (rr.conversation_id && rr.conversation_id !== String(conversationId)) return;
+    if (rr.reader_type === 'client') return;
+    var items = document.querySelectorAll('#messages-container .message-item.out');
+    items.forEach(function(item) {
+      var tickSpan = item.querySelector('.msg-meta .inline-flex');
+      if (!tickSpan) return;
+      tickSpan.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+      tickSpan.style.width = '14px';
+    });
+  });
+}
+
+function renderMediaMessage(msg) {
+  var url = '/static/' + escapeHtml(msg.media_url);
+  var mediaTag = '';
+  if (msg.media_type === 'image') {
+    mediaTag = '<img src="' + url + '" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">';
+  } else if (msg.media_type === 'document') {
+    mediaTag = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><a href="' + url + '" target="_blank" class="wa-media-doc-link">' + escapeHtml(msg.media_url.split('/').pop()) + '</a><i class="fas fa-external-link-alt wa-media-doc-ext"></i></div>';
+  } else if (msg.media_type === 'audio') {
+    mediaTag = '<div class="wa-media-audio"><audio controls class="wa-audio-player" preload="metadata"><source src="' + url + '"></audio></div>';
+  } else {
+    mediaTag = '<a href="' + url + '" target="_blank" class="wa-media-doc-link"><i class="fas fa-file"></i> ' + escapeHtml(msg.media_url.split('/').pop()) + '</a>';
+  }
+  var inner = mediaTag + (msg.content ? '<p>' + escapeHtml(msg.content) + '</p>' : '') + '<span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span>';
+  return '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl" style="padding:3px;"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg>' + inner + '</div></div>';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = new Date(Number(ts));
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function addOrderMessageToChat(order) {
@@ -158,80 +218,6 @@ function addOrderMessageToChat(order) {
   container.scrollTop = container.scrollHeight;
 }
 
-function addBookingMessageToChat(booking) {
-  const container = document.getElementById('messages-container');
-  if (!container) return;
-  const bookingDate = new Date(booking.scheduled_date);
-  const bookingNumber = booking.booking_number || booking.id;
-  const serviceName = booking.service_name || '';
-  const duration = booking.duration || '';
-  const totalAmount = booking.total_amount || '';
-  const notes = booking.notes || '';
-  const status = booking.status || 'pending';
-  const dateStr = bookingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const timeStr = bookingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const statusClass = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
-    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
-    status === 'completed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
-    status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]';
-  const borderClass = status === 'pending' ? 'border-[var(--color-warning)] bg-[var(--color-warning-light)]' :
-    status === 'client_confirmed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
-    status === 'completed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
-    status === 'cancelled' ? 'border-[var(--color-error)] bg-[var(--color-error-light)]' : 'border-[var(--color-border)] bg-[var(--color-surface-secondary)]';
-  const iconClass = status === 'pending' ? 'text-[var(--color-warning)]' :
-    status === 'client_confirmed' ? 'text-[var(--color-info)]' :
-    status === 'completed' ? 'text-[var(--color-success)]' :
-    status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]';
-
-  let extraHtml = '';
-  if (status === 'pending') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-warning)] font-medium"><i class="fas fa-clock mr-1"></i>Awaiting business confirmation</p></div>';
-  } else if (status === 'client_confirmed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
-  } else if (status === 'completed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
-  } else if (status === 'cancelled') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-error)] font-medium"><i class="fas fa-ban mr-1"></i>This booking was cancelled</p></div>';
-  }
-
-  container.insertAdjacentHTML('beforeend', `
-    <div class="flex justify-end">
-      <div class="max-w-xs lg:max-w-md w-full">
-        <div class="${borderClass} border rounded-lg px-4 py-3" data-message-id="${booking.id}" data-booking-id="${booking.id}">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center space-x-2 min-w-0">
-              <i class="fas fa-calendar-check ${iconClass}"></i>
-              <span class="font-semibold text-sm ${iconClass}">#${bookingNumber}</span>
-              <span class="text-[var(--color-text)] text-sm truncate">${serviceName}</span>
-            </div>
-            <div class="flex items-center space-x-1 flex-shrink-0 ml-2">
-              ${status === 'pending' ? '<button onclick="cancelBooking(' + booking.id + ')" class="text-[var(--color-error)] hover:opacity-80 text-xs" title="Cancel Booking"><i class="fas fa-times"></i></button>' : ''}
-              <button onclick="openClientEditBookingPicker(${booking.id})" class="${iconClass} hover:opacity-80 text-xs" title="Edit Booking">
-                <i class="fas fa-edit"></i>
-              </button>
-            </div>
-          </div>
-          <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
-            <p class="flex items-center space-x-1">
-              <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
-              <span>${dateStr} at ${timeStr}</span>
-            </p>
-            ${duration ? '<p class="flex items-center space-x-1"><i class="fas fa-hourglass-half text-xs text-[var(--color-text-muted)]"></i><span>' + duration + ' min</span></p>' : ''}
-            ${totalAmount ? '<p class="flex items-center space-x-1"><i class="fas fa-tag text-xs text-[var(--color-text-muted)]"></i><span>$' + parseFloat(totalAmount).toFixed(2) + '</span></p>' : ''}
-            ${notes ? '<p class="text-xs text-[var(--color-text-muted)] italic mt-1 border-t border-[var(--color-border)] pt-1">' + notes + '</p>' : ''}
-            <p class="hidden booking-notes-data">${notes}</p>
-          </div>
-          <div class="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]/50">
-            <p class="text-xs text-[var(--color-text-muted)]">Just now</p>
-            <span class="text-xs font-medium ${statusClass} px-2 py-0.5 rounded-full booking-status">${status}</span>
-          </div>
-          ${extraHtml}
-        </div>
-      </div>
-    </div>`);
-  container.scrollTop = container.scrollHeight;
-}
-
 function clientConfirmOrder(orderId) {
   showConfirmModal({ title: 'Confirm Order', message: 'Confirm this order?' }).then(function(confirmed) {
     if (!confirmed) return;
@@ -244,20 +230,6 @@ function clientConfirmOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Order confirmed!', 'success');
-        // Trigger polling refresh
-        setTimeout(() => {
-          fetch(`/client/businesses/${businessId}/messages`)
-            .then(r => r.text())
-            .then(html => {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(html, 'text/html');
-              const newMsgs = doc.getElementById('messages-container');
-              const curMsgs = document.getElementById('messages-container');
-              if (newMsgs && curMsgs) {
-                curMsgs.innerHTML = newMsgs.innerHTML;
-              }
-            });
-        }, 500);
       } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
@@ -345,12 +317,42 @@ function clientConfirmBooking(bookingId) {
     .then(data => {
       if (data.success) {
         showNotification('Booking confirmed!', 'success');
-        if (typeof startMessagePolling === 'function') startMessagePolling();
       } else {
         showNotification(data.error || 'Failed to confirm booking', 'error');
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to confirm booking', 'error'); });
+  });
+}
+
+// ========== Typing Indicator ==========
+
+var messageInput = document.getElementById('messageInput');
+if (messageInput) {
+  messageInput.addEventListener('input', function() {
+    if (wsClient && wsClient.isConnected) {
+      if (typingTimeout) clearTimeout(typingTimeout);
+      if (this.value.length > 0) {
+        wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
+      } else {
+        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      }
+      typingTimeout = setTimeout(function() {
+        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      }, 3000);
+    }
+  });
+
+  messageInput.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      if (wsClient && wsClient.isConnected) {
+        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      }
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        typingTimeout = null;
+      }
+    }
   });
 }
 
@@ -401,4 +403,88 @@ document.addEventListener('click', function(e) {
       icon.classList.replace('fa-times', 'fa-paperclip');
     }
   }
+});
+
+// ========== Context Menu ==========
+console.log('[ContextMenu] Initializing context menu on client chat page');
+
+var contextMenuEl = null;
+var contextMessageId = null;
+
+function ensureContextMenu() {
+  if (!contextMenuEl || !document.body.contains(contextMenuEl)) {
+    contextMenuEl = document.createElement('div');
+    contextMenuEl.id = 'contextMenu';
+    contextMenuEl.style.cssText = 'display:none;position:fixed;z-index:9999;width:190px;border-radius:12px;border:1px solid var(--color-border);background:var(--color-surface);box-shadow:0 10px 40px rgba(0,0,0,0.15);padding:4px 0;font-size:13px;';
+    contextMenuEl.innerHTML =
+      '<button onclick="markMessageRead()" style="width:100%;padding:10px 16px;text-align:left;color:var(--color-info);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;border-bottom:1px solid var(--color-border);"><svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 512 512" fill="currentColor"><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0S0 114.6 0 256S114.6 512 256 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg> Mark as Read</button>' +
+      '<button onclick="deleteContextMenuItem()" style="width:100%;padding:10px 16px;text-align:left;color:var(--color-error);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;"><svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 448 512" fill="currentColor"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32h384c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg> Delete</button>';
+    document.body.appendChild(contextMenuEl);
+  }
+}
+
+document.addEventListener('contextmenu', function(e) {
+  var item = e.target.closest('[data-message-id]');
+  if (!item) {
+    if (contextMenuEl) contextMenuEl.style.display = 'none';
+    return;
+  }
+  e.preventDefault();
+  ensureContextMenu();
+  contextMessageId = item.getAttribute('data-message-id');
+  contextMenuEl.style.left = Math.min(e.clientX, window.innerWidth - 190) + 'px';
+  contextMenuEl.style.top = Math.min(e.clientY, window.innerHeight - 60) + 'px';
+  contextMenuEl.style.display = 'block';
+});
+
+document.addEventListener('click', function(e) {
+  if (contextMenuEl && !contextMenuEl.contains(e.target)) {
+    contextMenuEl.style.display = 'none';
+  }
+});
+
+function markMessageRead() {
+  if (!contextMessageId) return;
+  if (contextMenuEl) contextMenuEl.style.display = 'none';
+  fetch('/client/businesses/' + businessId + '/read', {
+    method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.status === 'ok') {
+      showNotification('Conversation marked as read', 'success');
+      var badge = document.querySelector('.business-item[data-business-id="' + businessId + '"] .unread-badge');
+      if (badge) badge.remove();
+    } else {
+      showNotification('Failed to mark as read', 'error');
+    }
+  })
+  .catch(function(e) { console.error(e); showNotification('Failed to mark as read', 'error'); });
+}
+
+function deleteContextMenuItem() {
+  if (!contextMessageId) return;
+  var id = contextMessageId;
+  if (contextMenuEl) contextMenuEl.style.display = 'none';
+  showConfirmModal({ title: 'Delete', message: 'Remove this item from chat?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Delete' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/client/messages/' + id, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification('Deleted', 'success');
+      } else {
+        showNotification(data.error || 'Failed to delete', 'error');
+      }
+    })
+    .catch(function(e) { console.error(e); showNotification('Failed to delete', 'error'); });
+  });
+}
+
+window.addEventListener('beforeunload', function() {
+  if (wsClient) wsClient.disconnect();
 });

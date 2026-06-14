@@ -10,6 +10,7 @@ import (
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
+	"salesmee/internal/ws"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -481,6 +482,10 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
+	}
+
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
@@ -958,6 +963,10 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 		handlers.AutoCalculateProgress(conv.ID)
 	}
 
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":      true,
 		"order":        order,
@@ -1004,6 +1013,10 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 		handlers.AutoCalculateProgress(conv.ID)
 	}
 
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"order":   order,
@@ -1042,6 +1055,10 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
+	}
+
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1086,6 +1103,10 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
+	}
+
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1169,6 +1190,10 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 		handlers.AutoCalculateProgress(conv.ID)
 	}
 
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Order marked as paid",
@@ -1210,7 +1235,7 @@ func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
 		fmt.Sprintf("Order %s", statusLabel),
 		fmt.Sprintf("Order %s is now %s", order.OrderNumber, statusLabel),
 		"fa-shopping-cart",
-		fmt.Sprintf("/business/orders/%d", order.ID))
+		"/business/orders")
 }
 
 // buildOrderData creates the rich order data map for templates

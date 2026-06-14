@@ -324,7 +324,7 @@ func RegisterStep3(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, true)
+	c.SetCookie("token", token, 86400, "/business", "", false, false)
 	c.Redirect(http.StatusFound, "/business")
 }
 
@@ -358,7 +358,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, true)
+	c.SetCookie("token", token, 86400, "/business", "", false, false)
 	c.Redirect(http.StatusFound, "/business")
 }
 

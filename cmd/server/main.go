@@ -15,6 +15,7 @@ import (
 	"salesmee/internal/models"
 	"salesmee/internal/routes"
 	"salesmee/internal/services/notifier"
+	"salesmee/internal/ws"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -230,6 +231,10 @@ func main() {
 	r.GET("/favicon.ico", func(c *gin.Context) {
 		c.File("./web/static/images/salesmee.ico")
 	})
+
+	hub := ws.NewHub()
+	routes.SetWSHub(hub)
+	go hub.Run()
 
 	routes.Setup(r)
 	routes.SetupBusinessRoutes(r)

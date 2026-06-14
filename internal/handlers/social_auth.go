@@ -110,7 +110,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, true)
+	c.SetCookie("token", token, 86400, "/business", "", false, false)
 	c.Redirect(http.StatusFound, "/business")
 }
 
@@ -182,7 +182,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, true)
+	c.SetCookie("token", token, 86400, "/business", "", false, false)
 	c.Redirect(http.StatusFound, "/business")
 }
 
@@ -264,6 +264,6 @@ func CompleteRegisterGoogle(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, true)
+	c.SetCookie("token", token, 86400, "/business", "", false, false)
 	c.Redirect(http.StatusFound, "/business")
 }

@@ -794,11 +794,6 @@ function openBusinessProductPicker(clientId) {
     });
 }
 
-function openClientProductPicker() {
-  if (!businessId) { showNotification('No business selected', 'error'); return; }
-  showProductPicker('client', null, businessId, clientId);
-}
-
 function openClientProductPickerWithProduct(productId) {
   if (!businessId) { showNotification('No business selected', 'error'); return; }
   pickerGoBackToChat = true;

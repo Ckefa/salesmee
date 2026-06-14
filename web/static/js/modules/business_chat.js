@@ -1,8 +1,11 @@
-let pollingInterval = null;
+if (window.wsClient) window.wsClient.disconnect();
+var wsClient = null;
+if (window.typingTimeout) clearTimeout(window.typingTimeout);
+var typingTimeout = null;
 
 scrollToBottom();
 markAsRead();
-startMessagePolling();
+startWsClient();
 
 function scrollToBottom() {
   var container = document.getElementById('messages-container');
@@ -20,37 +23,217 @@ function markAsRead() {
     .catch(console.error);
 }
 
-function startMessagePolling() {
-  pollingInterval = setInterval(function() {
-    fetchMessages();
-  }, 5000);
+function wsToken() {
+  return getCookie('token') || getCookie('team_token') || '';
 }
 
-function fetchMessages() {
-  fetch(`/business/clients/${clientId}/messages`)
-    .then(response => response.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const newMessages = doc.getElementById('messages-container');
-      const currentMessages = document.getElementById('messages-container');
+function startWsClient() {
+  if (wsClient) wsClient.disconnect();
+  wsClient = new WsClient();
+  var token = wsToken();
+  if (!token) return;
+  wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
 
-      if (newMessages && currentMessages && newMessages.innerHTML !== currentMessages.innerHTML) {
-        currentMessages.innerHTML = newMessages.innerHTML;
-        currentMessages.scrollTop = currentMessages.scrollHeight;
-        markAsRead();
-        playNotificationSound();
+  wsClient.on(1, function(frame) {
+    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
+    if (frame.sender_type === 'business') return;
+    var container = document.getElementById('messages-container');
+    if (!container) return;
+    var msg = frame.new_message;
+    if (!msg) return;
+    var html = '';
+    if (msg.msg_type === 'order') {
+      html = '<div class="order-card" data-order-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.msg_type === 'booking') {
+      html = '<div class="booking-card" data-booking-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+    } else if (msg.media_url) {
+      html = renderMediaMessage(msg);
+    } else {
+      html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
+    }
+    container.insertAdjacentHTML('beforeend', html);
+    scrollToBottom();
+    playNotificationSound();
+  });
+
+  wsClient.on(3, function(frame) {
+    showTypingIndicator(frame.typing);
+  });
+  wsClient.on(4, function(frame) {
+    hideTypingIndicator(frame.typing);
+  });
+
+  wsClient.on(6, function(frame) {
+    var upd = frame.order_update;
+    if (!upd) return;
+    var card = document.querySelector('.order-card[data-order-id="' + upd.order_id + '"]');
+    if (card) {
+      card.querySelector('.order-status').textContent = upd.status;
+    }
+  });
+
+  wsClient.on(8, function(frame) {
+    var badge = document.querySelector('.wa-unread-badge');
+    if (badge && frame.unread_count) {
+      badge.textContent = frame.unread_count.count;
+    }
+  });
+
+  wsClient.on(2, function(frame) {
+    var rr = frame.read_receipt;
+    if (!rr) return;
+    if (rr.conversation_id && rr.conversation_id !== String(conversationId)) return;
+    if (rr.reader_type === 'business') return;
+    var items = document.querySelectorAll('#messages-container .message-item.out');
+    items.forEach(function(item) {
+      var tickSpan = item.querySelector('.msg-meta .inline-flex');
+      if (!tickSpan) return;
+      tickSpan.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+      tickSpan.style.width = '14px';
+    });
+  });
+}
+
+function renderMediaMessage(msg) {
+  var url = '/static/' + escapeHtml(msg.media_url);
+  var mediaTag = '';
+  if (msg.media_type === 'image') {
+    mediaTag = '<img src="' + url + '" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">';
+  } else if (msg.media_type === 'document') {
+    mediaTag = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><a href="' + url + '" target="_blank" class="wa-media-doc-link">' + escapeHtml(msg.media_url.split('/').pop()) + '</a><i class="fas fa-external-link-alt wa-media-doc-ext"></i></div>';
+  } else if (msg.media_type === 'audio') {
+    mediaTag = '<div class="wa-media-audio"><audio controls class="wa-audio-player" preload="metadata"><source src="' + url + '"></audio></div>';
+  } else {
+    mediaTag = '<a href="' + url + '" target="_blank" class="wa-media-doc-link"><i class="fas fa-file"></i> ' + escapeHtml(msg.media_url.split('/').pop()) + '</a>';
+  }
+  var inner = mediaTag + (msg.content ? '<p>' + escapeHtml(msg.content) + '</p>' : '') + '<span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span>';
+  return '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl" style="padding:3px;"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg>' + inner + '</div></div>';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = new Date(Number(ts));
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function showTypingIndicator(typing) {
+  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  var el = document.getElementById('typingIndicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'typingIndicator';
+    el.className = 'message client';
+    el.innerHTML = '<div class="message-bubble typing"><span class="typing-label">Typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+    document.getElementById('messages-container').appendChild(el);
+  }
+  scrollToBottom();
+}
+
+function hideTypingIndicator(typing) {
+  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  var el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function playNotificationSound() {
+  try {
+    var audio = new Audio('/static/sounds/notification.mp3');
+    audio.volume = 0.3;
+    audio.play();
+  } catch(e) {}
+}
+
+// ========== Context Menu ==========
+
+var contextMenuEl = null;
+var contextMessageId = null;
+
+function ensureContextMenu() {
+  if (!contextMenuEl || !document.body.contains(contextMenuEl)) {
+    contextMenuEl = document.createElement('div');
+    contextMenuEl.id = 'contextMenu';
+    contextMenuEl.style.cssText = 'display:none;position:fixed;z-index:9999;width:190px;border-radius:12px;border:1px solid var(--color-border);background:var(--color-surface);box-shadow:0 10px 40px rgba(0,0,0,0.15);padding:4px 0;font-size:13px;';
+    contextMenuEl.innerHTML =
+      '<button onclick="markMessageRead()" style="width:100%;padding:10px 16px;text-align:left;color:var(--color-info);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;border-bottom:1px solid var(--color-border);"><svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 512 512" fill="currentColor"><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0S0 114.6 0 256S114.6 512 256 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg> Mark as Read</button>' +
+      '<button onclick="deleteContextMenuItem()" style="width:100%;padding:10px 16px;text-align:left;color:var(--color-error);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;"><svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 448 512" fill="currentColor"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32h384c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg> Delete</button>';
+    document.body.appendChild(contextMenuEl);
+  }
+}
+
+document.addEventListener('contextmenu', function(e) {
+  var item = e.target.closest('[data-message-id]');
+  if (!item) {
+    if (contextMenuEl) contextMenuEl.style.display = 'none';
+    return;
+  }
+  e.preventDefault();
+  ensureContextMenu();
+  contextMessageId = item.getAttribute('data-message-id');
+  contextMenuEl.style.left = Math.min(e.clientX, window.innerWidth - 190) + 'px';
+  contextMenuEl.style.top = Math.min(e.clientY, window.innerHeight - 60) + 'px';
+  contextMenuEl.style.display = 'block';
+});
+
+document.addEventListener('click', function(e) {
+  if (contextMenuEl && !contextMenuEl.contains(e.target)) {
+    contextMenuEl.style.display = 'none';
+  }
+});
+
+function deleteContextMenuItem() {
+  if (!contextMessageId) return;
+  var id = contextMessageId;
+  if (contextMenuEl) contextMenuEl.style.display = 'none';
+  showConfirmModal({ title: 'Delete', message: 'Remove this item from chat?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Delete' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/messages/' + id, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification('Deleted', 'success');
+      } else {
+        showNotification(data.error || 'Failed to delete', 'error');
       }
     })
-    .catch(error => {
-      console.error('Error fetching messages:', error);
-    });
+    .catch(function(e) { console.error(e); showNotification('Failed to delete', 'error'); });
+  });
+}
+
+function markMessageRead() {
+  if (!contextMessageId) return;
+  var id = contextMessageId;
+  if (contextMenuEl) contextMenuEl.style.display = 'none';
+  if (id >= 10000) {
+    showNotification('Only text messages can be marked as read', 'info');
+    return;
+  }
+  fetch('/business/messages/' + id + '/read', {
+    method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      showNotification('Marked as read', 'success');
+    } else {
+      showNotification(data.error || 'Failed to mark as read', 'error');
+    }
+  })
+  .catch(function(e) { console.error(e); showNotification('Failed to mark as read', 'error'); });
 }
 
 window.addEventListener('beforeunload', function() {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-  }
+  if (wsClient) wsClient.disconnect();
 });
 
 document.addEventListener('click', function(e) {
@@ -61,50 +244,6 @@ document.addEventListener('click', function(e) {
   }
 
 });
-
-function updateClientStatus(clientId, status) {
-  console.log('Updating client status:', clientId, status);
-  const formData = new FormData();
-  formData.append('status', status);
-
-  fetch('/business/clients/' + clientId + '/status', {
-    method: 'PUT',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
-    body: formData
-  })
-    .then(response => {
-      console.log('Customer status response status:', response.status);
-      if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Customer status response data:', data);
-      if (data.client) {
-        showNotification('Customer status updated to ' + status, 'success');
-        const dropdown = document.querySelector('select[data-client-id="' + clientId + '"]');
-        if (dropdown) {
-          dropdown.value = status;
-          console.log('Updated customer dropdown to:', status);
-        }
-      } else {
-        console.error('No client data in response');
-        showNotification('Failed to update client status', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error updating client status:', error);
-      showNotification('Failed to update client status: ' + error.message, 'error');
-    });
-}
-
-function showEnhancedActionModal(messageId) {
-  htmx.ajax('GET', '/actions/modal/' + messageId, {
-    target: 'body',
-    swap: 'beforeend'
-  });
-}
 
 function showConversationProgress(clientId) {
   fetch('/business/clients/' + clientId + '/conversation-id')
@@ -128,19 +267,6 @@ function showProgressModal() {
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     document.body.appendChild(modal);
   }
-}
-
-function createQuickAction(messageId, actionType) {
-  const formData = new FormData();
-  formData.append('message_id', messageId);
-  formData.append('type', actionType);
-  formData.append('title', actionType.charAt(0).toUpperCase() + actionType.slice(1) + ' from message');
-
-  htmx.ajax('POST', 'business/messages/' + messageId + '/actions', {
-    values: formData,
-    target: '#action-result',
-    swap: 'innerHTML'
-  });
 }
 
 // ========== Customer Insights ==========
@@ -170,7 +296,6 @@ function sendOrderToClient(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order sent to client!', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to send order', 'error');
       }
@@ -186,8 +311,6 @@ function confirmOrderBusiness(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order confirmed!', 'success');
-        fetchMessages();
-      } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
     })
@@ -203,7 +326,6 @@ function rejectOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order rejected', 'info');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to reject order', 'error');
       }
@@ -220,7 +342,6 @@ function confirmAllOrderPayments(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -237,7 +358,6 @@ function fulfillOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order completed!', 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to complete order', 'error');
       }
@@ -254,31 +374,12 @@ function cancelDraftOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Draft discarded', 'info');
-        fetchMessages();
       } else {
         showNotification(data.error || 'Failed to discard draft', 'error');
       }
     })
     .catch(e => { console.error(e); showNotification('Failed to discard draft', 'error'); });
   });
-}
-
-function orderItemIncrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/increment`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) fetchMessages();
-    })
-    .catch(console.error);
-}
-
-function orderItemDecrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/decrement`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) fetchMessages();
-    })
-    .catch(console.error);
 }
 
 function updateBookingStatusFromCard(bookingId, newStatus) {
@@ -295,65 +396,12 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
     .then(data => {
       if (data.success) {
         showNotification(`Booking ${action}ed successfully!`, 'success');
-        fetchMessages();
       } else {
         showNotification(data.error || `Failed to ${action} booking`, 'error');
       }
     })
     .catch(e => { console.error(e); showNotification(`Failed to ${action} booking`, 'error'); });
   });
-}
-
-// ========== Message Search ==========
-
-function toggleMessageSearch() {
-  var bar = document.getElementById('messageSearchBar');
-  if (bar) bar.classList.toggle('hidden');
-  if (!bar.classList.contains('hidden')) {
-    setTimeout(function() {
-      document.getElementById('messageSearchInput')?.focus();
-    }, 100);
-  } else {
-    clearMessageSearch();
-  }
-}
-
-function filterMessages(query) {
-  var q = query.toLowerCase().trim();
-  var container = document.getElementById('messages-container');
-  var messages = container.querySelectorAll(':scope > div');
-  var count = 0;
-  messages.forEach(function(el) {
-    var text = el.getAttribute('data-message-text') || el.textContent.toLowerCase();
-    if (!q || text.toLowerCase().includes(q)) {
-      el.style.display = '';
-      count++;
-    } else {
-      el.style.display = 'none';
-    }
-  });
-  var countEl = document.getElementById('searchResultCount');
-  if (countEl) countEl.textContent = count;
-}
-
-function clearMessageSearch() {
-  var input = document.getElementById('messageSearchInput');
-  if (input) input.value = '';
-  var container = document.getElementById('messages-container');
-  if (container) {
-    container.querySelectorAll(':scope > div').forEach(function(el) {
-      el.style.display = '';
-    });
-  }
-  var countEl = document.getElementById('searchResultCount');
-  if (countEl) countEl.textContent = '0';
-}
-
-// ========== Customer Info Panel ==========
-
-function toggleCustomerInfo() {
-  var panel = document.getElementById('customerInfoPanel');
-  if (panel) panel.classList.toggle('hidden');
 }
 
 // ========== Quick Replies & Input Handling ==========
@@ -370,6 +418,19 @@ function onMessageInput(input) {
       qr.classList.add('hidden');
     }
   }
+
+  // Typing indicator via WebSocket
+  if (wsClient && wsClient.isConnected) {
+    if (typingTimeout) clearTimeout(typingTimeout);
+    if (val.length > 0) {
+      wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
+    } else {
+      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    }
+    typingTimeout = setTimeout(function() {
+      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    }, 3000);
+  }
 }
 
 function onMessageKeydown(event) {
@@ -379,16 +440,19 @@ function onMessageKeydown(event) {
     var input = document.getElementById('messageInput');
     if (input) input.value = input.value.replace(/\/$/, '');
   }
+
+  // Send typing stop on Enter (message sent)
+  if (event.key === 'Enter' && !event.shiftKey) {
+    if (wsClient && wsClient.isConnected) {
+      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    }
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+      typingTimeout = null;
+    }
+  }
 }
 
-function insertQuickReply(text) {
-  var input = document.getElementById('messageInput');
-  if (input) {
-    input.value = text;
-    input.focus();
-  }
-  var qr = document.getElementById('quickReplies');
-  if (qr) qr.classList.add('hidden');
-}
+
 
 

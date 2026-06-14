@@ -16,6 +16,27 @@ document.addEventListener('DOMContentLoaded', function () {
       hideBizCtxMenu();
     }
   });
+
+  // Long-press on business list items (touch)
+  var bizList = document.getElementById('business-list');
+  if (bizList) {
+    var longTimer = null;
+    bizList.addEventListener('touchstart', function(e) {
+      var item = e.target.closest('.business-item');
+      if (item && e.touches.length === 1) {
+        var id = item.getAttribute('data-business-id');
+        var name = item.getAttribute('data-business-name') || '';
+        if (id) {
+          longTimer = setTimeout(function() {
+            showBizCtxMenu({clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, preventDefault: function(){}}, id, name);
+          }, 500);
+        }
+      }
+    });
+    bizList.addEventListener('touchend', function() { clearTimeout(longTimer); });
+    bizList.addEventListener('touchmove', function() { clearTimeout(longTimer); });
+  }
+
   startHeartbeat();
 });
 
@@ -111,11 +132,6 @@ function loadBusiness(businessId) {
   if (layout) {
     layout.classList.add('wa-chat-open');
   }
-}
-
-function sendMessage() {
-  const form = document.getElementById('message-form');
-  if (form) form.submit();
 }
 
 function disconnectBusiness(businessId) {

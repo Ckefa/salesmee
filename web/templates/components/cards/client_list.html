@@ -1,36 +1,39 @@
 {{ define "client-list" }}
 <div class="wa-chat-list" id="client-list">
   {{range .Clients}}
-  <div class="wa-chat-item group" onclick="loadClient('{{.ID}}')" oncontextmenu="waShowCtxMenu(event, '{{.ID}}')"
-    data-client-id="{{.ID}}"
-    data-last-message-at="{{.LastMessageAt}}"
-    data-client-name="{{.Name}}"
-    data-client-email="{{.Email}}"
-    data-unread="{{.UnreadCount}}"
-    role="row">
-    <div class="wa-chat-avatar-wrapper">
-      <div class="wa-chat-avatar avatar-placeholder">
-        <i class="fas fa-user text-white"></i>
-      </div>
-      {{if .IsOnline}}
-      <span class="wa-online-dot"></span>
-      {{end}}
+    <div class="wa-chat-item group" onclick="loadClient('{{.ID}}')" oncontextmenu="waShowCtxMenu(event, '{{.ID}}')"
+    	data-client-id="{{.ID}}"
+    	data-last-message-at="{{.LastMessageAt}}"
+    	data-client-name="{{.Name}}"
+    	data-client-email="{{.Email}}"
+    	data-unread="{{.UnreadCount}}"
+    	role="row">
+    	<div class="wa-chat-avatar-wrapper">
+    		<div class="wa-chat-avatar avatar-placeholder">
+    			<i class="fas fa-user text-white"></i>
+    		</div>
+    		{{if .IsOnline}}
+    		<span class="wa-online-dot"></span>
+    		{{end}}
+    	</div>
+    	<div class="wa-chat-info">
+    		<div class="wa-chat-top">
+    			<span class="wa-chat-name">{{.Name}}</span>
+    			<div class="wa-chat-top-right">
+    				<span class="wa-chat-time time-ago" data-time="{{.LastMessageAt}}"></span>
+    				{{if gt .UnreadCount 0}}
+    				<span class="wa-unread-badge">{{if gt .UnreadCount 99}}99+{{else}}{{.UnreadCount}}{{end}}</span>
+    				{{end}}
+    			</div>
+    		</div>
+    		<div class="wa-chat-bottom">
+    			<span class="wa-chat-preview">{{if .LastMessage}}{{.LastMessage}}{{else}}<span class="opacity-60 italic">No messages yet</span>{{end}}</span>
+    		</div>
+    	</div>
+    	<button onclick="event.stopPropagation(); deleteClient('{{.ID}}')" title="Delete" class="opacity-40 hover:opacity-100 transition-opacity p-1.5 rounded text-xs text-[var(--color-error)] bg-transparent ml-auto shrink-0">
+    		<i class="fas fa-trash-alt"></i>
+    	</button>
     </div>
-    <div class="wa-chat-info">
-      <div class="wa-chat-top">
-        <span class="wa-chat-name">{{.Name}}</span>
-        <div class="wa-chat-top-right">
-          <span class="wa-chat-time time-ago" data-time="{{.LastMessageAt}}"></span>
-          {{if gt .UnreadCount 0}}
-          <span class="wa-unread-badge">{{if gt .UnreadCount 99}}99+{{else}}{{.UnreadCount}}{{end}}</span>
-          {{end}}
-        </div>
-      </div>
-      <div class="wa-chat-bottom">
-        <span class="wa-chat-preview">{{if .LastMessage}}{{.LastMessage}}{{else}}<span class="opacity-60 italic">No messages yet</span>{{end}}</span>
-      </div>
-    </div>
-  </div>
   {{else}}
   <div class="wa-empty-chat-list">
     <div class="wa-empty-chat-list-icon"><i class="fas fa-inbox"></i></div>

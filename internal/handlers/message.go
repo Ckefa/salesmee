@@ -7,22 +7,79 @@ import (
 
 	"salesmee/internal/db"
 	"salesmee/internal/models"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
 
+var wsHub *ws.Hub
+
+func SetWSHub(hub *ws.Hub) {
+	wsHub = hub
+}
+
 type MessageObj struct {
-	ID        uint        `json:"id"`
-	MsgType   string      `json:"msgtype"` // "message", "order", "booking"
-	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
-	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
-	Sender    string      `json:"sender"`
-	MediaURL  string      `json:"media_url"`
-	MediaType string      `json:"media_type"`
-	CreatedAt time.Time   `json:"created_at"`
+	ID          uint        `json:"id"`
+	MsgType     string      `json:"msgtype"` // "message", "order", "booking"
+	Value       string      `json:"value"`   // string content for normal messages, empty for orders/bookings
+	Data        interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
+	Sender      string      `json:"sender"`
+	MediaURL    string      `json:"media_url"`
+	MediaType   string      `json:"media_type"`
+	CreatedAt   time.Time   `json:"created_at"`
+	IsDelivered bool        `json:"is_delivered"`
+	IsRead      bool        `json:"is_read"`
 }
 
 
+
+func DeleteMessage(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	messageIDStr := c.Param("message_id")
+	messageID, err := strconv.ParseUint(messageIDStr, 10, 32)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid message ID"})
+		return
+	}
+
+	switch {
+	case messageID >= 20000:
+		// Booking card — set HiddenFromChat
+		bookingID := messageID - 20000
+		var booking models.Booking
+		if err := db.DB.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Booking not found"})
+			return
+		}
+		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		c.JSON(200, gin.H{"success": true, "type": "booking", "id": bookingID})
+
+	case messageID >= 10000:
+		// Order card — set HiddenFromChat
+		orderID := messageID - 10000
+		var order models.Order
+		if err := db.DB.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Order not found"})
+			return
+		}
+		db.DB.Model(&order).Update("hidden_from_chat", true)
+		c.JSON(200, gin.H{"success": true, "type": "order", "id": orderID})
+
+	default:
+		// Regular message — hard delete, verify ownership via conversation
+		var msg models.Message
+		if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Message not found"})
+			return
+		}
+		if msg.Conversation.BusinessID != businessID {
+			c.JSON(403, gin.H{"error": "Unauthorized"})
+			return
+		}
+		db.DB.Delete(&msg)
+		c.JSON(200, gin.H{"success": true, "type": "message", "id": messageID})
+	}
+}
 
 func GetMessages(c *gin.Context) {
 	businessID := c.GetUint("business_id")
@@ -76,22 +133,30 @@ func GetMessages(c *gin.Context) {
 	db.DB.Where("conversation_id = ?", conversation.ID).Order("created_at ASC").Find(&messages)
 
 	for _, msg := range messages {
+		isSelf := msg.Sender == "business"
+		var isDelivered, isRead bool
+		if isSelf {
+			isDelivered = conversation.LastReadByClientAt != nil && msg.CreatedAt.Before(*conversation.LastReadByClientAt)
+			isRead = msg.ReadByClient
+		}
 		messageObj := MessageObj{
-			ID:        msg.ID,
-			MsgType:   "message",
-			Value:     msg.Content,
-			Data:      msg,
-			Sender:    msg.Sender,
-			MediaURL:  msg.MediaURL,
-			MediaType: msg.MediaType,
-			CreatedAt: msg.CreatedAt,
+			ID:          msg.ID,
+			MsgType:     "message",
+			Value:       msg.Content,
+			Data:        msg,
+			Sender:      msg.Sender,
+			MediaURL:    msg.MediaURL,
+			MediaType:   msg.MediaType,
+			CreatedAt:   msg.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      isRead,
 		}
 		messageObjs = append(messageObjs, messageObj)
 	}
 
 	// Fetch orders
 	var orders []models.Order
-	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&orders)
+	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
 	for _, order := range orders {
 		var orderItems []models.OrderItem
 		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
@@ -198,19 +263,24 @@ func GetMessages(c *gin.Context) {
 			"payment_methods":      orderPaymentMethods,
 		}
 
+		isSelf := order.Sender == "business"
+		isDelivered := isSelf && conversation.LastReadByClientAt != nil && order.CreatedAt.Before(*conversation.LastReadByClientAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        order.ID + 10000,
-			MsgType:   "order",
-			Value:     "",
-			Data:      orderData,
-			Sender:    order.Sender,
-			CreatedAt: order.CreatedAt,
+			ID:          order.ID + 10000,
+			MsgType:     "order",
+			Value:       "",
+			Data:        orderData,
+			Sender:      order.Sender,
+			CreatedAt:   order.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
 	// Fetch bookings
 	var bookings []models.Booking
-	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&bookings)
+	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
 	for _, booking := range bookings {
 		var serviceName string
 		var serviceNames []string
@@ -285,13 +355,18 @@ func GetMessages(c *gin.Context) {
 			"payment_methods":      bookingPaymentMethods,
 		}
 
+		isSelf := booking.Sender == "business"
+		isDelivered := isSelf && conversation.LastReadByClientAt != nil && booking.CreatedAt.Before(*conversation.LastReadByClientAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        booking.ID + 20000,
-			MsgType:   "booking",
-			Value:     "",
-			Data:      bookingData,
-			Sender:    booking.Sender,
-			CreatedAt: booking.CreatedAt,
+			ID:          booking.ID + 20000,
+			MsgType:     "booking",
+			Value:       "",
+			Data:        bookingData,
+			Sender:      booking.Sender,
+			CreatedAt:   booking.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
@@ -374,6 +449,24 @@ func CreateMessage(c *gin.Context) {
 
 	AutoCalculateProgress(conversation.ID)
 
+	if wsHub != nil {
+		ws.BroadcastNewMessage(
+			wsHub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(businessID)),
+			"business",
+			strconv.Itoa(int(message.ID)),
+			message.Content,
+			message.MediaURL,
+			message.MediaType,
+			message.Type,
+			nil,
+			message.CreatedAt,
+			strconv.Itoa(int(businessID)),
+			strconv.FormatUint(clientID, 10),
+		)
+	}
+
 	// Return message partial
 	c.HTML(200, "message_partial.html", gin.H{
 		"Message": message,
@@ -419,11 +512,16 @@ func MarkConversationAsRead(c *gin.Context) {
 		return
 	}
 
+	// Get conversation for broadcast
+	var conversation models.Conversation
+	if err := db.DB.Where("business_id = ? AND client_id = ?", businessID, clientID).First(&conversation).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Conversation not found"})
+		return
+	}
+
 	// Update conversation's last read time
 	now := time.Now()
-	if err := db.DB.Model(&models.Conversation{}).
-		Where("business_id = ? AND client_id = ?", businessID, clientID).
-		Update("last_read_by_business_at", &now).Error; err != nil {
+	if err := db.DB.Model(&conversation).Update("last_read_by_business_at", &now).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to mark conversation as read"})
 		return
 	}
@@ -439,7 +537,53 @@ func MarkConversationAsRead(c *gin.Context) {
 		return
 	}
 
+	if wsHub != nil {
+		ws.BroadcastReadReceipt(
+			wsHub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(businessID)),
+			"business",
+			"",
+			strconv.Itoa(int(businessID)),
+			strconv.FormatUint(clientID, 10),
+		)
+	}
+
 	c.JSON(200, gin.H{"status": "ok"})
+}
+
+func MarkMessageAsRead(c *gin.Context) {
+	messageID, err := strconv.ParseUint(c.Param("message_id"), 10, 32)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid message ID"})
+		return
+	}
+	businessID := c.GetUint("business_id")
+
+	// Only regular messages (not synthetic order/booking cards)
+	if messageID >= 10000 {
+		c.JSON(400, gin.H{"error": "Cannot mark order/booking cards as read"})
+		return
+	}
+
+	var msg models.Message
+	if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Message not found"})
+		return
+	}
+
+	if msg.Conversation.BusinessID != businessID {
+		c.JSON(403, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	now := time.Now()
+	db.DB.Model(&msg).Updates(map[string]interface{}{
+		"read_by_business": true,
+		"read_at":          &now,
+	})
+
+	c.JSON(200, gin.H{"success": true})
 }
 
 func ClearChat(c *gin.Context) {
@@ -475,12 +619,40 @@ func MarkClientConversationAsRead(c *gin.Context) {
 		return
 	}
 
+	// Get conversation for broadcast
+	var conversation models.Conversation
+	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Conversation not found"})
+		return
+	}
+
 	now := time.Now()
-	if err := db.DB.Model(&models.Conversation{}).
-		Where("client_id = ? AND business_id = ?", clientID, businessID).
-		Update("last_read_by_client_at", &now).Error; err != nil {
+	if err := db.DB.Model(&conversation).Update("last_read_by_client_at", &now).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to mark conversation as read"})
 		return
+	}
+
+	// Also mark all unread business-sent messages as read by client
+	if err := db.DB.Model(&models.Message{}).
+		Where("conversation_id IN (SELECT id FROM conversations WHERE client_id = ? AND business_id = ?) AND sender = 'business' AND read_by_client = ?", clientID, businessID, false).
+		Updates(map[string]interface{}{
+			"read_by_client":    true,
+			"read_by_client_at": &now,
+		}).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to mark messages as read"})
+		return
+	}
+
+	if wsHub != nil {
+		ws.BroadcastReadReceipt(
+			wsHub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(clientID)),
+			"client",
+			"",
+			strconv.FormatUint(businessID, 10),
+			strconv.Itoa(int(clientID)),
+		)
 	}
 
 	c.JSON(200, gin.H{"status": "ok"})

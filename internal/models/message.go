@@ -12,6 +12,8 @@ type Message struct {
 	MediaType      string     `json:"media_type"`                             // "image", "document", "audio"
 	ReadByBusiness bool       `gorm:"default:false" json:"read_by_business"`  // true when business has seen it
 	ReadAt         *time.Time `json:"read_at"`                                // when business read it
+	ReadByClient   bool       `gorm:"default:false" json:"read_by_client"`    // true when client has seen it
+	ReadByClientAt *time.Time `json:"read_by_client_at"`
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
 

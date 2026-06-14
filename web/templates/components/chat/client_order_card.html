@@ -53,9 +53,11 @@
             <i class="fas fa-times"></i>
           </button>
           {{end}}
+          {{if $isPending}}
           <button onclick="openClientEditOrderPicker({{$order.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Order">
             <i class="fas fa-edit"></i>
           </button>
+          {{end}}
         </div>
       </div>
 
@@ -354,6 +356,7 @@
       <!-- Timestamp -->
       <div class="mt-2 text-right">
         <span class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</span>
+        {{template "msg_tick" dict "IsSelf" (eq .Sender "client") "IsDelivered" .IsDelivered "IsRead" .IsRead}}
       </div>
     </div>
   </div>

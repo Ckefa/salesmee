@@ -15,7 +15,7 @@ var businessHandler *business.BusinessHandler
 func SetupBusinessRoutes(r *gin.Engine) {
 
 	// Initialize business handler
-	businessHandler = business.NewBusinessHandler(db.DB)
+	businessHandler = business.NewBusinessHandler(db.DB, wsHub)
 
 	// PUBLIC - Business Auth Routes
 	r.GET("/business/login", handlers.ShowLogin)
@@ -105,6 +105,8 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/clients/:id/messages", handlers.GetMessages)
 		protected.POST("/clients/:id/messages", handlers.CreateMessage)
 		protected.PUT("/messages/:message_id", handlers.UpdateMessage)
+		protected.PUT("/messages/:message_id/read", handlers.MarkMessageAsRead)
+		protected.DELETE("/messages/:message_id", handlers.DeleteMessage)
 		protected.PUT("/clients/:id/read", handlers.MarkConversationAsRead)
 		protected.DELETE("/clients/:id/messages", handlers.ClearChat)
 
@@ -244,6 +246,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/notifications", businessHandler.GetNotifications)
 		protected.GET("/notifications/count", businessHandler.GetNotificationCount)
 		protected.POST("/notifications/:id/read", businessHandler.MarkNotificationRead)
+		protected.DELETE("/notifications/:id", businessHandler.DeleteNotification)
 		protected.POST("/notifications/read-all", businessHandler.MarkAllNotificationsRead)
 		protected.GET("/notification-settings", businessHandler.GetNotificationSettings)
 		protected.PUT("/notification-settings", businessHandler.UpdateNotificationSettings)

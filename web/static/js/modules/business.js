@@ -118,6 +118,10 @@ function waBackToChatList() {
 }
 
 function deleteClient(clientId, clientName) {
+  if (!clientName) {
+    var el = document.querySelector('[data-client-id="' + clientId + '"]');
+    clientName = el ? el.getAttribute('data-client-name') || 'this client' : 'this client';
+  }
   if (!confirm('Are you sure you want to delete "' + clientName + '"? This action cannot be undone.')) return;
   fetch('clients/' + clientId, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function(r) { return r.json(); })
@@ -176,6 +180,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Long-press on client list items (touch)
+  var clientList = document.getElementById('client-list');
+  if (clientList) {
+    var longTimer = null;
+    clientList.addEventListener('touchstart', function(e) {
+      var item = e.target.closest('.wa-chat-item');
+      if (item && e.touches.length === 1) {
+        var id = item.getAttribute('data-client-id');
+        if (id) {
+          longTimer = setTimeout(function() {
+            waShowCtxMenu({clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, preventDefault: function(){}, stopPropagation: function(){}}, id);
+          }, 500);
+        }
+      }
+    });
+    clientList.addEventListener('touchend', function() { clearTimeout(longTimer); });
+    clientList.addEventListener('touchmove', function() { clearTimeout(longTimer); });
+  }
+
   document.addEventListener('click', function(e) {
     var ctxMenu = document.getElementById('ctxMenu');
     if (ctxMenu && !ctxMenu.classList.contains('hidden') && !ctxMenu.contains(e.target)) {
@@ -188,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (dd && dd.value) saveConversationProgress(id, dd.value);
     }
     var item = e.target.closest('.wa-chat-item');
-    if (item && !e.target.closest('.conversation-progress-dropdown') && !e.target.closest('.save-progress-btn')) {
+    if (item && !e.target.closest('.conversation-progress-dropdown') && !e.target.closest('.save-progress-btn') && !e.target.closest('.fa-trash-alt')) {
       loadClient(item.getAttribute('data-client-id'));
     }
   });
@@ -208,38 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-
-function openPaymentModal(clientId) {
-  htmx.ajax('GET', '/business/clients/' + clientId + '/request-payment', {
-    target: '#payment-modal',
-    swap: 'innerHTML'
-  });
-  var modal = document.getElementById('payment-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'payment-modal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    document.body.appendChild(modal);
-  }
-  modal.classList.remove('hidden');
-}
-
-function sendMessage() { var form = document.getElementById('message-form'); if (form) form.submit(); }
-
-function createMessageAction(messageId, type) {
-  var title = prompt('Create ' + type + ':');
-  if (!title) return;
-  var description = prompt('Description (optional):') || '';
-  var dueDate = type === 'booking' ? prompt('Date (YYYY-MM-DD):') : null;
-  var fd = new FormData();
-  fd.append('type', type);
-  fd.append('title', title);
-  fd.append('description', description);
-  if (dueDate) fd.append('due_date', dueDate);
-  htmx.ajax('POST', '/messages/' + messageId + '/actions', {
-    target: '#actions-panel', swap: 'innerHTML', values: fd
-  });
-}
 
 function saveConversationProgress(clientId, stage) {
   fetch('clients/' + clientId + '/conversation-id')
@@ -302,3 +293,115 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+// === Notification Context Menu & Delete ===
+let notifCtxTarget = null, notifCtxId = null;
+
+function deleteNotification(id, btn) {
+  showConfirmModal({
+    title: 'Delete Notification',
+    message: 'Delete this notification?',
+    confirmText: 'Delete',
+    confirmClass: 'bg-[var(--color-error)] text-white'
+  }).then(function(confirmed) {
+    if (!confirmed) return;
+    btn.disabled = true;
+    var row = btn.closest('[data-notif-id]') || btn;
+    fetch('/business/notifications/' + id, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    }).then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          row.style.opacity = 0;
+          setTimeout(function() { row.remove(); }, 160);
+          showNotification('Notification deleted', 'success');
+          var countEl = document.querySelector('.text-xs.text-[var(--color-text-muted)]');
+          if (countEl && countEl.textContent.match(/^\d+ unread/)) {
+            var n = parseInt(countEl.textContent); n = Math.max(n-1,0);
+            countEl.textContent = n === 0 ? 'All read' : n + ' unread';
+          }
+        } else {
+          btn.disabled = false;
+          showNotification(d.error || 'Failed to delete', 'error');
+        }
+      })
+      .catch(function() {
+        btn.disabled = false;
+        showNotification('Failed to delete', 'error');
+      });
+  });
+}
+
+function hideNotifCtxMenu() {
+  var m = document.getElementById('notifCtxMenu');
+  if (m) m.classList.add('hidden');
+  notifCtxTarget = notifCtxId = null;
+}
+
+function showNotifCtxMenu(e, notifId, notifRow) {
+  var m = document.getElementById('notifCtxMenu');
+  if (!m) return;
+  notifCtxTarget = notifRow;
+  notifCtxId = notifId;
+  m.classList.remove('hidden');
+  m.style.left = Math.min(e.clientX, window.innerWidth - 160) + 'px';
+  m.style.top = Math.min(e.clientY, window.innerHeight - 100) + 'px';
+  e.preventDefault();
+}
+
+// Event delegation for notification context menu (right-click + long-press)
+// Uses document delegation because notification content is loaded via HTMX
+document.addEventListener('contextmenu', function(e) {
+  var row = e.target.closest('[data-notif-id]');
+  if (row) {
+    showNotifCtxMenu(e, row.getAttribute('data-notif-id'), row);
+  }
+});
+// Long-press on notification items (touch)
+(function() {
+  var longTimer = null;
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      var row = e.target.closest('[data-notif-id]');
+      if (row) {
+        longTimer = setTimeout(function() {
+          showNotifCtxMenu(e.touches[0], row.getAttribute('data-notif-id'), row);
+        }, 450);
+      }
+    }
+  });
+  document.addEventListener('touchend', function() { clearTimeout(longTimer); });
+  document.addEventListener('touchmove', function() { clearTimeout(longTimer); });
+})();
+
+// Context menu action buttons (document delegation — loaded dynamically via HTMX)
+document.addEventListener('click', function(e) {
+  if (e.target.closest('#notifMarkReadBtn')) {
+    if (!notifCtxId) return hideNotifCtxMenu();
+    fetch('/business/notifications/' + notifCtxId + '/read', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    }).then(function(r) { return r.json(); })
+      .then(function() {
+        if (notifCtxTarget) notifCtxTarget.classList.add('opacity-60');
+        showNotification('Marked as read', 'success');
+        hideNotifCtxMenu();
+      });
+  }
+  if (e.target.closest('#notifDeleteBtn')) {
+    if (!notifCtxId) return hideNotifCtxMenu();
+    deleteNotification(notifCtxId, notifCtxTarget || document);
+    hideNotifCtxMenu();
+  }
+});
+
+// Hide menu on click-outside / escape
+window.addEventListener('click', function(e) {
+  var m = document.getElementById('notifCtxMenu');
+  if (m && !m.classList.contains('hidden') && !m.contains(e.target)) hideNotifCtxMenu();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') hideNotifCtxMenu();
+});
+// === End Notification Context Menu ===

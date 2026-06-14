@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/assist"
 	"salesmee/internal/services/onboarding"
+	"salesmee/internal/ws"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,11 +23,16 @@ import (
 )
 
 type BusinessHandler struct {
-	db *gorm.DB
+	db  *gorm.DB
+	hub *ws.Hub
 }
 
-func NewBusinessHandler(db *gorm.DB) *BusinessHandler {
-	return &BusinessHandler{db: db}
+func NewBusinessHandler(db *gorm.DB, hub *ws.Hub) *BusinessHandler {
+	return &BusinessHandler{db: db, hub: hub}
+}
+
+func (h *BusinessHandler) bizIDStr(c *gin.Context) string {
+	return strconv.Itoa(int(c.GetUint("business_id")))
 }
 
 func (h *BusinessHandler) onboardingData(businessID uint) *onboarding.OnboardingData {
@@ -1078,6 +1085,16 @@ func (h *BusinessHandler) MarkAllNotificationsRead(c *gin.Context) {
 	h.db.Model(&models.InAppNotification{}).
 		Where("business_id = ? AND is_read = false", businessID).
 		Update("is_read", true)
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+// DeleteNotification deletes a single notification
+func (h *BusinessHandler) DeleteNotification(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	id := c.Param("id")
+
+	h.db.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.InAppNotification{})
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }

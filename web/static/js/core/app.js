@@ -89,7 +89,32 @@ class SalesMeeApp {
         var messagesContainer = document.getElementById('messages-container');
         if (messagesContainer) {
             this.autoScrollMessages(messagesContainer);
+            this.initScrollToBottom(messagesContainer);
         }
+
+        document.addEventListener('htmx:afterSwap', function(event) {
+            var targetId = event.detail.target.id;
+            if (targetId === 'messages-container' || targetId === 'chat-area') {
+                var btn = document.getElementById('scrollToBottom');
+                if (btn) btn.classList.remove('visible');
+                var newContainer = document.getElementById('messages-container');
+                if (newContainer) {
+                    this.autoScrollMessages(newContainer);
+                    this.initScrollToBottom(newContainer);
+                }
+            }
+        }.bind(this));
+    }
+
+    initScrollToBottom(container) {
+        var btn = document.getElementById('scrollToBottom');
+        if (!btn) return;
+        var toggle = function() {
+            var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+            btn.classList.toggle('visible', !isNearBottom);
+        };
+        container.addEventListener('scroll', toggle);
+        setTimeout(toggle, 100);
     }
 
     initClientFeatures() {

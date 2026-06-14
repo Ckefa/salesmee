@@ -1,0 +1,16 @@
+{{define "msg_tick"}}
+{{if .IsSelf}}
+<span class="inline-flex items-center ml-0.5 align-middle" style="width:{{if or .IsDelivered .IsRead}}14{{else}}12{{end}}px;height:11px;">
+  {{if or .IsDelivered .IsRead}}
+  <svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="{{if .IsRead}}#53bdeb{{else}}#8696a0{{end}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 6L5 9L11 3"/>
+    <path d="M6 6L9 9L15 3"/>
+  </svg>
+  {{else}}
+  <svg viewBox="0 0 12 12" width="12" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 6L5 9L11 3"/>
+  </svg>
+  {{end}}
+</span>
+{{end}}
+{{end}}

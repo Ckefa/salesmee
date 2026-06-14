@@ -105,6 +105,8 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/clients/:id/messages", handlers.GetMessages)
 		protected.POST("/clients/:id/messages", handlers.CreateMessage)
 		protected.PUT("/messages/:message_id", handlers.UpdateMessage)
+		protected.PUT("/messages/:message_id/read", handlers.MarkMessageAsRead)
+		protected.DELETE("/messages/:message_id", handlers.DeleteMessage)
 		protected.PUT("/clients/:id/read", handlers.MarkConversationAsRead)
 		protected.DELETE("/clients/:id/messages", handlers.ClearChat)
 

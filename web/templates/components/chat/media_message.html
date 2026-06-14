@@ -1,6 +1,6 @@
 {{define "media_message"}}
 {{$isSelf := eq .Sender "business"}}
-<div class="msg {{if $isSelf}}out{{else}}in{{end}} message-item">
+<div class="msg {{if $isSelf}}out{{else}}in{{end}} message-item" data-message-id="{{.ID}}">
   <div class="msg-bbl" style="padding:3px;">
     {{if $isSelf}}
     <svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet">

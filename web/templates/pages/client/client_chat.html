@@ -34,7 +34,7 @@
   var currencySymbol = '{{currencySymbol .Business.Currency}}';
 </script>
 <script src="/static/js/modules/shared.js"></script>
-<script src="/static/js/modules/client_chat.js"></script>
+<script src="/static/js/modules/client_chat.js?v=2"></script>
 <script>
 async function clientSubmitOrderPayment(orderId, maxAmount) {
   const result = await showPaymentModal(maxAmount, currencySymbol);

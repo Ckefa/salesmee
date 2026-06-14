@@ -64,6 +64,8 @@ function submitOrderForm() {
     .catch(e => { console.error(e); showNotification('Failed to send order request', 'error'); });
 }
 
+let pollingInterval = null;
+
 scrollToBottom();
 markAsRead();
 startMessagePolling();
@@ -74,8 +76,6 @@ function scrollToBottom() {
     container.scrollTop = container.scrollHeight;
   });
 }
-
-let pollingInterval = null;
 
 function markAsRead() {
   fetch(`/client/businesses/${businessId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
@@ -99,7 +99,6 @@ function startMessagePolling() {
           curMsgs.innerHTML = newMsgs.innerHTML;
           curMsgs.scrollTop = curMsgs.scrollHeight;
           markAsRead();
-          playNotificationSound();
         }
       })
       .catch(console.error);
@@ -402,3 +401,94 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+// ========== Context Menu ==========
+console.log('[ContextMenu] Initializing context menu on client chat page');
+
+var contextMenuEl = null;
+var contextMessageId = null;
+
+function ensureContextMenu() {
+  if (!contextMenuEl || !document.body.contains(contextMenuEl)) {
+    contextMenuEl = document.createElement('div');
+    contextMenuEl.id = 'contextMenu';
+    contextMenuEl.style.cssText = 'display:none;position:fixed;z-index:9999;width:190px;border-radius:12px;border:1px solid var(--color-border);background:var(--color-surface);box-shadow:0 10px 40px rgba(0,0,0,0.15);padding:4px 0;font-size:13px;';
+    contextMenuEl.innerHTML =
+      '<button onclick="markMessageRead()" style="width:100%;padding:10px 16px;text-align:left;color:var(--color-info);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;border-bottom:1px solid var(--color-border);"><svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 512 512" fill="currentColor"><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0S0 114.6 0 256S114.6 512 256 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg> Mark as Read</button>' +
+      '<button onclick="deleteContextMenuItem()" style="width:100%;padding:10px 16px;text-align:left;color:var(--color-error);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;"><svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 448 512" fill="currentColor"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32h384c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg> Delete</button>';
+    document.body.appendChild(contextMenuEl);
+  }
+}
+
+document.addEventListener('contextmenu', function(e) {
+  var item = e.target.closest('[data-message-id]');
+  if (!item) {
+    if (contextMenuEl) contextMenuEl.style.display = 'none';
+    return;
+  }
+  e.preventDefault();
+  ensureContextMenu();
+  contextMessageId = item.getAttribute('data-message-id');
+  contextMenuEl.style.left = Math.min(e.clientX, window.innerWidth - 190) + 'px';
+  contextMenuEl.style.top = Math.min(e.clientY, window.innerHeight - 60) + 'px';
+  contextMenuEl.style.display = 'block';
+});
+
+document.addEventListener('click', function(e) {
+  if (contextMenuEl && !contextMenuEl.contains(e.target)) {
+    contextMenuEl.style.display = 'none';
+  }
+});
+
+function markMessageRead() {
+  if (!contextMessageId) return;
+  if (contextMenuEl) contextMenuEl.style.display = 'none';
+  fetch('/client/businesses/' + businessId + '/read', {
+    method: 'PUT',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.status === 'ok') {
+      showNotification('Conversation marked as read', 'success');
+      var badge = document.querySelector('.business-item[data-business-id="' + businessId + '"] .unread-badge');
+      if (badge) badge.remove();
+    } else {
+      showNotification('Failed to mark as read', 'error');
+    }
+  })
+  .catch(function(e) { console.error(e); showNotification('Failed to mark as read', 'error'); });
+}
+
+function deleteContextMenuItem() {
+  if (!contextMessageId) return;
+  var id = contextMessageId;
+  if (contextMenuEl) contextMenuEl.style.display = 'none';
+  showConfirmModal({ title: 'Delete', message: 'Remove this item from chat?', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Delete' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/client/messages/' + id, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification('Deleted', 'success');
+        if (typeof startMessagePolling === 'function') {
+          fetch('/client/businesses/' + businessId + '/messages')
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(html, 'text/html');
+              var newMsgs = doc.getElementById('messages-container');
+              var curMsgs = document.getElementById('messages-container');
+              if (newMsgs && curMsgs) curMsgs.innerHTML = newMsgs.innerHTML;
+            });
+        }
+      } else {
+        showNotification(data.error || 'Failed to delete', 'error');
+      }
+    })
+    .catch(function(e) { console.error(e); showNotification('Failed to delete', 'error'); });
+  });
+}

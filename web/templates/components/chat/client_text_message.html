@@ -1,6 +1,6 @@
 {{define "client_text_message"}}
 {{$isClient := eq .Sender "client"}}
-<div class="msg {{if $isClient}}out{{else}}in{{end}} message-item">
+<div class="msg {{if $isClient}}out{{else}}in{{end}} message-item" data-message-id="{{.ID}}">
   <div class="msg-bbl">
     {{if $isClient}}
     <svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet">

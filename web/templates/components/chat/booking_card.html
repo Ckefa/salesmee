@@ -44,9 +44,11 @@
           {{if eq $actionRequired "business"}}
           <span class="text-xs font-bold text-[var(--color-warning)] animate-pulse">ACTION NEEDED</span>
           {{end}}
+          {{if $isPending}}
           <button onclick="openBusinessEditBookingPicker({{$booking.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Booking">
             <i class="fas fa-edit"></i>
           </button>
+          {{end}}
         </div>
       </div>
 

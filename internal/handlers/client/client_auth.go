@@ -294,7 +294,7 @@ func GetClientMessages(c *gin.Context) {
 
 	// Fetch orders
 	var orders []models.Order
-	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&orders)
+	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
 	for _, order := range orders {
 		var orderItems []models.OrderItem
 		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
@@ -406,7 +406,7 @@ func GetClientMessages(c *gin.Context) {
 
 	// Fetch bookings
 	var bookings []models.Booking
-	db.DB.Where("client_id = ? AND business_id = ?", client.ID, businessID).Order("created_at ASC").Find(&bookings)
+	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
 	for _, booking := range bookings {
 		var bookingItems []models.BookingItem
 		db.DB.Where("booking_id = ?", booking.ID).Find(&bookingItems)
@@ -1013,4 +1013,49 @@ func ClientConfirmBooking(c *gin.Context) {
 		"booking": booking,
 		"message": "Booking confirmed! Waiting for business to complete.",
 	})
+}
+
+func DeleteClientMessage(c *gin.Context) {
+	clientID := c.GetUint("client_id")
+	messageIDStr := c.Param("message_id")
+	messageID, err := strconv.ParseUint(messageIDStr, 10, 32)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid message ID"})
+		return
+	}
+
+	switch {
+	case messageID >= 20000:
+		bookingID := messageID - 20000
+		var booking models.Booking
+		if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Booking not found"})
+			return
+		}
+		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		c.JSON(200, gin.H{"success": true, "type": "booking", "id": bookingID})
+
+	case messageID >= 10000:
+		orderID := messageID - 10000
+		var order models.Order
+		if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Order not found"})
+			return
+		}
+		db.DB.Model(&order).Update("hidden_from_chat", true)
+		c.JSON(200, gin.H{"success": true, "type": "order", "id": orderID})
+
+	default:
+		var msg models.Message
+		if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+			c.JSON(404, gin.H{"error": "Message not found"})
+			return
+		}
+		if msg.Conversation.ClientID != clientID {
+			c.JSON(403, gin.H{"error": "Unauthorized"})
+			return
+		}
+		db.DB.Delete(&msg)
+		c.JSON(200, gin.H{"success": true, "type": "message", "id": messageID})
+	}
 }

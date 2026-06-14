@@ -50,9 +50,11 @@
           {{else if eq $actionRequired "business"}}
           <span class="text-xs font-bold text-[var(--color-warning)] animate-pulse">ACTION NEEDED</span>
           {{end}}
+          {{if or $isDraft $isPending}}
           <button onclick="openBusinessEditOrderPicker({{$order.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Order">
             <i class="fas fa-edit"></i>
           </button>
+          {{end}}
         </div>
       </div>
 

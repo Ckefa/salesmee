@@ -1636,6 +1636,8 @@
 .wa-progress-bar {
   flex-shrink: 0;
   background-color: var(--color-surface);
+  position: relative;
+  z-index: 30;
 }
 
 /* Messages Area */

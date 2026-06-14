@@ -54,6 +54,7 @@ func SetupClientRoutes(r *gin.Engine) {
 		clientProtected.POST("/reviews", client.SubmitReview)
 		clientProtected.POST("/orders/:id/payment", businessHandler.ClientSubmitOrderPayment)
 		clientProtected.POST("/bookings/:id/payment", businessHandler.ClientSubmitBookingPayment)
+		clientProtected.DELETE("/messages/:message_id", client.DeleteClientMessage)
 		clientProtected.POST("/assist/chat", client.ClientAssistChat)
 		clientProtected.GET("/assist/suggestions", client.ClientGetAssistSuggestions)
 	}

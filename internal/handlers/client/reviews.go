@@ -3,8 +3,10 @@ package client
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"salesmee/internal/db"
 	"salesmee/internal/models"
+	"salesmee/internal/ws"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -114,6 +116,42 @@ func SubmitReview(c *gin.Context) {
 	}
 
 	updateBusinessRating(businessID)
+
+	if wsHub != nil {
+		if orderID > 0 {
+			var order models.Order
+			if db.DB.First(&order, orderID).Error == nil {
+				ws.BroadcastOrderUpdateFull(
+					wsHub,
+					strconv.Itoa(int(order.ID)),
+					order.Status,
+					order.PaidAmount,
+					order.TotalAmount,
+					0,
+					true,
+					int32(rating),
+					strconv.Itoa(int(order.BusinessID)),
+					strconv.Itoa(int(order.ClientID)),
+				)
+			}
+		} else if bookingID > 0 {
+			var booking models.Booking
+			if db.DB.First(&booking, bookingID).Error == nil {
+				ws.BroadcastBookingUpdateFull(
+					wsHub,
+					strconv.Itoa(int(booking.ID)),
+					booking.Status,
+					booking.PaidAmount,
+					booking.TotalAmount,
+					0,
+					true,
+					int32(rating),
+					strconv.Itoa(int(booking.BusinessID)),
+					strconv.Itoa(int(booking.ClientID)),
+				)
+			}
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

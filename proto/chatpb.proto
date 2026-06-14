@@ -67,17 +67,23 @@ message PresenceUpdate {
 }
 
 message OrderUpdate {
-  string order_id     = 1;
-  string status       = 2;
-  double paid_amount  = 3;
-  double total_amount = 4;
+  string order_id        = 1;
+  string status          = 2;
+  double paid_amount     = 3;
+  double total_amount    = 4;
+  double pending_amount  = 5;
+  bool   has_review      = 6;
+  int32  review_rating   = 7;
 }
 
 message BookingUpdate {
-  string booking_id   = 1;
-  string status       = 2;
-  double paid_amount  = 3;
-  double total_amount = 4;
+  string booking_id      = 1;
+  string status          = 2;
+  double paid_amount     = 3;
+  double total_amount    = 4;
+  double pending_amount  = 5;
+  bool   has_review      = 6;
+  int32  review_rating   = 7;
 }
 
 message UnreadCount {

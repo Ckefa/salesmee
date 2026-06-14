@@ -13,16 +13,37 @@
 <div class="max-h-72 overflow-y-auto bg-[var(--color-surface)]">
   {{if .Notifications}}
     {{range .Notifications}}
-    <a href="{{.Link}}" onclick="markNotifRead({{.ID}})" class="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] transition-colors {{if .IsRead}}opacity-60{{end}}">
-      <div class="w-8 h-8 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center shrink-0">
-        <i class="{{.Icon}} text-[var(--color-primary)] text-xs"></i>
-      </div>
-      <div class="min-w-0 flex-1">
-        <p class="text-xs sm:text-sm text-[var(--color-text)] font-medium truncate">{{.Title}}</p>
-        <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">{{.Body}}</p>
-        <p class="text-[10px] text-[var(--color-text-muted)] mt-0.5">{{.TimeAgo}}</p>
-      </div>
-    </a>
+    <div class="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] transition-colors {{if .IsRead}}opacity-60{{end}} group relative" data-notif-id="{{.ID}}">
+      {{if .Link}}<a href="{{.Link}}" onclick="markNotifRead({{.ID}})" class="flex-1 min-w-0 flex items-start gap-3">{{else}}<div class="flex-1 min-w-0 flex items-start gap-3" onclick="markNotifRead({{.ID}})">{{end}}
+        {{$iconBg := "var(--color-primary-light)"}}
+        {{$iconColor := "var(--color-primary)"}}
+        {{if eq .Icon "fa-shopping-cart"}}
+          {{$iconBg = "var(--color-warning-light)"}}
+          {{$iconColor = "var(--color-warning)"}}
+        {{else if eq .Icon "fa-calendar-check"}}
+          {{$iconBg = "var(--color-info-light)"}}
+          {{$iconColor = "var(--color-info)"}}
+        {{else if eq .Icon "fa-credit-card"}}
+          {{$iconBg = "var(--color-secondary-light)"}}
+          {{$iconColor = "var(--color-secondary)"}}
+        {{else if eq .Icon "fa-clock"}}
+          {{$iconBg = "var(--color-info-light)"}}
+          {{$iconColor = "var(--color-info)"}}
+        {{end}}
+        <div class="w-8 h-8 rounded-full bg-[{{$iconBg}}] flex items-center justify-center shrink-0">
+          <i class="fas {{.Icon}} text-[{{$iconColor}}] text-xs"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs sm:text-sm text-[var(--color-text)] font-medium truncate">{{.Title}}</p>
+          <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">{{.Body}}</p>
+          <p class="text-[10px] text-[var(--color-text-muted)] mt-0.5">{{.TimeAgo}}</p>
+        </div>
+      {{if .Link}}</a>{{else}}</div>{{end}}
+      <button onclick="deleteNotification({{.ID}}, this)" title="Delete" class="absolute right-2 top-3 opacity-60 hover:opacity-100 p-1 rounded text-xs text-[var(--color-error)] bg-transparent focus:bg-[var(--color-surface-tertiary)]">
+        <i class="fas fa-trash"></i>
+      </button>
+
+    </div>
     {{end}}
   {{else}}
     <div class="px-4 py-8 text-center">
@@ -30,5 +51,14 @@
       <p class="text-xs text-[var(--color-text-muted)]">No notifications yet</p>
     </div>
   {{end}}
+</div>
+<!-- Notification Context Menu -->
+<div id="notifCtxMenu" class="fixed z-50 bg-[var(--color-surface)] rounded-lg shadow-lg border border-[var(--color-border)] min-w-[140px] p-1 hidden">
+  <button class="w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-surface-secondary)] text-sm text-left" id="notifMarkReadBtn">
+    <i class="fas fa-check text-xs text-[var(--color-success)]"></i> Mark as read
+  </button>
+  <button class="w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-surface-secondary)] text-sm text-left" id="notifDeleteBtn">
+    <i class="fas fa-trash text-xs text-[var(--color-error)]"></i> Delete
+  </button>
 </div>
 {{end}}

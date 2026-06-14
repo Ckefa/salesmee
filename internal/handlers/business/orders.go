@@ -1210,7 +1210,7 @@ func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
 		fmt.Sprintf("Order %s", statusLabel),
 		fmt.Sprintf("Order %s is now %s", order.OrderNumber, statusLabel),
 		"fa-shopping-cart",
-		fmt.Sprintf("/business/orders/%d", order.ID))
+		"/business/orders")
 }
 
 // buildOrderData creates the rich order data map for templates

@@ -95,7 +95,7 @@ func CheckBookingReminders(db *gorm.DB) {
 				fmt.Sprintf("%s Reminder", label),
 				fmt.Sprintf("%s at %s — %s", serviceName, timeStr, dateStr),
 				"fa-clock",
-				fmt.Sprintf("/business/bookings/%d", b.ID))
+				"/business/bookings")
 		}
 	}
 
@@ -136,7 +136,7 @@ func CheckPaymentDueReminders(db *gorm.DB) {
 			"Payment Due",
 			fmt.Sprintf("Order %s — %s due", o.OrderNumber, due),
 			"fa-credit-card",
-			fmt.Sprintf("/business/orders/%d", o.ID))
+			"/business/orders")
 	}
 
 	var bookings []models.Booking
@@ -168,7 +168,7 @@ func CheckPaymentDueReminders(db *gorm.DB) {
 			"Payment Due",
 			fmt.Sprintf("Booking %s — %s due", b.BookingNumber, due),
 			"fa-credit-card",
-			fmt.Sprintf("/business/bookings/%d", b.ID))
+			"/business/bookings")
 	}
 }
 
@@ -215,7 +215,7 @@ func CheckAbandonedCarts(db *gorm.DB) {
 				"Abandoned Cart",
 				fmt.Sprintf("Order %s is still pending — remind client", o.OrderNumber),
 				"fa-shopping-cart",
-				fmt.Sprintf("/business/orders/%d", o.ID))
+				"/business/orders")
 		}
 	}
 }

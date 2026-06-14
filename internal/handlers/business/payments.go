@@ -8,6 +8,7 @@ import (
 	"time"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
+	"salesmee/internal/services/notifier"
 
 	"github.com/gin-gonic/gin"
 )
@@ -92,6 +93,18 @@ func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
 		return
 	}
 
+	// Notify business about client payment claim
+	go func() {
+		var client models.Client
+		if h.db.First(&client, clientID).Error == nil {
+			notifier.CreateInAppNotif(h.db, order.BusinessID, &clientID,
+				"Pending Payment Approval",
+				fmt.Sprintf("%s submitted a payment of %.2f for Order %s", client.Name, request.Amount, order.OrderNumber),
+				"fa-credit-card",
+				"/business/orders")
+		}
+	}()
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"payment": payment,
@@ -159,6 +172,18 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to record payment"})
 		return
 	}
+
+	// Notify business about client payment claim
+	go func() {
+		var client models.Client
+		if h.db.First(&client, clientID).Error == nil {
+			notifier.CreateInAppNotif(h.db, booking.BusinessID, &clientID,
+				"Pending Payment Approval",
+				fmt.Sprintf("%s submitted a payment of %.2f for Booking %s", client.Name, request.Amount, booking.BookingNumber),
+				"fa-credit-card",
+				"/business/bookings")
+		}
+	}()
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

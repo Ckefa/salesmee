@@ -414,7 +414,7 @@ func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string
 		fmt.Sprintf("Booking %s", statusLabel),
 		fmt.Sprintf("Booking %s is now %s", booking.BookingNumber, statusLabel),
 		"fa-calendar-check",
-		fmt.Sprintf("/business/bookings/%d", booking.ID))
+		"/business/bookings")
 }
 
 func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {

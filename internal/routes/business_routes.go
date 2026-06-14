@@ -244,6 +244,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/notifications", businessHandler.GetNotifications)
 		protected.GET("/notifications/count", businessHandler.GetNotificationCount)
 		protected.POST("/notifications/:id/read", businessHandler.MarkNotificationRead)
+		protected.DELETE("/notifications/:id", businessHandler.DeleteNotification)
 		protected.POST("/notifications/read-all", businessHandler.MarkAllNotificationsRead)
 		protected.GET("/notification-settings", businessHandler.GetNotificationSettings)
 		protected.PUT("/notification-settings", businessHandler.UpdateNotificationSettings)

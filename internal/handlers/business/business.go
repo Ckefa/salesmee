@@ -1082,3 +1082,13 @@ func (h *BusinessHandler) MarkAllNotificationsRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
+// DeleteNotification deletes a single notification
+func (h *BusinessHandler) DeleteNotification(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	id := c.Param("id")
+
+	h.db.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.InAppNotification{})
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+

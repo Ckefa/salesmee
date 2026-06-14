@@ -12,6 +12,7 @@ import (
 	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // UpdatePaymentInstructions saves the business's payment instructions
@@ -94,6 +95,22 @@ func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
 		return
 	}
 
+	if h.hub != nil {
+		pending := pendingOrderPayments(h.db, order.ID)
+		ws.BroadcastOrderUpdateFull(
+			h.hub,
+			strconv.Itoa(int(order.ID)),
+			order.Status,
+			order.PaidAmount,
+			order.TotalAmount,
+			pending,
+			false,
+			0,
+			strconv.Itoa(int(order.BusinessID)),
+			strconv.Itoa(int(clientID)),
+		)
+	}
+
 	// Notify business about client payment claim
 	go func() {
 		var client models.Client
@@ -174,6 +191,22 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 		return
 	}
 
+	if h.hub != nil {
+		pending := pendingBookingPayments(h.db, booking.ID)
+		ws.BroadcastBookingUpdateFull(
+			h.hub,
+			strconv.Itoa(int(booking.ID)),
+			booking.Status,
+			booking.PaidAmount,
+			booking.TotalAmount,
+			pending,
+			false,
+			0,
+			strconv.Itoa(int(booking.BusinessID)),
+			strconv.Itoa(int(clientID)),
+		)
+	}
+
 	// Notify business about client payment claim
 	go func() {
 		var client models.Client
@@ -238,7 +271,19 @@ func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
 	h.db.Save(&order)
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		pending := pendingOrderPayments(h.db, order.ID)
+		ws.BroadcastOrderUpdateFull(
+			h.hub,
+			strconv.Itoa(int(order.ID)),
+			order.Status,
+			order.PaidAmount,
+			order.TotalAmount,
+			pending,
+			false,
+			0,
+			strconv.Itoa(int(businessID)),
+			strconv.Itoa(int(order.ClientID)),
+		)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -334,7 +379,19 @@ func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
 	h.db.Save(&booking)
 
 	if h.hub != nil {
-		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		pending := pendingBookingPayments(h.db, booking.ID)
+		ws.BroadcastBookingUpdateFull(
+			h.hub,
+			strconv.Itoa(int(booking.ID)),
+			booking.Status,
+			booking.PaidAmount,
+			booking.TotalAmount,
+			pending,
+			false,
+			0,
+			strconv.Itoa(int(businessID)),
+			strconv.Itoa(int(booking.ClientID)),
+		)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -737,7 +794,19 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	h.db.Save(&order)
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		pending := pendingOrderPayments(h.db, order.ID)
+		ws.BroadcastOrderUpdateFull(
+			h.hub,
+			strconv.Itoa(int(order.ID)),
+			order.Status,
+			order.PaidAmount,
+			order.TotalAmount,
+			pending,
+			false,
+			0,
+			strconv.Itoa(int(businessID)),
+			strconv.Itoa(int(order.ClientID)),
+		)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -788,7 +857,19 @@ func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
 	h.db.Save(&booking)
 
 	if h.hub != nil {
-		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		pending := pendingBookingPayments(h.db, booking.ID)
+		ws.BroadcastBookingUpdateFull(
+			h.hub,
+			strconv.Itoa(int(booking.ID)),
+			booking.Status,
+			booking.PaidAmount,
+			booking.TotalAmount,
+			pending,
+			false,
+			0,
+			strconv.Itoa(int(businessID)),
+			strconv.Itoa(int(booking.ClientID)),
+		)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1084,4 +1165,22 @@ func (h *BusinessHandler) GetPaymentsStatsGrid(c *gin.Context) {
 
 func logPaymentError(msg string, err error) {
 	log.Printf("[Payment] %s: %v", msg, err)
+}
+
+func pendingOrderPayments(db *gorm.DB, orderID uint) float64 {
+	var sum float64
+	db.Model(&models.Payment{}).
+		Where("order_id = ? AND status = ?", orderID, "pending").
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&sum)
+	return sum
+}
+
+func pendingBookingPayments(db *gorm.DB, bookingID uint) float64 {
+	var sum float64
+	db.Model(&models.Payment{}).
+		Where("booking_id = ? AND status = ?", bookingID, "pending").
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&sum)
+	return sum
 }

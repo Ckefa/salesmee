@@ -79,6 +79,94 @@ function reloadBusinessChatFromServer() {
     .catch(console.error);
 }
 
+function starsHtml(rating) {
+  var html = '';
+  var r = rating || 5;
+  for (var i = 1; i <= 5; i++) {
+    html += i <= r ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+  }
+  return html;
+}
+
+function addReviewBadgeToCard(card, rating) {
+  if (!card || card.querySelector('[data-review-badge]')) return;
+  var badge = document.createElement('div');
+  badge.setAttribute('data-review-badge', '1');
+  badge.className = 'w-full mt-2 py-1.5 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs font-medium text-center flex items-center justify-center gap-0.5';
+  badge.innerHTML = starsHtml(rating) + '<span class="ml-1.5 text-[var(--color-text-secondary)]">Reviewed</span>';
+  var timestamp = card.querySelector('.mt-2.text-right');
+  if (timestamp) card.insertBefore(badge, timestamp);
+  else card.appendChild(badge);
+}
+
+function updateOrderPendingPaymentsUI(orderId, pendingAmount) {
+  var el = document.getElementById('orderPendingPayments-' + orderId);
+  if (!el) return;
+  if (pendingAmount > 0) {
+    el.innerHTML =
+      '<div class="text-[10px] font-medium text-[var(--color-warning)] mb-2"><i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation</div>' +
+      '<button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm" onclick="confirmAllOrderPayments(' + orderId + ')">' +
+      '<i class="fas fa-check mr-1"></i>Confirm Payment</button>';
+  } else {
+    el.innerHTML = '<div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>';
+  }
+}
+
+function updateBookingPendingPaymentsUI(bookingId, pendingAmount) {
+  var el = document.getElementById('bookingPendingPayments-' + bookingId);
+  if (!el) return;
+  if (pendingAmount > 0) {
+    el.innerHTML =
+      '<div class="text-[10px] font-medium text-[var(--color-warning)] mb-2"><i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation</div>' +
+      '<button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm" onclick="confirmAllBookingPayments(' + bookingId + ')">' +
+      '<i class="fas fa-check mr-1"></i>Confirm Payment</button>';
+  } else {
+    el.innerHTML = '<div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>';
+  }
+}
+
+function applyOrderCardUpdate(upd) {
+  if (!upd || !upd.order_id) return false;
+  var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
+  if (!card) return false;
+
+  if (upd.status && card.getAttribute('data-order-status') && upd.status !== card.getAttribute('data-order-status')) {
+    return false;
+  }
+
+  var patched = false;
+  if (typeof upd.pending_amount === 'number') {
+    updateOrderPendingPaymentsUI(upd.order_id, upd.pending_amount);
+    patched = true;
+  }
+  if (upd.has_review) {
+    addReviewBadgeToCard(card, upd.review_rating || 5);
+    patched = true;
+  }
+  return patched;
+}
+
+function applyBookingCardUpdate(upd) {
+  if (!upd || !upd.booking_id) return false;
+  var card = document.querySelector('[data-booking-id="' + upd.booking_id + '"]');
+  if (!card) return false;
+
+  if (upd.status && card.getAttribute('data-booking-status') && upd.status !== card.getAttribute('data-booking-status')) {
+    return false;
+  }
+
+  var patched = false;
+  if (typeof upd.pending_amount === 'number') {
+    updateBookingPendingPaymentsUI(upd.booking_id, upd.pending_amount);
+    patched = true;
+  }
+  if (upd.has_review) {
+    addReviewBadgeToCard(card, upd.review_rating || 5);
+    patched = true;
+  }
+  return patched;
+}
+
 function wsToken() {
   return getCookie('token') || getCookie('team_token') || '';
 }
@@ -126,13 +214,13 @@ function startWsClient() {
   wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
-    reloadBusinessChatFromServer();
+    if (!applyOrderCardUpdate(upd)) reloadBusinessChatFromServer();
   });
 
   wsClient.on(7, function(frame) {
     var upd = frame.booking_update;
     if (!upd) return;
-    reloadBusinessChatFromServer();
+    if (!applyBookingCardUpdate(upd)) reloadBusinessChatFromServer();
   });
 
   wsClient.on(8, function(frame) {
@@ -187,7 +275,7 @@ function showTypingIndicator(typing) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'typingIndicator';
-    el.className = 'msg in';
+    el.className = 'msg in typing-indicator';
     el.innerHTML = '<div class="msg-bbl typing"><span class="typing-label">typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
     document.getElementById('messages-container').appendChild(el);
   }

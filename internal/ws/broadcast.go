@@ -52,6 +52,10 @@ func BroadcastReadReceipt(hub *Hub, conversationID, readerID, readerType, messag
 }
 
 func BroadcastOrderUpdate(hub *Hub, orderID, status string, paidAmount, totalAmount float64, bizID, clientID string) {
+	BroadcastOrderUpdateFull(hub, orderID, status, paidAmount, totalAmount, 0, false, 0, bizID, clientID)
+}
+
+func BroadcastOrderUpdateFull(hub *Hub, orderID, status string, paidAmount, totalAmount, pendingAmount float64, hasReview bool, reviewRating int32, bizID, clientID string) {
 	frame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_ORDER_UPDATE,
 		ConversationId: "",
@@ -60,10 +64,13 @@ func BroadcastOrderUpdate(hub *Hub, orderID, status string, paidAmount, totalAmo
 		Timestamp:      time.Now().UnixMilli(),
 		Payload: &chatpb.WsFrame_OrderUpdate{
 			OrderUpdate: &chatpb.OrderUpdate{
-				OrderId:     orderID,
-				Status:      status,
-				PaidAmount:  paidAmount,
-				TotalAmount: totalAmount,
+				OrderId:       orderID,
+				Status:        status,
+				PaidAmount:    paidAmount,
+				TotalAmount:   totalAmount,
+				PendingAmount: pendingAmount,
+				HasReview:     hasReview,
+				ReviewRating:  reviewRating,
 			},
 		},
 	}
@@ -72,6 +79,10 @@ func BroadcastOrderUpdate(hub *Hub, orderID, status string, paidAmount, totalAmo
 }
 
 func BroadcastBookingUpdate(hub *Hub, bookingID, status string, paidAmount, totalAmount float64, bizID, clientID string) {
+	BroadcastBookingUpdateFull(hub, bookingID, status, paidAmount, totalAmount, 0, false, 0, bizID, clientID)
+}
+
+func BroadcastBookingUpdateFull(hub *Hub, bookingID, status string, paidAmount, totalAmount, pendingAmount float64, hasReview bool, reviewRating int32, bizID, clientID string) {
 	frame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_BOOKING_UPDATE,
 		ConversationId: "",
@@ -80,10 +91,13 @@ func BroadcastBookingUpdate(hub *Hub, bookingID, status string, paidAmount, tota
 		Timestamp:      time.Now().UnixMilli(),
 		Payload: &chatpb.WsFrame_BookingUpdate{
 			BookingUpdate: &chatpb.BookingUpdate{
-				BookingId:   bookingID,
-				Status:      status,
-				PaidAmount:  paidAmount,
-				TotalAmount: totalAmount,
+				BookingId:     bookingID,
+				Status:        status,
+				PaidAmount:    paidAmount,
+				TotalAmount:   totalAmount,
+				PendingAmount: pendingAmount,
+				HasReview:     hasReview,
+				ReviewRating:  reviewRating,
 			},
 		},
 	}

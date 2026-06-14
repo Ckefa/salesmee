@@ -255,17 +255,23 @@ type jsonTyping struct {
 }
 
 type jsonOrderUpdate struct {
-	OrderID     string  `json:"order_id"`
-	Status      string  `json:"status"`
-	PaidAmount  float64 `json:"paid_amount"`
-	TotalAmount float64 `json:"total_amount"`
+	OrderID       string  `json:"order_id"`
+	Status        string  `json:"status"`
+	PaidAmount    float64 `json:"paid_amount"`
+	TotalAmount   float64 `json:"total_amount"`
+	PendingAmount float64 `json:"pending_amount"`
+	HasReview     bool    `json:"has_review"`
+	ReviewRating  int32   `json:"review_rating"`
 }
 
 type jsonBookingUpdate struct {
-	BookingID   string  `json:"booking_id"`
-	Status      string  `json:"status"`
-	PaidAmount  float64 `json:"paid_amount"`
-	TotalAmount float64 `json:"total_amount"`
+	BookingID     string  `json:"booking_id"`
+	Status        string  `json:"status"`
+	PaidAmount    float64 `json:"paid_amount"`
+	TotalAmount   float64 `json:"total_amount"`
+	PendingAmount float64 `json:"pending_amount"`
+	HasReview     bool    `json:"has_review"`
+	ReviewRating  int32   `json:"review_rating"`
 }
 
 type jsonUnreadCount struct {
@@ -319,18 +325,24 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 	case *chatpb.WsFrame_OrderUpdate:
 		o := p.OrderUpdate
 		jf.OrderUpdate = &jsonOrderUpdate{
-			OrderID:     o.GetOrderId(),
-			Status:      o.GetStatus(),
-			PaidAmount:  o.GetPaidAmount(),
-			TotalAmount: o.GetTotalAmount(),
+			OrderID:       o.GetOrderId(),
+			Status:        o.GetStatus(),
+			PaidAmount:    o.GetPaidAmount(),
+			TotalAmount:   o.GetTotalAmount(),
+			PendingAmount: o.GetPendingAmount(),
+			HasReview:     o.GetHasReview(),
+			ReviewRating:  o.GetReviewRating(),
 		}
 	case *chatpb.WsFrame_BookingUpdate:
 		b := p.BookingUpdate
 		jf.BookingUpdate = &jsonBookingUpdate{
-			BookingID:   b.GetBookingId(),
-			Status:      b.GetStatus(),
-			PaidAmount:  b.GetPaidAmount(),
-			TotalAmount: b.GetTotalAmount(),
+			BookingID:     b.GetBookingId(),
+			Status:        b.GetStatus(),
+			PaidAmount:    b.GetPaidAmount(),
+			TotalAmount:   b.GetTotalAmount(),
+			PendingAmount: b.GetPendingAmount(),
+			HasReview:     b.GetHasReview(),
+			ReviewRating:  b.GetReviewRating(),
 		}
 	case *chatpb.WsFrame_UnreadCount:
 		u := p.UnreadCount

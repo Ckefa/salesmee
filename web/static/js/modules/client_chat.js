@@ -121,6 +121,54 @@ function reloadClientChatFromServer() {
     .catch(console.error);
 }
 
+function starsHtml(rating) {
+  var html = '';
+  var r = rating || 5;
+  for (var i = 1; i <= 5; i++) {
+    html += i <= r ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+  }
+  return html;
+}
+
+function addReviewBadgeToCard(card, rating) {
+  if (!card || card.querySelector('[data-review-badge]')) return;
+  var badge = document.createElement('div');
+  badge.setAttribute('data-review-badge', '1');
+  badge.className = 'w-full mt-2 py-1.5 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs font-medium text-center flex items-center justify-center gap-0.5';
+  badge.innerHTML = starsHtml(rating) + '<span class="ml-1.5 text-[var(--color-text-secondary)]">Reviewed</span>';
+  var timestamp = card.querySelector('.mt-2.text-right');
+  if (timestamp) card.insertBefore(badge, timestamp);
+  else card.appendChild(badge);
+}
+
+function applyClientOrderCardUpdate(upd) {
+  if (!upd || !upd.order_id) return false;
+  var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
+  if (!card) return false;
+  if (upd.status && card.getAttribute('data-order-status') && upd.status !== card.getAttribute('data-order-status')) {
+    return false;
+  }
+  if (upd.has_review) {
+    addReviewBadgeToCard(card, upd.review_rating || 5);
+    return true;
+  }
+  return false;
+}
+
+function applyClientBookingCardUpdate(upd) {
+  if (!upd || !upd.booking_id) return false;
+  var card = document.querySelector('[data-booking-id="' + upd.booking_id + '"]');
+  if (!card) return false;
+  if (upd.status && card.getAttribute('data-booking-status') && upd.status !== card.getAttribute('data-booking-status')) {
+    return false;
+  }
+  if (upd.has_review) {
+    addReviewBadgeToCard(card, upd.review_rating || 5);
+    return true;
+  }
+  return false;
+}
+
 function startWsClient() {
   if (wsClient) wsClient.disconnect();
   wsClient = new WsClient();
@@ -162,13 +210,13 @@ function startWsClient() {
   wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
-    reloadClientChatFromServer();
+    if (!applyClientOrderCardUpdate(upd)) reloadClientChatFromServer();
   });
 
   wsClient.on(7, function(frame) {
     var upd = frame.booking_update;
     if (!upd) return;
-    reloadClientChatFromServer();
+    if (!applyClientBookingCardUpdate(upd)) reloadClientChatFromServer();
   });
 
   wsClient.on(2, function(frame) {
@@ -216,7 +264,7 @@ function showTypingIndicator(typing) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'typingIndicator';
-    el.className = 'msg in';
+    el.className = 'msg in typing-indicator';
     el.innerHTML = '<div class="msg-bbl typing"><span class="typing-label">typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
     document.getElementById('messages-container').appendChild(el);
   }

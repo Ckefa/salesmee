@@ -30,6 +30,7 @@
     {{end}}
     <span class="msg-meta">
       <span class="msg-time">{{.CreatedAt.Format "3:04 PM"}}</span>
+      {{template "msg_tick" dict "IsSelf" $isSelf "IsDelivered" .IsDelivered "IsRead" .IsRead}}
     </span>
   </div>
 </div>

@@ -1,51 +1,37 @@
 {{define "client_message_input"}}
-<div class="border-t border-[var(--color-border)]">
-  <div class="flex gap-2 p-2 pb-0">
-    <button onclick="openClientProductPicker()"
-      class="bg-[var(--color-info)] hover:opacity-90 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 flex-1 sm:flex-none">
-      <i class="fas fa-shopping-cart"></i>
-      <span>Place Order</span>
-    </button>
-    <button onclick="openClientServicePicker()"
-      class="bg-[var(--color-secondary)] hover:opacity-90 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 flex-1 sm:flex-none">
-      <i class="fas fa-concierge-bell"></i>
-      <span>Request Service</span>
-    </button>
-  </div>
-  <div class="wa-input-wrapper">
-    <form id="message-form" hx-post="/client/businesses/{{.Business.ID}}/messages" hx-target="#messages-container"
-      hx-swap="beforeend" hx-on::after-request="this.reset()" hx-encoding="multipart/form-data">
-      <div class="wa-input-inner">
-        <div class="relative" id="media-tray-container">
-          <button type="button" onclick="toggleMediaTray()" class="wa-input-icon-btn" title="Attach">
-            <i class="fas fa-plus" id="media-icon"></i>
-          </button>
-          <div id="media-tray" class="hidden wa-media-tray">
-            <button type="button" onclick="triggerMediaUpload('image')" class="wa-media-option">
-              <i class="fas fa-image text-blue-500"></i>
-              <span>Photos & Videos</span>
-            </button>
-            <button type="button" onclick="triggerMediaUpload('document')" class="wa-media-option">
-              <i class="fas fa-file-alt text-amber-500"></i>
-              <span>Document</span>
-            </button>
-            <button type="button" onclick="triggerMediaUpload('audio')" class="wa-media-option">
-              <i class="fas fa-microphone text-rose-500"></i>
-              <span>Voice Note</span>
-            </button>
-          </div>
-        </div>
-        <input type="text" name="content" id="messageInput" placeholder="Type a message"
-          class="wa-text-input" autocomplete="off">
-        <input type="hidden" name="sender" value="client">
-        <button type="submit" class="wa-send-btn" title="Send" id="sendBtn">
-          <i class="fas fa-paper-plane"></i>
+<div class="wa-input-wrapper border-t border-[var(--color-border)]">
+  <form id="message-form" hx-post="/client/businesses/{{.Business.ID}}/messages" hx-target="#messages-container"
+    hx-swap="beforeend" hx-on::after-request="this.reset()" hx-encoding="multipart/form-data">
+    <div class="wa-input-inner">
+      <div class="relative" id="media-tray-container">
+        <button type="button" onclick="toggleMediaTray()" class="wa-input-icon-btn" title="Attach">
+          <i class="fas fa-plus" id="media-icon"></i>
         </button>
+        <div id="media-tray" class="hidden wa-media-tray">
+          <button type="button" onclick="triggerMediaUpload('image')" class="wa-media-option">
+            <i class="fas fa-image text-blue-500"></i>
+            <span>Photos & Videos</span>
+          </button>
+          <button type="button" onclick="triggerMediaUpload('document')" class="wa-media-option">
+            <i class="fas fa-file-alt text-amber-500"></i>
+            <span>Document</span>
+          </button>
+          <button type="button" onclick="triggerMediaUpload('audio')" class="wa-media-option">
+            <i class="fas fa-microphone text-rose-500"></i>
+            <span>Voice Note</span>
+          </button>
+        </div>
       </div>
-      <input type="file" name="media_image" id="media-input-image" accept="image/*" class="hidden" onchange="handleMediaSelected(this)">
-      <input type="file" name="media_document" id="media-input-document" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx" class="hidden" onchange="handleMediaSelected(this)">
-      <input type="file" name="media_audio" id="media-input-audio" accept="audio/*" class="hidden" onchange="handleMediaSelected(this)">
-    </form>
-  </div>
+      <input type="text" name="content" id="messageInput" placeholder="Type a message"
+        class="wa-text-input" autocomplete="off">
+      <input type="hidden" name="sender" value="client">
+      <button type="submit" class="wa-send-btn" title="Send" id="sendBtn">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+    <input type="file" name="media_image" id="media-input-image" accept="image/*" class="hidden" onchange="handleMediaSelected(this)">
+    <input type="file" name="media_document" id="media-input-document" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx" class="hidden" onchange="handleMediaSelected(this)">
+    <input type="file" name="media_audio" id="media-input-audio" accept="audio/*" class="hidden" onchange="handleMediaSelected(this)">
+  </form>
 </div>
 {{end}}

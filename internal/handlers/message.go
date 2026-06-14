@@ -12,14 +12,16 @@ import (
 )
 
 type MessageObj struct {
-	ID        uint        `json:"id"`
-	MsgType   string      `json:"msgtype"` // "message", "order", "booking"
-	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
-	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
-	Sender    string      `json:"sender"`
-	MediaURL  string      `json:"media_url"`
-	MediaType string      `json:"media_type"`
-	CreatedAt time.Time   `json:"created_at"`
+	ID          uint        `json:"id"`
+	MsgType     string      `json:"msgtype"` // "message", "order", "booking"
+	Value       string      `json:"value"`   // string content for normal messages, empty for orders/bookings
+	Data        interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
+	Sender      string      `json:"sender"`
+	MediaURL    string      `json:"media_url"`
+	MediaType   string      `json:"media_type"`
+	CreatedAt   time.Time   `json:"created_at"`
+	IsDelivered bool        `json:"is_delivered"`
+	IsRead      bool        `json:"is_read"`
 }
 
 
@@ -124,15 +126,23 @@ func GetMessages(c *gin.Context) {
 	db.DB.Where("conversation_id = ?", conversation.ID).Order("created_at ASC").Find(&messages)
 
 	for _, msg := range messages {
+		isSelf := msg.Sender == "business"
+		var isDelivered, isRead bool
+		if isSelf {
+			isDelivered = conversation.LastReadByClientAt != nil && msg.CreatedAt.Before(*conversation.LastReadByClientAt)
+			isRead = msg.ReadByClient
+		}
 		messageObj := MessageObj{
-			ID:        msg.ID,
-			MsgType:   "message",
-			Value:     msg.Content,
-			Data:      msg,
-			Sender:    msg.Sender,
-			MediaURL:  msg.MediaURL,
-			MediaType: msg.MediaType,
-			CreatedAt: msg.CreatedAt,
+			ID:          msg.ID,
+			MsgType:     "message",
+			Value:       msg.Content,
+			Data:        msg,
+			Sender:      msg.Sender,
+			MediaURL:    msg.MediaURL,
+			MediaType:   msg.MediaType,
+			CreatedAt:   msg.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      isRead,
 		}
 		messageObjs = append(messageObjs, messageObj)
 	}
@@ -246,13 +256,18 @@ func GetMessages(c *gin.Context) {
 			"payment_methods":      orderPaymentMethods,
 		}
 
+		isSelf := order.Sender == "business"
+		isDelivered := isSelf && conversation.LastReadByClientAt != nil && order.CreatedAt.Before(*conversation.LastReadByClientAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        order.ID + 10000,
-			MsgType:   "order",
-			Value:     "",
-			Data:      orderData,
-			Sender:    order.Sender,
-			CreatedAt: order.CreatedAt,
+			ID:          order.ID + 10000,
+			MsgType:     "order",
+			Value:       "",
+			Data:        orderData,
+			Sender:      order.Sender,
+			CreatedAt:   order.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
@@ -333,13 +348,18 @@ func GetMessages(c *gin.Context) {
 			"payment_methods":      bookingPaymentMethods,
 		}
 
+		isSelf := booking.Sender == "business"
+		isDelivered := isSelf && conversation.LastReadByClientAt != nil && booking.CreatedAt.Before(*conversation.LastReadByClientAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        booking.ID + 20000,
-			MsgType:   "booking",
-			Value:     "",
-			Data:      bookingData,
-			Sender:    booking.Sender,
-			CreatedAt: booking.CreatedAt,
+			ID:          booking.ID + 20000,
+			MsgType:     "booking",
+			Value:       "",
+			Data:        bookingData,
+			Sender:      booking.Sender,
+			CreatedAt:   booking.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
@@ -562,6 +582,17 @@ func MarkClientConversationAsRead(c *gin.Context) {
 		Where("client_id = ? AND business_id = ?", clientID, businessID).
 		Update("last_read_by_client_at", &now).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to mark conversation as read"})
+		return
+	}
+
+	// Also mark all unread business-sent messages as read by client
+	if err := db.DB.Model(&models.Message{}).
+		Where("conversation_id IN (SELECT id FROM conversations WHERE client_id = ? AND business_id = ?) AND sender = 'business' AND read_by_client = ?", clientID, businessID, false).
+		Updates(map[string]interface{}{
+			"read_by_client":    true,
+			"read_by_client_at": &now,
+		}).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to mark messages as read"})
 		return
 	}
 

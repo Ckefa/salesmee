@@ -202,14 +202,16 @@ func ClientDashboard(c *gin.Context) {
 }
 
 type MessageObj struct {
-	ID        uint        `json:"id"`
-	MsgType   string      `json:"msgtype"` // "message", "order", "booking"
-	Value     string      `json:"value"`   // string content for normal messages, empty for orders/bookings
-	Data      interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
-	Sender    string      `json:"sender"`
-	MediaURL  string      `json:"media_url"`
-	MediaType string      `json:"media_type"`
-	CreatedAt time.Time   `json:"created_at"`
+	ID          uint        `json:"id"`
+	MsgType     string      `json:"msgtype"` // "message", "order", "booking"
+	Value       string      `json:"value"`   // string content for normal messages, empty for orders/bookings
+	Data        interface{} `json:"data"`    // order object or booking object as JSON, null for normal messages
+	Sender      string      `json:"sender"`
+	MediaURL    string      `json:"media_url"`
+	MediaType   string      `json:"media_type"`
+	CreatedAt   time.Time   `json:"created_at"`
+	IsDelivered bool        `json:"is_delivered"`
+	IsRead      bool        `json:"is_read"`
 }
 
 // Helper function to get or create conversation by client email and business ID
@@ -279,15 +281,23 @@ func GetClientMessages(c *gin.Context) {
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
 	for _, msg := range messages {
+		isSelf := msg.Sender == "client"
+		var isDelivered, isRead bool
+		if isSelf {
+			isDelivered = conversation.LastReadByBusinessAt != nil && msg.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+			isRead = msg.ReadByBusiness
+		}
 		messageObj := MessageObj{
-			ID:        msg.ID,
-			MsgType:   "message",
-			Value:     msg.Content,
-			Data:      msg,
-			Sender:    msg.Sender,
-			MediaURL:  msg.MediaURL,
-			MediaType: msg.MediaType,
-			CreatedAt: msg.CreatedAt,
+			ID:          msg.ID,
+			MsgType:     "message",
+			Value:       msg.Content,
+			Data:        msg,
+			Sender:      msg.Sender,
+			MediaURL:    msg.MediaURL,
+			MediaType:   msg.MediaType,
+			CreatedAt:   msg.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      isRead,
 		}
 		messageObjs = append(messageObjs, messageObj)
 	}
@@ -394,13 +404,18 @@ func GetClientMessages(c *gin.Context) {
 			"payment_methods":      orderPaymentMethods,
 		}
 
+		isSelf := order.Sender == "client"
+		isDelivered := isSelf && conversation.LastReadByBusinessAt != nil && order.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        order.ID + 10000,
-			MsgType:   "order",
-			Value:     "",
-			Data:      orderData,
-			Sender:    order.Sender,
-			CreatedAt: order.CreatedAt,
+			ID:          order.ID + 10000,
+			MsgType:     "order",
+			Value:       "",
+			Data:        orderData,
+			Sender:      order.Sender,
+			CreatedAt:   order.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 
@@ -471,13 +486,18 @@ func GetClientMessages(c *gin.Context) {
 			"payment_methods":      bookingPaymentMethods,
 		}
 
+		isSelf := booking.Sender == "client"
+		isDelivered := isSelf && conversation.LastReadByBusinessAt != nil && booking.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+
 		messageObjs = append(messageObjs, MessageObj{
-			ID:        booking.ID + 20000,
-			MsgType:   "booking",
-			Value:     "",
-			Data:      bookingData,
-			Sender:    booking.Sender,
-			CreatedAt: booking.CreatedAt,
+			ID:          booking.ID + 20000,
+			MsgType:     "booking",
+			Value:       "",
+			Data:        bookingData,
+			Sender:      booking.Sender,
+			CreatedAt:   booking.CreatedAt,
+			IsDelivered: isDelivered,
+			IsRead:      false,
 		})
 	}
 

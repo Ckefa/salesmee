@@ -205,6 +205,7 @@
       <!-- Timestamp -->
       <div class="mt-2 text-right">
         <span class="text-xs text-[var(--color-text-muted)]">{{.CreatedAt.Format "3:04 PM"}}</span>
+        {{template "msg_tick" dict "IsSelf" (eq .Sender "business") "IsDelivered" .IsDelivered "IsRead" .IsRead}}
       </div>
     </div>
   </div>

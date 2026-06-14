@@ -3,8 +3,9 @@
 
   <div class="wa-progress-bar">
     {{template "progress_controls" .}}
-    <div id="insights-drawer"></div>
   </div>
+
+  <div id="insights-drawer"></div>
 
   <div class="wa-messages-area" id="messages-container">
     {{range .Messages}}
@@ -83,95 +84,10 @@ function refreshPendingPayments() {
               '<button onclick="confirmAllBookingPayments(' + bookingId + ')" class="text-[var(--color-success)] hover:brightness-90 px-1.5 py-0.5 rounded bg-[var(--color-success-light)] text-[10px] font-medium whitespace-nowrap">Confirm All</button>' +
               '</div>';
           } else {
-            el.innerHTML = '<div class="text-[10px] text-[var(--color-success)] font-medium"><i class="fas fa-check-circle mr-0.5"></i>All payments confirmed</div>';
+            el.innerHTML = '';
           }
         }
       });
   });
 }
-
-function confirmOrderPayment(orderId, paymentId) {
-  fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/confirm', {
-    method: 'POST',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
-        fetchMessages();
-      } else {
-        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
-      }
-    });
-}
-
-function rejectOrderPayment(orderId, paymentId) {
-  fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/reject', {
-    method: 'POST',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
-        fetchMessages();
-      } else {
-        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
-      }
-    });
-}
-
-function confirmAllBookingPayments(bookingId) {
-  fetch('/business/bookings/' + bookingId + '/payments/confirm-all', {
-    method: 'POST',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        if (typeof showNotification === 'function') showNotification('All payments confirmed!', 'success');
-        fetchMessages();
-      } else {
-        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm payments', 'error');
-      }
-    });
-}
-
-function confirmBookingPayment(bookingId, paymentId) {
-  fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/confirm', {
-    method: 'POST',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
-        fetchMessages();
-      } else {
-        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
-      }
-    });
-}
-
-function rejectBookingPayment(bookingId, paymentId) {
-  fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/reject', {
-    method: 'POST',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
-        fetchMessages();
-      } else {
-        if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
-      }
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  refreshPendingPayments();
-  setInterval(refreshPendingPayments, 30000);
-});
 </script>

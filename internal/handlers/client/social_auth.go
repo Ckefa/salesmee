@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,8 +19,8 @@ import (
 )
 
 var (
-	clientGoogleAdapter     *services.GoogleAdapter
-	clientGoogleAdapterOnce sync.Once
+	clientGoogleAdapter       *services.GoogleAdapter
+	clientGoogleAdapterOnce   sync.Once
 	clientFacebookAdapter     *services.FacebookAdapter
 	clientFacebookAdapterOnce sync.Once
 )
@@ -44,9 +45,17 @@ func clientGenerateState() string {
 	return hex.EncodeToString(b)
 }
 
+func safeClientOAuthRedirect(raw string) string {
+	if raw == "" || !strings.HasPrefix(raw, "/") || strings.HasPrefix(raw, "//") {
+		return "/client"
+	}
+	return raw
+}
+
 func InitiateClientGoogleAuth(c *gin.Context) {
 	state := clientGenerateState()
 	c.SetCookie("client_google_oauth_state", state, 600, "/client/auth/google", "", false, true)
+	c.SetCookie("client_google_oauth_redirect", safeClientOAuthRedirect(c.Query("redirect")), 600, "/client/auth/google", "", false, true)
 	url := getClientGoogleAdapter().GetAuthURL(state)
 	c.Redirect(http.StatusFound, url)
 }
@@ -76,6 +85,8 @@ func HandleClientGoogleCallback(c *gin.Context) {
 		return
 	}
 	c.SetCookie("client_google_oauth_state", "", -1, "/client/auth/google", "", false, true)
+	redirectTo, _ := c.Cookie("client_google_oauth_redirect")
+	c.SetCookie("client_google_oauth_redirect", "", -1, "/client/auth/google", "", false, true)
 
 	code := c.Query("code")
 	if code == "" {
@@ -137,12 +148,13 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	}
 
 	c.SetCookie("client_token", token, 86400, "/", "", false, false)
-	c.Redirect(http.StatusFound, "/client")
+	c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirectTo))
 }
 
 func InitiateClientFacebookAuth(c *gin.Context) {
 	state := clientGenerateState()
 	c.SetCookie("client_facebook_oauth_state", state, 600, "/client/auth/facebook", "", false, true)
+	c.SetCookie("client_facebook_oauth_redirect", safeClientOAuthRedirect(c.Query("redirect")), 600, "/client/auth/facebook", "", false, true)
 	url := getClientFacebookAdapter().GetAuthURL(state)
 	c.Redirect(http.StatusFound, url)
 }
@@ -158,6 +170,8 @@ func HandleClientFacebookCallback(c *gin.Context) {
 		return
 	}
 	c.SetCookie("client_facebook_oauth_state", "", -1, "/client/auth/facebook", "", false, true)
+	redirectTo, _ := c.Cookie("client_facebook_oauth_redirect")
+	c.SetCookie("client_facebook_oauth_redirect", "", -1, "/client/auth/facebook", "", false, true)
 
 	code := c.Query("code")
 	if code == "" {
@@ -219,5 +233,5 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	}
 
 	c.SetCookie("client_token", token, 86400, "/", "", false, false)
-	c.Redirect(http.StatusFound, "/client")
+	c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirectTo))
 }

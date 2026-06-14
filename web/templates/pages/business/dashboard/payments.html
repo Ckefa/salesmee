@@ -204,10 +204,120 @@
     </div>
 </div>
 
+<!-- Payment Method Modal -->
+<div id="paymentMethodModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--color-surface)] rounded-xl shadow-2xl border border-[var(--color-border)]">
+    <div class="sticky top-0 z-10 px-4 sm:px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
+      <h3 id="paymentMethodModalTitle" class="text-base sm:text-lg font-semibold text-[var(--color-text)]">Add Payment Method</h3>
+      <button type="button" onclick="hidePaymentMethodModal()" class="w-8 h-8 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="paymentMethodForm" class="p-4 sm:p-6 space-y-4">
+      <input type="hidden" id="pmEditId">
+
+      <div id="pmFormError" class="hidden rounded-lg bg-[var(--color-error-light)] text-[var(--color-error)] px-3 py-2 text-sm"></div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="pmType" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">Method Type</label>
+          <select id="pmType" class="input text-sm" onchange="onPaymentMethodTypeChange()" required>
+            <option value="">Select type</option>
+            <option value="bank">Bank Account</option>
+            <option value="mobile_wallet">Mobile Wallet</option>
+            <option value="paypal">PayPal</option>
+            <option value="link">Payment Link</option>
+            <option value="crypto">Crypto Wallet</option>
+            <option value="custom">Custom Instructions</option>
+          </select>
+        </div>
+        <div>
+          <label for="pmLabel" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">Display Label</label>
+          <input id="pmLabel" type="text" class="input text-sm" placeholder="e.g. Main bank account" required>
+        </div>
+      </div>
+
+      <div>
+        <label for="pmSortOrder" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">Sort Order</label>
+        <input id="pmSortOrder" type="number" class="input text-sm" value="0" min="0">
+      </div>
+
+      <div id="pmBankFields" class="hidden space-y-3 rounded-xl border border-[var(--color-border)] p-4">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <input id="pmBankAccountName" class="input text-sm" placeholder="Account name">
+          <input id="pmBankAccountNumber" class="input text-sm" placeholder="Account number">
+          <input id="pmBankName" class="input text-sm" placeholder="Bank name">
+          <input id="pmBankBranchCode" class="input text-sm" placeholder="Branch code">
+          <input id="pmBankIban" class="input text-sm" placeholder="IBAN">
+          <input id="pmBankSwiftCode" class="input text-sm" placeholder="SWIFT code">
+          <input id="pmBankSortCode" class="input text-sm" placeholder="Sort code">
+        </div>
+      </div>
+
+      <div id="pmMobileWalletFields" class="hidden space-y-3 rounded-xl border border-[var(--color-border)] p-4">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <select id="pmMobileWalletProvider" class="input text-sm" onchange="onMobileWalletProviderChange()">
+            <option value="">Provider</option>
+            <option value="M-Pesa">M-Pesa</option>
+            <option value="Airtel Money">Airtel Money</option>
+            <option value="MTN Mobile Money">MTN Mobile Money</option>
+            <option value="Orange Money">Orange Money</option>
+            <option value="UPI">UPI</option>
+            <option value="Other">Other</option>
+          </select>
+          <input id="pmMobileWalletPhone" class="input text-sm" placeholder="Phone number">
+          <input id="pmMobileWalletUpi" class="input text-sm" placeholder="UPI ID">
+          <input id="pmMobileWalletName" class="input text-sm" placeholder="Account name">
+        </div>
+        <div id="pmMobileWalletCustomWrap" class="hidden">
+          <input id="pmMobileWalletCustomProvider" class="input text-sm" placeholder="Provider name">
+        </div>
+      </div>
+
+      <div id="pmPaypalFields" class="hidden space-y-3 rounded-xl border border-[var(--color-border)] p-4">
+        <input id="pmPaypalEmail" type="email" class="input text-sm" placeholder="PayPal email">
+        <input id="pmPaypalLink" type="url" class="input text-sm" placeholder="PayPal.me or checkout link">
+        <textarea id="pmPaypalDescription" class="input text-sm" style="min-height:5rem" placeholder="Notes for clients"></textarea>
+      </div>
+
+      <div id="pmLinkFields" class="hidden space-y-3 rounded-xl border border-[var(--color-border)] p-4">
+        <input id="pmLinkUrl" type="url" class="input text-sm" placeholder="Payment URL">
+        <textarea id="pmLinkDescription" class="input text-sm" style="min-height:5rem" placeholder="Notes for clients"></textarea>
+      </div>
+
+      <div id="pmCryptoFields" class="hidden space-y-3 rounded-xl border border-[var(--color-border)] p-4">
+        <input id="pmCryptoNetwork" class="input text-sm" placeholder="Network, e.g. Bitcoin, Ethereum, USDT TRC20">
+        <textarea id="pmCryptoAddress" class="input text-sm" style="min-height:5rem" placeholder="Wallet address"></textarea>
+        <textarea id="pmCryptoDescription" class="input text-sm" style="min-height:5rem" placeholder="Notes for clients"></textarea>
+      </div>
+
+      <div id="pmCustomFields" class="hidden rounded-xl border border-[var(--color-border)] p-4">
+        <textarea id="pmCustomContent" class="input text-sm" style="min-height:7rem" placeholder="Write payment instructions shown to clients"></textarea>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2 sm:justify-end pt-2">
+        <button type="button" onclick="hidePaymentMethodModal()" class="btn btn-secondary">Cancel</button>
+        <button id="pmSubmitBtn" type="submit" class="btn btn-primary">
+          <i class="fas fa-save mr-1"></i> Save Method
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   var paymentMethodsData = {{.PaymentMethods | json}};
 
   // ── Payment Methods CRUD ──
+
+  function setActivePill(el) {
+    var pills = document.querySelectorAll('#payments-filter-pills button');
+    pills.forEach(function(p) {
+      p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]';
+    });
+    el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white';
+  }
 
   function onPaymentMethodTypeChange() {
     var t = document.getElementById('pmType').value;
@@ -561,6 +671,20 @@
     if (loc) url += '?location_id=' + loc;
     window.location.href = url;
   }
+
+  window.onPaymentMethodTypeChange = onPaymentMethodTypeChange;
+  window.onMobileWalletProviderChange = onMobileWalletProviderChange;
+  window.hidePaymentMethodModal = hidePaymentMethodModal;
+  window.openAddPaymentMethod = openAddPaymentMethod;
+  window.openEditPaymentMethod = openEditPaymentMethod;
+  window.deletePaymentMethod = deletePaymentMethod;
+  window.togglePaymentMethodActive = togglePaymentMethodActive;
+  window.confirmOrderPayment = confirmOrderPayment;
+  window.rejectOrderPayment = rejectOrderPayment;
+  window.confirmBookingPayment = confirmBookingPayment;
+  window.rejectBookingPayment = rejectBookingPayment;
+  window.onPaymentsLocationChange = onPaymentsLocationChange;
+  window.setActivePill = setActivePill;
 </script>
 </div>
 {{end}}

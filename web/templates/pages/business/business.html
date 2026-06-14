@@ -50,11 +50,12 @@
         A verification link was sent to <strong class="text-[var(--color-text)]">{{.Business.Email}}</strong>.
         Please verify your email to unlock full account security and all platform features.
       </p>
+      <div id="countdownContainer" class="hidden mb-5 flex justify-center"></div>
       <div class="space-y-3">
-        <button onclick="resendVerification()" class="btn btn-primary w-full">
+        <button onclick="resendVerification(event)" class="btn btn-primary w-full">
           <i class="fas fa-envelope mr-2"></i>Resend Verification Email
         </button>
-        <button onclick="checkVerificationStatus()" class="btn w-full text-sm text-[var(--color-info)] hover:bg-[var(--color-info)] hover:text-white bg-transparent" style="border:1px solid var(--color-info)">
+        <button onclick="checkVerificationStatus(event)" class="btn w-full text-sm text-[var(--color-info)] hover:bg-[var(--color-info)] hover:text-white bg-transparent" style="border:1px solid var(--color-info)">
           <i class="fas fa-sync-alt mr-2"></i>Check Status
         </button>
         <button onclick="dismissVerifyModal()" class="btn w-full text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-surface-secondary)]" style="border:1px solid var(--color-border)">
@@ -67,11 +68,104 @@
     </div>
   </div>
   <script>
+    var verifyCountdownCircum = 2 * Math.PI * 40;
+    var verifyCountdownCancel = null;
+
     function dismissVerifyModal() {
       document.getElementById('verifyModal').remove();
     }
-    function checkVerificationStatus() {
-      var btn = event.target.closest('button');
+    function startVerificationCooldown(btn, seconds) {
+      if (verifyCountdownCancel) verifyCountdownCancel();
+      btn.disabled = true;
+      var container = document.getElementById('countdownContainer');
+      if (!container) return;
+      container.classList.remove('hidden');
+      container.innerHTML =
+        '<div class="flex flex-col items-center gap-1.5 animate-fade-in">' +
+          '<svg class="countdown-ring" width="88" height="88" viewBox="0 0 100 100">' +
+            '<circle class="countdown-ring-bg" cx="50" cy="50" r="40"/>' +
+            '<circle class="countdown-ring-fg" id="countdownCircle" cx="50" cy="50" r="40" ' +
+              'stroke-dasharray="' + verifyCountdownCircum + '" stroke-dashoffset="0"/>' +
+          '</svg>' +
+          '<span class="countdown-number text-xl font-bold text-[var(--color-text)]" id="countdownText">' + seconds + '</span>' +
+          '<span class="text-xs text-[var(--color-text-muted)]">Resend available in</span>' +
+        '</div>';
+
+      var circle = document.getElementById('countdownCircle');
+      var text = document.getElementById('countdownText');
+      var start = performance.now();
+      var duration = seconds * 1000;
+      var cancelled = false;
+
+      verifyCountdownCancel = function() {
+        cancelled = true;
+        container.classList.add('hidden');
+        container.innerHTML = '';
+      };
+
+      function tick(now) {
+        if (cancelled) return;
+        var elapsed = now - start;
+        var remaining = Math.max(0, duration - elapsed);
+        var fraction = duration > 0 ? remaining / duration : 0;
+        var secs = Math.ceil(remaining / 1000);
+        if (circle) circle.setAttribute('stroke-dashoffset', Math.round(verifyCountdownCircum * (1 - fraction)));
+        if (text) text.textContent = secs;
+        if (remaining > 0) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend Verification Email';
+        verifyCountdownCancel = null;
+      }
+      requestAnimationFrame(tick);
+    }
+    function resendVerification(e) {
+      var btn = e && e.target ? e.target.closest('button') : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending';
+        startVerificationCooldown(btn, 60);
+      }
+      fetch('/business/verify/send', { method:'POST', headers:{'X-CSRF-Token':getCookie('csrf_token')}})
+        .then(function(r){return r.json()})
+        .then(function(data){
+          if (data.message && data.message === 'Email already verified') {
+            if (verifyCountdownCancel) verifyCountdownCancel();
+            var m = document.getElementById('verifyModal');
+            if (m) m.remove();
+            showNotification('Email already verified!', 'success');
+            return;
+          }
+          if (data.message) {
+            showNotification(data.message, 'success');
+            if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend';
+            if (btn && data.cooldown && data.cooldown < 60) {
+              startVerificationCooldown(btn, data.cooldown);
+            }
+          } else {
+            if (verifyCountdownCancel) verifyCountdownCancel();
+            showNotification(data.error || 'Failed to send verification email.', 'error');
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend Verification Email';
+            }
+          }
+        })
+        .catch(function(){
+          if (verifyCountdownCancel) verifyCountdownCancel();
+          showNotification('Failed to send verification email. Check your connection.', 'error');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend Verification Email';
+          }
+        });
+    }
+    function checkVerificationStatus(e) {
+      var btn = e && e.target ? e.target.closest('button') : null;
       if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Checking'; }
       fetch('/business/verify/status', {method:'POST', headers:{'X-CSRF-Token':getCookie('csrf_token')}})
         .then(function(r){return r.json()})

@@ -274,6 +274,7 @@ function showProgressModal() {
 function toggleInsightsDrawer(conversationId) {
   var drawer = document.getElementById('insights-drawer');
   if (!drawer) return;
+  
   if (!drawer.classList.contains('open')) {
     drawer.classList.add('open');
     if (!drawer.hasChildNodes() || drawer.innerHTML.trim() === '') {

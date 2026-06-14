@@ -276,6 +276,7 @@ function toggleInsightsDrawer(conversationId) {
   if (!drawer) return;
   
   if (!drawer.classList.contains('open')) {
+    positionInsightsDrawer();
     drawer.classList.add('open');
     if (!drawer.hasChildNodes() || drawer.innerHTML.trim() === '') {
       drawer.innerHTML = '<div class="px-3 sm:px-6 py-6 text-center text-[var(--color-text-muted)] text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading insights...</div>';
@@ -285,9 +286,41 @@ function toggleInsightsDrawer(conversationId) {
       });
     }
   } else {
-    drawer.classList.remove('open');
+    closeInsightsDrawer();
   }
 }
+
+function positionInsightsDrawer() {
+  var container = document.getElementById('waChatContainer');
+  var drawer = document.getElementById('insights-drawer');
+  if (!container || !drawer) return;
+
+  var containerRect = container.getBoundingClientRect();
+  var progress = container.querySelector('.wa-progress-bar');
+  var input = container.querySelector('.wa-input-wrapper');
+  var top = progress ? progress.getBoundingClientRect().bottom - containerRect.top : 0;
+  var bottom = input ? containerRect.bottom - input.getBoundingClientRect().top : 0;
+
+  drawer.style.setProperty('--insights-top', Math.max(0, Math.round(top)) + 'px');
+  drawer.style.setProperty('--insights-bottom', Math.max(0, Math.round(bottom)) + 'px');
+}
+
+function closeInsightsDrawer() {
+  var drawer = document.getElementById('insights-drawer');
+  if (drawer) drawer.classList.remove('open');
+}
+
+window.addEventListener('resize', function() {
+  var drawer = document.getElementById('insights-drawer');
+  if (drawer && drawer.classList.contains('open')) positionInsightsDrawer();
+});
+
+document.addEventListener('click', function(event) {
+  var drawer = document.getElementById('insights-drawer');
+  if (!drawer || !drawer.classList.contains('open')) return;
+  if (event.target.closest('#insights-drawer') || event.target.closest('.insights-toggle')) return;
+  closeInsightsDrawer();
+});
 
 // ========== Order Lifecycle Functions ==========
 
@@ -453,7 +486,4 @@ function onMessageKeydown(event) {
     }
   }
 }
-
-
-
 

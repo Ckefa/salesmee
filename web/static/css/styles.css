@@ -1304,6 +1304,10 @@
   z-index: 1;
 }
 
+.wa-chat-container > .wa-chat-header {
+  z-index: 60;
+}
+
 #chat-content {
   flex: 1;
   min-height: 0;
@@ -2051,9 +2055,13 @@
     transform-origin: center;
   }
 
-  /* Insights Drawer — in-flow panel below the chat progress bar */
+  /* Insights Drawer — compact overlay above messages */
 #insights-drawer {
-  flex-shrink: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--insights-top, 96px);
+  z-index: 45;
   width: 100%;
   max-height: 0;
   overflow: hidden;
@@ -2065,24 +2073,11 @@
 }
 
 #insights-drawer.open {
-  max-height: min(42vh, 420px);
+  max-height: calc(100% - var(--insights-top, 96px) - var(--insights-bottom, 57px));
   opacity: 1;
   pointer-events: auto;
-  overflow-y: auto;
+  overflow: visible;
   border-bottom-width: 1px;
-}
-
-#insights-drawer::-webkit-scrollbar {
-  width: 4px;
-}
-
-#insights-drawer::-webkit-scrollbar-thumb {
-  background: var(--color-surface-tertiary);
-  border-radius: 2px;
-}
-
-#insights-drawer::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
 }
 
 @keyframes scaleIn {

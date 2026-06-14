@@ -1,30 +1,8 @@
 
 
-function openClientOrderModal() {
-  loadClientProducts();
-  document.getElementById('clientOrderModal').classList.remove('hidden');
-}
-
 function hideClientOrderModal() {
   document.getElementById('clientOrderModal').classList.add('hidden');
   document.getElementById('clientOrderForm').reset();
-}
-
-async function loadClientProducts() {
-  try {
-    const response = await fetch(`/client/businesses/${businessId}/products`);
-    const products = await response.json();
-    const select = document.getElementById('clientOrderProduct');
-    select.innerHTML = '<option value="">Choose a product...</option>';
-    products.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.name} - $${p.price}`;
-      select.appendChild(opt);
-    });
-  } catch (error) {
-    console.error('Error loading products:', error);
-  }
 }
 
 function submitOrderForm() {
@@ -154,80 +132,6 @@ function addOrderMessageToChat(order) {
     </div>
   </div>`;
   container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-}
-
-function addBookingMessageToChat(booking) {
-  const container = document.getElementById('messages-container');
-  if (!container) return;
-  const bookingDate = new Date(booking.scheduled_date);
-  const bookingNumber = booking.booking_number || booking.id;
-  const serviceName = booking.service_name || '';
-  const duration = booking.duration || '';
-  const totalAmount = booking.total_amount || '';
-  const notes = booking.notes || '';
-  const status = booking.status || 'pending';
-  const dateStr = bookingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const timeStr = bookingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const statusClass = status === 'pending' ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
-    status === 'client_confirmed' ? 'bg-[var(--color-info-light)] text-[var(--color-info)]' :
-    status === 'completed' ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
-    status === 'cancelled' ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]';
-  const borderClass = status === 'pending' ? 'border-[var(--color-warning)] bg-[var(--color-warning-light)]' :
-    status === 'client_confirmed' ? 'border-[var(--color-info)] bg-[var(--color-info-light)]' :
-    status === 'completed' ? 'border-[var(--color-success)] bg-[var(--color-success-light)]' :
-    status === 'cancelled' ? 'border-[var(--color-error)] bg-[var(--color-error-light)]' : 'border-[var(--color-border)] bg-[var(--color-surface-secondary)]';
-  const iconClass = status === 'pending' ? 'text-[var(--color-warning)]' :
-    status === 'client_confirmed' ? 'text-[var(--color-info)]' :
-    status === 'completed' ? 'text-[var(--color-success)]' :
-    status === 'cancelled' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]';
-
-  let extraHtml = '';
-  if (status === 'pending') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-warning)] font-medium"><i class="fas fa-clock mr-1"></i>Awaiting business confirmation</p></div>';
-  } else if (status === 'client_confirmed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-info)] font-medium"><i class="fas fa-check-circle mr-1"></i>Your booking is confirmed</p></div>';
-  } else if (status === 'completed') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-success)] font-medium"><i class="fas fa-check-double mr-1"></i>Service completed</p></div>';
-  } else if (status === 'cancelled') {
-    extraHtml = '<div class="mt-2 pt-2 border-t border-[var(--color-border)]/50"><p class="text-xs text-center text-[var(--color-error)] font-medium"><i class="fas fa-ban mr-1"></i>This booking was cancelled</p></div>';
-  }
-
-  container.insertAdjacentHTML('beforeend', `
-    <div class="flex justify-end">
-      <div class="max-w-xs lg:max-w-md w-full">
-        <div class="${borderClass} border rounded-lg px-4 py-3" data-message-id="${booking.id}" data-booking-id="${booking.id}">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center space-x-2 min-w-0">
-              <i class="fas fa-calendar-check ${iconClass}"></i>
-              <span class="font-semibold text-sm ${iconClass}">#${bookingNumber}</span>
-              <span class="text-[var(--color-text)] text-sm truncate">${serviceName}</span>
-            </div>
-            <div class="flex items-center space-x-1 flex-shrink-0 ml-2">
-              ${status === 'pending' ? '<button onclick="cancelBooking(' + booking.id + ')" class="text-[var(--color-error)] hover:opacity-80 text-xs" title="Cancel Booking"><i class="fas fa-times"></i></button>' : ''}
-              <button onclick="openClientEditBookingPicker(${booking.id})" class="${iconClass} hover:opacity-80 text-xs" title="Edit Booking">
-                <i class="fas fa-edit"></i>
-              </button>
-            </div>
-          </div>
-          <div class="booking-details text-sm text-[var(--color-text)] space-y-1">
-            <p class="flex items-center space-x-1">
-              <i class="fas fa-clock text-xs text-[var(--color-text-muted)]"></i>
-              <span>${dateStr} at ${timeStr}</span>
-            </p>
-            ${duration ? '<p class="flex items-center space-x-1"><i class="fas fa-hourglass-half text-xs text-[var(--color-text-muted)]"></i><span>' + duration + ' min</span></p>' : ''}
-            ${totalAmount ? '<p class="flex items-center space-x-1"><i class="fas fa-tag text-xs text-[var(--color-text-muted)]"></i><span>$' + parseFloat(totalAmount).toFixed(2) + '</span></p>' : ''}
-            ${notes ? '<p class="text-xs text-[var(--color-text-muted)] italic mt-1 border-t border-[var(--color-border)] pt-1">' + notes + '</p>' : ''}
-            <p class="hidden booking-notes-data">${notes}</p>
-          </div>
-          <div class="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]/50">
-            <p class="text-xs text-[var(--color-text-muted)]">Just now</p>
-            <span class="text-xs font-medium ${statusClass} px-2 py-0.5 rounded-full booking-status">${status}</span>
-          </div>
-          ${extraHtml}
-        </div>
-      </div>
-    </div>`);
   container.scrollTop = container.scrollHeight;
 }
 

@@ -134,11 +134,6 @@ function loadBusiness(businessId) {
   }
 }
 
-function sendMessage() {
-  const form = document.getElementById('message-form');
-  if (form) form.submit();
-}
-
 function disconnectBusiness(businessId) {
   showConfirmModal({
     title: 'Remove Business',

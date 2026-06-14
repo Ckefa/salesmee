@@ -232,38 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function openPaymentModal(clientId) {
-  htmx.ajax('GET', '/business/clients/' + clientId + '/request-payment', {
-    target: '#payment-modal',
-    swap: 'innerHTML'
-  });
-  var modal = document.getElementById('payment-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'payment-modal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    document.body.appendChild(modal);
-  }
-  modal.classList.remove('hidden');
-}
-
-function sendMessage() { var form = document.getElementById('message-form'); if (form) form.submit(); }
-
-function createMessageAction(messageId, type) {
-  var title = prompt('Create ' + type + ':');
-  if (!title) return;
-  var description = prompt('Description (optional):') || '';
-  var dueDate = type === 'booking' ? prompt('Date (YYYY-MM-DD):') : null;
-  var fd = new FormData();
-  fd.append('type', type);
-  fd.append('title', title);
-  fd.append('description', description);
-  if (dueDate) fd.append('due_date', dueDate);
-  htmx.ajax('POST', '/messages/' + messageId + '/actions', {
-    target: '#actions-panel', swap: 'innerHTML', values: fd
-  });
-}
-
 function saveConversationProgress(clientId, stage) {
   fetch('clients/' + clientId + '/conversation-id')
     .then(function(r) { return r.json(); })

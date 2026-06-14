@@ -145,50 +145,6 @@ document.addEventListener('click', function(e) {
 
 });
 
-function updateClientStatus(clientId, status) {
-  console.log('Updating client status:', clientId, status);
-  const formData = new FormData();
-  formData.append('status', status);
-
-  fetch('/business/clients/' + clientId + '/status', {
-    method: 'PUT',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') },
-    body: formData
-  })
-    .then(response => {
-      console.log('Customer status response status:', response.status);
-      if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Customer status response data:', data);
-      if (data.client) {
-        showNotification('Customer status updated to ' + status, 'success');
-        const dropdown = document.querySelector('select[data-client-id="' + clientId + '"]');
-        if (dropdown) {
-          dropdown.value = status;
-          console.log('Updated customer dropdown to:', status);
-        }
-      } else {
-        console.error('No client data in response');
-        showNotification('Failed to update client status', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error updating client status:', error);
-      showNotification('Failed to update client status: ' + error.message, 'error');
-    });
-}
-
-function showEnhancedActionModal(messageId) {
-  htmx.ajax('GET', '/actions/modal/' + messageId, {
-    target: 'body',
-    swap: 'beforeend'
-  });
-}
-
 function showConversationProgress(clientId) {
   fetch('/business/clients/' + clientId + '/conversation-id')
     .then(response => response.json())
@@ -211,19 +167,6 @@ function showProgressModal() {
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     document.body.appendChild(modal);
   }
-}
-
-function createQuickAction(messageId, actionType) {
-  const formData = new FormData();
-  formData.append('message_id', messageId);
-  formData.append('type', actionType);
-  formData.append('title', actionType.charAt(0).toUpperCase() + actionType.slice(1) + ' from message');
-
-  htmx.ajax('POST', 'business/messages/' + messageId + '/actions', {
-    values: formData,
-    target: '#action-result',
-    swap: 'innerHTML'
-  });
 }
 
 // ========== Customer Insights ==========
@@ -346,24 +289,6 @@ function cancelDraftOrder(orderId) {
   });
 }
 
-function orderItemIncrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/increment`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) fetchMessages();
-    })
-    .catch(console.error);
-}
-
-function orderItemDecrement(orderId, productId, btn) {
-  fetch(`/business/orders/${orderId}/items/${productId}/decrement`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) fetchMessages();
-    })
-    .catch(console.error);
-}
-
 function updateBookingStatusFromCard(bookingId, newStatus) {
   const action = newStatus === 'client_confirmed' ? 'confirm' : newStatus === 'completed' ? 'complete' : 'cancel';
   showConfirmModal({ title: action.charAt(0).toUpperCase() + action.slice(1) + ' Booking', message: 'Are you sure you want to ' + action + ' this booking?', confirmText: action.charAt(0).toUpperCase() + action.slice(1), confirmClass: newStatus === 'cancelled' ? 'bg-[var(--color-error)] text-white' : 'bg-[var(--color-primary)] text-white' }).then(function(confirmed) {
@@ -385,58 +310,6 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
     })
     .catch(e => { console.error(e); showNotification(`Failed to ${action} booking`, 'error'); });
   });
-}
-
-// ========== Message Search ==========
-
-function toggleMessageSearch() {
-  var bar = document.getElementById('messageSearchBar');
-  if (bar) bar.classList.toggle('hidden');
-  if (!bar.classList.contains('hidden')) {
-    setTimeout(function() {
-      document.getElementById('messageSearchInput')?.focus();
-    }, 100);
-  } else {
-    clearMessageSearch();
-  }
-}
-
-function filterMessages(query) {
-  var q = query.toLowerCase().trim();
-  var container = document.getElementById('messages-container');
-  var messages = container.querySelectorAll(':scope > div');
-  var count = 0;
-  messages.forEach(function(el) {
-    var text = el.getAttribute('data-message-text') || el.textContent.toLowerCase();
-    if (!q || text.toLowerCase().includes(q)) {
-      el.style.display = '';
-      count++;
-    } else {
-      el.style.display = 'none';
-    }
-  });
-  var countEl = document.getElementById('searchResultCount');
-  if (countEl) countEl.textContent = count;
-}
-
-function clearMessageSearch() {
-  var input = document.getElementById('messageSearchInput');
-  if (input) input.value = '';
-  var container = document.getElementById('messages-container');
-  if (container) {
-    container.querySelectorAll(':scope > div').forEach(function(el) {
-      el.style.display = '';
-    });
-  }
-  var countEl = document.getElementById('searchResultCount');
-  if (countEl) countEl.textContent = '0';
-}
-
-// ========== Customer Info Panel ==========
-
-function toggleCustomerInfo() {
-  var panel = document.getElementById('customerInfoPanel');
-  if (panel) panel.classList.toggle('hidden');
 }
 
 // ========== Quick Replies & Input Handling ==========
@@ -464,14 +337,6 @@ function onMessageKeydown(event) {
   }
 }
 
-function insertQuickReply(text) {
-  var input = document.getElementById('messageInput');
-  if (input) {
-    input.value = text;
-    input.focus();
-  }
-  var qr = document.getElementById('quickReplies');
-  if (qr) qr.classList.add('hidden');
-}
+
 
 

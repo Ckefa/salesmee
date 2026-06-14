@@ -684,7 +684,11 @@ async function submitProductOrder() {
       if (data.success) {
         hideProductPicker();
         showNotification('Order updated successfully!', 'success');
-        if (typeof fetchMessages === 'function') {
+        if (typeof reloadClientChatFromServer === 'function') {
+          reloadClientChatFromServer();
+        } else if (typeof reloadBusinessChatFromServer === 'function') {
+          reloadBusinessChatFromServer();
+        } else if (typeof fetchMessages === 'function') {
           setTimeout(() => fetchMessages(), 500);
         } else if (typeof startMessagePolling === 'function') {
           setTimeout(() => {
@@ -718,6 +722,9 @@ async function submitProductOrder() {
       if (data.success) {
         hideProductPicker();
         showNotification('Order placed successfully!', 'success');
+        if (typeof reloadClientChatFromServer === 'function') {
+          reloadClientChatFromServer();
+        }
         if (pickerGoBackToChat) {
           pickerGoBackToChat = false;
           setTimeout(function () {
@@ -755,7 +762,9 @@ async function submitProductOrder() {
       if (data.success) {
         hideProductPicker();
         showNotification('Order draft created successfully!', 'success');
-        if (typeof fetchMessages === 'function') {
+        if (typeof reloadBusinessChatFromServer === 'function') {
+          reloadBusinessChatFromServer();
+        } else if (typeof fetchMessages === 'function') {
           setTimeout(() => fetchMessages(), 500);
         }
       } else {

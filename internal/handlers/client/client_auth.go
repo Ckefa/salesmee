@@ -878,6 +878,10 @@ func ClientConfirmOrder(c *gin.Context) {
 		return
 	}
 
+	if wsHub != nil {
+		ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"order":   order,
@@ -915,6 +919,10 @@ func ClientCancelOrder(c *gin.Context) {
 	order.Status = "cancelled"
 	order.UpdatedAt = time.Now()
 	db.DB.Save(&order)
+
+	if wsHub != nil {
+		ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -1017,6 +1025,10 @@ func ClientCancelBooking(c *gin.Context) {
 	booking.UpdatedAt = time.Now()
 	db.DB.Save(&booking)
 
+	if wsHub != nil {
+		ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"booking": booking,
@@ -1055,6 +1067,10 @@ func ClientConfirmBooking(c *gin.Context) {
 	booking.UpdatedAt = time.Now()
 	db.DB.Save(&booking)
 
+	if wsHub != nil {
+		ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"booking": booking,
@@ -1080,6 +1096,9 @@ func DeleteClientMessage(c *gin.Context) {
 			return
 		}
 		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		if wsHub != nil {
+			ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+		}
 		c.JSON(200, gin.H{"success": true, "type": "booking", "id": bookingID})
 
 	case messageID >= 10000:
@@ -1090,6 +1109,9 @@ func DeleteClientMessage(c *gin.Context) {
 			return
 		}
 		db.DB.Model(&order).Update("hidden_from_chat", true)
+		if wsHub != nil {
+			ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+		}
 		c.JSON(200, gin.H{"success": true, "type": "order", "id": orderID})
 
 	default:

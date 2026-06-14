@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/ws"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -145,10 +145,26 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		h.db.Create(&payment)
 	}
 
-	// Auto-advance conversation progress
-	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", client.ID, businessID).First(&conv).Error; err == nil {
+	// Auto-advance conversation progress and notify any open chat panes.
+	if conv, err := h.getOrCreateConversation(client.ID, businessID); err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
+		if h.hub != nil {
+			ws.BroadcastNewMessage(
+				h.hub,
+				strconv.Itoa(int(conv.ID)),
+				strconv.Itoa(int(businessID)),
+				"business",
+				strconv.Itoa(int(order.ID+10000)),
+				"",
+				"",
+				"",
+				"order",
+				nil,
+				order.CreatedAt,
+				strconv.Itoa(int(businessID)),
+				strconv.Itoa(int(client.ID)),
+			)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -617,6 +633,27 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 		})
 	}
 
+	if conv, err := h.getOrCreateConversation(client.ID, request.BusinessID); err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+		if h.hub != nil {
+			ws.BroadcastNewMessage(
+				h.hub,
+				strconv.Itoa(int(conv.ID)),
+				strconv.Itoa(int(client.ID)),
+				"client",
+				strconv.Itoa(int(order.ID+10000)),
+				"",
+				"",
+				"",
+				"order",
+				nil,
+				order.CreatedAt,
+				strconv.Itoa(int(request.BusinessID)),
+				strconv.Itoa(int(client.ID)),
+			)
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":      true,
 		"order":        order,
@@ -913,6 +950,25 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 	if err := h.db.Create(&msg).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create message"})
 		return
+	}
+
+	handlers.AutoCalculateProgress(conversation.ID)
+	if h.hub != nil {
+		ws.BroadcastNewMessage(
+			h.hub,
+			strconv.Itoa(int(conversation.ID)),
+			strconv.Itoa(int(businessID)),
+			"business",
+			strconv.Itoa(int(order.ID+10000)),
+			"",
+			"",
+			"",
+			"order",
+			nil,
+			order.CreatedAt,
+			strconv.Itoa(int(businessID)),
+			strconv.Itoa(int(conversation.ClientID)),
+		)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1301,25 +1357,25 @@ func buildOrderData(order models.Order, orderItems []models.OrderItem, productNa
 	}
 
 	return map[string]interface{}{
-		"id":                   order.ID,
-		"order_number":         order.OrderNumber,
-		"status":               order.Status,
-		"client_confirmed":     order.ConfirmedByClient,
-		"business_confirmed":   order.ConfirmedByBusiness,
-		"action_required":      actionRequired,
-		"editable":             editable,
-		"sender":               order.Sender,
-		"draft":                order.Draft,
-		"items":                items,
-		"total_amount":         order.TotalAmount,
-		"paid_amount":          order.PaidAmount,
-		"remaining":            remaining,
-		"is_fully_paid":        order.PaidAmount >= order.TotalAmount,
-		"quantity":             order.Quantity,
-		"notes":                order.Notes,
-		"product_names":        productNames,
-		"first_product_name":   firstProductName,
-		"created_at":           order.CreatedAt,
-		"payment_methods":      paymentMethods,
+		"id":                 order.ID,
+		"order_number":       order.OrderNumber,
+		"status":             order.Status,
+		"client_confirmed":   order.ConfirmedByClient,
+		"business_confirmed": order.ConfirmedByBusiness,
+		"action_required":    actionRequired,
+		"editable":           editable,
+		"sender":             order.Sender,
+		"draft":              order.Draft,
+		"items":              items,
+		"total_amount":       order.TotalAmount,
+		"paid_amount":        order.PaidAmount,
+		"remaining":          remaining,
+		"is_fully_paid":      order.PaidAmount >= order.TotalAmount,
+		"quantity":           order.Quantity,
+		"notes":              order.Notes,
+		"product_names":      productNames,
+		"first_product_name": firstProductName,
+		"created_at":         order.CreatedAt,
+		"payment_methods":    paymentMethods,
 	}
 }

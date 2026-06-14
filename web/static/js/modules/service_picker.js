@@ -570,7 +570,11 @@ async function submitServiceBooking() {
       if (data.success) {
         hideServicePicker();
         showNotification('Booking updated successfully!', 'success');
-        if (typeof fetchMessages === 'function') {
+        if (typeof reloadClientChatFromServer === 'function') {
+          reloadClientChatFromServer();
+        } else if (typeof reloadBusinessChatFromServer === 'function') {
+          reloadBusinessChatFromServer();
+        } else if (typeof fetchMessages === 'function') {
           setTimeout(() => fetchMessages(), 500);
         } else if (typeof startMessagePolling === 'function') {
           setTimeout(() => {
@@ -605,7 +609,9 @@ async function submitServiceBooking() {
       if (data.success) {
         hideServicePicker();
         showNotification('Booking request sent successfully!', 'success');
-        if (typeof startMessagePolling === 'function') {
+        if (typeof reloadClientChatFromServer === 'function') {
+          reloadClientChatFromServer();
+        } else if (typeof startMessagePolling === 'function') {
           setTimeout(() => {
             const bizId = servicePickerBusinessId || businessId;
             fetch(`/client/businesses/${bizId}/messages`)
@@ -650,7 +656,9 @@ async function submitServiceBooking() {
       if (data.success) {
         hideServicePicker();
         showNotification(data.message || 'Booking created successfully!', 'success');
-        if (typeof fetchMessages === 'function') {
+        if (typeof reloadBusinessChatFromServer === 'function') {
+          reloadBusinessChatFromServer();
+        } else if (typeof fetchMessages === 'function') {
           setTimeout(() => fetchMessages(), 500);
         }
       } else {

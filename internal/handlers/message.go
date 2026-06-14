@@ -52,6 +52,9 @@ func DeleteMessage(c *gin.Context) {
 			return
 		}
 		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		if wsHub != nil {
+			ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		}
 		c.JSON(200, gin.H{"success": true, "type": "booking", "id": bookingID})
 
 	case messageID >= 10000:
@@ -63,6 +66,9 @@ func DeleteMessage(c *gin.Context) {
 			return
 		}
 		db.DB.Model(&order).Update("hidden_from_chat", true)
+		if wsHub != nil {
+			ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		}
 		c.JSON(200, gin.H{"success": true, "type": "order", "id": orderID})
 
 	default:
@@ -582,6 +588,18 @@ func MarkMessageAsRead(c *gin.Context) {
 		"read_by_business": true,
 		"read_at":          &now,
 	})
+
+	if wsHub != nil {
+		ws.BroadcastReadReceipt(
+			wsHub,
+			strconv.Itoa(int(msg.ConversationID)),
+			strconv.Itoa(int(businessID)),
+			"business",
+			strconv.FormatUint(messageID, 10),
+			strconv.Itoa(int(businessID)),
+			strconv.Itoa(int(msg.Conversation.ClientID)),
+		)
+	}
 
 	c.JSON(200, gin.H{"success": true})
 }

@@ -23,6 +23,62 @@ function markAsRead() {
     .catch(console.error);
 }
 
+function tickSvg(state) {
+  if (state === 'read') {
+    return '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+  }
+  if (state === 'delivered') {
+    return '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+  }
+  return '<svg viewBox="0 0 12 12" width="12" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/></svg>';
+}
+
+function setMessageTickState(item, state) {
+  if (!item) return;
+  var tick = item.querySelector('.msg-tick');
+  if (!tick) return;
+  if (tick.getAttribute('data-read-state') === 'read') return;
+  tick.setAttribute('data-read-state', state);
+  tick.innerHTML = tickSvg(state);
+  tick.style.width = state === 'sent' ? '12px' : '14px';
+}
+
+function applyReadReceipt(receipt) {
+  if (!receipt || receipt.reader_type === 'business') return;
+  if (receipt.conversation_id && receipt.conversation_id !== String(conversationId)) return;
+
+  if (receipt.message_id) {
+    setMessageTickState(document.querySelector('#messages-container .message-item.out[data-message-id="' + receipt.message_id + '"]'), 'read');
+    return;
+  }
+
+  document.querySelectorAll('#messages-container .message-item.out').forEach(function(item) {
+    setMessageTickState(item, 'read');
+  });
+}
+
+function markVisibleConversationRead() {
+  if (document.visibilityState === 'hidden') return;
+  markAsRead();
+}
+
+function reloadBusinessChatFromServer() {
+  if (!clientId) return;
+  fetch('clients/' + clientId + '/messages')
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      var next = doc.getElementById('messages-container');
+      var current = document.getElementById('messages-container');
+      if (next && current) {
+        current.innerHTML = next.innerHTML;
+        scrollToBottom();
+      }
+    })
+    .catch(console.error);
+}
+
 function wsToken() {
   return getCookie('token') || getCookie('team_token') || '';
 }
@@ -36,23 +92,27 @@ function startWsClient() {
 
   wsClient.on(1, function(frame) {
     if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
-    if (frame.sender_type === 'business') return;
     var container = document.getElementById('messages-container');
     if (!container) return;
     var msg = frame.new_message;
     if (!msg) return;
-    var html = '';
     if (msg.msg_type === 'order') {
-      html = '<div class="order-card" data-order-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+      reloadBusinessChatFromServer();
+      return;
     } else if (msg.msg_type === 'booking') {
-      html = '<div class="booking-card" data-booking-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
-    } else if (msg.media_url) {
+      reloadBusinessChatFromServer();
+      return;
+    }
+    if (frame.sender_type === 'business') return;
+    var html = '';
+    if (msg.media_url) {
       html = renderMediaMessage(msg);
     } else {
       html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
     }
     container.insertAdjacentHTML('beforeend', html);
     scrollToBottom();
+    markVisibleConversationRead();
     playNotificationSound();
   });
 
@@ -66,10 +126,13 @@ function startWsClient() {
   wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
-    var card = document.querySelector('.order-card[data-order-id="' + upd.order_id + '"]');
-    if (card) {
-      card.querySelector('.order-status').textContent = upd.status;
-    }
+    reloadBusinessChatFromServer();
+  });
+
+  wsClient.on(7, function(frame) {
+    var upd = frame.booking_update;
+    if (!upd) return;
+    reloadBusinessChatFromServer();
   });
 
   wsClient.on(8, function(frame) {
@@ -80,19 +143,13 @@ function startWsClient() {
   });
 
   wsClient.on(2, function(frame) {
-    var rr = frame.read_receipt;
-    if (!rr) return;
-    if (rr.conversation_id && rr.conversation_id !== String(conversationId)) return;
-    if (rr.reader_type === 'business') return;
-    var items = document.querySelectorAll('#messages-container .message-item.out');
-    items.forEach(function(item) {
-      var tickSpan = item.querySelector('.msg-meta .inline-flex');
-      if (!tickSpan) return;
-      tickSpan.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
-      tickSpan.style.width = '14px';
-    });
+    applyReadReceipt(frame.read_receipt);
   });
 }
+
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') markAsRead();
+});
 
 function renderMediaMessage(msg) {
   var url = '/static/' + escapeHtml(msg.media_url);
@@ -125,12 +182,13 @@ function formatTime(ts) {
 
 function showTypingIndicator(typing) {
   if (!typing || typing.conversation_id !== String(conversationId)) return;
+  if (typing.user_type === 'business') return;
   var el = document.getElementById('typingIndicator');
   if (!el) {
     el = document.createElement('div');
     el.id = 'typingIndicator';
-    el.className = 'message client';
-    el.innerHTML = '<div class="message-bubble typing"><span class="typing-label">Typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+    el.className = 'msg in';
+    el.innerHTML = '<div class="msg-bbl typing"><span class="typing-label">typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
     document.getElementById('messages-container').appendChild(el);
   }
   scrollToBottom();
@@ -138,6 +196,7 @@ function showTypingIndicator(typing) {
 
 function hideTypingIndicator(typing) {
   if (!typing || typing.conversation_id !== String(conversationId)) return;
+  if (typing.user_type === 'business') return;
   var el = document.getElementById('typingIndicator');
   if (el) el.remove();
 }
@@ -201,6 +260,7 @@ function deleteContextMenuItem() {
     .then(function(data) {
       if (data.success) {
         showNotification('Deleted', 'success');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to delete', 'error');
       }
@@ -330,6 +390,7 @@ function sendOrderToClient(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order sent to client!', 'success');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to send order', 'error');
       }
@@ -345,6 +406,8 @@ function confirmOrderBusiness(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order confirmed!', 'success');
+        reloadBusinessChatFromServer();
+      } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
     })
@@ -360,6 +423,7 @@ function rejectOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order rejected', 'info');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to reject order', 'error');
       }
@@ -376,6 +440,24 @@ function confirmAllOrderPayments(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
+        reloadBusinessChatFromServer();
+      } else {
+        showNotification(data.error || 'Failed to confirm payments', 'error');
+      }
+    })
+    .catch(e => { console.error(e); showNotification('Failed to confirm payments', 'error'); });
+  });
+}
+
+function confirmAllBookingPayments(bookingId) {
+  showConfirmModal({ title: 'Confirm Payments', message: 'Confirm all pending payments for this booking?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch(`/business/bookings/${bookingId}/payments/confirm-all`, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showNotification(data.message || 'Payments confirmed!', 'success');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -392,6 +474,7 @@ function fulfillOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order completed!', 'success');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to complete order', 'error');
       }
@@ -408,6 +491,7 @@ function cancelDraftOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Draft discarded', 'info');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to discard draft', 'error');
       }
@@ -430,6 +514,7 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
     .then(data => {
       if (data.success) {
         showNotification(`Booking ${action}ed successfully!`, 'success');
+        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || `Failed to ${action} booking`, 'error');
       }
@@ -486,4 +571,3 @@ function onMessageKeydown(event) {
     }
   }
 }
-

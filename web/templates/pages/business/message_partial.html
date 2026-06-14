@@ -1,5 +1,5 @@
 {{$isSelf := eq .Message.Sender "business"}}
-<div class="msg {{if $isSelf}}out{{else}}in{{end}} message-item">
+<div class="msg {{if $isSelf}}out{{else}}in{{end}} message-item" data-message-id="{{.Message.ID}}">
   <div class="msg-bbl">
     {{if $isSelf}}
     <svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet">
@@ -32,6 +32,7 @@
     {{if .Message.Content}}<span class="msg-txt">{{.Message.Content}}</span>{{end}}
     <span class="msg-meta">
       <span class="msg-time">{{.Message.CreatedAt.Format "3:04 PM"}}</span>
+      {{template "msg_tick" dict "IsSelf" $isSelf "IsDelivered" false "IsRead" false}}
     </span>
   </div>
   {{if not $isSelf}}

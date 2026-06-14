@@ -231,7 +231,15 @@
     fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(orderData) })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.success) { hideQuickOrderModal(); showNotification(data.message || 'Order created!', 'success'); location.reload(); }
+        if (data.success) {
+          hideQuickOrderModal();
+          showNotification(data.message || 'Order created!', 'success');
+          if (window.htmx && document.getElementById('orders-content')) {
+            htmx.ajax('GET', '/business/orders', {target: '#orders-content', swap: 'outerHTML'});
+          } else if (window.htmx && document.getElementById('main-content')) {
+            htmx.ajax('GET', '/business/dashboard', {target: '#main-content', swap: 'innerHTML'});
+          }
+        }
         else { showNotification(data.error || 'Failed', 'error'); }
       })
       .catch(function() { showNotification('Failed to create order', 'error'); });
@@ -254,7 +262,15 @@
     fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(bookingData) })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.success) { hideQuickBookingModal(); showNotification(data.message || 'Booking created!', 'success'); location.reload(); }
+        if (data.success) {
+          hideQuickBookingModal();
+          showNotification(data.message || 'Booking created!', 'success');
+          if (window.htmx && document.getElementById('bookings-content')) {
+            htmx.ajax('GET', '/business/bookings', {target: '#bookings-content', swap: 'outerHTML'});
+          } else if (window.htmx && document.getElementById('main-content')) {
+            htmx.ajax('GET', '/business/dashboard', {target: '#main-content', swap: 'innerHTML'});
+          }
+        }
         else { showNotification(data.error || 'Failed', 'error'); }
       })
       .catch(function() { showNotification('Failed to create booking', 'error'); });

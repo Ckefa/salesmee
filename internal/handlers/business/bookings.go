@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/ws"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -87,6 +87,27 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 	if err := h.db.Create(&bookingItem).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking item"})
 		return
+	}
+
+	if conv, err := h.getOrCreateConversation(client.ID, request.BusinessID); err == nil {
+		handlers.AutoCalculateProgress(conv.ID)
+		if h.hub != nil {
+			ws.BroadcastNewMessage(
+				h.hub,
+				strconv.Itoa(int(conv.ID)),
+				strconv.Itoa(int(client.ID)),
+				"client",
+				strconv.Itoa(int(booking.ID+20000)),
+				"",
+				"",
+				"",
+				"booking",
+				nil,
+				booking.CreatedAt,
+				strconv.Itoa(int(request.BusinessID)),
+				strconv.Itoa(int(client.ID)),
+			)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking, "service_name": service.Name})
@@ -168,49 +189,49 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
 		c.HTML(http.StatusOK, "dashboard/bookings_content", gin.H{
-			"Business":        currentBusiness,
-			"Bookings":        bookings,
-			"PendingCount":    pendingCount,
-			"ConfirmedCount":  confirmedCount,
-			"CompletedCount":  completedCount,
-			"CancelledCount":  cancelledCount,
-			"TotalBookings":   totalCount,
-			"TotalRevenue":    totalRevenue,
-			"Page":            float64(page),
-			"TotalPages":      float64(totalPages),
-			"PageSize":        pageSize,
-			"Range":           r,
-			"Countries":       data.Countries,
-			"Currencies":      data.Currencies,
-			"Onboarding":      h.onboardingData(businessID),
-			"Locations":       locations,
-			"AuthType":        c.GetString("auth_type"),
-			"Role":            c.GetString("role"),
-			"ActivePage":      "bookings",
+			"Business":       currentBusiness,
+			"Bookings":       bookings,
+			"PendingCount":   pendingCount,
+			"ConfirmedCount": confirmedCount,
+			"CompletedCount": completedCount,
+			"CancelledCount": cancelledCount,
+			"TotalBookings":  totalCount,
+			"TotalRevenue":   totalRevenue,
+			"Page":           float64(page),
+			"TotalPages":     float64(totalPages),
+			"PageSize":       pageSize,
+			"Range":          r,
+			"Countries":      data.Countries,
+			"Currencies":     data.Currencies,
+			"Onboarding":     h.onboardingData(businessID),
+			"Locations":      locations,
+			"AuthType":       c.GetString("auth_type"),
+			"Role":           c.GetString("role"),
+			"ActivePage":     "bookings",
 		})
 		return
 	}
 
 	c.HTML(http.StatusOK, "bookings.html", gin.H{
-		"Business":        currentBusiness,
-		"Bookings":        bookings,
-		"PendingCount":    pendingCount,
-		"ConfirmedCount":  confirmedCount,
-		"CompletedCount":  completedCount,
-		"CancelledCount":  cancelledCount,
-		"TotalBookings":   totalCount,
-		"TotalRevenue":    totalRevenue,
-		"Page":            float64(page),
-		"TotalPages":      float64(totalPages),
-		"PageSize":        pageSize,
-		"Range":           r,
-		"Countries":       data.Countries,
-		"Currencies":      data.Currencies,
-		"Onboarding":      h.onboardingData(businessID),
-		"Locations":       locations,
-		"AuthType":        c.GetString("auth_type"),
-		"Role":            c.GetString("role"),
-		"ActivePage":      "bookings",
+		"Business":       currentBusiness,
+		"Bookings":       bookings,
+		"PendingCount":   pendingCount,
+		"ConfirmedCount": confirmedCount,
+		"CompletedCount": completedCount,
+		"CancelledCount": cancelledCount,
+		"TotalBookings":  totalCount,
+		"TotalRevenue":   totalRevenue,
+		"Page":           float64(page),
+		"TotalPages":     float64(totalPages),
+		"PageSize":       pageSize,
+		"Range":          r,
+		"Countries":      data.Countries,
+		"Currencies":     data.Currencies,
+		"Onboarding":     h.onboardingData(businessID),
+		"Locations":      locations,
+		"AuthType":       c.GetString("auth_type"),
+		"Role":           c.GetString("role"),
+		"ActivePage":     "bookings",
 	})
 }
 
@@ -284,22 +305,22 @@ func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
 	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	c.HTML(http.StatusOK, "dashboard/bookings_content", gin.H{
-		"Business":        currentBusiness,
-		"Bookings":        bookings,
-		"PendingCount":    pendingCount,
-		"ConfirmedCount":  confirmedCount,
-		"CompletedCount":  completedCount,
-		"CancelledCount":  cancelledCount,
-		"TotalBookings":   totalCount,
-		"TotalRevenue":    totalRevenue,
-		"Page":            float64(page),
-		"TotalPages":      float64(totalPages),
-		"PageSize":        pageSize,
-		"Range":           r,
-		"ActivePage":      "bookings",
-		"Locations":       locations,
-		"AuthType":        c.GetString("auth_type"),
-		"Role":            c.GetString("role"),
+		"Business":       currentBusiness,
+		"Bookings":       bookings,
+		"PendingCount":   pendingCount,
+		"ConfirmedCount": confirmedCount,
+		"CompletedCount": completedCount,
+		"CancelledCount": cancelledCount,
+		"TotalBookings":  totalCount,
+		"TotalRevenue":   totalRevenue,
+		"Page":           float64(page),
+		"TotalPages":     float64(totalPages),
+		"PageSize":       pageSize,
+		"Range":          r,
+		"ActivePage":     "bookings",
+		"Locations":      locations,
+		"AuthType":       c.GetString("auth_type"),
+		"Role":           c.GetString("role"),
 	})
 }
 
@@ -349,12 +370,12 @@ func (h *BusinessHandler) GetBookingsStatsGrid(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "bookings_stats_grid", gin.H{
 		"Business":       currentBusiness,
-		"PendingCount":    int(pendingCount),
-		"ConfirmedCount":  int(confirmedCount),
-		"CompletedCount":  int(completedCount),
-		"CancelledCount":  int(cancelledCount),
-		"TotalBookings":   int(totalBookings),
-		"TotalRevenue":    totalRevenue,
+		"PendingCount":   int(pendingCount),
+		"ConfirmedCount": int(confirmedCount),
+		"CompletedCount": int(completedCount),
+		"CancelledCount": int(cancelledCount),
+		"TotalBookings":  int(totalBookings),
+		"TotalRevenue":   totalRevenue,
 	})
 }
 
@@ -750,10 +771,26 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 	// Send notification for new booking
 	h.sendBookingNotif(booking, "created")
 
-	// Auto-advance conversation progress
-	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", client.ID, businessID).First(&conv).Error; err == nil {
+	// Auto-advance conversation progress and notify any open chat panes.
+	if conv, err := h.getOrCreateConversation(client.ID, businessID); err == nil {
 		handlers.AutoCalculateProgress(conv.ID)
+		if h.hub != nil {
+			ws.BroadcastNewMessage(
+				h.hub,
+				strconv.Itoa(int(conv.ID)),
+				strconv.Itoa(int(businessID)),
+				"business",
+				strconv.Itoa(int(booking.ID+20000)),
+				"",
+				"",
+				"",
+				"booking",
+				nil,
+				booking.CreatedAt,
+				strconv.Itoa(int(businessID)),
+				strconv.Itoa(int(client.ID)),
+			)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -765,5 +802,3 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 func generateBookingNumber() string {
 	return fmt.Sprintf("BOOK-%d", time.Now().Unix())
 }
-
-

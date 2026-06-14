@@ -31,9 +31,7 @@ function submitOrderForm() {
     .then(data => {
       if (data.success) {
         hideClientOrderModal();
-        if (data.order) {
-          addOrderMessageToChat({ ...data.order, product_name: data.product_name, quantity: data.quantity });
-        }
+        reloadClientChatFromServer();
         showNotification('Order request sent successfully!', 'success');
       } else {
         showNotification(data.error || 'Failed to send order request', 'error');
@@ -67,6 +65,62 @@ function markAsRead() {
     .catch(console.error);
 }
 
+function tickSvg(state) {
+  if (state === 'read') {
+    return '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+  }
+  if (state === 'delivered') {
+    return '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+  }
+  return '<svg viewBox="0 0 12 12" width="12" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/></svg>';
+}
+
+function setMessageTickState(item, state) {
+  if (!item) return;
+  var tick = item.querySelector('.msg-tick');
+  if (!tick) return;
+  if (tick.getAttribute('data-read-state') === 'read') return;
+  tick.setAttribute('data-read-state', state);
+  tick.innerHTML = tickSvg(state);
+  tick.style.width = state === 'sent' ? '12px' : '14px';
+}
+
+function applyReadReceipt(receipt) {
+  if (!receipt || receipt.reader_type === 'client') return;
+  if (receipt.conversation_id && receipt.conversation_id !== String(conversationId)) return;
+
+  if (receipt.message_id) {
+    setMessageTickState(document.querySelector('#messages-container .message-item.out[data-message-id="' + receipt.message_id + '"]'), 'read');
+    return;
+  }
+
+  document.querySelectorAll('#messages-container .message-item.out').forEach(function(item) {
+    setMessageTickState(item, 'read');
+  });
+}
+
+function markVisibleConversationRead() {
+  if (document.visibilityState === 'hidden') return;
+  markAsRead();
+}
+
+function reloadClientChatFromServer() {
+  if (!businessId) return;
+  fetch('/client/businesses/' + businessId + '/messages')
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      var next = doc.getElementById('chat-content') || doc.getElementById('messages-container');
+      var current = document.getElementById(next && next.id === 'chat-content' ? 'chat-content' : 'messages-container');
+      if (next && current) {
+        current.innerHTML = next.innerHTML;
+        scrollToBottom();
+      }
+    })
+    .catch(console.error);
+}
+
 function startWsClient() {
   if (wsClient) wsClient.disconnect();
   wsClient = new WsClient();
@@ -75,67 +129,56 @@ function startWsClient() {
   wsClient.connect('/ws/client?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
 
   wsClient.on(1, function(frame) {
-    if (frame.sender_type === 'client') return;
     var container = document.getElementById('messages-container');
     if (!container) return;
     var msg = frame.new_message;
     if (!msg) return;
-    var html = '';
     if (msg.msg_type === 'order') {
-      html = '<div class="client-order-card" data-order-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
+      reloadClientChatFromServer();
+      return;
     } else if (msg.msg_type === 'booking') {
-      html = '<div class="client-booking-card" data-booking-id="' + msg.id + '">' + (msg.data_json || '') + '</div>';
-    } else if (msg.media_url) {
+      reloadClientChatFromServer();
+      return;
+    }
+    if (frame.sender_type === 'client') return;
+    var html = '';
+    if (msg.media_url) {
       html = renderMediaMessage(msg);
     } else {
       html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
     }
     container.insertAdjacentHTML('beforeend', html);
     scrollToBottom();
+    markVisibleConversationRead();
   });
 
   wsClient.on(3, function(frame) {
-    if (!frame.typing) return;
-    var el = document.getElementById('typingIndicator');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'typingIndicator';
-      el.className = 'message business';
-      el.innerHTML = '<div class="message-bubble typing"><span class="typing-label">Typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
-      document.getElementById('messages-container').appendChild(el);
-    }
-    scrollToBottom();
+    showTypingIndicator(frame.typing);
   });
-
-  wsClient.on(4, function() {
-    var el = document.getElementById('typingIndicator');
-    if (el) el.remove();
+  wsClient.on(4, function(frame) {
+    hideTypingIndicator(frame.typing);
   });
 
   wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
-    var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
-    if (card) {
-      var statusEl = card.querySelector('.order-status');
-      if (statusEl) statusEl.textContent = upd.status;
-    }
+    reloadClientChatFromServer();
+  });
+
+  wsClient.on(7, function(frame) {
+    var upd = frame.booking_update;
+    if (!upd) return;
+    reloadClientChatFromServer();
   });
 
   wsClient.on(2, function(frame) {
-    var rr = frame.read_receipt;
-    if (!rr) return;
-    if (rr.conversation_id && rr.conversation_id !== String(conversationId)) return;
-    if (rr.reader_type === 'client') return;
-    var items = document.querySelectorAll('#messages-container .message-item.out');
-    items.forEach(function(item) {
-      var tickSpan = item.querySelector('.msg-meta .inline-flex');
-      if (!tickSpan) return;
-      tickSpan.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
-      tickSpan.style.width = '14px';
-    });
+    applyReadReceipt(frame.read_receipt);
   });
 }
+
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') markAsRead();
+});
 
 function renderMediaMessage(msg) {
   var url = '/static/' + escapeHtml(msg.media_url);
@@ -164,6 +207,27 @@ function formatTime(ts) {
   if (!ts) return '';
   var d = new Date(Number(ts));
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function showTypingIndicator(typing) {
+  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  if (typing.user_type === 'client') return;
+  var el = document.getElementById('typingIndicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'typingIndicator';
+    el.className = 'msg in';
+    el.innerHTML = '<div class="msg-bbl typing"><span class="typing-label">typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+    document.getElementById('messages-container').appendChild(el);
+  }
+  scrollToBottom();
+}
+
+function hideTypingIndicator(typing) {
+  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  if (typing.user_type === 'client') return;
+  var el = document.getElementById('typingIndicator');
+  if (el) el.remove();
 }
 
 function addOrderMessageToChat(order) {
@@ -230,6 +294,7 @@ function clientConfirmOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Order confirmed!', 'success');
+        reloadClientChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
@@ -279,6 +344,7 @@ function cancelOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order cancelled successfully', 'success');
+        reloadClientChatFromServer();
       } else {
         showNotification(data.error || 'Failed to cancel order', 'error');
       }
@@ -298,6 +364,7 @@ function cancelBooking(bookingId) {
     .then(data => {
       if (data.success) {
         showNotification('Booking cancelled successfully', 'success');
+        reloadClientChatFromServer();
       } else {
         showNotification(data.error || 'Failed to cancel booking', 'error');
       }
@@ -317,6 +384,7 @@ function clientConfirmBooking(bookingId) {
     .then(data => {
       if (data.success) {
         showNotification('Booking confirmed!', 'success');
+        reloadClientChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm booking', 'error');
       }
@@ -477,6 +545,7 @@ function deleteContextMenuItem() {
     .then(function(data) {
       if (data.success) {
         showNotification('Deleted', 'success');
+        reloadClientChatFromServer();
       } else {
         showNotification(data.error || 'Failed to delete', 'error');
       }

@@ -9,6 +9,7 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services/notifier"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
@@ -236,6 +237,10 @@ func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
 	order.UpdatedAt = now
 	h.db.Save(&order)
 
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":        true,
 		"payment":        payment,
@@ -327,6 +332,10 @@ func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
 	booking.PaidAmount += payment.Amount
 	booking.UpdatedAt = now
 	h.db.Save(&booking)
+
+	if h.hub != nil {
+		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success":        true,
@@ -727,6 +736,10 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	order.UpdatedAt = now
 	h.db.Save(&order)
 
+	if h.hub != nil {
+		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":        true,
 		"confirmed":      len(pendingPayments),
@@ -773,6 +786,10 @@ func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
 	booking.PaidAmount += totalConfirmed
 	booking.UpdatedAt = now
 	h.db.Save(&booking)
+
+	if h.hub != nil {
+		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success":        true,

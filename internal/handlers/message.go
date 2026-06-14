@@ -512,11 +512,16 @@ func MarkConversationAsRead(c *gin.Context) {
 		return
 	}
 
+	// Get conversation for broadcast
+	var conversation models.Conversation
+	if err := db.DB.Where("business_id = ? AND client_id = ?", businessID, clientID).First(&conversation).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Conversation not found"})
+		return
+	}
+
 	// Update conversation's last read time
 	now := time.Now()
-	if err := db.DB.Model(&models.Conversation{}).
-		Where("business_id = ? AND client_id = ?", businessID, clientID).
-		Update("last_read_by_business_at", &now).Error; err != nil {
+	if err := db.DB.Model(&conversation).Update("last_read_by_business_at", &now).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to mark conversation as read"})
 		return
 	}
@@ -535,7 +540,7 @@ func MarkConversationAsRead(c *gin.Context) {
 	if wsHub != nil {
 		ws.BroadcastReadReceipt(
 			wsHub,
-			"",
+			strconv.Itoa(int(conversation.ID)),
 			strconv.Itoa(int(businessID)),
 			"business",
 			"",
@@ -614,10 +619,15 @@ func MarkClientConversationAsRead(c *gin.Context) {
 		return
 	}
 
+	// Get conversation for broadcast
+	var conversation models.Conversation
+	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Conversation not found"})
+		return
+	}
+
 	now := time.Now()
-	if err := db.DB.Model(&models.Conversation{}).
-		Where("client_id = ? AND business_id = ?", clientID, businessID).
-		Update("last_read_by_client_at", &now).Error; err != nil {
+	if err := db.DB.Model(&conversation).Update("last_read_by_client_at", &now).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to mark conversation as read"})
 		return
 	}
@@ -636,7 +646,7 @@ func MarkClientConversationAsRead(c *gin.Context) {
 	if wsHub != nil {
 		ws.BroadcastReadReceipt(
 			wsHub,
-			"",
+			strconv.Itoa(int(conversation.ID)),
 			strconv.Itoa(int(clientID)),
 			"client",
 			"",

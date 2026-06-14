@@ -78,6 +78,20 @@ function startWsClient() {
       badge.textContent = frame.unread_count.count;
     }
   });
+
+  wsClient.on(2, function(frame) {
+    var rr = frame.read_receipt;
+    if (!rr) return;
+    if (rr.conversation_id && rr.conversation_id !== String(conversationId)) return;
+    if (rr.reader_type === 'business') return;
+    var items = document.querySelectorAll('#messages-container .message-item.out');
+    items.forEach(function(item) {
+      var tickSpan = item.querySelector('.msg-meta .inline-flex');
+      if (!tickSpan) return;
+      tickSpan.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#53bdeb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+      tickSpan.style.width = '14px';
+    });
+  });
 }
 
 function renderMediaMessage(msg) {

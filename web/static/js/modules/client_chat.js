@@ -42,6 +42,7 @@ var typingTimeout = null;
 
 var unreadBelow = 0;
 window.clearUnreadBelow = function() {
+  if (unreadBelow > 0 && typeof markAsRead === 'function') markAsRead();
   unreadBelow = 0;
   var badge = document.getElementById('scrollBottomBadge');
   if (badge) badge.classList.remove('visible');

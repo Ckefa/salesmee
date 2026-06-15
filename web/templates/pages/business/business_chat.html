@@ -58,5 +58,6 @@ function scrollToBottom() {
 function scrollToBottomBtn() {
   scrollToBottom();
   if (window.clearUnreadBelow) window.clearUnreadBelow();
+  if (typeof markAsRead === 'function') markAsRead();
 }
 </script>

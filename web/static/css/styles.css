@@ -2502,14 +2502,11 @@
 /* ============================================
    Typing Indicator — Chat Animated Dots
    ============================================ */
-.msg.in.typing-indicator,
-.msg.in.typing-indicator .msg-bbl.typing {
+.msg.in.typing-indicator {
   background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
+  margin-bottom: 4px;
 }
-.msg-bbl.typing,
-.message-bubble.typing {
+.msg.in.typing-indicator .msg-bbl.typing {
   display: inline-flex;
   flex-direction: row;
   align-items: center;
@@ -2518,6 +2515,8 @@
   min-width: 0;
   background: transparent !important;
   box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 .typing-label {
   font-size: 0.75rem;
@@ -2525,6 +2524,7 @@
   opacity: 0.75;
   letter-spacing: 0.02em;
   background: transparent;
+  flex-shrink: 0;
 }
 .typing-dot {
   width: 6px;

@@ -602,6 +602,33 @@ function deleteContextMenuItem() {
   });
 }
 
+function onMessageInput(input) {
+  var val = input.value;
+  if (wsClient && wsClient.isConnected) {
+    if (typingTimeout) clearTimeout(typingTimeout);
+    if (val.length > 0) {
+      wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
+    } else {
+      wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+    }
+    typingTimeout = setTimeout(function() {
+      wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+    }, 3000);
+  }
+}
+
+function onMessageKeydown(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    if (wsClient && wsClient.isConnected) {
+      wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+    }
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+      typingTimeout = null;
+    }
+  }
+}
+
 window.addEventListener('beforeunload', function() {
   if (wsClient) wsClient.disconnect();
 });

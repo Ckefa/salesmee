@@ -23,7 +23,7 @@
         </div>
       </div>
       <input type="text" name="content" id="messageInput" placeholder="Type a message"
-        class="wa-text-input" autocomplete="off">
+        class="wa-text-input" autocomplete="off" oninput="onMessageInput(this)" onkeydown="onMessageKeydown(event)">
       <input type="hidden" name="sender" value="client">
       <button type="submit" class="wa-send-btn" title="Send" id="sendBtn">
         <i class="fas fa-paper-plane"></i>

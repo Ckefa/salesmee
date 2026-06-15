@@ -1,0 +1,38 @@
+{{define "pwa_install_banner"}}
+<div id="pwa-install-banner" class="pwa-banner hidden">
+  <div id="pwa-install-prompt" class="pwa-banner-inner hidden">
+    <div class="pwa-banner-icon">
+      <svg viewBox="0 0 512 512" fill="none" width="24" height="24">
+        <rect width="512" height="512" rx="96" fill="#0d9488"/>
+        <path d="M160 240L256 340L400 140" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M240 280L300 340L420 180" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="pwa-banner-text">
+      <span class="pwa-banner-title">Install SalesMee</span>
+      <span class="pwa-banner-sub">Get quick access from your home screen</span>
+    </div>
+    <div class="pwa-banner-actions">
+      <button class="pwa-banner-btn pwa-banner-btn-primary" id="pwaInstallBtn">Install</button>
+      <button class="pwa-banner-btn pwa-banner-btn-dismiss" id="pwaDismissBtn">Not now</button>
+    </div>
+  </div>
+
+  <div id="pwa-mobile-hint" class="pwa-banner-inner hidden">
+    <div class="pwa-banner-icon">
+      <svg viewBox="0 0 512 512" fill="none" width="24" height="24">
+        <rect width="512" height="512" rx="96" fill="#0d9488"/>
+        <path d="M160 240L256 340L400 140" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M240 280L300 340L420 180" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="pwa-banner-text">
+      <span class="pwa-banner-title">Add to Home Screen</span>
+      <span class="pwa-banner-sub" id="pwaMobileHintText">For the best experience, add SalesMee to your home screen.</span>
+    </div>
+    <div class="pwa-banner-actions">
+      <button class="pwa-banner-btn pwa-banner-btn-dismiss" id="pwaMobileDismissBtn">Got it</button>
+    </div>
+  </div>
+</div>
+{{end}}

@@ -5,6 +5,7 @@ class SalesMeeApp {
         this.initAlpine();
         this.setupEventListeners();
         this.initClientFeatures();
+        this.initPWA();
     }
 
     initHTMX() {
@@ -146,6 +147,133 @@ class SalesMeeApp {
         container.scrollTop = container.scrollHeight;
     }
 
+    initPWA() {
+        this.registerSW();
+        this.setupInstallPrompt();
+        this.setupOfflineDetection();
+        this.showInstallBanner();
+    }
+
+    registerSW() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js').catch(function(err) {
+                console.warn('SW registration failed:', err);
+            });
+        }
+    }
+
+    setupInstallPrompt() {
+        window._deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            window._deferredPrompt = e;
+            var banner = document.getElementById('pwa-install-banner');
+            var prompt = document.getElementById('pwa-install-prompt');
+            var hint = document.getElementById('pwa-mobile-hint');
+            if (banner && prompt && hint) {
+                hint.classList.add('hidden');
+                prompt.classList.remove('hidden');
+                banner.classList.remove('hidden');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('#pwaInstallBtn');
+            if (btn && window._deferredPrompt) {
+                window._deferredPrompt.prompt();
+                window._deferredPrompt.userChoice.then(function(result) {
+                    if (result.outcome === 'accepted') {
+                        pwaDismiss('install', 365);
+                    } else {
+                        pwaDismiss('install', 7);
+                    }
+                    window._deferredPrompt = null;
+                });
+            }
+        });
+
+        window.addEventListener('appinstalled', function() {
+            pwaDismiss('install', 365);
+            window._deferredPrompt = null;
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#pwaDismissBtn')) {
+                pwaDismiss('install', 7);
+                var banner = document.getElementById('pwa-install-banner');
+                if (banner) banner.classList.add('hidden');
+            }
+            if (e.target.closest('#pwaMobileDismissBtn')) {
+                pwaDismiss('mobile', 30);
+                var banner = document.getElementById('pwa-install-banner');
+                if (banner) banner.classList.add('hidden');
+            }
+        });
+    }
+
+    setupOfflineDetection() {
+        var toast = document.createElement('div');
+        toast.id = 'pwaOfflineToast';
+        toast.className = 'pwa-offline-toast hidden';
+        document.body.appendChild(toast);
+
+        function showOfflineToast(msg, type) {
+            toast.textContent = msg;
+            toast.className = 'pwa-offline-toast ' + type;
+            toast.classList.remove('hidden');
+        }
+
+        function hideOfflineToast() {
+            toast.classList.add('hidden');
+        }
+
+        window.addEventListener('offline', function() {
+            showOfflineToast('You are offline. Some features may be unavailable.', 'offline');
+        });
+
+        window.addEventListener('online', function() {
+            showOfflineToast('Back online!', 'online');
+            setTimeout(hideOfflineToast, 3000);
+        });
+
+        if (!navigator.onLine) {
+            showOfflineToast('You are offline. Some features may be unavailable.', 'offline');
+        }
+    }
+
+    showInstallBanner() {
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
+
+        var path = window.location.pathname;
+        var validPaths = path === '/' || path.startsWith('/business') || path.startsWith('/client');
+        if (!validPaths) return;
+
+        if (pwaShouldShow('install') || pwaShouldShow('mobile')) {
+            setTimeout(function() {
+                var banner = document.getElementById('pwa-install-banner');
+                var prompt = document.getElementById('pwa-install-prompt');
+                var hint = document.getElementById('pwa-mobile-hint');
+                if (!banner || !prompt || !hint) return;
+
+                if (window._deferredPrompt) {
+                    hint.classList.add('hidden');
+                    prompt.classList.remove('hidden');
+                } else if (isMobile()) {
+                    if (pwaShouldShow('mobile')) {
+                        prompt.classList.add('hidden');
+                        hint.classList.remove('hidden');
+                        updateMobileHintText();
+                    } else {
+                        return;
+                    }
+                } else {
+                    return;
+                }
+                banner.classList.remove('hidden');
+            }, 3000);
+        }
+    }
+
     initRealTimeUpdates() {
         setInterval(function() {
             this.checkForNewMessages();
@@ -173,3 +301,41 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.SalesMeeApp = SalesMeeApp;
+
+function pwaDismiss(type, days) {
+    var key = 'pwa_' + type + '_dismissed';
+    var data = { dismissed: true, at: Date.now(), ttl: days * 86400000 };
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+    var banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.classList.add('hidden');
+}
+
+function pwaShouldShow(type) {
+    var key = 'pwa_' + type + '_dismissed';
+    try {
+        var raw = localStorage.getItem(key);
+        if (!raw) return true;
+        var data = JSON.parse(raw);
+        if (!data.dismissed) return true;
+        return (Date.now() - data.at) > data.ttl;
+    } catch(e) {
+        return true;
+    }
+}
+
+function isMobile() {
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+}
+
+function updateMobileHintText() {
+    var el = document.getElementById('pwaMobileHintText');
+    if (!el) return;
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        el.textContent = 'Tap the Share button then "Add to Home Screen" for the best experience.';
+    } else if (/Android/i.test(navigator.userAgent)) {
+        el.textContent = 'Open the Chrome menu (⋮) and select "Install app" or "Add to Home Screen".';
+    } else {
+        el.textContent = 'Use your browser\'s menu to add SalesMee to your home screen.';
+    }
+}

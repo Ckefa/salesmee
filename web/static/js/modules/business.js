@@ -186,6 +186,27 @@ function startBusinessWS() {
       }
     }
   });
+
+  window.wsClient.on(8, function(frame) {
+    if (!frame.unread_count) return;
+    var uc = frame.unread_count;
+    if (!uc.conversation_id) return;
+    var item = document.querySelector('.wa-chat-item[data-conversation-id="' + uc.conversation_id + '"]');
+    if (!item) return;
+    var badge = item.querySelector('.wa-unread-badge');
+    if (uc.count > 0) {
+      if (badge) {
+        badge.textContent = uc.count > 99 ? '99+' : uc.count;
+      } else {
+        var topRight = item.querySelector('.wa-chat-top-right');
+        if (topRight) {
+          topRight.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">' + (uc.count > 99 ? '99+' : uc.count) + '</span>');
+        }
+      }
+    } else {
+      if (badge) badge.remove();
+    }
+  });
 }
 
 window.addEventListener('beforeunload', function() {

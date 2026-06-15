@@ -74,6 +74,7 @@ message OrderUpdate {
   double pending_amount  = 5;
   bool   has_review      = 6;
   int32  review_rating   = 7;
+  string card_html       = 8;
 }
 
 message BookingUpdate {
@@ -84,6 +85,7 @@ message BookingUpdate {
   double pending_amount  = 5;
   bool   has_review      = 6;
   int32  review_rating   = 7;
+  string card_html       = 8;
 }
 
 message UnreadCount {

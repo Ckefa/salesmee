@@ -868,7 +868,9 @@ func ClientConfirmOrder(c *gin.Context) {
 	}
 
 	if wsHub != nil {
-		ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(db.DB, order)
+		clientCardHTML := renderClientOrderCard(db.DB, order)
+		ws.BroadcastOrderUpdateFull(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -910,7 +912,9 @@ func ClientCancelOrder(c *gin.Context) {
 	db.DB.Save(&order)
 
 	if wsHub != nil {
-		ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(db.DB, order)
+		clientCardHTML := renderClientOrderCard(db.DB, order)
+		ws.BroadcastOrderUpdateFull(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1015,7 +1019,9 @@ func ClientCancelBooking(c *gin.Context) {
 	db.DB.Save(&booking)
 
 	if wsHub != nil {
-		ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(db.DB, booking)
+		clientCardHTML := renderClientBookingCard(db.DB, booking)
+		ws.BroadcastBookingUpdateFull(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1057,7 +1063,9 @@ func ClientConfirmBooking(c *gin.Context) {
 	db.DB.Save(&booking)
 
 	if wsHub != nil {
-		ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(db.DB, booking)
+		clientCardHTML := renderClientBookingCard(db.DB, booking)
+		ws.BroadcastBookingUpdateFull(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

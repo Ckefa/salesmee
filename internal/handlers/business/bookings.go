@@ -501,7 +501,9 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
+		ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
@@ -551,7 +553,9 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
+		ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

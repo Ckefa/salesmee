@@ -128,6 +128,11 @@ function applyOrderCardUpdate(upd) {
   var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
   if (!card) return false;
 
+  if (upd.card_html) {
+    card.outerHTML = upd.card_html;
+    return true;
+  }
+
   if (upd.status && card.getAttribute('data-order-status') && upd.status !== card.getAttribute('data-order-status')) {
     return false;
   }
@@ -148,6 +153,11 @@ function applyBookingCardUpdate(upd) {
   if (!upd || !upd.booking_id) return false;
   var card = document.querySelector('[data-booking-id="' + upd.booking_id + '"]');
   if (!card) return false;
+
+  if (upd.card_html) {
+    card.outerHTML = upd.card_html;
+    return true;
+  }
 
   if (upd.status && card.getAttribute('data-booking-status') && upd.status !== card.getAttribute('data-booking-status')) {
     return false;

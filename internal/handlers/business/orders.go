@@ -500,7 +500,9 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
@@ -1006,7 +1008,9 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1056,7 +1060,9 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1100,7 +1106,9 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1148,7 +1156,9 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1233,7 +1243,9 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

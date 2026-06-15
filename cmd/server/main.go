@@ -11,6 +11,8 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/db"
 	"salesmee/internal/handlers/admin"
+	"salesmee/internal/handlers/business"
+	"salesmee/internal/handlers/client"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/routes"
@@ -225,6 +227,8 @@ func main() {
 		},
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)
+	business.SetTemplate(tmpl)
+	client.SetTemplate(tmpl)
 
 	// Get Static Path
 	r.Static("/static", "./web/static")

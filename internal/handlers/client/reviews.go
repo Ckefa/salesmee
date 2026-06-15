@@ -121,6 +121,7 @@ func SubmitReview(c *gin.Context) {
 		if orderID > 0 {
 			var order models.Order
 			if db.DB.First(&order, orderID).Error == nil {
+				bizCardHTML := renderBizOrderCard(db.DB, order)
 				ws.BroadcastOrderUpdateFull(
 					wsHub,
 					strconv.Itoa(int(order.ID)),
@@ -130,6 +131,8 @@ func SubmitReview(c *gin.Context) {
 					0,
 					true,
 					int32(rating),
+					bizCardHTML,
+					"",
 					strconv.Itoa(int(order.BusinessID)),
 					strconv.Itoa(int(order.ClientID)),
 				)
@@ -137,6 +140,7 @@ func SubmitReview(c *gin.Context) {
 		} else if bookingID > 0 {
 			var booking models.Booking
 			if db.DB.First(&booking, bookingID).Error == nil {
+				bizCardHTML := renderBizBookingCard(db.DB, booking)
 				ws.BroadcastBookingUpdateFull(
 					wsHub,
 					strconv.Itoa(int(booking.ID)),
@@ -146,6 +150,8 @@ func SubmitReview(c *gin.Context) {
 					0,
 					true,
 					int32(rating),
+					bizCardHTML,
+					"",
 					strconv.Itoa(int(booking.BusinessID)),
 					strconv.Itoa(int(booking.ClientID)),
 				)

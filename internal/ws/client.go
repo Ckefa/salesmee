@@ -267,6 +267,7 @@ type jsonOrderUpdate struct {
 	PendingAmount float64 `json:"pending_amount"`
 	HasReview     bool    `json:"has_review"`
 	ReviewRating  int32   `json:"review_rating"`
+	CardHTML      string  `json:"card_html,omitempty"`
 }
 
 type jsonBookingUpdate struct {
@@ -277,6 +278,7 @@ type jsonBookingUpdate struct {
 	PendingAmount float64 `json:"pending_amount"`
 	HasReview     bool    `json:"has_review"`
 	ReviewRating  int32   `json:"review_rating"`
+	CardHTML      string  `json:"card_html,omitempty"`
 }
 
 type jsonPresence struct {
@@ -343,6 +345,7 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 			PendingAmount: o.GetPendingAmount(),
 			HasReview:     o.GetHasReview(),
 			ReviewRating:  o.GetReviewRating(),
+			CardHTML:      o.GetCardHtml(),
 		}
 	case *chatpb.WsFrame_BookingUpdate:
 		b := p.BookingUpdate
@@ -354,6 +357,7 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 			PendingAmount: b.GetPendingAmount(),
 			HasReview:     b.GetHasReview(),
 			ReviewRating:  b.GetReviewRating(),
+			CardHTML:      b.GetCardHtml(),
 		}
 	case *chatpb.WsFrame_UnreadCount:
 		u := p.UnreadCount

@@ -97,6 +97,8 @@ func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
 
 	if h.hub != nil {
 		pending := pendingOrderPayments(h.db, order.ID)
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(
 			h.hub,
 			strconv.Itoa(int(order.ID)),
@@ -106,6 +108,8 @@ func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
 			pending,
 			false,
 			0,
+			bizCardHTML,
+			clientCardHTML,
 			strconv.Itoa(int(order.BusinessID)),
 			strconv.Itoa(int(clientID)),
 		)
@@ -193,6 +197,8 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 
 	if h.hub != nil {
 		pending := pendingBookingPayments(h.db, booking.ID)
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
 		ws.BroadcastBookingUpdateFull(
 			h.hub,
 			strconv.Itoa(int(booking.ID)),
@@ -202,6 +208,8 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 			pending,
 			false,
 			0,
+			bizCardHTML,
+			clientCardHTML,
 			strconv.Itoa(int(booking.BusinessID)),
 			strconv.Itoa(int(clientID)),
 		)
@@ -272,6 +280,8 @@ func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
 
 	if h.hub != nil {
 		pending := pendingOrderPayments(h.db, order.ID)
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(
 			h.hub,
 			strconv.Itoa(int(order.ID)),
@@ -281,6 +291,8 @@ func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
 			pending,
 			false,
 			0,
+			bizCardHTML,
+			clientCardHTML,
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(order.ClientID)),
 		)
@@ -380,6 +392,8 @@ func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
 
 	if h.hub != nil {
 		pending := pendingBookingPayments(h.db, booking.ID)
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
 		ws.BroadcastBookingUpdateFull(
 			h.hub,
 			strconv.Itoa(int(booking.ID)),
@@ -389,6 +403,8 @@ func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
 			pending,
 			false,
 			0,
+			bizCardHTML,
+			clientCardHTML,
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(booking.ClientID)),
 		)
@@ -795,6 +811,8 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 
 	if h.hub != nil {
 		pending := pendingOrderPayments(h.db, order.ID)
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(
 			h.hub,
 			strconv.Itoa(int(order.ID)),
@@ -804,6 +822,8 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 			pending,
 			false,
 			0,
+			bizCardHTML,
+			clientCardHTML,
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(order.ClientID)),
 		)
@@ -858,6 +878,8 @@ func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
 
 	if h.hub != nil {
 		pending := pendingBookingPayments(h.db, booking.ID)
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
 		ws.BroadcastBookingUpdateFull(
 			h.hub,
 			strconv.Itoa(int(booking.ID)),
@@ -867,6 +889,8 @@ func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
 			pending,
 			false,
 			0,
+			bizCardHTML,
+			clientCardHTML,
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(booking.ClientID)),
 		)

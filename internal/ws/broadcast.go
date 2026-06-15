@@ -52,11 +52,11 @@ func BroadcastReadReceipt(hub *Hub, conversationID, readerID, readerType, messag
 }
 
 func BroadcastOrderUpdate(hub *Hub, orderID, status string, paidAmount, totalAmount float64, bizID, clientID string) {
-	BroadcastOrderUpdateFull(hub, orderID, status, paidAmount, totalAmount, 0, false, 0, bizID, clientID)
+	BroadcastOrderUpdateFull(hub, orderID, status, paidAmount, totalAmount, 0, false, 0, "", "", bizID, clientID)
 }
 
-func BroadcastOrderUpdateFull(hub *Hub, orderID, status string, paidAmount, totalAmount, pendingAmount float64, hasReview bool, reviewRating int32, bizID, clientID string) {
-	frame := &chatpb.WsFrame{
+func BroadcastOrderUpdateFull(hub *Hub, orderID, status string, paidAmount, totalAmount, pendingAmount float64, hasReview bool, reviewRating int32, bizCardHTML, clientCardHTML, bizID, clientID string) {
+	bizFrame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_ORDER_UPDATE,
 		ConversationId: "",
 		SenderId:       "",
@@ -71,19 +71,39 @@ func BroadcastOrderUpdateFull(hub *Hub, orderID, status string, paidAmount, tota
 				PendingAmount: pendingAmount,
 				HasReview:     hasReview,
 				ReviewRating:  reviewRating,
+				CardHtml:      bizCardHTML,
 			},
 		},
 	}
-	hub.Broadcast("biz:"+bizID, frame, nil)
-	hub.Broadcast("client:"+clientID, frame, nil)
+	clientFrame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_ORDER_UPDATE,
+		ConversationId: "",
+		SenderId:       "",
+		SenderType:     "system",
+		Timestamp:      time.Now().UnixMilli(),
+		Payload: &chatpb.WsFrame_OrderUpdate{
+			OrderUpdate: &chatpb.OrderUpdate{
+				OrderId:       orderID,
+				Status:        status,
+				PaidAmount:    paidAmount,
+				TotalAmount:   totalAmount,
+				PendingAmount: pendingAmount,
+				HasReview:     hasReview,
+				ReviewRating:  reviewRating,
+				CardHtml:      clientCardHTML,
+			},
+		},
+	}
+	hub.Broadcast("biz:"+bizID, bizFrame, nil)
+	hub.Broadcast("client:"+clientID, clientFrame, nil)
 }
 
 func BroadcastBookingUpdate(hub *Hub, bookingID, status string, paidAmount, totalAmount float64, bizID, clientID string) {
-	BroadcastBookingUpdateFull(hub, bookingID, status, paidAmount, totalAmount, 0, false, 0, bizID, clientID)
+	BroadcastBookingUpdateFull(hub, bookingID, status, paidAmount, totalAmount, 0, false, 0, "", "", bizID, clientID)
 }
 
-func BroadcastBookingUpdateFull(hub *Hub, bookingID, status string, paidAmount, totalAmount, pendingAmount float64, hasReview bool, reviewRating int32, bizID, clientID string) {
-	frame := &chatpb.WsFrame{
+func BroadcastBookingUpdateFull(hub *Hub, bookingID, status string, paidAmount, totalAmount, pendingAmount float64, hasReview bool, reviewRating int32, bizCardHTML, clientCardHTML, bizID, clientID string) {
+	bizFrame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_BOOKING_UPDATE,
 		ConversationId: "",
 		SenderId:       "",
@@ -98,11 +118,31 @@ func BroadcastBookingUpdateFull(hub *Hub, bookingID, status string, paidAmount, 
 				PendingAmount: pendingAmount,
 				HasReview:     hasReview,
 				ReviewRating:  reviewRating,
+				CardHtml:      bizCardHTML,
 			},
 		},
 	}
-	hub.Broadcast("biz:"+bizID, frame, nil)
-	hub.Broadcast("client:"+clientID, frame, nil)
+	clientFrame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_BOOKING_UPDATE,
+		ConversationId: "",
+		SenderId:       "",
+		SenderType:     "system",
+		Timestamp:      time.Now().UnixMilli(),
+		Payload: &chatpb.WsFrame_BookingUpdate{
+			BookingUpdate: &chatpb.BookingUpdate{
+				BookingId:     bookingID,
+				Status:        status,
+				PaidAmount:    paidAmount,
+				TotalAmount:   totalAmount,
+				PendingAmount: pendingAmount,
+				HasReview:     hasReview,
+				ReviewRating:  reviewRating,
+				CardHtml:      clientCardHTML,
+			},
+		},
+	}
+	hub.Broadcast("biz:"+bizID, bizFrame, nil)
+	hub.Broadcast("client:"+clientID, clientFrame, nil)
 }
 
 func BroadcastPresenceUpdate(hub *Hub, clientID string, isOnline bool, lastSeen int64, bizID string) {

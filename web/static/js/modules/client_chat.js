@@ -43,7 +43,7 @@ var typingTimeout = null;
 
 scrollToBottom();
 markAsRead();
-if (!window.wsClient || !window.wsClient.isConnected) startWsClient();
+startWsClient();
 
 function scrollToBottom() {
   var container = document.getElementById('messages-container');
@@ -141,6 +141,12 @@ function applyClientOrderCardUpdate(upd) {
   if (!upd || !upd.order_id) return false;
   var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
   if (!card) return false;
+
+  if (upd.card_html) {
+    card.outerHTML = upd.card_html;
+    return true;
+  }
+
   if (upd.status && card.getAttribute('data-order-status') && upd.status !== card.getAttribute('data-order-status')) {
     return false;
   }
@@ -155,6 +161,12 @@ function applyClientBookingCardUpdate(upd) {
   if (!upd || !upd.booking_id) return false;
   var card = document.querySelector('[data-booking-id="' + upd.booking_id + '"]');
   if (!card) return false;
+
+  if (upd.card_html) {
+    card.outerHTML = upd.card_html;
+    return true;
+  }
+
   if (upd.status && card.getAttribute('data-booking-status') && upd.status !== card.getAttribute('data-booking-status')) {
     return false;
   }
@@ -166,11 +178,18 @@ function applyClientBookingCardUpdate(upd) {
 }
 
 function startWsClient() {
-  if (window.wsClient && window.wsClient.isConnected) return;
-  window.wsClient = new WsClient();
-  var token = getCookie('client_token');
-  if (!token) return;
-  window.wsClient.connect('/ws/client?token=' + encodeURIComponent(token));
+  if (!window.wsClient || !window.wsClient.isConnected) {
+    window.wsClient = new WsClient();
+    var token = getCookie('client_token');
+    if (!token) return;
+    window.wsClient.connect('/ws/client?token=' + encodeURIComponent(token));
+  }
+  registerClientChatHandlers();
+}
+
+function registerClientChatHandlers() {
+  if (window._clientChatHandlersRegistered) return;
+  window._clientChatHandlersRegistered = true;
 
   window.wsClient.on(1, function(frame) {
     if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;

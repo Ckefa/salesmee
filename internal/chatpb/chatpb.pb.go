@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.35.0
-// source: proto/chatpb.proto
+// source: chatpb.proto
 
 package chatpb
 
@@ -78,11 +78,11 @@ func (x WsEventType) String() string {
 }
 
 func (WsEventType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_chatpb_proto_enumTypes[0].Descriptor()
+	return file_chatpb_proto_enumTypes[0].Descriptor()
 }
 
 func (WsEventType) Type() protoreflect.EnumType {
-	return &file_proto_chatpb_proto_enumTypes[0]
+	return &file_chatpb_proto_enumTypes[0]
 }
 
 func (x WsEventType) Number() protoreflect.EnumNumber {
@@ -91,7 +91,7 @@ func (x WsEventType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WsEventType.Descriptor instead.
 func (WsEventType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{0}
+	return file_chatpb_proto_rawDescGZIP(), []int{0}
 }
 
 type WsFrame struct {
@@ -117,7 +117,7 @@ type WsFrame struct {
 
 func (x *WsFrame) Reset() {
 	*x = WsFrame{}
-	mi := &file_proto_chatpb_proto_msgTypes[0]
+	mi := &file_chatpb_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -129,7 +129,7 @@ func (x *WsFrame) String() string {
 func (*WsFrame) ProtoMessage() {}
 
 func (x *WsFrame) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[0]
+	mi := &file_chatpb_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -142,7 +142,7 @@ func (x *WsFrame) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WsFrame.ProtoReflect.Descriptor instead.
 func (*WsFrame) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{0}
+	return file_chatpb_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *WsFrame) GetEventType() WsEventType {
@@ -312,7 +312,7 @@ type NewMessage struct {
 
 func (x *NewMessage) Reset() {
 	*x = NewMessage{}
-	mi := &file_proto_chatpb_proto_msgTypes[1]
+	mi := &file_chatpb_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -324,7 +324,7 @@ func (x *NewMessage) String() string {
 func (*NewMessage) ProtoMessage() {}
 
 func (x *NewMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[1]
+	mi := &file_chatpb_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -337,7 +337,7 @@ func (x *NewMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewMessage.ProtoReflect.Descriptor instead.
 func (*NewMessage) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{1}
+	return file_chatpb_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *NewMessage) GetId() string {
@@ -408,7 +408,7 @@ type ReadReceipt struct {
 
 func (x *ReadReceipt) Reset() {
 	*x = ReadReceipt{}
-	mi := &file_proto_chatpb_proto_msgTypes[2]
+	mi := &file_chatpb_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -420,7 +420,7 @@ func (x *ReadReceipt) String() string {
 func (*ReadReceipt) ProtoMessage() {}
 
 func (x *ReadReceipt) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[2]
+	mi := &file_chatpb_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -433,7 +433,7 @@ func (x *ReadReceipt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadReceipt.ProtoReflect.Descriptor instead.
 func (*ReadReceipt) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{2}
+	return file_chatpb_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ReadReceipt) GetMessageId() string {
@@ -477,7 +477,7 @@ type TypingIndicator struct {
 
 func (x *TypingIndicator) Reset() {
 	*x = TypingIndicator{}
-	mi := &file_proto_chatpb_proto_msgTypes[3]
+	mi := &file_chatpb_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -489,7 +489,7 @@ func (x *TypingIndicator) String() string {
 func (*TypingIndicator) ProtoMessage() {}
 
 func (x *TypingIndicator) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[3]
+	mi := &file_chatpb_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -502,7 +502,7 @@ func (x *TypingIndicator) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TypingIndicator.ProtoReflect.Descriptor instead.
 func (*TypingIndicator) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{3}
+	return file_chatpb_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TypingIndicator) GetUserId() string {
@@ -551,7 +551,7 @@ type PresenceUpdate struct {
 
 func (x *PresenceUpdate) Reset() {
 	*x = PresenceUpdate{}
-	mi := &file_proto_chatpb_proto_msgTypes[4]
+	mi := &file_chatpb_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +563,7 @@ func (x *PresenceUpdate) String() string {
 func (*PresenceUpdate) ProtoMessage() {}
 
 func (x *PresenceUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[4]
+	mi := &file_chatpb_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -576,7 +576,7 @@ func (x *PresenceUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PresenceUpdate.ProtoReflect.Descriptor instead.
 func (*PresenceUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{4}
+	return file_chatpb_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PresenceUpdate) GetClientId() string {
@@ -609,13 +609,14 @@ type OrderUpdate struct {
 	PendingAmount float64                `protobuf:"fixed64,5,opt,name=pending_amount,json=pendingAmount,proto3" json:"pending_amount,omitempty"`
 	HasReview     bool                   `protobuf:"varint,6,opt,name=has_review,json=hasReview,proto3" json:"has_review,omitempty"`
 	ReviewRating  int32                  `protobuf:"varint,7,opt,name=review_rating,json=reviewRating,proto3" json:"review_rating,omitempty"`
+	CardHtml      string                 `protobuf:"bytes,8,opt,name=card_html,json=cardHtml,proto3" json:"card_html,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OrderUpdate) Reset() {
 	*x = OrderUpdate{}
-	mi := &file_proto_chatpb_proto_msgTypes[5]
+	mi := &file_chatpb_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -627,7 +628,7 @@ func (x *OrderUpdate) String() string {
 func (*OrderUpdate) ProtoMessage() {}
 
 func (x *OrderUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[5]
+	mi := &file_chatpb_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +641,7 @@ func (x *OrderUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderUpdate.ProtoReflect.Descriptor instead.
 func (*OrderUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{5}
+	return file_chatpb_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OrderUpdate) GetOrderId() string {
@@ -692,6 +693,13 @@ func (x *OrderUpdate) GetReviewRating() int32 {
 	return 0
 }
 
+func (x *OrderUpdate) GetCardHtml() string {
+	if x != nil {
+		return x.CardHtml
+	}
+	return ""
+}
+
 type BookingUpdate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BookingId     string                 `protobuf:"bytes,1,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
@@ -701,13 +709,14 @@ type BookingUpdate struct {
 	PendingAmount float64                `protobuf:"fixed64,5,opt,name=pending_amount,json=pendingAmount,proto3" json:"pending_amount,omitempty"`
 	HasReview     bool                   `protobuf:"varint,6,opt,name=has_review,json=hasReview,proto3" json:"has_review,omitempty"`
 	ReviewRating  int32                  `protobuf:"varint,7,opt,name=review_rating,json=reviewRating,proto3" json:"review_rating,omitempty"`
+	CardHtml      string                 `protobuf:"bytes,8,opt,name=card_html,json=cardHtml,proto3" json:"card_html,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BookingUpdate) Reset() {
 	*x = BookingUpdate{}
-	mi := &file_proto_chatpb_proto_msgTypes[6]
+	mi := &file_chatpb_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -719,7 +728,7 @@ func (x *BookingUpdate) String() string {
 func (*BookingUpdate) ProtoMessage() {}
 
 func (x *BookingUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[6]
+	mi := &file_chatpb_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -732,7 +741,7 @@ func (x *BookingUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BookingUpdate.ProtoReflect.Descriptor instead.
 func (*BookingUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{6}
+	return file_chatpb_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *BookingUpdate) GetBookingId() string {
@@ -784,6 +793,13 @@ func (x *BookingUpdate) GetReviewRating() int32 {
 	return 0
 }
 
+func (x *BookingUpdate) GetCardHtml() string {
+	if x != nil {
+		return x.CardHtml
+	}
+	return ""
+}
+
 type UnreadCount struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ConversationId string                 `protobuf:"bytes,1,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
@@ -794,7 +810,7 @@ type UnreadCount struct {
 
 func (x *UnreadCount) Reset() {
 	*x = UnreadCount{}
-	mi := &file_proto_chatpb_proto_msgTypes[7]
+	mi := &file_chatpb_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -806,7 +822,7 @@ func (x *UnreadCount) String() string {
 func (*UnreadCount) ProtoMessage() {}
 
 func (x *UnreadCount) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_chatpb_proto_msgTypes[7]
+	mi := &file_chatpb_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -819,7 +835,7 @@ func (x *UnreadCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnreadCount.ProtoReflect.Descriptor instead.
 func (*UnreadCount) Descriptor() ([]byte, []int) {
-	return file_proto_chatpb_proto_rawDescGZIP(), []int{7}
+	return file_chatpb_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UnreadCount) GetConversationId() string {
@@ -836,11 +852,11 @@ func (x *UnreadCount) GetCount() int32 {
 	return 0
 }
 
-var File_proto_chatpb_proto protoreflect.FileDescriptor
+var File_chatpb_proto protoreflect.FileDescriptor
 
-const file_proto_chatpb_proto_rawDesc = "" +
+const file_chatpb_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/chatpb.proto\x12\x06chatpb\"\xdb\x04\n" +
+	"\fchatpb.proto\x12\x06chatpb\"\xdb\x04\n" +
 	"\aWsFrame\x122\n" +
 	"\n" +
 	"event_type\x18\x01 \x01(\x0e2\x13.chatpb.WsEventTypeR\teventType\x12'\n" +
@@ -888,7 +904,7 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\x0ePresenceUpdate\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x1b\n" +
 	"\tis_online\x18\x02 \x01(\bR\bisOnline\x12\x1b\n" +
-	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\xef\x01\n" +
+	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\x8c\x02\n" +
 	"\vOrderUpdate\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x1f\n" +
@@ -898,7 +914,8 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\x0epending_amount\x18\x05 \x01(\x01R\rpendingAmount\x12\x1d\n" +
 	"\n" +
 	"has_review\x18\x06 \x01(\bR\thasReview\x12#\n" +
-	"\rreview_rating\x18\a \x01(\x05R\freviewRating\"\xf5\x01\n" +
+	"\rreview_rating\x18\a \x01(\x05R\freviewRating\x12\x1b\n" +
+	"\tcard_html\x18\b \x01(\tR\bcardHtml\"\x92\x02\n" +
 	"\rBookingUpdate\x12\x1d\n" +
 	"\n" +
 	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
@@ -909,7 +926,8 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\x0epending_amount\x18\x05 \x01(\x01R\rpendingAmount\x12\x1d\n" +
 	"\n" +
 	"has_review\x18\x06 \x01(\bR\thasReview\x12#\n" +
-	"\rreview_rating\x18\a \x01(\x05R\freviewRating\"L\n" +
+	"\rreview_rating\x18\a \x01(\x05R\freviewRating\x12\x1b\n" +
+	"\tcard_html\x18\b \x01(\tR\bcardHtml\"L\n" +
 	"\vUnreadCount\x12'\n" +
 	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x05R\x05count*\xc7\x01\n" +
@@ -928,20 +946,20 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"B\x1aZ\x18salesmee/internal/chatpbb\x06proto3"
 
 var (
-	file_proto_chatpb_proto_rawDescOnce sync.Once
-	file_proto_chatpb_proto_rawDescData []byte
+	file_chatpb_proto_rawDescOnce sync.Once
+	file_chatpb_proto_rawDescData []byte
 )
 
-func file_proto_chatpb_proto_rawDescGZIP() []byte {
-	file_proto_chatpb_proto_rawDescOnce.Do(func() {
-		file_proto_chatpb_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_chatpb_proto_rawDesc), len(file_proto_chatpb_proto_rawDesc)))
+func file_chatpb_proto_rawDescGZIP() []byte {
+	file_chatpb_proto_rawDescOnce.Do(func() {
+		file_chatpb_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_chatpb_proto_rawDesc), len(file_chatpb_proto_rawDesc)))
 	})
-	return file_proto_chatpb_proto_rawDescData
+	return file_chatpb_proto_rawDescData
 }
 
-var file_proto_chatpb_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_chatpb_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_proto_chatpb_proto_goTypes = []any{
+var file_chatpb_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_chatpb_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_chatpb_proto_goTypes = []any{
 	(WsEventType)(0),        // 0: chatpb.WsEventType
 	(*WsFrame)(nil),         // 1: chatpb.WsFrame
 	(*NewMessage)(nil),      // 2: chatpb.NewMessage
@@ -952,7 +970,7 @@ var file_proto_chatpb_proto_goTypes = []any{
 	(*BookingUpdate)(nil),   // 7: chatpb.BookingUpdate
 	(*UnreadCount)(nil),     // 8: chatpb.UnreadCount
 }
-var file_proto_chatpb_proto_depIdxs = []int32{
+var file_chatpb_proto_depIdxs = []int32{
 	0, // 0: chatpb.WsFrame.event_type:type_name -> chatpb.WsEventType
 	2, // 1: chatpb.WsFrame.new_message:type_name -> chatpb.NewMessage
 	3, // 2: chatpb.WsFrame.read_receipt:type_name -> chatpb.ReadReceipt
@@ -968,12 +986,12 @@ var file_proto_chatpb_proto_depIdxs = []int32{
 	0, // [0:8] is the sub-list for field type_name
 }
 
-func init() { file_proto_chatpb_proto_init() }
-func file_proto_chatpb_proto_init() {
-	if File_proto_chatpb_proto != nil {
+func init() { file_chatpb_proto_init() }
+func file_chatpb_proto_init() {
+	if File_chatpb_proto != nil {
 		return
 	}
-	file_proto_chatpb_proto_msgTypes[0].OneofWrappers = []any{
+	file_chatpb_proto_msgTypes[0].OneofWrappers = []any{
 		(*WsFrame_NewMessage)(nil),
 		(*WsFrame_ReadReceipt)(nil),
 		(*WsFrame_Typing)(nil),
@@ -986,18 +1004,18 @@ func file_proto_chatpb_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_chatpb_proto_rawDesc), len(file_proto_chatpb_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chatpb_proto_rawDesc), len(file_chatpb_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_chatpb_proto_goTypes,
-		DependencyIndexes: file_proto_chatpb_proto_depIdxs,
-		EnumInfos:         file_proto_chatpb_proto_enumTypes,
-		MessageInfos:      file_proto_chatpb_proto_msgTypes,
+		GoTypes:           file_chatpb_proto_goTypes,
+		DependencyIndexes: file_chatpb_proto_depIdxs,
+		EnumInfos:         file_chatpb_proto_enumTypes,
+		MessageInfos:      file_chatpb_proto_msgTypes,
 	}.Build()
-	File_proto_chatpb_proto = out.File
-	file_proto_chatpb_proto_goTypes = nil
-	file_proto_chatpb_proto_depIdxs = nil
+	File_chatpb_proto = out.File
+	file_chatpb_proto_goTypes = nil
+	file_chatpb_proto_depIdxs = nil
 }

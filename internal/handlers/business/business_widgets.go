@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"salesmee/internal/db"
-	"salesmee/internal/handlers"
 	"salesmee/internal/models"
+	"salesmee/internal/services/progress"
 
 	"github.com/gin-gonic/gin"
 )
@@ -70,7 +70,7 @@ func QuickBooking(c *gin.Context) {
 	action.MessageID = message.ID
 	db.DB.Save(&action)
 
-	handlers.AutoCalculateProgress(conversation.ID)
+	progress.AutoCalculateProgress(conversation.ID)
 
 	c.HTML(200, "confirmations/booking_confirmation.html", gin.H{
 		"Client":  client,
@@ -137,7 +137,7 @@ func QuickOrder(c *gin.Context) {
 	action.MessageID = message.ID
 	db.DB.Save(&action)
 
-	handlers.AutoCalculateProgress(conversation.ID)
+	progress.AutoCalculateProgress(conversation.ID)
 
 	c.HTML(200, "confirmations/order_confirmation.html", gin.H{
 		"Client":  client,
@@ -204,7 +204,7 @@ func RequestPayment(c *gin.Context) {
 	action.MessageID = message.ID
 	db.DB.Save(&action)
 
-	handlers.AutoCalculateProgress(conversation.ID)
+	progress.AutoCalculateProgress(conversation.ID)
 
 	c.HTML(200, "confirmations/payment_confirmation.html", gin.H{
 		"Client":  client,
@@ -281,7 +281,7 @@ func SetGoal(c *gin.Context) {
 	action.MessageID = message.ID
 	db.DB.Save(&action)
 
-	handlers.AutoCalculateProgress(conversation.ID)
+	progress.AutoCalculateProgress(conversation.ID)
 
 	c.HTML(200, "confirmations/goal_confirmation.html", gin.H{
 		"Client":  client,

@@ -6,6 +6,7 @@ import (
 
 	"salesmee/internal/db"
 	"salesmee/internal/models"
+	prog "salesmee/internal/services/progress"
 
 	"github.com/gin-gonic/gin"
 )
@@ -102,7 +103,7 @@ func UpdateConversationStatus(c *gin.Context) {
 		progress = models.ConversationProgress{
 			ConversationID: uint(conversationID),
 			CurrentStage:   models.ConversationStage(newStage),
-			ProgressScore:  calculateProgressScore(models.ConversationStage(newStage)),
+			ProgressScore:  prog.CalculateProgressScore(models.ConversationStage(newStage)),
 			StageHistory: []models.StageTransition{
 				{
 					Stage:     models.ConversationStage(newStage),
@@ -129,7 +130,7 @@ func UpdateConversationStatus(c *gin.Context) {
 
 		progress.StageHistory = append(progress.StageHistory, transition)
 		progress.CurrentStage = models.ConversationStage(newStage)
-		progress.ProgressScore = calculateProgressScore(models.ConversationStage(newStage))
+		progress.ProgressScore = prog.CalculateProgressScore(models.ConversationStage(newStage))
 
 		// Set expected close date if in confirmation stage
 		if newStage == string(models.StageConfirmation) {

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"salesmee/internal/db"
-	"salesmee/internal/handlers"
 	"salesmee/internal/middleware"
+	"salesmee/internal/services/media"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/assist"
@@ -567,7 +567,7 @@ func CreateClientMessage(c *gin.Context) {
 
 	// Handle media upload
 	for _, field := range []string{"media_image", "media_document", "media_audio"} {
-		mediaURL, mediaType, err := handlers.SaveMediaFile(c, field)
+		mediaURL, mediaType, err := media.SaveMediaFile(c, field)
 		if err == nil {
 			message.MediaURL = mediaURL
 			message.MediaType = mediaType

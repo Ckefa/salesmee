@@ -9,6 +9,8 @@ import (
 	businessh "salesmee/internal/handlers/business"
 	clienth "salesmee/internal/handlers/client"
 	"salesmee/internal/models"
+	"salesmee/internal/services/media"
+	prog "salesmee/internal/services/progress"
 	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
@@ -442,7 +444,7 @@ func CreateMessage(c *gin.Context) {
 
 	// Handle media upload
 	for _, field := range []string{"media_image", "media_document", "media_audio"} {
-		mediaURL, mediaType, err := SaveMediaFile(c, field)
+		mediaURL, mediaType, err := media.SaveMediaFile(c, field)
 		if err == nil {
 			message.MediaURL = mediaURL
 			message.MediaType = mediaType
@@ -455,7 +457,7 @@ func CreateMessage(c *gin.Context) {
 		return
 	}
 
-	AutoCalculateProgress(conversation.ID)
+	prog.AutoCalculateProgress(conversation.ID)
 
 	if wsHub != nil {
 		ws.BroadcastNewMessage(

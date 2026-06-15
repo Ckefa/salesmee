@@ -1,6 +1,41 @@
 if (window.typingTimeout) clearTimeout(window.typingTimeout);
 var typingTimeout = null;
 
+var unreadBelow = 0;
+window.clearUnreadBelow = function() {
+  unreadBelow = 0;
+  var badge = document.getElementById('scrollBottomBadge');
+  if (badge) badge.classList.remove('visible');
+};
+
+function updateScrollBottomBadge() {
+  var badge = document.getElementById('scrollBottomBadge');
+  if (!badge) return;
+  if (unreadBelow > 0) {
+    badge.textContent = unreadBelow > 99 ? '99+' : unreadBelow;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+function updateSidebarUnreadBadge(frame) {
+  if (frame.sender_type !== 'client') return;
+  var cid = frame.sender_id;
+  var item = document.querySelector('.wa-chat-item[data-client-id="' + cid + '"]');
+  if (!item) return;
+  var badge = item.querySelector('.wa-unread-badge');
+  if (badge) {
+    var count = parseInt(badge.textContent) + 1;
+    badge.textContent = count > 99 ? '99+' : count;
+  } else {
+    var topRight = item.querySelector('.wa-chat-top-right');
+    if (topRight) {
+      topRight.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">1</span>');
+    }
+  }
+}
+
 scrollToBottom();
 markAsRead();
 startWsClient();
@@ -71,7 +106,6 @@ function reloadBusinessChatFromServer() {
       var current = document.getElementById('messages-container');
       if (next && current) {
         current.innerHTML = next.innerHTML;
-        scrollToBottom();
       }
     })
     .catch(console.error);
@@ -126,10 +160,26 @@ function updateBookingPendingPaymentsUI(bookingId, pendingAmount) {
 function applyOrderCardUpdate(upd) {
   if (!upd || !upd.order_id) return false;
   var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
-  if (!card) return false;
+  if (!card) {
+    if (upd.card_html) {
+      var container = document.getElementById('messages-container');
+      if (container) {
+        var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        container.insertAdjacentHTML('beforeend', upd.card_html);
+        if (isNearBottom) container.scrollTop = container.scrollHeight;
+        return true;
+      }
+    }
+    return false;
+  }
 
   if (upd.card_html) {
+    var container = document.getElementById('messages-container');
+    var scrollTop = container ? container.scrollTop : 0;
     card.outerHTML = upd.card_html;
+    if (container && container.scrollTop !== scrollTop) {
+      requestAnimationFrame(function() { container.scrollTop = scrollTop; });
+    }
     return true;
   }
 
@@ -152,10 +202,26 @@ function applyOrderCardUpdate(upd) {
 function applyBookingCardUpdate(upd) {
   if (!upd || !upd.booking_id) return false;
   var card = document.querySelector('[data-booking-id="' + upd.booking_id + '"]');
-  if (!card) return false;
+  if (!card) {
+    if (upd.card_html) {
+      var container = document.getElementById('messages-container');
+      if (container) {
+        var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        container.insertAdjacentHTML('beforeend', upd.card_html);
+        if (isNearBottom) container.scrollTop = container.scrollHeight;
+        return true;
+      }
+    }
+    return false;
+  }
 
   if (upd.card_html) {
+    var container = document.getElementById('messages-container');
+    var scrollTop = container ? container.scrollTop : 0;
     card.outerHTML = upd.card_html;
+    if (container && container.scrollTop !== scrollTop) {
+      requestAnimationFrame(function() { container.scrollTop = scrollTop; });
+    }
     return true;
   }
 
@@ -194,18 +260,18 @@ function registerChatHandlers() {
   window._chatHandlersRegistered = true;
 
   window.wsClient.on(1, function(frame) {
-    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
-    var container = document.getElementById('messages-container');
-    if (!container) return;
     var msg = frame.new_message;
     if (!msg) return;
-    if (msg.msg_type === 'order') {
-      reloadBusinessChatFromServer();
-      return;
-    } else if (msg.msg_type === 'booking') {
-      reloadBusinessChatFromServer();
+    if (msg.msg_type === 'order' || msg.msg_type === 'booking') return;
+
+    // Message for a different conversation — update sidebar unread badge
+    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) {
+      updateSidebarUnreadBadge(frame);
       return;
     }
+
+    var container = document.getElementById('messages-container');
+    if (!container) return;
     if (frame.sender_type === 'business') return;
     var html = '';
     if (msg.media_url) {
@@ -214,7 +280,15 @@ function registerChatHandlers() {
       html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
     }
     container.insertAdjacentHTML('beforeend', html);
-    scrollToBottom();
+
+    var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    if (isNearBottom) {
+      container.scrollTop = container.scrollHeight;
+    } else {
+      unreadBelow += 1;
+      updateScrollBottomBadge();
+    }
+
     markVisibleConversationRead();
     playNotificationSound();
   });
@@ -229,13 +303,13 @@ function registerChatHandlers() {
   window.wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
-    if (!applyOrderCardUpdate(upd)) reloadBusinessChatFromServer();
+    if (!applyOrderCardUpdate(upd)) {}
   });
 
   window.wsClient.on(7, function(frame) {
     var upd = frame.booking_update;
     if (!upd) return;
-    if (!applyBookingCardUpdate(upd)) reloadBusinessChatFromServer();
+    if (!applyBookingCardUpdate(upd)) {}
   });
 
   window.wsClient.on(8, function(frame) {
@@ -295,7 +369,6 @@ function showTypingIndicator(typing) {
     el.innerHTML = '<div class="msg-bbl typing"><span class="typing-label">typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
     document.getElementById('messages-container').appendChild(el);
   }
-  scrollToBottom();
 }
 
 function hideTypingIndicator(typing) {
@@ -364,7 +437,8 @@ function deleteContextMenuItem() {
     .then(function(data) {
       if (data.success) {
         showNotification('Deleted', 'success');
-        reloadBusinessChatFromServer();
+        var el = document.querySelector('[data-message-id="' + id + '"]');
+        if (el) el.remove();
       } else {
         showNotification(data.error || 'Failed to delete', 'error');
       }
@@ -494,7 +568,6 @@ function sendOrderToClient(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order sent to client!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to send order', 'error');
       }
@@ -510,7 +583,6 @@ function confirmOrderBusiness(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order confirmed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
@@ -527,7 +599,6 @@ function rejectOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order rejected', 'info');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to reject order', 'error');
       }
@@ -544,7 +615,6 @@ function confirmAllOrderPayments(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -561,7 +631,6 @@ function confirmAllBookingPayments(bookingId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -578,7 +647,6 @@ function fulfillOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order completed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to complete order', 'error');
       }
@@ -595,7 +663,6 @@ function cancelDraftOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Draft discarded', 'info');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to discard draft', 'error');
       }
@@ -618,7 +685,6 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
     .then(data => {
       if (data.success) {
         showNotification(`Booking ${action}ed successfully!`, 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || `Failed to ${action} booking`, 'error');
       }

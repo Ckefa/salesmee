@@ -163,6 +163,9 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 				strconv.Itoa(int(businessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			bizCardHTML := renderBizOrderCard(h.db, order)
+			clientCardHTML := renderClientOrderCard(h.db, order)
+			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -652,6 +655,9 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 				strconv.Itoa(int(request.BusinessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			bizCardHTML := renderBizOrderCard(h.db, order)
+			clientCardHTML := renderClientOrderCard(h.db, order)
+			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -957,6 +963,9 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(conversation.ClientID)),
 		)
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(conversation.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

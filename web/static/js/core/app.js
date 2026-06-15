@@ -112,6 +112,7 @@ class SalesMeeApp {
         var toggle = function() {
             var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
             btn.classList.toggle('visible', !isNearBottom);
+            if (isNearBottom && window.clearUnreadBelow) window.clearUnreadBelow();
         };
         container.addEventListener('scroll', toggle);
         setTimeout(toggle, 100);
@@ -143,10 +144,6 @@ class SalesMeeApp {
 
     autoScrollMessages(container) {
         container.scrollTop = container.scrollHeight;
-        var observer = new MutationObserver(function() {
-            container.scrollTop = container.scrollHeight;
-        });
-        observer.observe(container, { childList: true, subtree: true });
     }
 
     initRealTimeUpdates() {

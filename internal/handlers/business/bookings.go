@@ -106,6 +106,9 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 				strconv.Itoa(int(request.BusinessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			bizCardHTML := renderBizBookingCard(h.db, booking)
+			clientCardHTML := renderClientBookingCard(h.db, booking)
+			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -790,6 +793,9 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 				strconv.Itoa(int(businessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			bizCardHTML := renderBizBookingCard(h.db, booking)
+			clientCardHTML := renderClientBookingCard(h.db, booking)
+			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 

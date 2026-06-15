@@ -3,7 +3,7 @@ package services
 import "fmt"
 
 func brandHeader(gradient string) string {
-	return fmt.Sprintf(`<tr style="background: %s;"><td style="background: #ffffff; padding: 12px 32px; text-align: center;" bgcolor="#ffffff"><img src="%s" alt="SalesMee" style="height: 28px; width: auto; display: block; margin: 0 auto;"></td></tr>`, gradient, AppURL("/static/images/salesmeebrand.png"))
+	return fmt.Sprintf(`<tr style="background: %s;"><td style="background: #ffffff; padding: 12px 32px; text-align: center;" bgcolor="#ffffff"><img src="%s" alt="SalesMee" width="204" height="72" style="height: 72px; width: auto; display: block; margin: 0 auto;"></td></tr>`, gradient, AppURL("/static/images/salesmeebrand.png"))
 }
 
 const emailFooter = `<tr><td style="background: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">

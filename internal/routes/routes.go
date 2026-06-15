@@ -54,6 +54,7 @@ func Setup(r *gin.Engine) {
 			dev.GET("/items", handlers.ListItems)
 			dev.POST("/items", handlers.CreateItem)
 			dev.DELETE("/items/:id", handlers.DeleteItem)
+			dev.GET("/email", handlers.ShowEmailTestPage)
 		}
 	}
 

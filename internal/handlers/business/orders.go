@@ -163,6 +163,11 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 				strconv.Itoa(int(businessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var clientUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
+				Count(&clientUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
 			bizCardHTML := renderBizOrderCard(h.db, order)
 			clientCardHTML := renderClientOrderCard(h.db, order)
 			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
@@ -655,6 +660,11 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 				strconv.Itoa(int(request.BusinessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
 			bizCardHTML := renderBizOrderCard(h.db, order)
 			clientCardHTML := renderClientOrderCard(h.db, order)
 			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
@@ -963,6 +973,11 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(conversation.ClientID)),
 		)
+		var clientUnread int64
+		h.db.Model(&models.Message{}).
+			Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conversation.ID, false).
+			Count(&clientUnread)
+		ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conversation.ID)), int32(clientUnread), strconv.Itoa(int(conversation.ClientID)), "client")
 		bizCardHTML := renderBizOrderCard(h.db, order)
 		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(conversation.ClientID)))

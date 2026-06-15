@@ -106,6 +106,11 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 				strconv.Itoa(int(request.BusinessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
 			bizCardHTML := renderBizBookingCard(h.db, booking)
 			clientCardHTML := renderClientBookingCard(h.db, booking)
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
@@ -793,6 +798,11 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 				strconv.Itoa(int(businessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var clientUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
+				Count(&clientUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
 			bizCardHTML := renderBizBookingCard(h.db, booking)
 			clientCardHTML := renderClientBookingCard(h.db, booking)
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))

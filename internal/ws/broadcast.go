@@ -162,7 +162,7 @@ func BroadcastPresenceUpdate(hub *Hub, clientID string, isOnline bool, lastSeen 
 	hub.Broadcast("biz:"+bizID, frame, nil)
 }
 
-func BroadcastUnreadCount(hub *Hub, conversationID string, count int32, bizID string) {
+func BroadcastUnreadCount(hub *Hub, conversationID string, count int32, roomID, roomPrefix string) {
 	frame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_UNREAD_COUNT,
 		ConversationId: conversationID,
@@ -176,5 +176,5 @@ func BroadcastUnreadCount(hub *Hub, conversationID string, count int32, bizID st
 			},
 		},
 	}
-	hub.Broadcast("biz:"+bizID, frame, nil)
+	hub.Broadcast(roomPrefix+":"+roomID, frame, nil)
 }

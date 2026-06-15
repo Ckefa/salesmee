@@ -86,10 +86,15 @@ function scrollToBottom() {
   });
 }
 
+window.scrollToBottomBtn = function() {
+  clearUnreadBelow();
+  scrollToBottom();
+};
+
 function markAsRead() {
   fetch(`/client/businesses/${businessId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function () {
-      var badge = document.querySelector('.business-item[data-business-id="' + businessId + '"] .unread-badge');
+      var badge = document.querySelector('.business-item[data-business-id="' + businessId + '"] .wa-unread-badge');
       if (badge) badge.remove();
     })
     .catch(console.error);
@@ -261,6 +266,11 @@ function registerClientChatHandlers() {
     if (!msg) return;
     if (msg.msg_type === 'order' || msg.msg_type === 'booking') return;
 
+    // Send delivery ack for every received message (WhatsApp-style)
+    if (window.wsClient && frame.conversation_id) {
+      window.wsClient.sendDeliveredAck(frame.conversation_id, frame.sender_id || '');
+    }
+
     // Message for a different conversation — update sidebar unread badge
     if (frame.conversation_id && frame.conversation_id !== String(conversationId)) {
       updateSidebarUnreadBadge(frame);
@@ -308,12 +318,48 @@ function registerClientChatHandlers() {
     if (!applyClientBookingCardUpdate(upd)) {}
   });
 
+  window.wsClient.on(8, function(frame) {
+    if (!frame.unread_count) return;
+    var uc = frame.unread_count;
+    if (!uc.conversation_id) return;
+    var item = document.querySelector('.business-item[data-conversation-id="' + uc.conversation_id + '"]');
+    if (!item) return;
+    var badge = item.querySelector('.wa-unread-badge');
+    if (uc.count > 0) {
+      if (badge) {
+        badge.textContent = uc.count > 99 ? '99+' : uc.count;
+      } else {
+        var bottom = item.querySelector('.wa-chat-bottom');
+        if (bottom) {
+          bottom.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">' + (uc.count > 99 ? '99+' : uc.count) + '</span>');
+        }
+      }
+    } else {
+      if (badge) badge.remove();
+    }
+  });
+
   window.wsClient.on(2, function(frame) {
     applyReadReceipt(frame.read_receipt);
   });
 
   window.wsClient.on(5, function(frame) {
     // Presence updates not used on client chat page
+  });
+
+  window.wsClient.on(12, function(frame) {
+    if (!frame.delivered_receipt) return;
+    var dr = frame.delivered_receipt;
+    if (dr.conversation_id && dr.conversation_id !== String(conversationId)) return;
+    document.querySelectorAll('#messages-container .message-item.out').forEach(function(item) {
+      var tick = item.querySelector('.msg-tick');
+      if (!tick) return;
+      if (tick.getAttribute('data-read-state') === 'read') return;
+      if (tick.getAttribute('data-read-state') === 'delivered') return;
+      tick.setAttribute('data-read-state', 'delivered');
+      tick.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+      tick.style.width = '14px';
+    });
   });
 }
 

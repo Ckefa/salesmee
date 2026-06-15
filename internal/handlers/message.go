@@ -142,7 +142,7 @@ func GetMessages(c *gin.Context) {
 		isSelf := msg.Sender == "business"
 		var isDelivered, isRead bool
 		if isSelf {
-			isDelivered = conversation.LastReadByClientAt != nil && msg.CreatedAt.Before(*conversation.LastReadByClientAt)
+			isDelivered = msg.DeliveredAt != nil
 			isRead = msg.ReadByClient
 		}
 		messageObj := MessageObj{
@@ -471,6 +471,12 @@ func CreateMessage(c *gin.Context) {
 			strconv.Itoa(int(businessID)),
 			strconv.FormatUint(clientID, 10),
 		)
+
+		var clientUnread int64
+		db.DB.Model(&models.Message{}).
+			Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conversation.ID, false).
+			Count(&clientUnread)
+		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), int32(clientUnread), strconv.FormatUint(clientID, 10), "client")
 	}
 
 	// Return message partial
@@ -553,6 +559,9 @@ func MarkConversationAsRead(c *gin.Context) {
 			strconv.Itoa(int(businessID)),
 			strconv.FormatUint(clientID, 10),
 		)
+
+		// After business reads, business unread count is 0
+		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), 0, strconv.Itoa(int(businessID)), "biz")
 	}
 
 	c.JSON(200, gin.H{"status": "ok"})
@@ -671,6 +680,9 @@ func MarkClientConversationAsRead(c *gin.Context) {
 			strconv.FormatUint(businessID, 10),
 			strconv.Itoa(int(clientID)),
 		)
+
+		// After client reads, client unread count is 0
+		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), 0, strconv.Itoa(int(clientID)), "client")
 	}
 
 	c.JSON(200, gin.H{"status": "ok"})

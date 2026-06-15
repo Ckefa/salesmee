@@ -296,7 +296,7 @@ func GetClientMessages(c *gin.Context) {
 		isSelf := msg.Sender == "client"
 		var isDelivered, isRead bool
 		if isSelf {
-			isDelivered = conversation.LastReadByBusinessAt != nil && msg.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+			isDelivered = msg.DeliveredAt != nil
 			isRead = msg.ReadByBusiness
 		}
 		messageObj := MessageObj{
@@ -601,6 +601,12 @@ func CreateClientMessage(c *gin.Context) {
 			strconv.FormatUint(uint64(businessID), 10),
 			strconv.Itoa(int(clientID)),
 		)
+
+		var bizUnread int64
+		db.DB.Model(&models.Message{}).
+			Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conversation.ID, false).
+			Count(&bizUnread)
+		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), int32(bizUnread), strconv.FormatUint(uint64(businessID), 10), "biz")
 	}
 
 	// Return the newly created message as MessageObj for HTMX

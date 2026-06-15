@@ -3,9 +3,12 @@ package ws
 import (
 	"encoding/json"
 	"log"
+	"strconv"
 	"time"
 
 	"salesmee/internal/chatpb"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 	"salesmee/internal/services"
 
 	"github.com/gorilla/websocket"
@@ -90,12 +93,13 @@ func (c *Client) handleBinaryMessage(data []byte) {
 }
 
 type incomingFrame struct {
-	EventType      int             `json:"event_type"`
-	ConversationID string          `json:"conversation_id"`
-	SenderID       string          `json:"sender_id"`
-	SenderType     string          `json:"sender_type"`
-	Timestamp      int64           `json:"timestamp"`
-	Typing         *incomingTyping `json:"typing,omitempty"`
+	EventType      int                   `json:"event_type"`
+	ConversationID string                `json:"conversation_id"`
+	SenderID       string                `json:"sender_id"`
+	SenderType     string                `json:"sender_type"`
+	Timestamp      int64                 `json:"timestamp"`
+	Typing         *incomingTyping       `json:"typing,omitempty"`
+	DeliveredAck   *incomingDeliveredAck `json:"delivered_ack,omitempty"`
 }
 
 type incomingTyping struct {
@@ -104,6 +108,11 @@ type incomingTyping struct {
 	ConversationID string `json:"conversation_id"`
 	ClientID       string `json:"client_id"`
 	BusinessID     string `json:"business_id"`
+}
+
+type incomingDeliveredAck struct {
+	ConversationID string `json:"conversation_id"`
+	ClientID       string `json:"client_id"`
 }
 
 func (c *Client) handleTextMessage(data []byte) {
@@ -136,6 +145,16 @@ func (c *Client) handleTextMessage(data []byte) {
 				BusinessId:     inc.Typing.BusinessID,
 			},
 		}
+	case chatpb.WsEventType_DELIVERED_ACK:
+		if inc.DeliveredAck == nil {
+			return
+		}
+		frame.Payload = &chatpb.WsFrame_DeliveredAck{
+			DeliveredAck: &chatpb.DeliveredAck{
+				ConversationId: inc.DeliveredAck.ConversationID,
+				ClientId:       inc.DeliveredAck.ClientID,
+			},
+		}
 	default:
 		log.Printf("ws unknown event type from client: %d", inc.EventType)
 		return
@@ -165,9 +184,67 @@ func (c *Client) processFrame(frame *chatpb.WsFrame) {
 			}
 		}
 
+	case chatpb.WsEventType_DELIVERED_ACK:
+		c.handleDeliveredAck(frame.GetDeliveredAck())
+
 	default:
 		log.Printf("ws unhandled event type: %v", frame.GetEventType())
 	}
+}
+
+func (c *Client) handleDeliveredAck(ack *chatpb.DeliveredAck) {
+	if ack == nil {
+		return
+	}
+	convID, err := strconv.ParseUint(ack.GetConversationId(), 10, 64)
+	if err != nil {
+		log.Printf("ws handleDeliveredAck: invalid conversation_id: %v", err)
+		return
+	}
+	now := time.Now()
+
+	// Determine which sender's messages to mark as delivered
+	// Client sends ack → mark business-sent messages as delivered
+	// Business sends ack → mark client-sent messages as delivered
+	var senderType string
+	if c.info.UserType == "client" {
+		senderType = "business"
+	} else {
+		senderType = "client"
+	}
+
+	if err := db.DB.Model(&models.Message{}).
+		Where("conversation_id = ? AND sender = ? AND delivered_at IS NULL", convID, senderType).
+		Update("delivered_at", &now).Error; err != nil {
+		log.Printf("ws handleDeliveredAck: update error: %v", err)
+		return
+	}
+
+	var conv struct{ BusinessID, ClientID uint }
+	if err := db.DB.Table("conversations").Select("business_id, client_id").First(&conv, convID).Error; err != nil {
+		log.Printf("ws handleDeliveredAck: conversation lookup error: %v", err)
+		return
+	}
+
+	var recipientRoom string
+	if c.info.UserType == "client" {
+		recipientRoom = "biz:" + strconv.Itoa(int(conv.BusinessID))
+	} else {
+		recipientRoom = "client:" + strconv.Itoa(int(conv.ClientID))
+	}
+
+	frame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_DELIVERED_RECEIPT,
+		ConversationId: ack.GetConversationId(),
+		Timestamp:      now.UnixMilli(),
+		Payload: &chatpb.WsFrame_DeliveredReceipt{
+			DeliveredReceipt: &chatpb.DeliveredReceipt{
+				ConversationId: ack.GetConversationId(),
+				DeliveredAt:    now.UnixMilli(),
+			},
+		},
+	}
+	c.hub.Broadcast(recipientRoom, frame, nil)
 }
 
 func (c *Client) WritePump() {
@@ -229,8 +306,9 @@ type jsonFrame struct {
 	Typing         *jsonTyping             `json:"typing,omitempty"`
 	OrderUpdate    *jsonOrderUpdate        `json:"order_update,omitempty"`
 	BookingUpdate  *jsonBookingUpdate      `json:"booking_update,omitempty"`
-	UnreadCount    *jsonUnreadCount        `json:"unread_count,omitempty"`
-	Presence       *jsonPresence           `json:"presence,omitempty"`
+	UnreadCount       *jsonUnreadCount       `json:"unread_count,omitempty"`
+	Presence          *jsonPresence          `json:"presence,omitempty"`
+	DeliveredReceipt  *jsonDeliveredReceipt  `json:"delivered_receipt,omitempty"`
 }
 
 type jsonNewMessage struct {
@@ -290,6 +368,11 @@ type jsonPresence struct {
 type jsonUnreadCount struct {
 	ConversationID string `json:"conversation_id"`
 	Count          int32  `json:"count"`
+}
+
+type jsonDeliveredReceipt struct {
+	ConversationID string `json:"conversation_id"`
+	DeliveredAt    int64  `json:"delivered_at"`
 }
 
 func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
@@ -371,6 +454,12 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 			ClientId: pr.GetClientId(),
 			IsOnline: pr.GetIsOnline(),
 			LastSeen: pr.GetLastSeen(),
+		}
+	case *chatpb.WsFrame_DeliveredReceipt:
+		d := p.DeliveredReceipt
+		jf.DeliveredReceipt = &jsonDeliveredReceipt{
+			ConversationID: d.GetConversationId(),
+			DeliveredAt:    d.GetDeliveredAt(),
 		}
 	}
 

@@ -100,3 +100,7 @@
         </div>
         
       </div>
+
+### plan 2.0
+    products items in mobile view fix
+    also fix service itmes layout, optimize the layout

@@ -502,7 +502,7 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		} else {
 			query = query.Where("booking_id IN ?", bookingIDs)
 		}
-		query.Order("created_at DESC").Limit(pageSize).Offset((page - 1) * pageSize).Find(&payments)
+		query.Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'completed' THEN 1 WHEN status = 'failed' THEN 2 ELSE 3 END, created_at DESC`).Limit(pageSize).Offset((page - 1) * pageSize).Find(&payments)
 	}
 
 	// Enrich payments with order/booking info

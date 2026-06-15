@@ -94,7 +94,7 @@
     var customStart = document.getElementById('customStart').value;
     var customEnd = document.getElementById('customEnd').value;
     if (customStart && customEnd) {
-      htmx.ajax('GET', '/business/reports/' + tab + '?start=' + customStart + '&end=' + customEnd, {target: '#reportContent', swap: 'innerHTML'});
+      htmx.ajax('GET', '/business/reports/' + tab + '?start=' + customStart + '&end=' + customEnd + '&page=1', {target: '#reportContent', swap: 'innerHTML'});
     }
   }
 
@@ -104,7 +104,7 @@
       p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]';
     });
     el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white';
-    htmx.ajax('GET', '/business/reports/' + currentReportTab + '?range=' + range, {target: '#reportContent', swap: 'innerHTML'});
+    htmx.ajax('GET', '/business/reports/' + currentReportTab + '?range=' + range + '&page=1', {target: '#reportContent', swap: 'innerHTML'});
     document.getElementById('customStart').value = '';
     document.getElementById('customEnd').value = '';
   }
@@ -113,7 +113,7 @@
     var start = document.getElementById('customStart').value;
     var end = document.getElementById('customEnd').value;
     if (!start || !end) { showNotification('Please select both start and end dates', 'error'); return; }
-    htmx.ajax('GET', '/business/reports/' + currentReportTab + '?start=' + start + '&end=' + end, {target: '#reportContent', swap: 'innerHTML'});
+    htmx.ajax('GET', '/business/reports/' + currentReportTab + '?start=' + start + '&end=' + end + '&page=1', {target: '#reportContent', swap: 'innerHTML'});
     var pills = document.querySelectorAll('#rangePills button');
     pills.forEach(function(p) { p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]'; });
   }
@@ -122,6 +122,22 @@
     currentReportTab = tab;
     setActiveRangePill(el.parentElement ? el : el);
     htmx.ajax('GET', '/business/reports/' + tab + '?range=' + range, {target: '#reportContent', swap: 'innerHTML'});
+  }
+
+  function loadReportPage(tab, page) {
+    var customStart = document.getElementById('customStart').value;
+    var customEnd = document.getElementById('customEnd').value;
+    if (customStart && customEnd) {
+      htmx.ajax('GET', '/business/reports/' + tab + '?start=' + customStart + '&end=' + customEnd + '&page=' + page, {target: '#reportContent', swap: 'innerHTML'});
+      return;
+    }
+    var activePill = document.querySelector('#rangePills .bg-\\[var\\(--color-primary\\)\\]');
+    if (activePill) {
+      var map = {'Today':'today','This Week':'this_week','This Month':'this_month','Last Month':'last_month','Last 3M':'last_3_months','Year to Date':'this_year','Last Year':'last_year'};
+      var range = map[activePill.textContent.trim()];
+      if (range) { htmx.ajax('GET', '/business/reports/' + tab + '?range=' + range + '&page=' + page, {target: '#reportContent', swap: 'innerHTML'}); return; }
+    }
+    htmx.ajax('GET', '/business/reports/' + tab + '?range=this_month&page=' + page, {target: '#reportContent', swap: 'innerHTML'});
   }
 
   function printReport() {

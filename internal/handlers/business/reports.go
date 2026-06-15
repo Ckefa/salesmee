@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"salesmee/internal/models"
+	"strconv"
 	"strings"
 	"time"
 
@@ -76,8 +77,14 @@ func (h *BusinessHandler) GetRevenueReport(c *gin.Context) {
 	}
 
 	start, end, label := resolveDateRange(c)
-	var daily []DailyRevenue
 
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize := pageSize()
+
+	var allDaily []DailyRevenue
 	h.db.Raw(`
 		SELECT
 		  d.date,
@@ -106,12 +113,33 @@ func (h *BusinessHandler) GetRevenueReport(c *gin.Context) {
 		  GROUP BY DATE(created_at)
 		) b ON b.date = d.date
 		ORDER BY d.date
-	`, start, end, businessID, start, end, businessID, start, end).Scan(&daily)
+	`, start, end, businessID, start, end, businessID, start, end).Scan(&allDaily)
+
+	totalItems := len(allDaily)
+	totalPages := totalItems / pageSize
+	if totalItems%pageSize != 0 {
+		totalPages++
+	}
 
 	var totalOrdersRev, totalBookingsRev float64
-	for _, d := range daily {
+	for _, d := range allDaily {
 		totalOrdersRev += d.OrdersRevenue
 		totalBookingsRev += d.BookingsRevenue
+	}
+
+	startIdx := (page - 1) * pageSize
+	endIdx := startIdx + pageSize
+	if startIdx > totalItems {
+		startIdx = totalItems
+	}
+	if endIdx > totalItems {
+		endIdx = totalItems
+	}
+	var daily []DailyRevenue
+	if startIdx < totalItems {
+		daily = allDaily[startIdx:endIdx]
+	} else {
+		daily = []DailyRevenue{}
 	}
 
 	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
@@ -123,6 +151,9 @@ func (h *BusinessHandler) GetRevenueReport(c *gin.Context) {
 		"TotalRevenue":      totalOrdersRev + totalBookingsRev,
 		"StartDate":         start.Format("2006-01-02"),
 		"EndDate":           end.Format("2006-01-02"),
+		"Page":              float64(page),
+		"TotalPages":        float64(totalPages),
+		"TotalItems":        totalItems,
 	})
 }
 
@@ -134,6 +165,12 @@ func (h *BusinessHandler) GetSalesReport(c *gin.Context) {
 	}
 
 	start, end, label := resolveDateRange(c)
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize := pageSize()
 
 	type productSales struct {
 		Name     string
@@ -198,6 +235,26 @@ func (h *BusinessHandler) GetSalesReport(c *gin.Context) {
 		})
 	}
 
+	totalItems := len(salesRows)
+	totalPages := totalItems / pageSize
+	if totalItems%pageSize != 0 {
+		totalPages++
+	}
+
+	startIdx := (page - 1) * pageSize
+	endIdx := startIdx + pageSize
+	if startIdx > totalItems {
+		startIdx = totalItems
+	}
+	if endIdx > totalItems {
+		endIdx = totalItems
+	}
+	if startIdx < totalItems {
+		salesRows = salesRows[startIdx:endIdx]
+	} else {
+		salesRows = []SalesRow{}
+	}
+
 	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":    "sales",
 		"RangeLabel":   label,
@@ -205,6 +262,9 @@ func (h *BusinessHandler) GetSalesReport(c *gin.Context) {
 		"TotalRevenue": totalRevenue,
 		"StartDate":    start.Format("2006-01-02"),
 		"EndDate":      end.Format("2006-01-02"),
+		"Page":         float64(page),
+		"TotalPages":   float64(totalPages),
+		"TotalItems":   totalItems,
 	})
 }
 

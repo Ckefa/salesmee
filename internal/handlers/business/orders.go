@@ -238,7 +238,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	var orders []models.Order
 	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'confirmed' THEN 2 WHEN status = 'draft' THEN 3 WHEN status IN ('fulfilled','completed') THEN 4 WHEN status = 'cancelled' THEN 5 ELSE 6 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&orders)
 
@@ -368,7 +368,7 @@ func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
 	var orders []models.Order
 	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'confirmed' THEN 2 WHEN status = 'draft' THEN 3 WHEN status IN ('fulfilled','completed') THEN 4 WHEN status = 'cancelled' THEN 5 ELSE 6 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&orders)
 

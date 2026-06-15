@@ -173,7 +173,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	var bookings []models.Booking
 	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&bookings)
 
@@ -291,7 +291,7 @@ func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
 	var bookings []models.Booking
 	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&bookings)
 

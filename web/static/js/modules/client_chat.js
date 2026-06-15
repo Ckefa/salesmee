@@ -1,5 +1,3 @@
-
-
 function hideClientOrderModal() {
   document.getElementById('clientOrderModal').classList.add('hidden');
   document.getElementById('clientOrderForm').reset();
@@ -40,14 +38,12 @@ function submitOrderForm() {
     .catch(e => { console.error(e); showNotification('Failed to send order request', 'error'); });
 }
 
-if (window.wsClient) window.wsClient.disconnect();
-var wsClient = null;
 if (window.typingTimeout) clearTimeout(window.typingTimeout);
 var typingTimeout = null;
 
 scrollToBottom();
 markAsRead();
-startWsClient();
+if (!window.wsClient || !window.wsClient.isConnected) startWsClient();
 
 function scrollToBottom() {
   var container = document.getElementById('messages-container');
@@ -170,13 +166,14 @@ function applyClientBookingCardUpdate(upd) {
 }
 
 function startWsClient() {
-  if (wsClient) wsClient.disconnect();
-  wsClient = new WsClient();
+  if (window.wsClient && window.wsClient.isConnected) return;
+  window.wsClient = new WsClient();
   var token = getCookie('client_token');
   if (!token) return;
-  wsClient.connect('/ws/client?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+  window.wsClient.connect('/ws/client?token=' + encodeURIComponent(token));
 
-  wsClient.on(1, function(frame) {
+  window.wsClient.on(1, function(frame) {
+    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
     var container = document.getElementById('messages-container');
     if (!container) return;
     var msg = frame.new_message;
@@ -200,27 +197,31 @@ function startWsClient() {
     markVisibleConversationRead();
   });
 
-  wsClient.on(3, function(frame) {
+  window.wsClient.on(3, function(frame) {
     showTypingIndicator(frame.typing);
   });
-  wsClient.on(4, function(frame) {
+  window.wsClient.on(4, function(frame) {
     hideTypingIndicator(frame.typing);
   });
 
-  wsClient.on(6, function(frame) {
+  window.wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
     if (!applyClientOrderCardUpdate(upd)) reloadClientChatFromServer();
   });
 
-  wsClient.on(7, function(frame) {
+  window.wsClient.on(7, function(frame) {
     var upd = frame.booking_update;
     if (!upd) return;
     if (!applyClientBookingCardUpdate(upd)) reloadClientChatFromServer();
   });
 
-  wsClient.on(2, function(frame) {
+  window.wsClient.on(2, function(frame) {
     applyReadReceipt(frame.read_receipt);
+  });
+
+  window.wsClient.on(5, function(frame) {
+    // Presence updates not used on client chat page
   });
 }
 
@@ -446,23 +447,23 @@ function clientConfirmBooking(bookingId) {
 var messageInput = document.getElementById('messageInput');
 if (messageInput) {
   messageInput.addEventListener('input', function() {
-    if (wsClient && wsClient.isConnected) {
+    if (window.wsClient && window.wsClient.isConnected) {
       if (typingTimeout) clearTimeout(typingTimeout);
       if (this.value.length > 0) {
-        wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
+        window.wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
       } else {
-        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+        window.wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
       }
       typingTimeout = setTimeout(function() {
-        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+        window.wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
       }, 3000);
     }
   });
 
   messageInput.addEventListener('keydown', function(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
-      if (wsClient && wsClient.isConnected) {
-        wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      if (window.wsClient && window.wsClient.isConnected) {
+        window.wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
       }
       if (typingTimeout) {
         clearTimeout(typingTimeout);
@@ -522,7 +523,6 @@ document.addEventListener('click', function(e) {
 });
 
 // ========== Context Menu ==========
-console.log('[ContextMenu] Initializing context menu on client chat page');
 
 var contextMenuEl = null;
 var contextMessageId = null;
@@ -604,23 +604,23 @@ function deleteContextMenuItem() {
 
 function onMessageInput(input) {
   var val = input.value;
-  if (wsClient && wsClient.isConnected) {
+  if (window.wsClient && window.wsClient.isConnected) {
     if (typingTimeout) clearTimeout(typingTimeout);
     if (val.length > 0) {
-      wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
+      window.wsClient.sendTypingStart(conversationId, clientId, 'client', clientId, businessId);
     } else {
-      wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
     }
     typingTimeout = setTimeout(function() {
-      wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
     }, 3000);
   }
 }
 
 function onMessageKeydown(event) {
   if (event.key === 'Enter' && !event.shiftKey) {
-    if (wsClient && wsClient.isConnected) {
-      wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
+    if (window.wsClient && window.wsClient.isConnected) {
+      window.wsClient.sendTypingStop(conversationId, clientId, 'client', clientId, businessId);
     }
     if (typingTimeout) {
       clearTimeout(typingTimeout);
@@ -630,5 +630,5 @@ function onMessageKeydown(event) {
 }
 
 window.addEventListener('beforeunload', function() {
-  if (wsClient) wsClient.disconnect();
+  if (window.wsClient) window.wsClient.disconnect();
 });

@@ -4,7 +4,10 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -63,6 +66,23 @@ func ServeBusinessWS(hub *Hub) gin.HandlerFunc {
 	}
 }
 
+func getClientBizIDs(clientID uint) []string {
+	var conversations []models.Conversation
+	db.DB.Where("client_id = ?", clientID).Find(&conversations)
+	ids := make([]string, 0, len(conversations))
+	for _, conv := range conversations {
+		ids = append(ids, strconv.Itoa(int(conv.BusinessID)))
+	}
+	return ids
+}
+
+func broadcastClientPresence(hub *Hub, clientID string, isOnline bool, bizIDs []string) {
+	now := time.Now().UnixMilli()
+	for _, bizID := range bizIDs {
+		BroadcastPresenceUpdate(hub, clientID, isOnline, now, bizID)
+	}
+}
+
 func ServeClientWS(hub *Hub) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Query("token")
@@ -94,6 +114,34 @@ func ServeClientWS(hub *Hub) gin.HandlerFunc {
 
 		client := NewClient(hub, conn, info, claims)
 		client.rooms = []string{"client:" + info.ClientID}
+
+		// Determine which business rooms to notify for presence
+		var presenceBizIDs []string
+		if bizID != "" {
+			presenceBizIDs = []string{bizID}
+		} else {
+			presenceBizIDs = getClientBizIDs(claims.UserID)
+		}
+
+		// Mark online and broadcast presence
+		now := time.Now()
+		db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Updates(map[string]interface{}{
+			"is_online":    true,
+			"last_seen_at": &now,
+		})
+		broadcastClientPresence(hub, info.ClientID, true, presenceBizIDs)
+
+		// On disconnect, mark offline and broadcast to all connected businesses
+		client.onDisconnect = func() {
+			now := time.Now()
+			db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Updates(map[string]interface{}{
+				"is_online":    false,
+				"last_seen_at": &now,
+			})
+			// Query fresh business IDs to ensure all connected businesses get the offline event
+			freshBizIDs := getClientBizIDs(claims.UserID)
+			broadcastClientPresence(hub, info.ClientID, false, freshBizIDs)
+		}
 
 		hub.register <- client
 

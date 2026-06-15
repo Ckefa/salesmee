@@ -1,5 +1,3 @@
-if (window.wsClient) window.wsClient.disconnect();
-var wsClient = null;
 if (window.typingTimeout) clearTimeout(window.typingTimeout);
 var typingTimeout = null;
 
@@ -172,13 +170,20 @@ function wsToken() {
 }
 
 function startWsClient() {
-  if (wsClient) wsClient.disconnect();
-  wsClient = new WsClient();
-  var token = wsToken();
-  if (!token) return;
-  wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+  if (!window.wsClient || !window.wsClient.isConnected) {
+    window.wsClient = new WsClient();
+    var token = wsToken();
+    if (!token) return;
+    window.wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+  }
+  registerChatHandlers();
+}
 
-  wsClient.on(1, function(frame) {
+function registerChatHandlers() {
+  if (window._chatHandlersRegistered) return;
+  window._chatHandlersRegistered = true;
+
+  window.wsClient.on(1, function(frame) {
     if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
     var container = document.getElementById('messages-container');
     if (!container) return;
@@ -204,35 +209,36 @@ function startWsClient() {
     playNotificationSound();
   });
 
-  wsClient.on(3, function(frame) {
+  window.wsClient.on(3, function(frame) {
     showTypingIndicator(frame.typing);
   });
-  wsClient.on(4, function(frame) {
+  window.wsClient.on(4, function(frame) {
     hideTypingIndicator(frame.typing);
   });
 
-  wsClient.on(6, function(frame) {
+  window.wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
     if (!applyOrderCardUpdate(upd)) reloadBusinessChatFromServer();
   });
 
-  wsClient.on(7, function(frame) {
+  window.wsClient.on(7, function(frame) {
     var upd = frame.booking_update;
     if (!upd) return;
     if (!applyBookingCardUpdate(upd)) reloadBusinessChatFromServer();
   });
 
-  wsClient.on(8, function(frame) {
+  window.wsClient.on(8, function(frame) {
     var badge = document.querySelector('.wa-unread-badge');
     if (badge && frame.unread_count) {
       badge.textContent = frame.unread_count.count;
     }
   });
 
-  wsClient.on(2, function(frame) {
+  window.wsClient.on(2, function(frame) {
     applyReadReceipt(frame.read_receipt);
   });
+
 }
 
 document.addEventListener('visibilitychange', function() {
@@ -381,7 +387,7 @@ function markMessageRead() {
 }
 
 window.addEventListener('beforeunload', function() {
-  if (wsClient) wsClient.disconnect();
+  if (window.wsClient) window.wsClient.disconnect();
 });
 
 document.addEventListener('click', function(e) {
@@ -627,15 +633,15 @@ function onMessageInput(input) {
   }
 
   // Typing indicator via WebSocket
-  if (wsClient && wsClient.isConnected) {
+  if (window.wsClient && window.wsClient.isConnected) {
     if (typingTimeout) clearTimeout(typingTimeout);
     if (val.length > 0) {
-      wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
     } else {
-      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
     }
     typingTimeout = setTimeout(function() {
-      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
     }, 3000);
   }
 }
@@ -650,8 +656,8 @@ function onMessageKeydown(event) {
 
   // Send typing stop on Enter (message sent)
   if (event.key === 'Enter' && !event.shiftKey) {
-    if (wsClient && wsClient.isConnected) {
-      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    if (window.wsClient && window.wsClient.isConnected) {
+      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
     }
     if (typingTimeout) {
       clearTimeout(typingTimeout);

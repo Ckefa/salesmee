@@ -27,12 +27,13 @@ type ClientInfo struct {
 }
 
 type Client struct {
-	hub    *Hub
-	conn   *websocket.Conn
-	send   chan []byte
-	rooms  []string
-	info   ClientInfo
-	claims *services.Claims
+	hub          *Hub
+	conn         *websocket.Conn
+	send         chan []byte
+	rooms        []string
+	info         ClientInfo
+	claims       *services.Claims
+	onDisconnect func()
 }
 
 func NewClient(hub *Hub, conn *websocket.Conn, info ClientInfo, claims *services.Claims) *Client {
@@ -48,6 +49,9 @@ func NewClient(hub *Hub, conn *websocket.Conn, info ClientInfo, claims *services
 func (c *Client) ReadPump() {
 	defer func() {
 		c.hub.unregister <- c
+		if c.onDisconnect != nil {
+			c.onDisconnect()
+		}
 		c.conn.Close()
 	}()
 
@@ -226,6 +230,7 @@ type jsonFrame struct {
 	OrderUpdate    *jsonOrderUpdate        `json:"order_update,omitempty"`
 	BookingUpdate  *jsonBookingUpdate      `json:"booking_update,omitempty"`
 	UnreadCount    *jsonUnreadCount        `json:"unread_count,omitempty"`
+	Presence       *jsonPresence           `json:"presence,omitempty"`
 }
 
 type jsonNewMessage struct {
@@ -272,6 +277,12 @@ type jsonBookingUpdate struct {
 	PendingAmount float64 `json:"pending_amount"`
 	HasReview     bool    `json:"has_review"`
 	ReviewRating  int32   `json:"review_rating"`
+}
+
+type jsonPresence struct {
+	ClientId string `json:"client_id"`
+	IsOnline bool   `json:"is_online"`
+	LastSeen int64  `json:"last_seen"`
 }
 
 type jsonUnreadCount struct {
@@ -349,6 +360,13 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 		jf.UnreadCount = &jsonUnreadCount{
 			ConversationID: u.GetConversationId(),
 			Count:          u.GetCount(),
+		}
+	case *chatpb.WsFrame_Presence:
+		pr := p.Presence
+		jf.Presence = &jsonPresence{
+			ClientId: pr.GetClientId(),
+			IsOnline: pr.GetIsOnline(),
+			LastSeen: pr.GetLastSeen(),
 		}
 	}
 

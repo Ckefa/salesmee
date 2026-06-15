@@ -1101,6 +1101,10 @@
   border-radius: 9999px;
 }
 
+.wa-online-dot.offline::after {
+  background-color: var(--color-surface-tertiary);
+}
+
 .wa-chat-info {
   flex: 1;
   min-width: 0;

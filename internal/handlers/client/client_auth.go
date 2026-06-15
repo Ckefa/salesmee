@@ -651,35 +651,6 @@ func ClientMiddleware() gin.HandlerFunc {
 	}
 }
 
-func ClientHeartbeat(c *gin.Context) {
-	// Get client info from token
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		token, _ = c.Cookie("client_token")
-	}
-
-	if token == "" {
-		c.JSON(401, gin.H{"error": "No token"})
-		return
-	}
-
-	token = strings.TrimPrefix(token, "Bearer ")
-	claims, err := services.ValidateToken(token)
-	if err != nil || claims.Subject != "client" {
-		c.JSON(401, gin.H{"error": "Invalid token"})
-		return
-	}
-
-	// Update client online status
-	now := time.Now()
-	db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Updates(map[string]interface{}{
-		"is_online":    true,
-		"last_seen_at": &now,
-	})
-
-	c.JSON(200, gin.H{"status": "ok", "timestamp": now})
-}
-
 func ClientLogout(c *gin.Context) {
 	// Get client info from token
 	token, _ := c.Cookie("client_token")
@@ -689,6 +660,17 @@ func ClientLogout(c *gin.Context) {
 		if err == nil && claims.Subject == "client" {
 			// Update client offline status
 			db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Update("is_online", false)
+
+			// Broadcast offline presence via WebSocket
+			if wsHub != nil {
+				var conversations []models.Conversation
+				db.DB.Where("client_id = ?", claims.UserID).Find(&conversations)
+				clientID := strconv.Itoa(int(claims.UserID))
+				now := time.Now().UnixMilli()
+				for _, conv := range conversations {
+					ws.BroadcastPresenceUpdate(wsHub, clientID, false, now, strconv.Itoa(int(conv.BusinessID)))
+				}
+			}
 		}
 	}
 

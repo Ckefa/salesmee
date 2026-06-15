@@ -118,7 +118,6 @@ class SalesMeeApp {
     }
 
     initClientFeatures() {
-        this.startHeartbeat();
         this.initRealTimeUpdates();
     }
 
@@ -148,13 +147,6 @@ class SalesMeeApp {
             container.scrollTop = container.scrollHeight;
         });
         observer.observe(container, { childList: true, subtree: true });
-    }
-
-    startHeartbeat() {
-        setInterval(function() {
-            fetch('/client/heartbeat', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-                .catch(function() {});
-        }, 30000);
     }
 
     initRealTimeUpdates() {

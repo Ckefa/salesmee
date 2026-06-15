@@ -56,7 +56,9 @@
     in reports page, in revenue tab: add export revune info to csv beside the print button which only prints pdf
                     add implement functionality to export revuen by csv
 
-### pland 1.6
+    ============ Done Implemented
+
+### plan 1.6
     since we are usng websocket, remove the heart beat, use websocket to detect if client or business is online
     [GIN] 2026/06/14 - 22:25:57 | 200 |    8.024174ms |       127.0.0.1 | POST     "/client/heartbeat"
     [GIN] 2026/06/14 - 22:25:59 | 200 |    8.875199ms |       127.0.0.1 | POST     "/client/heartbeat"
@@ -64,7 +66,10 @@
     [GIN] 2026/06/14 - 22:26:27 | 200 |    8.072004ms |       127.0.0.1 | POST     "/client/heartbeat"
     k
 
+    ============ Done Implemented
+
 ### plan 1.7
+    :Goal => use custom alert prompt in the entire project, not old alert, use shared alert modal where possible
     use custom alert modal instead of native brower alert() on to confirm client delete in clientlist
     ensure averywhere uses a custom alert, predefined, not old native alert prompt, in both client and business chatpages
     even in business dashboard pages use custom alert modal

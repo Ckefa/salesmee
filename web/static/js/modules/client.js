@@ -1,5 +1,4 @@
 let currentBusinessId = null;
-let heartbeatInterval = null;
 let bizCtxBusinessId = null;
 let bizCtxBusinessName = '';
 
@@ -37,26 +36,23 @@ document.addEventListener('DOMContentLoaded', function () {
     bizList.addEventListener('touchmove', function() { clearTimeout(longTimer); });
   }
 
-  startHeartbeat();
+  startPresenceWS();
 });
 
-function startHeartbeat() {
-  heartbeatInterval = setInterval(function () {
-    fetch('/client/heartbeat', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + getCookie('client_token'), 'X-CSRF-Token': getCookie('csrf_token') }
-    }).catch(console.error);
-  }, 30000);
+function startPresenceWS() {
+  if (window.wsClient) return;
+  var token = getCookie('client_token');
+  if (!token) return;
+  window.wsClient = new WsClient();
+  window.wsClient.connect('/ws/client?token=' + encodeURIComponent(token));
 }
 
-function stopHeartbeat() {
-  if (heartbeatInterval) {
-    clearInterval(heartbeatInterval);
-    heartbeatInterval = null;
+window.addEventListener('beforeunload', function() {
+  if (window.wsClient) {
+    window.wsClient.disconnect();
+    window.wsClient = null;
   }
-}
-
-window.addEventListener('beforeunload', stopHeartbeat);
+});
 
 function showBizCtxMenu(e, bizId, bizName) {
   e.preventDefault();

@@ -160,7 +160,37 @@ function filterClients() {
   });
 }
 
+function startBusinessWS() {
+  if (window.wsClient && window.wsClient.isConnected) return;
+  var token = getCookie('token') || getCookie('team_token');
+  if (!token) return;
+  window.wsClient = new WsClient();
+  window.wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + (window.BUSINESS_ID || ''));
+
+  window.wsClient.on(5, function(frame) {
+    var p = frame.presence;
+    if (!p) return;
+    var el = document.querySelector('[data-client-id="' + p.client_id + '"] .wa-online-dot');
+    if (el) {
+      el.classList.remove('online', 'offline');
+      el.classList.add(p.is_online ? 'online' : 'offline');
+    }
+    if (String(p.client_id) === String(window.clientId || '')) {
+      var statusEl = document.querySelector('.wa-header-online-text');
+      if (statusEl) {
+        statusEl.textContent = p.is_online ? 'online' : 'offline';
+      }
+    }
+  });
+}
+
+window.addEventListener('beforeunload', function() {
+  if (window.wsClient) window.wsClient.disconnect();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
+  startBusinessWS();
+
   var form = document.getElementById('new-client-form');
   if (form) {
     form.addEventListener('submit', function(e) {

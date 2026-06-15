@@ -235,6 +235,9 @@ func main() {
 	r.GET("/favicon.ico", func(c *gin.Context) {
 		c.File("./web/static/images/salesmee.ico")
 	})
+	r.GET("/service-worker.js", func(c *gin.Context) {
+		c.File("./web/static/service-worker.js")
+	})
 
 	hub := ws.NewHub()
 	routes.SetWSHub(hub)

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"salesmee/internal/data"
-	"salesmee/internal/handlers"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
+	"salesmee/internal/services/progress"
 	"salesmee/internal/ws"
 	"strconv"
 	"time"
@@ -146,7 +146,7 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 
 	// Auto-advance conversation progress and notify any open chat panes.
 	if conv, err := h.getOrCreateConversation(client.ID, businessID); err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 		if h.hub != nil {
 			ws.BroadcastNewMessage(
 				h.hub,
@@ -515,7 +515,7 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 	}
 
 	if h.hub != nil {
@@ -654,7 +654,7 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 	}
 
 	if conv, err := h.getOrCreateConversation(client.ID, request.BusinessID); err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 		if h.hub != nil {
 			ws.BroadcastNewMessage(
 				h.hub,
@@ -978,7 +978,7 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 		})
 	}
 
-	handlers.AutoCalculateProgress(conversation.ID)
+	progress.AutoCalculateProgress(conversation.ID)
 	if h.hub != nil {
 		ws.BroadcastNewMessage(
 			h.hub,
@@ -1050,7 +1050,7 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 	}
 
 	if h.hub != nil {
@@ -1102,7 +1102,7 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 	}
 
 	if h.hub != nil {
@@ -1148,7 +1148,7 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 	}
 
 	if h.hub != nil {
@@ -1198,7 +1198,7 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 	}
 
 	if h.hub != nil {
@@ -1285,7 +1285,7 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
-		handlers.AutoCalculateProgress(conv.ID)
+		progress.AutoCalculateProgress(conv.ID)
 	}
 
 	if h.hub != nil {

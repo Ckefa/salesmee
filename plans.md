@@ -39,6 +39,8 @@
     :> [!NOTE]
     > Do the same for bookings page
 
+    ============ Done Implemented
+
 ### plan 1.3 
         ***Done***
     ============ Done Implemented 

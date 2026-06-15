@@ -29,7 +29,10 @@ func ShowClientLogin(c *gin.Context) {
 	if token, err := c.Cookie("client_token"); err == nil && token != "" {
 		token = strings.TrimPrefix(token, "Bearer ")
 		if claims, err := services.ValidateToken(token); err == nil && claims.Subject == "client" {
-			c.Redirect(http.StatusFound, "/client")
+			// Already authed — redirect to saved destination or /client
+			redirect, _ := c.Cookie("client_redirect")
+			c.SetCookie("client_redirect", "", -1, "/client", "", false, true)
+			c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirect))
 			return
 		}
 	}
@@ -128,9 +131,11 @@ func VerifyClientOTP(c *gin.Context) {
 		return
 	}
 
-	// Set cookie and redirect
+	// Set cookie and redirect to saved destination
 	c.SetCookie("client_token", token, 86400, "/", "", false, false)
-	c.Redirect(http.StatusFound, "/client")
+	redirect, _ := c.Cookie("client_redirect")
+	c.SetCookie("client_redirect", "", -1, "/client", "", false, true)
+	c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirect))
 }
 
 func ClientDashboard(c *gin.Context) {
@@ -623,6 +628,7 @@ func ClientMiddleware() gin.HandlerFunc {
 		}
 
 		if token == "" {
+			c.SetCookie("client_redirect", c.Request.URL.String(), 300, "/client", "", false, true)
 			c.Redirect(http.StatusFound, "/client/login")
 			c.Abort()
 			return
@@ -633,6 +639,7 @@ func ClientMiddleware() gin.HandlerFunc {
 
 		claims, err := services.ValidateToken(token)
 		if err != nil || claims.Subject != "client" {
+			c.SetCookie("client_redirect", c.Request.URL.String(), 300, "/client", "", false, true)
 			c.Redirect(http.StatusFound, "/client/login")
 			c.Abort()
 			return

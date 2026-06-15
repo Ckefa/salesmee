@@ -3,7 +3,6 @@ package business
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
@@ -1277,10 +1276,7 @@ func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
 		return
 	}
 
-	chatLink := fmt.Sprintf("https://%s/client/businesses/%d/messages", os.Getenv("APP_DOMAIN"), biz.ID)
-	if os.Getenv("APP_DOMAIN") == "" {
-		chatLink = fmt.Sprintf("/client/businesses/%d/messages", biz.ID)
-	}
+	chatLink := services.AppURL(fmt.Sprintf("/client?business_id=%d", biz.ID))
 
 	if err := services.SendOrderStatusEmail(client.Email, client.Name, biz.Name, order.OrderNumber, statusLabel, chatLink); err != nil {
 		notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "failed")

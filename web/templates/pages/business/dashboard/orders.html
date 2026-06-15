@@ -3,18 +3,16 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/orders_content"}}
-  <div class="py-6">
+  <div id="orders-page" class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Page Header -->
-      <div class="mb-8">
-        <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Orders Management</h2>
-        <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-2">Track and manage your customer orders</p>
-      </div>
-
-      <!-- Quick Action -->
-      <div class="mb-8">
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text)]">Orders Management</h2>
+          <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">Track and manage your customer orders</p>
+        </div>
         <button onclick="showQuickOrderModal()"
-          class="bg-[var(--color-info)] hover:brightness-110 text-white px-4 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base shadow-sm">
+          class="bg-[var(--color-info)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base shadow-sm">
           <i class="fas fa-shopping-cart"></i>
           <span>Quick Order</span>
         </button>
@@ -250,15 +248,15 @@
             {{$next := add .Page 1}}
             {{$range := $.Range}}
             <a href="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}"
-              hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-content"
-              hx-swap="outerHTML"
-              class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
-                    {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
-              {{if eq .Page 1.0}}onclick="return false" {{end}}>
-              <i class="fas fa-chevron-left"></i>
-            </a>
-            <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
-              hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-content"
+hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-page"
+               hx-swap="outerHTML"
+               class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                     {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+               {{if eq .Page 1.0}}onclick="return false" {{end}}>
+               <i class="fas fa-chevron-left"></i>
+             </a>
+             <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
+               hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-page"
               hx-swap="outerHTML"
               class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                     {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
@@ -354,7 +352,7 @@
       return date >= start && date <= end;
     }
     function onPeriodChange(el) {
-      htmx.ajax('GET', '/business/orders/stats?range=' + el.value + '&page=1', {target: '#orders-content', swap: 'outerHTML'});
+      htmx.ajax('GET', '/business/orders/stats?range=' + el.value + '&page=1', {target: '#orders-page', swap: 'outerHTML'});
     }
     function toggleDropdown(id) {
       const menu = document.getElementById(id);

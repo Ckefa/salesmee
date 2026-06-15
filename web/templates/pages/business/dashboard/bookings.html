@@ -539,15 +539,17 @@
     }
 
     function cancelBooking(bookingId) {
-      if (!confirm('Are you sure you want to cancel this booking?')) return;
-      fetch(`/business/bookings/${bookingId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
-        body: JSON.stringify({status: 'cancelled'})
-      })
-        .then(r => r.json())
-        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
-        .catch(() => showNotification('Failed to cancel booking', 'error'));
+      showConfirmModal({ title: 'Cancel Booking', message: 'Are you sure you want to cancel this booking?', confirmText: 'Cancel Booking', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+        if (!confirmed) return;
+        fetch(`/business/bookings/${bookingId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+          body: JSON.stringify({status: 'cancelled'})
+        })
+          .then(r => r.json())
+          .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
+          .catch(() => showNotification('Failed to cancel booking', 'error'));
+      });
     }
 
     function editBooking(bookingId) {

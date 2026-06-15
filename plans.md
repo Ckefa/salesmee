@@ -74,6 +74,8 @@
     ensure averywhere uses a custom alert, predefined, not old native alert prompt, in both client and business chatpages
     even in business dashboard pages use custom alert modal
 
+    ============ Done Implemented
+
 ### plan 1.8
     in all the business subpages orders,bookings payments etc, where there is table, sort the table giving priority, 1, pending status, then date , with most resent items coming first, pening payments to come on top of completed recent payments, optimize the arrangement of deatails,
     Ensure not table has a max of table size env variable, some tables, in reports page have more items in one page, use multiple pages

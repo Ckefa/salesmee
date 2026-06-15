@@ -275,7 +275,8 @@
     }
 
     function deleteService(serviceId) {
-      if (confirm('Are you sure you want to delete this service?')) {
+      showConfirmModal({ title: 'Delete Service', message: 'Are you sure you want to delete this service?', confirmText: 'Delete', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+        if (!confirmed) return;
         fetch(`/business/services/${serviceId}`, {
           method: 'DELETE',
           headers: {
@@ -295,7 +296,7 @@
             console.error('Error:', error);
             showNotification('Failed to delete service', 'error');
           });
-      }
+      });
     }
 
     // Duration calculator helper

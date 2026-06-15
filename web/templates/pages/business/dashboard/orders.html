@@ -296,11 +296,13 @@ hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders
         .catch(function () {showNotification('Failed to complete order', 'error');});
     }
     function rejectOrder(orderId) {
-      if (!confirm('Are you sure you want to cancel this order?')) return;
-      fetch('orders/' + orderId + '/reject', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
-        .then(function (r) {return r.json();})
-        .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel order', 'error');})
-        .catch(function () {showNotification('Failed to cancel order', 'error');});
+      showConfirmModal({ title: 'Cancel Order', message: 'Are you sure you want to cancel this order?', confirmText: 'Cancel Order', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+        if (!confirmed) return;
+        fetch('orders/' + orderId + '/reject', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
+          .then(function (r) {return r.json();})
+          .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel order', 'error');})
+          .catch(function () {showNotification('Failed to cancel order', 'error');});
+      });
     }
     function filterOrders() {
       const search = document.getElementById('orderSearch').value.toLowerCase().trim();

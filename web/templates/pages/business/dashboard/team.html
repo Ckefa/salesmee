@@ -209,17 +209,19 @@ function copyInviteLink(token) {
 }
 
 function deleteMember(id) {
-  if (!confirm('Remove this team member?')) return;
-  fetch('/business/team/' + id, {
-    method: 'DELETE',
-    headers: {'X-CSRF-Token': csrfToken}
-  }).then(function(r) { return r.json(); }).then(function(resp) {
-    if (resp.success) {
-      showNotification('Team member removed', 'success');
-      setTimeout(function() { location.reload(); }, 500);
-    } else {
-      showNotification('Failed to remove', 'error');
-    }
+  showConfirmModal({ title: 'Remove Team Member', message: 'Remove this team member?', confirmText: 'Remove', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/team/' + id, {
+      method: 'DELETE',
+      headers: {'X-CSRF-Token': csrfToken}
+    }).then(function(r) { return r.json(); }).then(function(resp) {
+      if (resp.success) {
+        showNotification('Team member removed', 'success');
+        setTimeout(function() { location.reload(); }, 500);
+      } else {
+        showNotification('Failed to remove', 'error');
+      }
+    });
   });
 }
 </script>

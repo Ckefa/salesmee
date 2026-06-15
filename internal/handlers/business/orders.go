@@ -938,19 +938,6 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 		})
 	}
 
-	// Create Message for this order so it appears in chat
-	msg := models.Message{
-		ConversationID: conversation.ID,
-		Content:        "",
-		Type:           "order",
-		Sender:         "user",
-		CreatedAt:      now,
-	}
-	if err := h.db.Create(&msg).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create message"})
-		return
-	}
-
 	handlers.AutoCalculateProgress(conversation.ID)
 	if h.hub != nil {
 		ws.BroadcastNewMessage(

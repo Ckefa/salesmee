@@ -53,26 +53,28 @@ function waCtxMarkRead() {
 
 function waCtxClearChat() {
   if (!ctxMenuClientId) return;
-  if (!confirm('Clear all messages in this chat? This cannot be undone.')) { waHideCtxMenu(); return; }
-  fetch('clients/' + ctxMenuClientId + '/messages', {
-    method: 'DELETE',
-    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-  }).then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        showNotification('Chat cleared', 'success');
-        if (currentClientId == ctxMenuClientId) {
-          htmx.ajax('GET', 'clients/' + ctxMenuClientId + '/messages', {
-            target: '#chat-area',
-            swap: 'innerHTML'
-          });
+  showConfirmModal({ title: 'Clear Chat', message: 'Clear all messages in this chat? This cannot be undone.', confirmText: 'Clear', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+    if (!confirmed) { waHideCtxMenu(); return; }
+    fetch('clients/' + ctxMenuClientId + '/messages', {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+    }).then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          showNotification('Chat cleared', 'success');
+          if (currentClientId == ctxMenuClientId) {
+            htmx.ajax('GET', 'clients/' + ctxMenuClientId + '/messages', {
+              target: '#chat-area',
+              swap: 'innerHTML'
+            });
+          }
+        } else {
+          showNotification(d.error || 'Failed to clear chat', 'error');
         }
-      } else {
-        showNotification(d.error || 'Failed to clear chat', 'error');
-      }
-    })
-    .catch(function() { showNotification('Failed to clear chat', 'error'); })
-    .finally(function() { waHideCtxMenu(); });
+      })
+      .catch(function() { showNotification('Failed to clear chat', 'error'); })
+      .finally(function() { waHideCtxMenu(); });
+  });
 }
 
 function waCtxDeleteChat() {
@@ -122,32 +124,34 @@ function deleteClient(clientId, clientName) {
     var el = document.querySelector('[data-client-id="' + clientId + '"]');
     clientName = el ? el.getAttribute('data-client-name') || 'this client' : 'this client';
   }
-  if (!confirm('Are you sure you want to delete "' + clientName + '"? This action cannot be undone.')) return;
-  fetch('clients/' + clientId, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') } })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.success) {
-        showNotification('Customer deleted successfully!', 'success');
-        var el = document.querySelector('[data-client-id="' + clientId + '"]');
-        if (el) el.remove();
-        if (currentClientId == clientId) {
-          var chatArea = document.getElementById('chat-area');
-          if (chatArea) {
-            chatArea.innerHTML =
-              '<div class="wa-empty-state">' +
-              '<img src="/static/images/salesmeebrand.png" class="wa-empty-state-logo">' +
-              '<h2 class="wa-empty-state-title">SalesMee</h2>' +
-              '<p class="wa-empty-state-text">Send and receive messages, Track orders, bookings, and payments from clients in one Platform.</p>' +
-              '</div>';
+  showConfirmModal({ title: 'Delete Customer', message: 'Are you sure you want to delete "' + clientName + '"? This action cannot be undone.', confirmText: 'Delete', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('clients/' + clientId, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          showNotification('Customer deleted successfully!', 'success');
+          var el = document.querySelector('[data-client-id="' + clientId + '"]');
+          if (el) el.remove();
+          if (currentClientId == clientId) {
+            var chatArea = document.getElementById('chat-area');
+            if (chatArea) {
+              chatArea.innerHTML =
+                '<div class="wa-empty-state">' +
+                '<img src="/static/images/salesmeebrand.png" class="wa-empty-state-logo">' +
+                '<h2 class="wa-empty-state-title">SalesMee</h2>' +
+                '<p class="wa-empty-state-text">Send and receive messages, Track orders, bookings, and payments from clients in one Platform.</p>' +
+                '</div>';
+            }
+            currentClientId = null;
+            waBackToChatList();
           }
-          currentClientId = null;
-          waBackToChatList();
+        } else {
+          showNotification(data.error || 'Failed to delete client', 'error');
         }
-      } else {
-        showNotification(data.error || 'Failed to delete client', 'error');
-      }
-    })
-    .catch(function() { showNotification('Failed to delete client', 'error'); });
+      })
+      .catch(function() { showNotification('Failed to delete client', 'error'); });
+  });
 }
 
 function filterClients() {

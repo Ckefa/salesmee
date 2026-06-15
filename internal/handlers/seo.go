@@ -31,6 +31,7 @@ func SitemapXML(c *gin.Context) {
 			{Loc: base + "/user-deletion", Priority: "0.3"},
 			{Loc: base + "/business/login", Priority: "0.6"},
 			{Loc: base + "/business/register", Priority: "0.8"},
+			{Loc: base + "/client/login", Priority: "0.6"},
 		},
 	})
 }
@@ -38,6 +39,9 @@ func SitemapXML(c *gin.Context) {
 func RobotsTXT(c *gin.Context) {
 	c.String(http.StatusOK, `User-agent: *
 Allow: /
+Allow: /client/login$
+Allow: /business/login$
+Allow: /business/register$
 Disallow: /business/
 Disallow: /client/
 Disallow: /admin/

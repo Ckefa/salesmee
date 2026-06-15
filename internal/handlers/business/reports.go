@@ -393,6 +393,61 @@ func (h *BusinessHandler) ExportPaymentsCSV(c *gin.Context) {
 	wr.Flush()
 }
 
+func (h *BusinessHandler) ExportRevenueCSV(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.String(http.StatusUnauthorized, "Not authenticated")
+		return
+	}
+
+	start, end, _ := resolveDateRange(c)
+
+	var daily []DailyRevenue
+	h.db.Raw(`
+		SELECT
+		  d.date,
+		  COALESCE(o.amount, 0) as orders_revenue,
+		  COALESCE(b.amount, 0) as bookings_revenue,
+		  COALESCE(o.amount, 0) + COALESCE(b.amount, 0) as total
+		FROM (
+		  SELECT generate_series(
+		    DATE(?),
+		    DATE(?),
+		    '1 day'::interval
+		  )::date AS date
+		) d
+		LEFT JOIN (
+		  SELECT DATE(created_at) as date, SUM(total_amount) as amount
+		  FROM orders
+		  WHERE business_id = ? AND created_at BETWEEN ? AND ?
+		    AND status IN ('confirmed', 'fulfilled')
+		  GROUP BY DATE(created_at)
+		) o ON o.date = d.date
+		LEFT JOIN (
+		  SELECT DATE(created_at) as date, SUM(total_amount) as amount
+		  FROM bookings
+		  WHERE business_id = ? AND created_at BETWEEN ? AND ?
+		    AND status IN ('client_confirmed', 'completed')
+		  GROUP BY DATE(created_at)
+		) b ON b.date = d.date
+		ORDER BY d.date
+	`, start, end, businessID, start, end, businessID, start, end).Scan(&daily)
+
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", "attachment; filename=revenue.csv")
+	wr := csv.NewWriter(c.Writer)
+	wr.Write([]string{"Date", "Orders Revenue", "Bookings Revenue", "Total Revenue"})
+	for _, d := range daily {
+		wr.Write([]string{
+			d.Date,
+			fmt.Sprintf("%.2f", d.OrdersRevenue),
+			fmt.Sprintf("%.2f", d.BookingsRevenue),
+			fmt.Sprintf("%.2f", d.Total),
+		})
+	}
+	wr.Flush()
+}
+
 func (h *BusinessHandler) ExportClientsCSV(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {

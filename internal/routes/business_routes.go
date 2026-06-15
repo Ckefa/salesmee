@@ -214,6 +214,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/reports/export/orders.csv", middleware.RequirePermission(middleware.PermReportsView), businessHandler.ExportOrdersCSV)
 		protected.GET("/reports/export/bookings.csv", middleware.RequirePermission(middleware.PermReportsView), businessHandler.ExportBookingsCSV)
 		protected.GET("/reports/export/payments.csv", middleware.RequirePermission(middleware.PermReportsView), businessHandler.ExportPaymentsCSV)
+		protected.GET("/reports/export/revenue.csv", middleware.RequirePermission(middleware.PermReportsView), businessHandler.ExportRevenueCSV)
 		protected.GET("/reports/export/clients.csv", middleware.RequirePermission(middleware.PermReportsView), businessHandler.ExportClientsCSV)
 
 		// Reviews — require clients:rw (client-facing feature)

@@ -127,5 +127,21 @@
   function printReport() {
     window.print();
   }
+
+  function exportRevenueCSV() {
+    var customStart = document.getElementById('customStart').value;
+    var customEnd = document.getElementById('customEnd').value;
+    if (customStart && customEnd) {
+      window.open('/business/reports/export/revenue.csv?start=' + customStart + '&end=' + customEnd, '_blank');
+      return;
+    }
+    var activePill = document.querySelector('#rangePills .bg-\\[var\\(--color-primary\\)\\]');
+    if (activePill) {
+      var map = {'Today':'today','This Week':'this_week','This Month':'this_month','Last Month':'last_month','Last 3M':'last_3_months','Year to Date':'this_year','Last Year':'last_year'};
+      var range = map[activePill.textContent.trim()];
+      if (range) { window.open('/business/reports/export/revenue.csv?range=' + range, '_blank'); return; }
+    }
+    window.open('/business/reports/export/revenue.csv?range=this_month', '_blank');
+  }
 </script>
 {{end}}

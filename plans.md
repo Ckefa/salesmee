@@ -50,6 +50,8 @@
                                          no backgroun both for Typing text and the dots animations
     the Typing animation is not appearing in business chat page, fix the issue
 
+    ============ Done Implemented
+
 ### plan 1.5
     in reports page, in revenue tab: add export revune info to csv beside the print button which only prints pdf
                     add implement functionality to export revuen by csv

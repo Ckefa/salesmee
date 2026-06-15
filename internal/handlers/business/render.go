@@ -2,6 +2,8 @@ package business
 
 import (
 	"bytes"
+	"fmt"
+	"html"
 	"html/template"
 	"time"
 	"salesmee/internal/models"
@@ -432,4 +434,111 @@ func renderClientBookingCard(d *gorm.DB, booking models.Booking) string {
 		return ""
 	}
 	return html
+}
+
+func RenderBizSidebarCard(client models.Client, conversationID uint, lastMessage string, lastMessageAt time.Time, unreadCount int) string {
+	timeStr := ""
+	if !lastMessageAt.IsZero() {
+		timeStr = lastMessageAt.Format(time.RFC3339)
+	}
+	preview := "No messages yet"
+	if lastMessage != "" {
+		if len(lastMessage) > 60 {
+			preview = html.EscapeString(lastMessage[:57]) + "..."
+		} else {
+			preview = html.EscapeString(lastMessage)
+		}
+	} else {
+		preview = "<span class=\"italic opacity-60\">No messages yet</span>"
+	}
+	badge := ""
+	if unreadCount > 0 {
+		countStr := fmt.Sprintf("%d", unreadCount)
+		if unreadCount > 99 {
+			countStr = "99+"
+		}
+		badge = fmt.Sprintf("<span class=\"wa-unread-badge\">%s</span>", countStr)
+	}
+	return fmt.Sprintf(
+		`<div class="wa-chat-item group" data-client-id="%d" data-conversation-id="%d" data-client-name="%s" data-last-message-at="%s" data-unread="%d" role="row">
+			<div class="wa-chat-avatar-wrapper">
+				<div class="wa-chat-avatar avatar-placeholder"><i class="fas fa-user text-white"></i></div>
+				<span class="wa-online-dot offline"></span>
+			</div>
+			<div class="wa-chat-info">
+				<div class="wa-chat-top">
+					<span class="wa-chat-name">%s</span>
+					<div class="wa-chat-top-right">
+						<span class="wa-chat-time time-ago" data-time="%s"></span>
+						%s
+					</div>
+				</div>
+				<div class="wa-chat-bottom">
+					<span class="wa-chat-preview">%s</span>
+				</div>
+			</div>
+			<button onclick="event.stopPropagation(); deleteClient('%d')" title="Delete" class="opacity-40 hover:opacity-100 transition-opacity p-1.5 rounded text-xs text-[var(--color-error)] bg-transparent ml-auto shrink-0">
+				<i class="fas fa-trash-alt"></i>
+			</button>
+		</div>`,
+		client.ID, conversationID, html.EscapeString(client.Name), timeStr, unreadCount,
+		html.EscapeString(client.Name), timeStr, badge, preview, client.ID,
+	)
+}
+
+func RenderClientSidebarCard(business models.Business, conversationID uint, lastMessage string, lastMessageAt time.Time, unreadCount int) string {
+	timeStr := ""
+	if !lastMessageAt.IsZero() {
+		timeStr = lastMessageAt.Format(time.RFC3339)
+	}
+	preview := "No messages yet"
+	if lastMessage != "" {
+		if len(lastMessage) > 60 {
+			preview = html.EscapeString(lastMessage[:57]) + "..."
+		} else {
+			preview = html.EscapeString(lastMessage)
+		}
+	} else {
+		preview = "<span class=\"italic opacity-60\">No messages yet</span>"
+	}
+	badge := ""
+	if unreadCount > 0 {
+		countStr := fmt.Sprintf("%d", unreadCount)
+		if unreadCount > 99 {
+			countStr = "99+"
+		}
+		badge = fmt.Sprintf("<span class=\"wa-unread-badge\">%s</span>", countStr)
+	}
+	avatar := `<div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>`
+	if business.Logo != "" {
+		avatar = fmt.Sprintf(`<img src="/static/%s" alt="%s" class="wa-chat-avatar">`, html.EscapeString(business.Logo), html.EscapeString(business.Name))
+	}
+	return fmt.Sprintf(
+		`<div class="wa-chat-item business-item" data-business-id="%d" data-conversation-id="%d" data-business-name="%s" data-business-type="%s">
+			<div class="wa-chat-avatar-wrapper">
+				%s
+				<div class="wa-online-dot"></div>
+			</div>
+			<div class="wa-chat-info">
+				<div class="wa-chat-top">
+					<span class="wa-chat-name">%s</span>
+					<span class="wa-chat-time time-ago" data-time="%s"></span>
+				</div>
+				<div class="wa-chat-bottom">
+					<span class="wa-chat-preview">%s</span>
+					%s
+				</div>
+			</div>
+			<div class="flex items-center gap-0.5 ml-auto shrink-0">
+				<button onclick="event.stopPropagation(); togglePinBusiness(%d)" class="pin-btn wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-amber-500" title="Pin to top">
+					<i class="fas fa-star text-[10px]"></i>
+				</button>
+				<button onclick="event.stopPropagation(); disconnectBusiness(%d)" class="wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-[var(--color-error)]" title="Remove business">
+					<i class="fas fa-trash-alt text-[10px]"></i>
+				</button>
+			</div>
+		</div>`,
+		business.ID, conversationID, html.EscapeString(business.Name), html.EscapeString(business.BusinessType),
+		avatar, html.EscapeString(business.Name), timeStr, preview, badge, business.ID, business.ID,
+	)
 }

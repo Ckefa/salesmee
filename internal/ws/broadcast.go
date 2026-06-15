@@ -162,6 +162,60 @@ func BroadcastPresenceUpdate(hub *Hub, clientID string, isOnline bool, lastSeen 
 	hub.Broadcast("biz:"+bizID, frame, nil)
 }
 
+func BroadcastConversationUpdate(hub *Hub, conversationID, bizCardHTML, clientCardHTML, bizID, clientID string) {
+	if bizCardHTML != "" {
+		bizFrame := &chatpb.WsFrame{
+			EventType:      chatpb.WsEventType_CONVERSATION_UPDATE,
+			ConversationId: conversationID,
+			SenderId:       "",
+			SenderType:     "system",
+			Timestamp:      time.Now().UnixMilli(),
+			Payload: &chatpb.WsFrame_ConversationUpdate{
+				ConversationUpdate: &chatpb.ConversationUpdate{
+					ConversationId: conversationID,
+					BizCardHtml:    bizCardHTML,
+				},
+			},
+		}
+		hub.Broadcast("biz:"+bizID, bizFrame, nil)
+	}
+	if clientCardHTML != "" {
+		clientFrame := &chatpb.WsFrame{
+			EventType:      chatpb.WsEventType_CONVERSATION_UPDATE,
+			ConversationId: conversationID,
+			SenderId:       "",
+			SenderType:     "system",
+			Timestamp:      time.Now().UnixMilli(),
+			Payload: &chatpb.WsFrame_ConversationUpdate{
+				ConversationUpdate: &chatpb.ConversationUpdate{
+					ConversationId:   conversationID,
+					ClientCardHtml:   clientCardHTML,
+				},
+			},
+		}
+		hub.Broadcast("client:"+clientID, clientFrame, nil)
+	}
+}
+
+func BroadcastBusinessPresenceUpdate(hub *Hub, businessID string, isOnline bool, clientIDs []string) {
+	frame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_PRESENCE_UPDATE,
+		SenderId:       businessID,
+		SenderType:     "business",
+		Timestamp:      time.Now().UnixMilli(),
+		Payload: &chatpb.WsFrame_Presence{
+			Presence: &chatpb.PresenceUpdate{
+				BusinessId: businessID,
+				IsOnline:   isOnline,
+				LastSeen:   time.Now().UnixMilli(),
+			},
+		},
+	}
+	for _, clientID := range clientIDs {
+		hub.Broadcast("client:"+clientID, frame, nil)
+	}
+}
+
 func BroadcastUnreadCount(hub *Hub, conversationID string, count int32, roomID, roomPrefix string) {
 	frame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_UNREAD_COUNT,

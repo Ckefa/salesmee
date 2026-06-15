@@ -19,11 +19,38 @@ function updateScrollBottomBadge() {
   }
 }
 
-function updateSidebarUnreadBadge(frame) {
+function updateSidebarCard(frame) {
   if (frame.sender_type !== 'client') return;
+  var msg = frame.new_message;
+  if (!msg) return;
+  if (msg.msg_type === 'order' || msg.msg_type === 'booking') return;
+
   var cid = frame.sender_id;
   var item = document.querySelector('.wa-chat-item[data-client-id="' + cid + '"]');
   if (!item) return;
+
+  // Update preview text
+  var preview = item.querySelector('.wa-chat-preview');
+  if (preview) {
+    if (msg.media_url) {
+      preview.textContent = 'Media';
+    } else if (msg.content) {
+      preview.textContent = msg.content.length > 60 ? msg.content.substring(0, 57) + '...' : msg.content;
+    }
+  }
+
+  // Update timestamp
+  var timeEl = item.querySelector('.wa-chat-time.time-ago');
+  if (timeEl && msg.created_at) {
+    var iso = new Date(Number(msg.created_at)).toISOString();
+    timeEl.setAttribute('data-time', iso);
+  }
+
+  if (msg.created_at) {
+    item.setAttribute('data-last-message-at', new Date(Number(msg.created_at)).toISOString());
+  }
+
+  // Increment unread badge
   var badge = item.querySelector('.wa-unread-badge');
   if (badge) {
     var count = parseInt(badge.textContent) + 1;
@@ -33,6 +60,12 @@ function updateSidebarUnreadBadge(frame) {
     if (topRight) {
       topRight.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">1</span>');
     }
+  }
+
+  // Reorder card to top
+  var list = item.parentElement;
+  if (list && list.firstChild !== item) {
+    list.insertBefore(item, list.firstChild);
   }
 }
 
@@ -269,9 +302,13 @@ function registerChatHandlers() {
       window.wsClient.sendDeliveredAck(frame.conversation_id, frame.sender_id || '');
     }
 
-    // Message for a different conversation — update sidebar unread badge
+    // Update sidebar card (preview, time, reorder, badge) for all received messages
+    if (frame.conversation_id) {
+      updateSidebarCard(frame);
+    }
+
+    // Message for a different conversation — stop here (don't render in current chat)
     if (frame.conversation_id && frame.conversation_id !== String(conversationId)) {
-      updateSidebarUnreadBadge(frame);
       return;
     }
 

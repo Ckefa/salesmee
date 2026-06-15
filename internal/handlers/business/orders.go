@@ -167,7 +167,18 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 			h.db.Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
 				Count(&clientUnread)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
 			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
+
+			var biz models.Business
+			h.db.First(&biz, businessID)
+			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, order.Notes, order.CreatedAt, int(bizUnread))
+			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, order.Notes, order.CreatedAt, int(clientUnread))
+			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
+
 			bizCardHTML := renderBizOrderCard(h.db, order)
 			clientCardHTML := renderClientOrderCard(h.db, order)
 			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
@@ -665,6 +676,17 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
 				Count(&bizUnread)
 			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
+
+			var clientUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
+				Count(&clientUnread)
+			var biz models.Business
+			h.db.First(&biz, request.BusinessID)
+			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", order.CreatedAt, int(bizUnread))
+			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, "", order.CreatedAt, int(clientUnread))
+			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
+
 			bizCardHTML := renderBizOrderCard(h.db, order)
 			clientCardHTML := renderClientOrderCard(h.db, order)
 			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))

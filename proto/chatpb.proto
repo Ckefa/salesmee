@@ -16,6 +16,7 @@ enum WsEventType {
   PONG             = 10;
   DELIVERED_ACK    = 11;
   DELIVERED_RECEIPT = 12;
+  CONVERSATION_UPDATE = 13;
 }
 
 message WsFrame {
@@ -35,6 +36,7 @@ message WsFrame {
     UnreadCount     unread_count     = 16;
     DeliveredAck    delivered_ack    = 17;
     DeliveredReceipt delivered_receipt = 18;
+    ConversationUpdate conversation_update = 19;
   }
 }
 
@@ -65,9 +67,10 @@ message TypingIndicator {
 }
 
 message PresenceUpdate {
-  string client_id  = 1;
-  bool   is_online  = 2;
-  int64  last_seen  = 3;
+  string client_id   = 1;
+  bool   is_online   = 2;
+  int64  last_seen   = 3;
+  string business_id = 4;
 }
 
 message OrderUpdate {
@@ -105,4 +108,10 @@ message DeliveredAck {
 message DeliveredReceipt {
   string conversation_id = 1;
   int64  delivered_at    = 2;
+}
+
+message ConversationUpdate {
+  string conversation_id = 1;
+  string biz_card_html   = 2;
+  string client_card_html = 3;
 }

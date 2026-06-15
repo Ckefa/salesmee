@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"salesmee/internal/db"
+	businessh "salesmee/internal/handlers/business"
+	clienth "salesmee/internal/handlers/client"
 	"salesmee/internal/models"
 	"salesmee/internal/ws"
 
@@ -476,6 +478,19 @@ func CreateMessage(c *gin.Context) {
 		db.DB.Model(&models.Message{}).
 			Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conversation.ID, false).
 			Count(&clientUnread)
+
+		var bizUnread int64
+		db.DB.Model(&models.Message{}).
+			Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conversation.ID, false).
+			Count(&bizUnread)
+
+		var business models.Business
+		db.DB.First(&business, businessID)
+
+		bizCard := businessh.RenderBizSidebarCard(client, conversation.ID, message.Content, message.CreatedAt, int(bizUnread))
+		clientCard := clienth.RenderClientSidebarCard(business, conversation.ID, message.Content, message.CreatedAt, int(clientUnread))
+		ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(businessID)), strconv.FormatUint(clientID, 10))
+
 		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), int32(clientUnread), strconv.FormatUint(clientID, 10), "client")
 	}
 

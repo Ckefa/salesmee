@@ -3,7 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/bookings_content"}}
-<div class="py-6">
+<div id="bookings-page" class="py-6">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Page Header -->
     <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -197,15 +197,15 @@
           {{$prev := sub .Page 1}}
           {{$next := add .Page 1}}
           {{$range := $.Range}}
-          <a href="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}"
-             hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-content" hx-swap="outerHTML"
-             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
-                    {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
-             {{if eq .Page 1.0}}onclick="return false"{{end}}>
-            <i class="fas fa-chevron-left"></i>
-          </a>
-          <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
-             hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-content" hx-swap="outerHTML"
+           <a href="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}"
+              hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-page" hx-swap="outerHTML"
+              class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+                     {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+              {{if eq .Page 1.0}}onclick="return false"{{end}}>
+             <i class="fas fa-chevron-left"></i>
+           </a>
+           <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
+              hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-page" hx-swap="outerHTML"
              class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                     {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
              {{if ge .Page .TotalPages}}onclick="return false"{{end}}>
@@ -539,15 +539,17 @@
     }
 
     function cancelBooking(bookingId) {
-      if (!confirm('Are you sure you want to cancel this booking?')) return;
-      fetch(`/business/bookings/${bookingId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
-        body: JSON.stringify({status: 'cancelled'})
-      })
-        .then(r => r.json())
-        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
-        .catch(() => showNotification('Failed to cancel booking', 'error'));
+      showConfirmModal({ title: 'Cancel Booking', message: 'Are you sure you want to cancel this booking?', confirmText: 'Cancel Booking', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+        if (!confirmed) return;
+        fetch(`/business/bookings/${bookingId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+          body: JSON.stringify({status: 'cancelled'})
+        })
+          .then(r => r.json())
+          .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
+          .catch(() => showNotification('Failed to cancel booking', 'error'));
+      });
     }
 
     function editBooking(bookingId) {
@@ -725,7 +727,7 @@
     }
 
     function onPeriodChange(el) {
-      htmx.ajax('GET', '/business/bookings/stats?range=' + el.value + '&page=1', {target: '#bookings-content', swap: 'outerHTML'});
+      htmx.ajax('GET', '/business/bookings/stats?range=' + el.value + '&page=1', {target: '#bookings-page', swap: 'outerHTML'});
     }
 
     document.getElementById('bookingSearch').addEventListener('input', filterBookings);

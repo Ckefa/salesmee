@@ -192,11 +192,12 @@
     }
 
     function regenerateSlug() {
-      if (!confirm('Regenerate links? This will change your business URL. Old links will stop working.')) return;
-      const btn = event.target.closest('button');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Regenerating...';
-      fetch('/business/regenerate-slug', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+      showConfirmModal({ title: 'Regenerate Links', message: 'Regenerate links? This will change your business URL. Old links will stop working.', confirmText: 'Regenerate', confirmClass: 'bg-[var(--color-warning)] text-white' }).then(function(confirmed) {
+        if (!confirmed) return;
+        const btn = event.target.closest('button');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Regenerating...';
+        fetch('/business/regenerate-slug', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
@@ -212,6 +213,7 @@
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-sync-alt mr-1.5"></i> Regenerate Links & QR Code';
         });
+      });
     }
 
     function downloadQR() {

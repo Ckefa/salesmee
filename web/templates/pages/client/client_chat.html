@@ -23,10 +23,11 @@
   {{end}}
 </div>
 
-<button class="wa-scroll-bottom" id="scrollToBottom" onclick="scrollToBottom()" aria-label="Scroll to bottom">
+<button class="wa-scroll-bottom" id="scrollToBottom" onclick="scrollToBottomBtn()" aria-label="Scroll to bottom">
   <svg viewBox="0 0 24 24" height="24" width="24" fill="none">
     <path d="M11 13.6L6.11253 8.71253C5.72003 8.32003 5.08281 8.32285 4.69381 8.7188C4.30964 9.10983 4.31241 9.73741 4.70003 10.125L11.2669 16.6919C11.6718 17.0968 12.3282 17.0968 12.7331 16.6919L19.3 10.125C19.6876 9.73741 19.6904 9.10983 19.3062 8.7188C18.9172 8.32285 18.28 8.32003 17.8875 8.71253L13 13.6L12 14.625L11 13.6Z" fill="currentColor"/>
   </svg>
+  <span class="scroll-bottom-badge" id="scrollBottomBadge"></span>
 </button>
 
 {{template "client_message_input" .}}
@@ -46,6 +47,10 @@
 function scrollToBottom() {
   var c = document.getElementById('messages-container');
   if (c) c.scrollTop = c.scrollHeight;
+}
+function scrollToBottomBtn() {
+  scrollToBottom();
+  if (window.clearUnreadBelow) window.clearUnreadBelow();
 }
 </script>
 <script>

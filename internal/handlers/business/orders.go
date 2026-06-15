@@ -3,7 +3,6 @@ package business
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
@@ -164,6 +163,25 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 				strconv.Itoa(int(businessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var clientUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
+				Count(&clientUnread)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
+
+			var biz models.Business
+			h.db.First(&biz, businessID)
+			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, order.Notes, order.CreatedAt, int(bizUnread))
+			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, order.Notes, order.CreatedAt, int(clientUnread))
+			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
+
+			bizCardHTML := renderBizOrderCard(h.db, order)
+			clientCardHTML := renderClientOrderCard(h.db, order)
+			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -239,7 +257,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	var orders []models.Order
 	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'confirmed' THEN 2 WHEN status = 'draft' THEN 3 WHEN status IN ('fulfilled','completed') THEN 4 WHEN status = 'cancelled' THEN 5 ELSE 6 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&orders)
 
@@ -369,7 +387,7 @@ func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
 	var orders []models.Order
 	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'confirmed' THEN 2 WHEN status = 'draft' THEN 3 WHEN status IN ('fulfilled','completed') THEN 4 WHEN status = 'cancelled' THEN 5 ELSE 6 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&orders)
 
@@ -501,7 +519,9 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
@@ -651,6 +671,25 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 				strconv.Itoa(int(request.BusinessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
+
+			var clientUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
+				Count(&clientUnread)
+			var biz models.Business
+			h.db.First(&biz, request.BusinessID)
+			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", order.CreatedAt, int(bizUnread))
+			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, "", order.CreatedAt, int(clientUnread))
+			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
+
+			bizCardHTML := renderBizOrderCard(h.db, order)
+			clientCardHTML := renderClientOrderCard(h.db, order)
+			ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -939,19 +978,6 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 		})
 	}
 
-	// Create Message for this order so it appears in chat
-	msg := models.Message{
-		ConversationID: conversation.ID,
-		Content:        "",
-		Type:           "order",
-		Sender:         "user",
-		CreatedAt:      now,
-	}
-	if err := h.db.Create(&msg).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create message"})
-		return
-	}
-
 	handlers.AutoCalculateProgress(conversation.ID)
 	if h.hub != nil {
 		ws.BroadcastNewMessage(
@@ -969,6 +995,14 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 			strconv.Itoa(int(businessID)),
 			strconv.Itoa(int(conversation.ClientID)),
 		)
+		var clientUnread int64
+		h.db.Model(&models.Message{}).
+			Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conversation.ID, false).
+			Count(&clientUnread)
+		ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conversation.ID)), int32(clientUnread), strconv.Itoa(int(conversation.ClientID)), "client")
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(conversation.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1020,7 +1054,9 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1070,7 +1106,9 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1114,7 +1152,9 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1162,7 +1202,9 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1247,7 +1289,9 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastOrderUpdate(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(h.db, order)
+		clientCardHTML := renderClientOrderCard(h.db, order)
+		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1277,10 +1321,7 @@ func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
 		return
 	}
 
-	chatLink := fmt.Sprintf("https://%s/client/businesses/%d/messages", os.Getenv("APP_DOMAIN"), biz.ID)
-	if os.Getenv("APP_DOMAIN") == "" {
-		chatLink = fmt.Sprintf("/client/businesses/%d/messages", biz.ID)
-	}
+	chatLink := services.AppURL(fmt.Sprintf("/client?business_id=%d", biz.ID))
 
 	if err := services.SendOrderStatusEmail(client.Email, client.Name, biz.Name, order.OrderNumber, statusLabel, chatLink); err != nil {
 		notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "failed")

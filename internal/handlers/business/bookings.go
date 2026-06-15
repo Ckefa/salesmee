@@ -3,7 +3,6 @@ package business
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"salesmee/internal/data"
 	"salesmee/internal/handlers"
 	"salesmee/internal/models"
@@ -107,6 +106,14 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 				strconv.Itoa(int(request.BusinessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
+			bizCardHTML := renderBizBookingCard(h.db, booking)
+			clientCardHTML := renderClientBookingCard(h.db, booking)
+			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -174,7 +181,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	var bookings []models.Booking
 	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&bookings)
 
@@ -292,7 +299,7 @@ func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
 	var bookings []models.Booking
 	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
 		Where(baseWhere, baseArgs...).
-		Order("created_at DESC").
+		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&bookings)
 
@@ -422,10 +429,7 @@ func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string
 	}
 
 	statusLabel := status
-	chatLink := fmt.Sprintf("https://%s/client/businesses/%d/messages", os.Getenv("APP_DOMAIN"), biz.ID)
-	if os.Getenv("APP_DOMAIN") == "" {
-		chatLink = fmt.Sprintf("/client/businesses/%d/messages", biz.ID)
-	}
+	chatLink := services.AppURL(fmt.Sprintf("/client?business_id=%d", biz.ID))
 
 	if err := services.SendBookingStatusEmail(client.Email, client.Name, biz.Name, booking.BookingNumber, statusLabel, chatLink); err != nil {
 		notifier.MarkNotificationSent(h.db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "failed")
@@ -505,7 +509,9 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
+		ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
@@ -555,7 +561,9 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 	}
 
 	if h.hub != nil {
-		ws.BroadcastBookingUpdate(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(h.db, booking)
+		clientCardHTML := renderClientBookingCard(h.db, booking)
+		ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -790,6 +798,14 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 				strconv.Itoa(int(businessID)),
 				strconv.Itoa(int(client.ID)),
 			)
+			var clientUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
+				Count(&clientUnread)
+			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
+			bizCardHTML := renderBizBookingCard(h.db, booking)
+			clientCardHTML := renderClientBookingCard(h.db, booking)
+			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 

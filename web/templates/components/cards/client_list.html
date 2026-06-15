@@ -1,20 +1,19 @@
 {{ define "client-list" }}
 <div class="wa-chat-list" id="client-list">
   {{range .Clients}}
-    <div class="wa-chat-item group" onclick="loadClient('{{.ID}}')" oncontextmenu="waShowCtxMenu(event, '{{.ID}}')"
-    	data-client-id="{{.ID}}"
-    	data-last-message-at="{{.LastMessageAt}}"
-    	data-client-name="{{.Name}}"
-    	data-client-email="{{.Email}}"
-    	data-unread="{{.UnreadCount}}"
-    	role="row">
+    	<div class="wa-chat-item group" onclick="loadClient('{{.ID}}')" oncontextmenu="waShowCtxMenu(event, '{{.ID}}')"
+    		data-client-id="{{.ID}}"
+    		data-conversation-id="{{.ConversationID}}"
+    		data-last-message-at="{{.LastMessageAt}}"
+    		data-client-name="{{.Name}}"
+    		data-client-email="{{.Email}}"
+    		data-unread="{{.UnreadCount}}"
+    		role="row">
     	<div class="wa-chat-avatar-wrapper">
     		<div class="wa-chat-avatar avatar-placeholder">
     			<i class="fas fa-user text-white"></i>
     		</div>
-    		{{if .IsOnline}}
-    		<span class="wa-online-dot"></span>
-    		{{end}}
+    		<span class="wa-online-dot {{if .IsOnline}}online{{else}}offline{{end}}"></span>
     	</div>
     	<div class="wa-chat-info">
     		<div class="wa-chat-top">

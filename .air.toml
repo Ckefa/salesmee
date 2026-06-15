@@ -1,4 +1,32 @@
 root = "."
+tmp_dir = "tmp"
+
 [build]
-cmd = "go build -o bin/app cmd/server/main.go"
-bin = "bin/app"
+  cmd = "go build -o bin/app cmd/server/main.go"
+  bin = "bin/app"
+  include_ext = ["go", "tpl", "tmpl", "html", "css", "js", "json"]
+  exclude_dir = [
+    "node_modules",
+    "bin",
+    "tmp",
+    ".git",
+    ".opencode",
+    "web/static/css/dist",
+    "web/static/uploads",
+    "web/static/js/vendor",
+    "migrations",
+    "configs",
+  ]
+  exclude_regex = [".*_test.go"]
+  exclude_unchanged = false
+  delay = 1000
+  full_bin = ""
+  send_interrupt = true
+  kill_delay = 500
+
+[log]
+  main_only = true
+  time = false
+
+[misc]
+  clean_on_exit = true

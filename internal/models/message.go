@@ -14,6 +14,7 @@ type Message struct {
 	ReadAt         *time.Time `json:"read_at"`                                // when business read it
 	ReadByClient   bool       `gorm:"default:false" json:"read_by_client"`    // true when client has seen it
 	ReadByClientAt *time.Time `json:"read_by_client_at"`
+	DeliveredAt    *time.Time `json:"delivered_at"`                           // when delivered to recipient's device via WS
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
 

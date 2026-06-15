@@ -50,7 +50,6 @@ func SetupClientRoutes(r *gin.Engine) {
 		clientProtected.POST("/bookings/:id/confirm", client.ClientConfirmBooking)
 		clientProtected.PUT("/businesses/:business_id/read", handlers.MarkClientConversationAsRead)
 		clientProtected.POST("/disconnect/:business_id", client.DisconnectFromBusiness)
-		clientProtected.POST("/heartbeat", client.ClientHeartbeat)
 		clientProtected.POST("/reviews", client.SubmitReview)
 		clientProtected.POST("/orders/:id/payment", businessHandler.ClientSubmitOrderPayment)
 		clientProtected.POST("/bookings/:id/payment", businessHandler.ClientSubmitBookingPayment)

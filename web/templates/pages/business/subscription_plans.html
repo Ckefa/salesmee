@@ -140,18 +140,20 @@
   }
 
   function switchPlan(planCode) {
-    if (!confirm('Are you sure you want to switch to this plan?')) return;
-    fetch('/business/subscription/change', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCookie('csrf_token')},
-      body: 'plan_code=' + planCode
-    })
-    .then(r => r.json())
-    .then(d => {
-      if (d.success) { window.location.href = '/business/subscription'; }
-      else { showNotification(d.error || 'Failed to switch plan', 'error'); }
-    })
-    .catch(() => showNotification('An error occurred', 'error'));
+    showConfirmModal({ title: 'Switch Plan', message: 'Are you sure you want to switch to this plan?', confirmText: 'Switch Plan', confirmClass: 'bg-[var(--color-primary)] text-white' }).then(function(confirmed) {
+      if (!confirmed) return;
+      fetch('/business/subscription/change', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCookie('csrf_token')},
+        body: 'plan_code=' + planCode
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) { window.location.href = '/business/subscription'; }
+        else { showNotification(d.error || 'Failed to switch plan', 'error'); }
+      })
+      .catch(() => showNotification('An error occurred', 'error'));
+    });
   }
 
   // Restore toggle state

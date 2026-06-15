@@ -199,10 +199,7 @@ func CheckAbandonedCarts(db *gorm.DB) {
 				continue
 			}
 
-			link := fmt.Sprintf("https://%s/b/%s", os.Getenv("APP_DOMAIN"), biz.Slug)
-			if os.Getenv("APP_DOMAIN") == "" {
-				link = fmt.Sprintf("/b/%s", biz.Slug)
-			}
+			link := services.AppURL(fmt.Sprintf("/b/%s", biz.Slug))
 
 			err = services.SendAbandonedCartEmail(o.Client.Email, o.Client.Name, biz.Name, o.OrderNumber, link)
 			status := "sent"
@@ -252,7 +249,8 @@ func CheckReEngagement(db *gorm.DB) {
 			}
 
 			days := strconv.Itoa(inactiveDays)
-			err = services.SendInactiveClientEmail(c.Email, c.Name, biz.Name, biz.Slug)
+			link := services.AppURL(fmt.Sprintf("/b/%s", biz.Slug))
+			err = services.SendInactiveClientEmail(c.Email, c.Name, biz.Name, link)
 			status := "sent"
 			if err != nil {
 				log.Printf("[NOTIFIER] Failed to send re-engagement email for client %d: %v", c.ID, err)

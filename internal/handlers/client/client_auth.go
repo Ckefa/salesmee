@@ -29,7 +29,10 @@ func ShowClientLogin(c *gin.Context) {
 	if token, err := c.Cookie("client_token"); err == nil && token != "" {
 		token = strings.TrimPrefix(token, "Bearer ")
 		if claims, err := services.ValidateToken(token); err == nil && claims.Subject == "client" {
-			c.Redirect(http.StatusFound, "/client")
+			// Already authed — redirect to saved destination or /client
+			redirect, _ := c.Cookie("client_redirect")
+			c.SetCookie("client_redirect", "", -1, "/client", "", false, true)
+			c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirect))
 			return
 		}
 	}
@@ -128,9 +131,11 @@ func VerifyClientOTP(c *gin.Context) {
 		return
 	}
 
-	// Set cookie and redirect
+	// Set cookie and redirect to saved destination
 	c.SetCookie("client_token", token, 86400, "/", "", false, false)
-	c.Redirect(http.StatusFound, "/client")
+	redirect, _ := c.Cookie("client_redirect")
+	c.SetCookie("client_redirect", "", -1, "/client", "", false, true)
+	c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirect))
 }
 
 func ClientDashboard(c *gin.Context) {
@@ -291,7 +296,7 @@ func GetClientMessages(c *gin.Context) {
 		isSelf := msg.Sender == "client"
 		var isDelivered, isRead bool
 		if isSelf {
-			isDelivered = conversation.LastReadByBusinessAt != nil && msg.CreatedAt.Before(*conversation.LastReadByBusinessAt)
+			isDelivered = msg.DeliveredAt != nil
 			isRead = msg.ReadByBusiness
 		}
 		messageObj := MessageObj{
@@ -596,6 +601,12 @@ func CreateClientMessage(c *gin.Context) {
 			strconv.FormatUint(uint64(businessID), 10),
 			strconv.Itoa(int(clientID)),
 		)
+
+		var bizUnread int64
+		db.DB.Model(&models.Message{}).
+			Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conversation.ID, false).
+			Count(&bizUnread)
+		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), int32(bizUnread), strconv.FormatUint(uint64(businessID), 10), "biz")
 	}
 
 	// Return the newly created message as MessageObj for HTMX
@@ -623,6 +634,7 @@ func ClientMiddleware() gin.HandlerFunc {
 		}
 
 		if token == "" {
+			c.SetCookie("client_redirect", c.Request.URL.String(), 300, "/client", "", false, true)
 			c.Redirect(http.StatusFound, "/client/login")
 			c.Abort()
 			return
@@ -633,6 +645,7 @@ func ClientMiddleware() gin.HandlerFunc {
 
 		claims, err := services.ValidateToken(token)
 		if err != nil || claims.Subject != "client" {
+			c.SetCookie("client_redirect", c.Request.URL.String(), 300, "/client", "", false, true)
 			c.Redirect(http.StatusFound, "/client/login")
 			c.Abort()
 			return
@@ -644,35 +657,6 @@ func ClientMiddleware() gin.HandlerFunc {
 	}
 }
 
-func ClientHeartbeat(c *gin.Context) {
-	// Get client info from token
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		token, _ = c.Cookie("client_token")
-	}
-
-	if token == "" {
-		c.JSON(401, gin.H{"error": "No token"})
-		return
-	}
-
-	token = strings.TrimPrefix(token, "Bearer ")
-	claims, err := services.ValidateToken(token)
-	if err != nil || claims.Subject != "client" {
-		c.JSON(401, gin.H{"error": "Invalid token"})
-		return
-	}
-
-	// Update client online status
-	now := time.Now()
-	db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Updates(map[string]interface{}{
-		"is_online":    true,
-		"last_seen_at": &now,
-	})
-
-	c.JSON(200, gin.H{"status": "ok", "timestamp": now})
-}
-
 func ClientLogout(c *gin.Context) {
 	// Get client info from token
 	token, _ := c.Cookie("client_token")
@@ -682,6 +666,17 @@ func ClientLogout(c *gin.Context) {
 		if err == nil && claims.Subject == "client" {
 			// Update client offline status
 			db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Update("is_online", false)
+
+			// Broadcast offline presence via WebSocket
+			if wsHub != nil {
+				var conversations []models.Conversation
+				db.DB.Where("client_id = ?", claims.UserID).Find(&conversations)
+				clientID := strconv.Itoa(int(claims.UserID))
+				now := time.Now().UnixMilli()
+				for _, conv := range conversations {
+					ws.BroadcastPresenceUpdate(wsHub, clientID, false, now, strconv.Itoa(int(conv.BusinessID)))
+				}
+			}
 		}
 	}
 
@@ -879,7 +874,9 @@ func ClientConfirmOrder(c *gin.Context) {
 	}
 
 	if wsHub != nil {
-		ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(db.DB, order)
+		clientCardHTML := renderClientOrderCard(db.DB, order)
+		ws.BroadcastOrderUpdateFull(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -921,7 +918,9 @@ func ClientCancelOrder(c *gin.Context) {
 	db.DB.Save(&order)
 
 	if wsHub != nil {
-		ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+		bizCardHTML := renderBizOrderCard(db.DB, order)
+		clientCardHTML := renderClientOrderCard(db.DB, order)
+		ws.BroadcastOrderUpdateFull(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1026,7 +1025,9 @@ func ClientCancelBooking(c *gin.Context) {
 	db.DB.Save(&booking)
 
 	if wsHub != nil {
-		ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(db.DB, booking)
+		clientCardHTML := renderClientBookingCard(db.DB, booking)
+		ws.BroadcastBookingUpdateFull(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1068,7 +1069,9 @@ func ClientConfirmBooking(c *gin.Context) {
 	db.DB.Save(&booking)
 
 	if wsHub != nil {
-		ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+		bizCardHTML := renderBizBookingCard(db.DB, booking)
+		clientCardHTML := renderClientBookingCard(db.DB, booking)
+		ws.BroadcastBookingUpdateFull(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -1101,6 +1101,10 @@
   border-radius: 9999px;
 }
 
+.wa-online-dot.offline::after {
+  background-color: var(--color-surface-tertiary);
+}
+
 .wa-chat-info {
   flex: 1;
   min-width: 0;
@@ -2498,18 +2502,39 @@
   color: var(--color-text);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+.scroll-bottom-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+.scroll-bottom-badge.visible {
+  opacity: 1;
+  transform: scale(1);
+}
 
 /* ============================================
    Typing Indicator — Chat Animated Dots
    ============================================ */
-.msg.in.typing-indicator,
-.msg.in.typing-indicator .msg-bbl.typing {
+.msg.in.typing-indicator {
   background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
+  margin-bottom: 4px;
 }
-.msg-bbl.typing,
-.message-bubble.typing {
+.msg.in.typing-indicator .msg-bbl.typing {
   display: inline-flex;
   flex-direction: row;
   align-items: center;
@@ -2518,6 +2543,8 @@
   min-width: 0;
   background: transparent !important;
   box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 .typing-label {
   font-size: 0.75rem;
@@ -2525,6 +2552,7 @@
   opacity: 0.75;
   letter-spacing: 0.02em;
   background: transparent;
+  flex-shrink: 0;
 }
 .typing-dot {
   width: 6px;

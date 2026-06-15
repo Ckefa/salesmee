@@ -24,17 +24,20 @@ const (
 type WsEventType int32
 
 const (
-	WsEventType_EVENT_UNKNOWN   WsEventType = 0
-	WsEventType_NEW_MESSAGE     WsEventType = 1
-	WsEventType_READ_RECEIPT    WsEventType = 2
-	WsEventType_TYPING_START    WsEventType = 3
-	WsEventType_TYPING_STOP     WsEventType = 4
-	WsEventType_PRESENCE_UPDATE WsEventType = 5
-	WsEventType_ORDER_UPDATE    WsEventType = 6
-	WsEventType_BOOKING_UPDATE  WsEventType = 7
-	WsEventType_UNREAD_COUNT    WsEventType = 8
-	WsEventType_PING            WsEventType = 9
-	WsEventType_PONG            WsEventType = 10
+	WsEventType_EVENT_UNKNOWN       WsEventType = 0
+	WsEventType_NEW_MESSAGE         WsEventType = 1
+	WsEventType_READ_RECEIPT        WsEventType = 2
+	WsEventType_TYPING_START        WsEventType = 3
+	WsEventType_TYPING_STOP         WsEventType = 4
+	WsEventType_PRESENCE_UPDATE     WsEventType = 5
+	WsEventType_ORDER_UPDATE        WsEventType = 6
+	WsEventType_BOOKING_UPDATE      WsEventType = 7
+	WsEventType_UNREAD_COUNT        WsEventType = 8
+	WsEventType_PING                WsEventType = 9
+	WsEventType_PONG                WsEventType = 10
+	WsEventType_DELIVERED_ACK       WsEventType = 11
+	WsEventType_DELIVERED_RECEIPT   WsEventType = 12
+	WsEventType_CONVERSATION_UPDATE WsEventType = 13
 )
 
 // Enum value maps for WsEventType.
@@ -51,19 +54,25 @@ var (
 		8:  "UNREAD_COUNT",
 		9:  "PING",
 		10: "PONG",
+		11: "DELIVERED_ACK",
+		12: "DELIVERED_RECEIPT",
+		13: "CONVERSATION_UPDATE",
 	}
 	WsEventType_value = map[string]int32{
-		"EVENT_UNKNOWN":   0,
-		"NEW_MESSAGE":     1,
-		"READ_RECEIPT":    2,
-		"TYPING_START":    3,
-		"TYPING_STOP":     4,
-		"PRESENCE_UPDATE": 5,
-		"ORDER_UPDATE":    6,
-		"BOOKING_UPDATE":  7,
-		"UNREAD_COUNT":    8,
-		"PING":            9,
-		"PONG":            10,
+		"EVENT_UNKNOWN":       0,
+		"NEW_MESSAGE":         1,
+		"READ_RECEIPT":        2,
+		"TYPING_START":        3,
+		"TYPING_STOP":         4,
+		"PRESENCE_UPDATE":     5,
+		"ORDER_UPDATE":        6,
+		"BOOKING_UPDATE":      7,
+		"UNREAD_COUNT":        8,
+		"PING":                9,
+		"PONG":                10,
+		"DELIVERED_ACK":       11,
+		"DELIVERED_RECEIPT":   12,
+		"CONVERSATION_UPDATE": 13,
 	}
 )
 
@@ -110,6 +119,9 @@ type WsFrame struct {
 	//	*WsFrame_OrderUpdate
 	//	*WsFrame_BookingUpdate
 	//	*WsFrame_UnreadCount
+	//	*WsFrame_DeliveredAck
+	//	*WsFrame_DeliveredReceipt
+	//	*WsFrame_ConversationUpdate
 	Payload       isWsFrame_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -250,6 +262,33 @@ func (x *WsFrame) GetUnreadCount() *UnreadCount {
 	return nil
 }
 
+func (x *WsFrame) GetDeliveredAck() *DeliveredAck {
+	if x != nil {
+		if x, ok := x.Payload.(*WsFrame_DeliveredAck); ok {
+			return x.DeliveredAck
+		}
+	}
+	return nil
+}
+
+func (x *WsFrame) GetDeliveredReceipt() *DeliveredReceipt {
+	if x != nil {
+		if x, ok := x.Payload.(*WsFrame_DeliveredReceipt); ok {
+			return x.DeliveredReceipt
+		}
+	}
+	return nil
+}
+
+func (x *WsFrame) GetConversationUpdate() *ConversationUpdate {
+	if x != nil {
+		if x, ok := x.Payload.(*WsFrame_ConversationUpdate); ok {
+			return x.ConversationUpdate
+		}
+	}
+	return nil
+}
+
 type isWsFrame_Payload interface {
 	isWsFrame_Payload()
 }
@@ -282,6 +321,18 @@ type WsFrame_UnreadCount struct {
 	UnreadCount *UnreadCount `protobuf:"bytes,16,opt,name=unread_count,json=unreadCount,proto3,oneof"`
 }
 
+type WsFrame_DeliveredAck struct {
+	DeliveredAck *DeliveredAck `protobuf:"bytes,17,opt,name=delivered_ack,json=deliveredAck,proto3,oneof"`
+}
+
+type WsFrame_DeliveredReceipt struct {
+	DeliveredReceipt *DeliveredReceipt `protobuf:"bytes,18,opt,name=delivered_receipt,json=deliveredReceipt,proto3,oneof"`
+}
+
+type WsFrame_ConversationUpdate struct {
+	ConversationUpdate *ConversationUpdate `protobuf:"bytes,19,opt,name=conversation_update,json=conversationUpdate,proto3,oneof"`
+}
+
 func (*WsFrame_NewMessage) isWsFrame_Payload() {}
 
 func (*WsFrame_ReadReceipt) isWsFrame_Payload() {}
@@ -295,6 +346,12 @@ func (*WsFrame_OrderUpdate) isWsFrame_Payload() {}
 func (*WsFrame_BookingUpdate) isWsFrame_Payload() {}
 
 func (*WsFrame_UnreadCount) isWsFrame_Payload() {}
+
+func (*WsFrame_DeliveredAck) isWsFrame_Payload() {}
+
+func (*WsFrame_DeliveredReceipt) isWsFrame_Payload() {}
+
+func (*WsFrame_ConversationUpdate) isWsFrame_Payload() {}
 
 type NewMessage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -545,6 +602,7 @@ type PresenceUpdate struct {
 	ClientId      string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	IsOnline      bool                   `protobuf:"varint,2,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
 	LastSeen      int64                  `protobuf:"varint,3,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
+	BusinessId    string                 `protobuf:"bytes,4,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -600,6 +658,13 @@ func (x *PresenceUpdate) GetLastSeen() int64 {
 	return 0
 }
 
+func (x *PresenceUpdate) GetBusinessId() string {
+	if x != nil {
+		return x.BusinessId
+	}
+	return ""
+}
+
 type OrderUpdate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -609,6 +674,7 @@ type OrderUpdate struct {
 	PendingAmount float64                `protobuf:"fixed64,5,opt,name=pending_amount,json=pendingAmount,proto3" json:"pending_amount,omitempty"`
 	HasReview     bool                   `protobuf:"varint,6,opt,name=has_review,json=hasReview,proto3" json:"has_review,omitempty"`
 	ReviewRating  int32                  `protobuf:"varint,7,opt,name=review_rating,json=reviewRating,proto3" json:"review_rating,omitempty"`
+	CardHtml      string                 `protobuf:"bytes,8,opt,name=card_html,json=cardHtml,proto3" json:"card_html,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -692,6 +758,13 @@ func (x *OrderUpdate) GetReviewRating() int32 {
 	return 0
 }
 
+func (x *OrderUpdate) GetCardHtml() string {
+	if x != nil {
+		return x.CardHtml
+	}
+	return ""
+}
+
 type BookingUpdate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BookingId     string                 `protobuf:"bytes,1,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
@@ -701,6 +774,7 @@ type BookingUpdate struct {
 	PendingAmount float64                `protobuf:"fixed64,5,opt,name=pending_amount,json=pendingAmount,proto3" json:"pending_amount,omitempty"`
 	HasReview     bool                   `protobuf:"varint,6,opt,name=has_review,json=hasReview,proto3" json:"has_review,omitempty"`
 	ReviewRating  int32                  `protobuf:"varint,7,opt,name=review_rating,json=reviewRating,proto3" json:"review_rating,omitempty"`
+	CardHtml      string                 `protobuf:"bytes,8,opt,name=card_html,json=cardHtml,proto3" json:"card_html,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -784,6 +858,13 @@ func (x *BookingUpdate) GetReviewRating() int32 {
 	return 0
 }
 
+func (x *BookingUpdate) GetCardHtml() string {
+	if x != nil {
+		return x.CardHtml
+	}
+	return ""
+}
+
 type UnreadCount struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ConversationId string                 `protobuf:"bytes,1,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
@@ -836,11 +917,175 @@ func (x *UnreadCount) GetCount() int32 {
 	return 0
 }
 
+type DeliveredAck struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ConversationId string                 `protobuf:"bytes,1,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	ClientId       string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DeliveredAck) Reset() {
+	*x = DeliveredAck{}
+	mi := &file_proto_chatpb_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliveredAck) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliveredAck) ProtoMessage() {}
+
+func (x *DeliveredAck) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chatpb_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliveredAck.ProtoReflect.Descriptor instead.
+func (*DeliveredAck) Descriptor() ([]byte, []int) {
+	return file_proto_chatpb_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeliveredAck) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *DeliveredAck) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+type DeliveredReceipt struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ConversationId string                 `protobuf:"bytes,1,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	DeliveredAt    int64                  `protobuf:"varint,2,opt,name=delivered_at,json=deliveredAt,proto3" json:"delivered_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DeliveredReceipt) Reset() {
+	*x = DeliveredReceipt{}
+	mi := &file_proto_chatpb_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliveredReceipt) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliveredReceipt) ProtoMessage() {}
+
+func (x *DeliveredReceipt) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chatpb_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliveredReceipt.ProtoReflect.Descriptor instead.
+func (*DeliveredReceipt) Descriptor() ([]byte, []int) {
+	return file_proto_chatpb_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeliveredReceipt) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *DeliveredReceipt) GetDeliveredAt() int64 {
+	if x != nil {
+		return x.DeliveredAt
+	}
+	return 0
+}
+
+type ConversationUpdate struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ConversationId string                 `protobuf:"bytes,1,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	BizCardHtml    string                 `protobuf:"bytes,2,opt,name=biz_card_html,json=bizCardHtml,proto3" json:"biz_card_html,omitempty"`
+	ClientCardHtml string                 `protobuf:"bytes,3,opt,name=client_card_html,json=clientCardHtml,proto3" json:"client_card_html,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ConversationUpdate) Reset() {
+	*x = ConversationUpdate{}
+	mi := &file_proto_chatpb_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConversationUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConversationUpdate) ProtoMessage() {}
+
+func (x *ConversationUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chatpb_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConversationUpdate.ProtoReflect.Descriptor instead.
+func (*ConversationUpdate) Descriptor() ([]byte, []int) {
+	return file_proto_chatpb_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ConversationUpdate) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *ConversationUpdate) GetBizCardHtml() string {
+	if x != nil {
+		return x.BizCardHtml
+	}
+	return ""
+}
+
+func (x *ConversationUpdate) GetClientCardHtml() string {
+	if x != nil {
+		return x.ClientCardHtml
+	}
+	return ""
+}
+
 var File_proto_chatpb_proto protoreflect.FileDescriptor
 
 const file_proto_chatpb_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/chatpb.proto\x12\x06chatpb\"\xdb\x04\n" +
+	"\x12proto/chatpb.proto\x12\x06chatpb\"\xb0\x06\n" +
 	"\aWsFrame\x122\n" +
 	"\n" +
 	"event_type\x18\x01 \x01(\x0e2\x13.chatpb.WsEventTypeR\teventType\x12'\n" +
@@ -857,7 +1102,10 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\bpresence\x18\r \x01(\v2\x16.chatpb.PresenceUpdateH\x00R\bpresence\x128\n" +
 	"\forder_update\x18\x0e \x01(\v2\x13.chatpb.OrderUpdateH\x00R\vorderUpdate\x12>\n" +
 	"\x0ebooking_update\x18\x0f \x01(\v2\x15.chatpb.BookingUpdateH\x00R\rbookingUpdate\x128\n" +
-	"\funread_count\x18\x10 \x01(\v2\x13.chatpb.UnreadCountH\x00R\vunreadCountB\t\n" +
+	"\funread_count\x18\x10 \x01(\v2\x13.chatpb.UnreadCountH\x00R\vunreadCount\x12;\n" +
+	"\rdelivered_ack\x18\x11 \x01(\v2\x14.chatpb.DeliveredAckH\x00R\fdeliveredAck\x12G\n" +
+	"\x11delivered_receipt\x18\x12 \x01(\v2\x18.chatpb.DeliveredReceiptH\x00R\x10deliveredReceipt\x12M\n" +
+	"\x13conversation_update\x18\x13 \x01(\v2\x1a.chatpb.ConversationUpdateH\x00R\x12conversationUpdateB\t\n" +
 	"\apayload\"\xe1\x01\n" +
 	"\n" +
 	"NewMessage\x12\x0e\n" +
@@ -884,11 +1132,13 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\x0fconversation_id\x18\x03 \x01(\tR\x0econversationId\x12\x1b\n" +
 	"\tclient_id\x18\x04 \x01(\tR\bclientId\x12\x1f\n" +
 	"\vbusiness_id\x18\x05 \x01(\tR\n" +
-	"businessId\"g\n" +
+	"businessId\"\x88\x01\n" +
 	"\x0ePresenceUpdate\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x1b\n" +
 	"\tis_online\x18\x02 \x01(\bR\bisOnline\x12\x1b\n" +
-	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\xef\x01\n" +
+	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\x12\x1f\n" +
+	"\vbusiness_id\x18\x04 \x01(\tR\n" +
+	"businessId\"\x8c\x02\n" +
 	"\vOrderUpdate\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x1f\n" +
@@ -898,7 +1148,8 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\x0epending_amount\x18\x05 \x01(\x01R\rpendingAmount\x12\x1d\n" +
 	"\n" +
 	"has_review\x18\x06 \x01(\bR\thasReview\x12#\n" +
-	"\rreview_rating\x18\a \x01(\x05R\freviewRating\"\xf5\x01\n" +
+	"\rreview_rating\x18\a \x01(\x05R\freviewRating\x12\x1b\n" +
+	"\tcard_html\x18\b \x01(\tR\bcardHtml\"\x92\x02\n" +
 	"\rBookingUpdate\x12\x1d\n" +
 	"\n" +
 	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
@@ -909,10 +1160,21 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\x0epending_amount\x18\x05 \x01(\x01R\rpendingAmount\x12\x1d\n" +
 	"\n" +
 	"has_review\x18\x06 \x01(\bR\thasReview\x12#\n" +
-	"\rreview_rating\x18\a \x01(\x05R\freviewRating\"L\n" +
+	"\rreview_rating\x18\a \x01(\x05R\freviewRating\x12\x1b\n" +
+	"\tcard_html\x18\b \x01(\tR\bcardHtml\"L\n" +
 	"\vUnreadCount\x12'\n" +
 	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12\x14\n" +
-	"\x05count\x18\x02 \x01(\x05R\x05count*\xc7\x01\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"T\n" +
+	"\fDeliveredAck\x12'\n" +
+	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\"^\n" +
+	"\x10DeliveredReceipt\x12'\n" +
+	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12!\n" +
+	"\fdelivered_at\x18\x02 \x01(\x03R\vdeliveredAt\"\x8b\x01\n" +
+	"\x12ConversationUpdate\x12'\n" +
+	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12\"\n" +
+	"\rbiz_card_html\x18\x02 \x01(\tR\vbizCardHtml\x12(\n" +
+	"\x10client_card_html\x18\x03 \x01(\tR\x0eclientCardHtml*\x8a\x02\n" +
 	"\vWsEventType\x12\x11\n" +
 	"\rEVENT_UNKNOWN\x10\x00\x12\x0f\n" +
 	"\vNEW_MESSAGE\x10\x01\x12\x10\n" +
@@ -925,7 +1187,10 @@ const file_proto_chatpb_proto_rawDesc = "" +
 	"\fUNREAD_COUNT\x10\b\x12\b\n" +
 	"\x04PING\x10\t\x12\b\n" +
 	"\x04PONG\x10\n" +
-	"B\x1aZ\x18salesmee/internal/chatpbb\x06proto3"
+	"\x12\x11\n" +
+	"\rDELIVERED_ACK\x10\v\x12\x15\n" +
+	"\x11DELIVERED_RECEIPT\x10\f\x12\x17\n" +
+	"\x13CONVERSATION_UPDATE\x10\rB\x1aZ\x18salesmee/internal/chatpbb\x06proto3"
 
 var (
 	file_proto_chatpb_proto_rawDescOnce sync.Once
@@ -940,32 +1205,38 @@ func file_proto_chatpb_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_chatpb_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_chatpb_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_chatpb_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_chatpb_proto_goTypes = []any{
-	(WsEventType)(0),        // 0: chatpb.WsEventType
-	(*WsFrame)(nil),         // 1: chatpb.WsFrame
-	(*NewMessage)(nil),      // 2: chatpb.NewMessage
-	(*ReadReceipt)(nil),     // 3: chatpb.ReadReceipt
-	(*TypingIndicator)(nil), // 4: chatpb.TypingIndicator
-	(*PresenceUpdate)(nil),  // 5: chatpb.PresenceUpdate
-	(*OrderUpdate)(nil),     // 6: chatpb.OrderUpdate
-	(*BookingUpdate)(nil),   // 7: chatpb.BookingUpdate
-	(*UnreadCount)(nil),     // 8: chatpb.UnreadCount
+	(WsEventType)(0),           // 0: chatpb.WsEventType
+	(*WsFrame)(nil),            // 1: chatpb.WsFrame
+	(*NewMessage)(nil),         // 2: chatpb.NewMessage
+	(*ReadReceipt)(nil),        // 3: chatpb.ReadReceipt
+	(*TypingIndicator)(nil),    // 4: chatpb.TypingIndicator
+	(*PresenceUpdate)(nil),     // 5: chatpb.PresenceUpdate
+	(*OrderUpdate)(nil),        // 6: chatpb.OrderUpdate
+	(*BookingUpdate)(nil),      // 7: chatpb.BookingUpdate
+	(*UnreadCount)(nil),        // 8: chatpb.UnreadCount
+	(*DeliveredAck)(nil),       // 9: chatpb.DeliveredAck
+	(*DeliveredReceipt)(nil),   // 10: chatpb.DeliveredReceipt
+	(*ConversationUpdate)(nil), // 11: chatpb.ConversationUpdate
 }
 var file_proto_chatpb_proto_depIdxs = []int32{
-	0, // 0: chatpb.WsFrame.event_type:type_name -> chatpb.WsEventType
-	2, // 1: chatpb.WsFrame.new_message:type_name -> chatpb.NewMessage
-	3, // 2: chatpb.WsFrame.read_receipt:type_name -> chatpb.ReadReceipt
-	4, // 3: chatpb.WsFrame.typing:type_name -> chatpb.TypingIndicator
-	5, // 4: chatpb.WsFrame.presence:type_name -> chatpb.PresenceUpdate
-	6, // 5: chatpb.WsFrame.order_update:type_name -> chatpb.OrderUpdate
-	7, // 6: chatpb.WsFrame.booking_update:type_name -> chatpb.BookingUpdate
-	8, // 7: chatpb.WsFrame.unread_count:type_name -> chatpb.UnreadCount
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	0,  // 0: chatpb.WsFrame.event_type:type_name -> chatpb.WsEventType
+	2,  // 1: chatpb.WsFrame.new_message:type_name -> chatpb.NewMessage
+	3,  // 2: chatpb.WsFrame.read_receipt:type_name -> chatpb.ReadReceipt
+	4,  // 3: chatpb.WsFrame.typing:type_name -> chatpb.TypingIndicator
+	5,  // 4: chatpb.WsFrame.presence:type_name -> chatpb.PresenceUpdate
+	6,  // 5: chatpb.WsFrame.order_update:type_name -> chatpb.OrderUpdate
+	7,  // 6: chatpb.WsFrame.booking_update:type_name -> chatpb.BookingUpdate
+	8,  // 7: chatpb.WsFrame.unread_count:type_name -> chatpb.UnreadCount
+	9,  // 8: chatpb.WsFrame.delivered_ack:type_name -> chatpb.DeliveredAck
+	10, // 9: chatpb.WsFrame.delivered_receipt:type_name -> chatpb.DeliveredReceipt
+	11, // 10: chatpb.WsFrame.conversation_update:type_name -> chatpb.ConversationUpdate
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_chatpb_proto_init() }
@@ -981,6 +1252,9 @@ func file_proto_chatpb_proto_init() {
 		(*WsFrame_OrderUpdate)(nil),
 		(*WsFrame_BookingUpdate)(nil),
 		(*WsFrame_UnreadCount)(nil),
+		(*WsFrame_DeliveredAck)(nil),
+		(*WsFrame_DeliveredReceipt)(nil),
+		(*WsFrame_ConversationUpdate)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -988,7 +1262,7 @@ func file_proto_chatpb_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_chatpb_proto_rawDesc), len(file_proto_chatpb_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

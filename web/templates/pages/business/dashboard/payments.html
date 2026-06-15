@@ -506,21 +506,23 @@
   });
 
   function deletePaymentMethod(id, label) {
-    if (!confirm('Delete "' + label + '" payment method?')) return;
-    fetch('/business/payment-methods/' + id, {
-      method: 'DELETE',
-      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-    })
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d.success) {
-          if (typeof showNotification === 'function') showNotification('Payment method deleted', 'info');
-          var row = document.getElementById('pm-row-' + id);
-          if (row) row.remove();
-        } else {
-          if (typeof showNotification === 'function') showNotification(d.error || 'Failed to delete', 'error');
-        }
-      });
+    showConfirmModal({ title: 'Delete Payment Method', message: 'Delete "' + label + '" payment method?', confirmText: 'Delete', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+      if (!confirmed) return;
+      fetch('/business/payment-methods/' + id, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) {
+            if (typeof showNotification === 'function') showNotification('Payment method deleted', 'info');
+            var row = document.getElementById('pm-row-' + id);
+            if (row) row.remove();
+          } else {
+            if (typeof showNotification === 'function') showNotification(d.error || 'Failed to delete', 'error');
+          }
+        });
+    });
   }
 
   function togglePaymentMethodActive(cb) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/resend/resend-go/v3"
 )
@@ -18,6 +19,18 @@ func getFromEmail() string {
 
 func isResendEnabled() bool {
 	return os.Getenv("RESEND") == "true"
+}
+
+func AppURL(path string) string {
+	base := os.Getenv("APP_URL")
+	if base == "" {
+		domain := os.Getenv("APP_DOMAIN")
+		if domain == "" {
+			return path
+		}
+		base = fmt.Sprintf("https://%s", domain)
+	}
+	return fmt.Sprintf("%s%s", strings.TrimRight(base, "/"), path)
 }
 
 func SendOTPEmail(toEmail, otpCode string) error {
@@ -715,7 +728,7 @@ func SendAbandonedCartEmail(toEmail, clientName, businessName, orderNumber, link
 	return nil
 }
 
-func SendInactiveClientEmail(toEmail, clientName, businessName, businessSlug string) error {
+func SendInactiveClientEmail(toEmail, clientName, businessName, link string) error {
 	if !isResendEnabled() {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: We miss you at %s", toEmail, businessName)
 		return nil
@@ -754,7 +767,7 @@ func SendInactiveClientEmail(toEmail, clientName, businessName, businessSlug str
 		</td></tr>
 	</table>
 </body>
-</html>`, businessName, clientName, businessName, businessSlug)
+</html>`, businessName, clientName, businessName, link)
 
 	params := &resend.SendEmailRequest{
 		From:    getFromEmail(),

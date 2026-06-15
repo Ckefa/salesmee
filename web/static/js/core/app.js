@@ -112,13 +112,13 @@ class SalesMeeApp {
         var toggle = function() {
             var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
             btn.classList.toggle('visible', !isNearBottom);
+            if (isNearBottom && window.clearUnreadBelow) window.clearUnreadBelow();
         };
         container.addEventListener('scroll', toggle);
         setTimeout(toggle, 100);
     }
 
     initClientFeatures() {
-        this.startHeartbeat();
         this.initRealTimeUpdates();
     }
 
@@ -144,17 +144,6 @@ class SalesMeeApp {
 
     autoScrollMessages(container) {
         container.scrollTop = container.scrollHeight;
-        var observer = new MutationObserver(function() {
-            container.scrollTop = container.scrollHeight;
-        });
-        observer.observe(container, { childList: true, subtree: true });
-    }
-
-    startHeartbeat() {
-        setInterval(function() {
-            fetch('/client/heartbeat', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
-                .catch(function() {});
-        }, 30000);
     }
 
     initRealTimeUpdates() {

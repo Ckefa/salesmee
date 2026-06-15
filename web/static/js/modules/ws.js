@@ -136,6 +136,19 @@ class WsClient {
     });
   }
 
+  sendDeliveredAck(conversationId, clientId) {
+    this.send({
+      event_type: 11,
+      conversation_id: String(conversationId),
+      sender_type: 'client',
+      timestamp: Date.now(),
+      delivered_ack: {
+        conversation_id: String(conversationId),
+        client_id: String(clientId)
+      }
+    });
+  }
+
   startPing() {
     this.pingTimer = setInterval(function() {
       this.send({ event_type: 9 });

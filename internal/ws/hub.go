@@ -53,6 +53,12 @@ func (h *Hub) Run() {
 	}
 }
 
+func (h *Hub) RoomHasClients(room string) bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return len(h.rooms[room]) > 0
+}
+
 func (h *Hub) Broadcast(room string, frame *chatpb.WsFrame, exclude *Client) {
 	data, err := proto.Marshal(frame)
 	if err != nil {

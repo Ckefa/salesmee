@@ -287,7 +287,8 @@
       }
 
       function deleteProduct(productId) {
-        if (confirm('Are you sure you want to delete this product?')) {
+        showConfirmModal({ title: 'Delete Product', message: 'Are you sure you want to delete this product?', confirmText: 'Delete', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+          if (!confirmed) return;
           fetch(`/business/products/${productId}`, {
             method: 'DELETE',
             headers: {
@@ -307,7 +308,7 @@
               console.error('Error:', error);
               showNotification('Failed to delete product', 'error');
             });
-        }
+        });
       }
 
       // --- Gallery State ---

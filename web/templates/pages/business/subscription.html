@@ -537,7 +537,8 @@
   }
 
   function confirmDowngrade(planCode, planName) {
-    if (confirm('Are you sure you want to downgrade to ' + planName + '? You will lose access to premium features.')) {
+    showConfirmModal({ title: 'Downgrade Plan', message: 'Are you sure you want to downgrade to ' + planName + '? You will lose access to premium features.', confirmText: 'Downgrade', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+      if (!confirmed) return;
       fetch('/business/subscription/change', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCookie('csrf_token')},
@@ -549,7 +550,7 @@
         else { showNotification(d.error || 'Failed to switch plan', 'error'); }
       })
       .catch(() => showNotification('An error occurred', 'error'));
-    }
+    });
   }
 
   function openCancelModal() {

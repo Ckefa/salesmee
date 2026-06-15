@@ -1,7 +1,73 @@
-if (window.wsClient) window.wsClient.disconnect();
-var wsClient = null;
 if (window.typingTimeout) clearTimeout(window.typingTimeout);
 var typingTimeout = null;
+
+var unreadBelow = 0;
+window.clearUnreadBelow = function() {
+  unreadBelow = 0;
+  var badge = document.getElementById('scrollBottomBadge');
+  if (badge) badge.classList.remove('visible');
+};
+
+function updateScrollBottomBadge() {
+  var badge = document.getElementById('scrollBottomBadge');
+  if (!badge) return;
+  if (unreadBelow > 0) {
+    badge.textContent = unreadBelow > 99 ? '99+' : unreadBelow;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+function updateSidebarCard(frame) {
+  if (frame.sender_type !== 'client') return;
+  var msg = frame.new_message;
+  if (!msg) return;
+  if (msg.msg_type === 'order' || msg.msg_type === 'booking') return;
+
+  var cid = frame.sender_id;
+  var item = document.querySelector('.wa-chat-item[data-client-id="' + cid + '"]');
+  if (!item) return;
+
+  // Update preview text
+  var preview = item.querySelector('.wa-chat-preview');
+  if (preview) {
+    if (msg.media_url) {
+      preview.textContent = 'Media';
+    } else if (msg.content) {
+      preview.textContent = msg.content.length > 60 ? msg.content.substring(0, 57) + '...' : msg.content;
+    }
+  }
+
+  // Update timestamp
+  var timeEl = item.querySelector('.wa-chat-time.time-ago');
+  if (timeEl && msg.created_at) {
+    var iso = new Date(Number(msg.created_at)).toISOString();
+    timeEl.setAttribute('data-time', iso);
+  }
+
+  if (msg.created_at) {
+    item.setAttribute('data-last-message-at', new Date(Number(msg.created_at)).toISOString());
+  }
+
+  // Increment unread badge
+  var badge = item.querySelector('.wa-unread-badge');
+  if (badge) {
+    var count = parseInt(badge.textContent) + 1;
+    badge.textContent = count > 99 ? '99+' : count;
+  } else {
+    var topRight = item.querySelector('.wa-chat-top-right');
+    if (topRight) {
+      topRight.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">1</span>');
+    }
+  }
+
+  // Reorder card to top
+  var list = item.parentElement;
+  if (list && list.firstChild !== item) {
+    list.insertBefore(item, list.firstChild);
+  }
+}
 
 scrollToBottom();
 markAsRead();
@@ -17,7 +83,7 @@ function scrollToBottom() {
 function markAsRead() {
   fetch(`/business/clients/${clientId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function() {
-      var badge = document.querySelector('.client-item[data-client-id="' + clientId + '"] .unread-badge');
+      var badge = document.querySelector('.client-item[data-client-id="' + clientId + '"] .wa-unread-badge');
       if (badge) badge.remove();
     })
     .catch(console.error);
@@ -73,7 +139,6 @@ function reloadBusinessChatFromServer() {
       var current = document.getElementById('messages-container');
       if (next && current) {
         current.innerHTML = next.innerHTML;
-        scrollToBottom();
       }
     })
     .catch(console.error);
@@ -128,7 +193,28 @@ function updateBookingPendingPaymentsUI(bookingId, pendingAmount) {
 function applyOrderCardUpdate(upd) {
   if (!upd || !upd.order_id) return false;
   var card = document.querySelector('[data-order-id="' + upd.order_id + '"]');
-  if (!card) return false;
+  if (!card) {
+    if (upd.card_html) {
+      var container = document.getElementById('messages-container');
+      if (container) {
+        var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        container.insertAdjacentHTML('beforeend', upd.card_html);
+        if (isNearBottom) container.scrollTop = container.scrollHeight;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (upd.card_html) {
+    var container = document.getElementById('messages-container');
+    var scrollTop = container ? container.scrollTop : 0;
+    card.outerHTML = upd.card_html;
+    if (container && container.scrollTop !== scrollTop) {
+      requestAnimationFrame(function() { container.scrollTop = scrollTop; });
+    }
+    return true;
+  }
 
   if (upd.status && card.getAttribute('data-order-status') && upd.status !== card.getAttribute('data-order-status')) {
     return false;
@@ -149,7 +235,28 @@ function applyOrderCardUpdate(upd) {
 function applyBookingCardUpdate(upd) {
   if (!upd || !upd.booking_id) return false;
   var card = document.querySelector('[data-booking-id="' + upd.booking_id + '"]');
-  if (!card) return false;
+  if (!card) {
+    if (upd.card_html) {
+      var container = document.getElementById('messages-container');
+      if (container) {
+        var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        container.insertAdjacentHTML('beforeend', upd.card_html);
+        if (isNearBottom) container.scrollTop = container.scrollHeight;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (upd.card_html) {
+    var container = document.getElementById('messages-container');
+    var scrollTop = container ? container.scrollTop : 0;
+    card.outerHTML = upd.card_html;
+    if (container && container.scrollTop !== scrollTop) {
+      requestAnimationFrame(function() { container.scrollTop = scrollTop; });
+    }
+    return true;
+  }
 
   if (upd.status && card.getAttribute('data-booking-status') && upd.status !== card.getAttribute('data-booking-status')) {
     return false;
@@ -172,25 +279,41 @@ function wsToken() {
 }
 
 function startWsClient() {
-  if (wsClient) wsClient.disconnect();
-  wsClient = new WsClient();
-  var token = wsToken();
-  if (!token) return;
-  wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+  if (!window.wsClient || !window.wsClient.isConnected) {
+    window.wsClient = new WsClient();
+    var token = wsToken();
+    if (!token) return;
+    window.wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + businessId);
+  }
+  registerChatHandlers();
+}
 
-  wsClient.on(1, function(frame) {
-    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) return;
-    var container = document.getElementById('messages-container');
-    if (!container) return;
+function registerChatHandlers() {
+  if (window._chatHandlersRegistered) return;
+  window._chatHandlersRegistered = true;
+
+  window.wsClient.on(1, function(frame) {
     var msg = frame.new_message;
     if (!msg) return;
-    if (msg.msg_type === 'order') {
-      reloadBusinessChatFromServer();
-      return;
-    } else if (msg.msg_type === 'booking') {
-      reloadBusinessChatFromServer();
+    if (msg.msg_type === 'order' || msg.msg_type === 'booking') return;
+
+    // Send delivery ack for every received message (WhatsApp-style)
+    if (window.wsClient && frame.conversation_id) {
+      window.wsClient.sendDeliveredAck(frame.conversation_id, frame.sender_id || '');
+    }
+
+    // Update sidebar card (preview, time, reorder, badge) for all received messages
+    if (frame.conversation_id) {
+      updateSidebarCard(frame);
+    }
+
+    // Message for a different conversation — stop here (don't render in current chat)
+    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) {
       return;
     }
+
+    var container = document.getElementById('messages-container');
+    if (!container) return;
     if (frame.sender_type === 'business') return;
     var html = '';
     if (msg.media_url) {
@@ -199,40 +322,78 @@ function startWsClient() {
       html = '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg><span class="msg-txt">' + escapeHtml(msg.content || '') + '</span><span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span></div></div>';
     }
     container.insertAdjacentHTML('beforeend', html);
-    scrollToBottom();
+
+    var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    if (isNearBottom) {
+      container.scrollTop = container.scrollHeight;
+    } else {
+      unreadBelow += 1;
+      updateScrollBottomBadge();
+    }
+
     markVisibleConversationRead();
     playNotificationSound();
   });
 
-  wsClient.on(3, function(frame) {
+  window.wsClient.on(3, function(frame) {
     showTypingIndicator(frame.typing);
   });
-  wsClient.on(4, function(frame) {
+  window.wsClient.on(4, function(frame) {
     hideTypingIndicator(frame.typing);
   });
 
-  wsClient.on(6, function(frame) {
+  window.wsClient.on(6, function(frame) {
     var upd = frame.order_update;
     if (!upd) return;
-    if (!applyOrderCardUpdate(upd)) reloadBusinessChatFromServer();
+    if (!applyOrderCardUpdate(upd)) {}
   });
 
-  wsClient.on(7, function(frame) {
+  window.wsClient.on(7, function(frame) {
     var upd = frame.booking_update;
     if (!upd) return;
-    if (!applyBookingCardUpdate(upd)) reloadBusinessChatFromServer();
+    if (!applyBookingCardUpdate(upd)) {}
   });
 
-  wsClient.on(8, function(frame) {
-    var badge = document.querySelector('.wa-unread-badge');
-    if (badge && frame.unread_count) {
-      badge.textContent = frame.unread_count.count;
+  window.wsClient.on(8, function(frame) {
+    if (!frame.unread_count) return;
+    var uc = frame.unread_count;
+    if (!uc.conversation_id) return;
+    var item = document.querySelector('.wa-chat-item[data-conversation-id="' + uc.conversation_id + '"]');
+    if (!item) return;
+    var badge = item.querySelector('.wa-unread-badge');
+    if (uc.count > 0) {
+      if (badge) {
+        badge.textContent = uc.count > 99 ? '99+' : uc.count;
+      } else {
+        var topRight = item.querySelector('.wa-chat-top-right');
+        if (topRight) {
+          topRight.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">' + (uc.count > 99 ? '99+' : uc.count) + '</span>');
+        }
+      }
+    } else {
+      if (badge) badge.remove();
     }
   });
 
-  wsClient.on(2, function(frame) {
+  window.wsClient.on(2, function(frame) {
     applyReadReceipt(frame.read_receipt);
   });
+
+  window.wsClient.on(12, function(frame) {
+    if (!frame.delivered_receipt) return;
+    var dr = frame.delivered_receipt;
+    if (dr.conversation_id && dr.conversation_id !== String(conversationId)) return;
+    document.querySelectorAll('#messages-container .message-item.out').forEach(function(item) {
+      var tick = item.querySelector('.msg-tick');
+      if (!tick) return;
+      if (tick.getAttribute('data-read-state') === 'read') return;
+      if (tick.getAttribute('data-read-state') === 'delivered') return;
+      tick.setAttribute('data-read-state', 'delivered');
+      tick.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
+      tick.style.width = '14px';
+    });
+  });
+
 }
 
 document.addEventListener('visibilitychange', function() {
@@ -279,7 +440,6 @@ function showTypingIndicator(typing) {
     el.innerHTML = '<div class="msg-bbl typing"><span class="typing-label">typing</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
     document.getElementById('messages-container').appendChild(el);
   }
-  scrollToBottom();
 }
 
 function hideTypingIndicator(typing) {
@@ -348,7 +508,8 @@ function deleteContextMenuItem() {
     .then(function(data) {
       if (data.success) {
         showNotification('Deleted', 'success');
-        reloadBusinessChatFromServer();
+        var el = document.querySelector('[data-message-id="' + id + '"]');
+        if (el) el.remove();
       } else {
         showNotification(data.error || 'Failed to delete', 'error');
       }
@@ -381,7 +542,7 @@ function markMessageRead() {
 }
 
 window.addEventListener('beforeunload', function() {
-  if (wsClient) wsClient.disconnect();
+  if (window.wsClient) window.wsClient.disconnect();
 });
 
 document.addEventListener('click', function(e) {
@@ -478,7 +639,6 @@ function sendOrderToClient(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order sent to client!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to send order', 'error');
       }
@@ -494,7 +654,6 @@ function confirmOrderBusiness(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order confirmed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm order', 'error');
       }
@@ -511,7 +670,6 @@ function rejectOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order rejected', 'info');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to reject order', 'error');
       }
@@ -528,7 +686,6 @@ function confirmAllOrderPayments(orderId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -545,7 +702,6 @@ function confirmAllBookingPayments(bookingId) {
     .then(data => {
       if (data.success) {
         showNotification(data.message || 'Payments confirmed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to confirm payments', 'error');
       }
@@ -562,7 +718,6 @@ function fulfillOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Order completed!', 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to complete order', 'error');
       }
@@ -579,7 +734,6 @@ function cancelDraftOrder(orderId) {
     .then(data => {
       if (data.success) {
         showNotification('Draft discarded', 'info');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || 'Failed to discard draft', 'error');
       }
@@ -602,7 +756,6 @@ function updateBookingStatusFromCard(bookingId, newStatus) {
     .then(data => {
       if (data.success) {
         showNotification(`Booking ${action}ed successfully!`, 'success');
-        reloadBusinessChatFromServer();
       } else {
         showNotification(data.error || `Failed to ${action} booking`, 'error');
       }
@@ -627,15 +780,15 @@ function onMessageInput(input) {
   }
 
   // Typing indicator via WebSocket
-  if (wsClient && wsClient.isConnected) {
+  if (window.wsClient && window.wsClient.isConnected) {
     if (typingTimeout) clearTimeout(typingTimeout);
     if (val.length > 0) {
-      wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
     } else {
-      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
     }
     typingTimeout = setTimeout(function() {
-      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
     }, 3000);
   }
 }
@@ -650,8 +803,8 @@ function onMessageKeydown(event) {
 
   // Send typing stop on Enter (message sent)
   if (event.key === 'Enter' && !event.shiftKey) {
-    if (wsClient && wsClient.isConnected) {
-      wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+    if (window.wsClient && window.wsClient.isConnected) {
+      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
     }
     if (typingTimeout) {
       clearTimeout(typingTimeout);

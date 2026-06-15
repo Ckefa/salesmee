@@ -11,6 +11,7 @@
     </div>
     <div class="flex gap-2">
       <button onclick="printReport()" class="btn btn-ghost btn-sm"><i class="fas fa-print mr-1"></i>Print</button>
+      <button onclick="exportRevenueCSV()" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export CSV</button>
     </div>
   </div>
 
@@ -59,6 +60,27 @@
         </tbody>
       </table>
     </div>
+    {{if gt .TotalPages 1.0}}
+    <div class="flex justify-between items-center px-5 py-3 border-t border-[var(--color-border)]">
+      <div class="text-xs text-[var(--color-text-muted)]">Page {{.Page}} of {{.TotalPages}} ({{.TotalItems}} days)</div>
+      <div class="flex gap-1">
+        {{$prev := sub .Page 1}}
+        {{$next := add .Page 1}}
+        <button onclick="loadReportPage('revenue', {{$prev}})"
+          class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+            {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+          {{if eq .Page 1.0}}disabled{{end}}>
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button onclick="loadReportPage('revenue', {{$next}})"
+          class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+            {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+          {{if ge .Page .TotalPages}}disabled{{end}}>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    {{end}}
   </div>
 </div>
 
@@ -119,6 +141,27 @@
         </tbody>
       </table>
     </div>
+    {{if gt .TotalPages 1.0}}
+    <div class="flex justify-between items-center px-5 py-3 border-t border-[var(--color-border)]">
+      <div class="text-xs text-[var(--color-text-muted)]">Page {{.Page}} of {{.TotalPages}} ({{.TotalItems}} items)</div>
+      <div class="flex gap-1">
+        {{$prev := sub .Page 1}}
+        {{$next := add .Page 1}}
+        <button onclick="loadReportPage('sales', {{$prev}})"
+          class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+            {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+          {{if eq .Page 1.0}}disabled{{end}}>
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button onclick="loadReportPage('sales', {{$next}})"
+          class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
+            {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
+          {{if ge .Page .TotalPages}}disabled{{end}}>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    {{end}}
   </div>
 </div>
 

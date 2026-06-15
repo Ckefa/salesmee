@@ -190,17 +190,19 @@ function saveLocation() {
 }
 
 function deleteLocation(id) {
-  if (!confirm('Delete this location? Products and services assigned only to this location will become unassigned.')) return;
-  fetch('/business/locations/' + id, {
-    method: 'DELETE',
-    headers: {'X-CSRF-Token': csrfToken}
-  }).then(function(r) { return r.json(); }).then(function(resp) {
-    if (resp.success) {
-      showNotification('Location deleted', 'success');
-      setTimeout(function() { location.reload(); }, 500);
-    } else {
-      showNotification('Failed to delete location', 'error');
-    }
+  showConfirmModal({ title: 'Delete Location', message: 'Delete this location? Products and services assigned only to this location will become unassigned.', confirmText: 'Delete', confirmClass: 'bg-[var(--color-error)] text-white' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/locations/' + id, {
+      method: 'DELETE',
+      headers: {'X-CSRF-Token': csrfToken}
+    }).then(function(r) { return r.json(); }).then(function(resp) {
+      if (resp.success) {
+        showNotification('Location deleted', 'success');
+        setTimeout(function() { location.reload(); }, 500);
+      } else {
+        showNotification('Failed to delete location', 'error');
+      }
+    });
   });
 }
 </script>

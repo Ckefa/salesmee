@@ -38,6 +38,8 @@ type BusinessSubscription struct {
 	StripeCustomerID     string     `json:"stripe_customer_id"`
 	PaddleSubscriptionID string     `json:"paddle_subscription_id"`
 	PaddleCustomerID     string     `json:"paddle_customer_id"`
+	PolarSubscriptionID  string     `json:"polar_subscription_id"`
+	PolarCustomerID      string     `json:"polar_customer_id"`
 	BillingInterval      string     `gorm:"default:'month'" json:"billing_interval"`
 	CurrentPeriodStart   time.Time  `json:"current_period_start"`
 	CurrentPeriodEnd     time.Time  `json:"current_period_end"`

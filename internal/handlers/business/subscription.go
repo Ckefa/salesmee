@@ -64,6 +64,9 @@ type CheckoutPageData struct {
 
 	PaddleClientToken  string
 	PaddleEnvironment  string
+	StripeEnabled      bool
+	PaddleEnabled      bool
+	PolarEnabled       bool
 
 	ProductCount        int
 	ServiceCount        int
@@ -205,10 +208,12 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 		data.MonthlyPrice = sub.Plan.PriceMonthly
 		data.YearlyPrice = sub.Plan.PriceYearly
 		data.YearlySavings = (sub.Plan.PriceMonthly - sub.Plan.PriceYearly) * 12
-		data.HasPaymentMethod = sub.StripeCustomerID != "" || sub.PaddleCustomerID != ""
+		data.HasPaymentMethod = sub.StripeCustomerID != "" || sub.PaddleCustomerID != "" || sub.PolarCustomerID != ""
 		data.PaymentProvider = "stripe"
 		if sub.PaddleCustomerID != "" {
 			data.PaymentProvider = "paddle"
+		} else if sub.PolarCustomerID != "" {
+			data.PaymentProvider = "polar"
 		}
 		data.IsCanceled = sub.Status == "canceled"
 		data.IsTrialing = sub.Status == "trialing"
@@ -311,17 +316,38 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 		paddleEnv = "sandbox"
 	}
 
+	stripeEnabled := os.Getenv("STRIPE_ENABLED")
+	stripeEnabledBool := stripeEnabled != "false"
+	paddleEnabled := os.Getenv("PADDLE_ENABLED")
+	paddleEnabledBool := paddleEnabled != "false"
+	polarEnabled := os.Getenv("POLAR_ENABLED")
+	polarEnabledBool := polarEnabled != "false"
+
+	var providers []string
+	if stripeEnabledBool {
+		providers = append(providers, "stripe")
+	}
+	if paddleEnabledBool {
+		providers = append(providers, "paddle")
+	}
+	if polarEnabledBool {
+		providers = append(providers, "polar")
+	}
+
 	data := CheckoutPageData{
 		ActivePage: "subscription",
 		Business:   business,
 		Plan:       &plan,
 		Interval:   billingInterval,
 		UnitAmount: unitAmount,
-		Providers:  []string{"stripe", "paddle"},
+		Providers:  providers,
 		CSRFToken:  c.GetString("csrf_token"),
 
 		PaddleClientToken: os.Getenv("PADDLE_CLIENT_TOKEN"),
 		PaddleEnvironment: paddleEnv,
+		StripeEnabled:     stripeEnabledBool,
+		PaddleEnabled:     paddleEnabledBool,
+		PolarEnabled:      polarEnabledBool,
 		AuthType:          c.GetString("auth_type"),
 		Role:              c.GetString("role"),
 	}
@@ -375,8 +401,26 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 	paddleEnvUpper := strings.ToUpper(paddleEnv)
 	envKey := fmt.Sprintf("PADDLE_%s_%s_%s_PRICE_ID", paddleEnvUpper, strings.ToUpper(planCode), strings.ToUpper(billingInterval))
 	paddlePriceID := os.Getenv(envKey)
-	if paddlePriceID == "" {
+
+	polarEnv := os.Getenv("POLAR_ENVIRONMENT")
+	if polarEnv == "" {
+		polarEnv = "sandbox"
+	}
+	polarEnvUpper := strings.ToUpper(polarEnv)
+
+	var polarPriceID string
+	if planCode != "silver" {
+		polarEnvKey := fmt.Sprintf("POLAR_%s_%s_%s_PRICE_ID", polarEnvUpper, strings.ToUpper(planCode), strings.ToUpper(billingInterval))
+		polarPriceID = os.Getenv(polarEnvKey)
+	}
+
+	if providerName == "paddle" && paddlePriceID == "" {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Paddle %s price ID not configured for plan %s %s. Set env var %s", paddleEnv, planCode, billingInterval, envKey)})
+		return
+	}
+
+	if providerName == "polar" && polarPriceID == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Polar %s price ID not configured for plan %s %s. Set env var POLAR_%s_%s_%s_PRICE_ID", polarEnv, planCode, billingInterval, polarEnvUpper, strings.ToUpper(planCode), strings.ToUpper(billingInterval))})
 		return
 	}
 
@@ -395,6 +439,7 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 			Name:          plan.Name,
 			Description:   plan.Description,
 			PaddlePriceID: paddlePriceID,
+			PolarPriceID:  polarPriceID,
 			Original:      &plan,
 		},
 	}
@@ -488,6 +533,12 @@ func (h *BusinessHandler) CancelSubscription(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel with Paddle: " + err.Error()})
 			return
 		}
+	} else if sub.PolarSubscriptionID != "" {
+		provider := payment.NewPolarAdapter()
+		if err := provider.CancelSubscription(sub.PolarSubscriptionID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel with Polar: " + err.Error()})
+			return
+		}
 	}
 
 	strategy := &subscription.CancelStrategy{}
@@ -535,7 +586,10 @@ func (h *BusinessHandler) BillingPortal(c *gin.Context) {
 	var portalURL string
 	var err error
 
-	if business.Subscription.PaddleCustomerID != "" {
+	if business.Subscription.PolarCustomerID != "" {
+		provider := payment.NewPolarAdapter()
+		portalURL, err = provider.CreateBillingPortalSession(business.Subscription.PolarCustomerID, returnURL)
+	} else if business.Subscription.PaddleCustomerID != "" {
 		provider := payment.NewPaddleAdapter()
 		portalURL, err = provider.CreateBillingPortalSession(business.Subscription.PaddleCustomerID, returnURL)
 	} else if business.Subscription.StripeCustomerID != "" {
@@ -657,7 +711,7 @@ func PaddleWebhook(h *BusinessHandler) gin.HandlerFunc {
 			return
 		}
 
-		sigHeader := c.GetHeader("P-Thook-Signature")
+		sigHeader := c.GetHeader("Paddle-Signature")
 
 		provider := payment.NewPaddleAdapter()
 		event, err := provider.HandleWebhook(payload, sigHeader)
@@ -679,6 +733,40 @@ func PaddleWebhook(h *BusinessHandler) gin.HandlerFunc {
 			handleInvoicePaid(h.db, event)
 		case "transaction.payment_failed":
 			handleInvoicePaymentFailed(h.db, event)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"received": true})
+	}
+}
+
+func PolarWebhook(h *BusinessHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		payload, err := c.GetRawData()
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		extraHeaders := map[string]string{
+			"webhook-id":        c.GetHeader("webhook-id"),
+			"webhook-timestamp": c.GetHeader("webhook-timestamp"),
+			"webhook-signature": c.GetHeader("webhook-signature"),
+		}
+
+		provider := payment.NewPolarAdapter()
+		event, err := provider.HandleWebhook(payload, "", extraHeaders)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		switch event.Type {
+		case "subscription.active":
+			handleCheckoutCompleted(h.db, event)
+		case "subscription.canceled":
+			handleSubscriptionDeleted(h.db, event)
+		case "subscription.revoked":
+			handleSubscriptionDeleted(h.db, event)
 		}
 
 		c.JSON(http.StatusOK, gin.H{"received": true})
@@ -715,6 +803,8 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 		StripeCustomerID:     event.CustomerID,
 		PaddleSubscriptionID: event.SubscriptionID,
 		PaddleCustomerID:     event.CustomerID,
+		PolarSubscriptionID:  event.SubscriptionID,
+		PolarCustomerID:      event.CustomerID,
 		BillingInterval:      interval,
 		CurrentPeriodStart:   now,
 		CurrentPeriodEnd:     periodEnd,
@@ -752,10 +842,12 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 		if event.SubscriptionID != "" {
 			updates["stripe_subscription_id"] = event.SubscriptionID
 			updates["paddle_subscription_id"] = event.SubscriptionID
+			updates["polar_subscription_id"] = event.SubscriptionID
 		}
 		if event.CustomerID != "" {
 			updates["stripe_customer_id"] = event.CustomerID
 			updates["paddle_customer_id"] = event.CustomerID
+			updates["polar_customer_id"] = event.CustomerID
 		}
 		d.Model(&existing).Updates(updates)
 	}
@@ -769,7 +861,7 @@ func handleCheckoutCompleted(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleSubscriptionUpdated(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_subscription_id = ? OR paddle_subscription_id = ?", event.SubscriptionID, event.SubscriptionID).First(&sub).Error; err != nil {
+	if err := d.Where("stripe_subscription_id = ? OR paddle_subscription_id = ? OR polar_subscription_id = ?", event.SubscriptionID, event.SubscriptionID, event.SubscriptionID).First(&sub).Error; err != nil {
 		return
 	}
 
@@ -795,7 +887,7 @@ func handleSubscriptionUpdated(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleSubscriptionDeleted(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_subscription_id = ? OR paddle_subscription_id = ?", event.SubscriptionID, event.SubscriptionID).Preload("Business").First(&sub).Error; err != nil {
+	if err := d.Where("stripe_subscription_id = ? OR paddle_subscription_id = ? OR polar_subscription_id = ?", event.SubscriptionID, event.SubscriptionID, event.SubscriptionID).Preload("Business").First(&sub).Error; err != nil {
 		return
 	}
 
@@ -808,7 +900,7 @@ func handleSubscriptionDeleted(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleInvoicePaid(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_customer_id = ? OR paddle_customer_id = ?", event.CustomerID, event.CustomerID).Preload("Business").Preload("Plan").First(&sub).Error; err != nil {
+	if err := d.Where("stripe_customer_id = ? OR paddle_customer_id = ? OR polar_customer_id = ?", event.CustomerID, event.CustomerID, event.CustomerID).Preload("Business").Preload("Plan").First(&sub).Error; err != nil {
 		return
 	}
 
@@ -821,7 +913,7 @@ func handleInvoicePaid(d *gorm.DB, event *payment.WebhookEvent) {
 
 func handleInvoicePaymentFailed(d *gorm.DB, event *payment.WebhookEvent) {
 	var sub models.BusinessSubscription
-	if err := d.Where("stripe_customer_id = ? OR paddle_customer_id = ?", event.CustomerID, event.CustomerID).Preload("Business").First(&sub).Error; err != nil {
+	if err := d.Where("stripe_customer_id = ? OR paddle_customer_id = ? OR polar_customer_id = ?", event.CustomerID, event.CustomerID, event.CustomerID).Preload("Business").First(&sub).Error; err != nil {
 		return
 	}
 

@@ -297,7 +297,7 @@ type paddleTransactionDataEvent struct {
 	BilledAt   string            `json:"billed_at"`
 }
 
-func (p *PaddleAdapter) HandleWebhook(payload []byte, sigHeader string) (*WebhookEvent, error) {
+func (p *PaddleAdapter) HandleWebhook(payload []byte, sigHeader string, extraHeaders ...map[string]string) (*WebhookEvent, error) {
 	if p.webhookSecret == "" {
 		// In dev mode, allow processing without signature verification
 		log.Println("WARNING: Paddle webhook secret not configured, skipping signature verification")
@@ -399,18 +399,32 @@ func (p *PaddleAdapter) HandleWebhook(payload []byte, sigHeader string) (*Webhoo
 }
 
 func (p *PaddleAdapter) verifyWebhookSignature(payload []byte, sigHeader string) error {
-	expectedSig := computeHMACSHA256(p.webhookSecret, payload)
-	signature := strings.TrimSpace(sigHeader)
-	if !hmac.Equal([]byte(expectedSig), []byte(signature)) {
+	var ts, h1 string
+	for _, part := range strings.Split(sigHeader, ";") {
+		kv := strings.SplitN(part, "=", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		switch kv[0] {
+		case "ts":
+			ts = kv[1]
+		case "h1":
+			h1 = kv[1]
+		}
+	}
+	if ts == "" || h1 == "" {
+		return fmt.Errorf("invalid Paddle-Signature header format: missing ts or h1")
+	}
+
+	signedContent := fmt.Sprintf("%s.%s", ts, string(payload))
+	mac := hmac.New(sha256.New, []byte(p.webhookSecret))
+	mac.Write([]byte(signedContent))
+	expectedSig := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+
+	if !hmac.Equal([]byte(expectedSig), []byte(h1)) {
 		return fmt.Errorf("webhook signature mismatch")
 	}
 	return nil
-}
-
-func computeHMACSHA256(secret string, payload []byte) string {
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(payload)
-	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
 func (p *PaddleAdapter) GetOrCreateCustomer(business *models.Business) (string, error) {

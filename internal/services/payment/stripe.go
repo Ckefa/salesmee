@@ -115,7 +115,7 @@ func (s *StripeAdapter) CancelSubscription(subscriptionID string) error {
 	return nil
 }
 
-func (s *StripeAdapter) HandleWebhook(payload []byte, sigHeader string) (*WebhookEvent, error) {
+func (s *StripeAdapter) HandleWebhook(payload []byte, sigHeader string, extraHeaders ...map[string]string) (*WebhookEvent, error) {
 	event, err := stripewebhook.ConstructEvent(payload, sigHeader, s.webhookSecret)
 	if err != nil {
 		return nil, fmt.Errorf("stripe webhook signature verification failed: %w", err)

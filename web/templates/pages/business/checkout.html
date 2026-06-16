@@ -70,6 +70,7 @@
   <div class="space-y-4">
     <h3 class="text-lg font-semibold text-[var(--color-text)]">Choose Payment Method</h3>
 
+    {{if .StripeEnabled}}
     <!-- Stripe -->
     <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" onclick="this.querySelector('form').submit()">
       <div class="flex items-center justify-between">
@@ -93,8 +94,35 @@
         </form>
       </div>
     </div>
+    {{end}}
 
-    {{if .PaddleClientToken}}
+    {{if .PolarEnabled}}
+    <!-- Polar -->
+    <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" onclick="this.querySelector('form').submit()">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md shrink-0">
+            <i class="fas fa-bolt text-white text-lg"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Polar</h4>
+            <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">Pay with card, Apple Pay, Google Pay, and more</p>
+          </div>
+        </div>
+        <form method="POST" action="/business/subscription/checkout">
+          {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
+          <input type="hidden" name="plan_code" value="{{$plan.Code}}">
+          <input type="hidden" name="interval" value="{{$interval}}">
+          <input type="hidden" name="provider" value="polar">
+          <button type="submit" class="btn btn-sm text-xs sm:text-sm text-white" style="background:linear-gradient(135deg,#06b6d4,#0891b2);border:none;">
+            <i class="fas fa-bolt mr-1"></i> Pay with Polar
+          </button>
+        </form>
+      </div>
+    </div>
+    {{end}}
+
+    {{if and .PaddleEnabled .PaddleClientToken}}
     <!-- Paddle -->
     <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" id="paddleCheckoutCard">
       <div class="flex items-center justify-between">
@@ -122,7 +150,7 @@
 
   <!-- Legal & Support Links -->
   <div class="text-center text-xs text-[var(--color-text-muted)] space-y-2">
-    <p>Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders.</p>
+    <p>Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders. Polar.sh is an additional payment processor available for select plans.</p>
     <p>
       <a href="/terms" class="text-[var(--color-primary)] hover:underline" target="_blank">Terms of Service</a>
       &middot;

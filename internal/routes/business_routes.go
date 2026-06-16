@@ -263,5 +263,6 @@ func SetupBusinessRoutes(r *gin.Engine) {
 	// Webhooks (public)
 	r.POST("/stripe/webhook", business.StripeWebhook(businessHandler))
 	r.POST("/paddle/webhook", business.PaddleWebhook(businessHandler))
+	r.POST("/polar/webhook", business.PolarWebhook(businessHandler))
 
 }

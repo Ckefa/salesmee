@@ -238,6 +238,9 @@ func main() {
 	r.GET("/service-worker.js", func(c *gin.Context) {
 		c.File("./web/static/service-worker.js")
 	})
+	r.GET("/.well-known/apple-developer-merchantid-domain-association", func(c *gin.Context) {
+		c.File("./web/static/.well-known/apple-developer-merchantid-domain-association")
+	})
 
 	hub := ws.NewHub()
 	routes.SetWSHub(hub)

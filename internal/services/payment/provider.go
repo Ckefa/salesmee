@@ -8,6 +8,7 @@ type PlanMeta struct {
 	Name          string
 	Description   string
 	PaddlePriceID string
+	PolarPriceID  string
 	Original      *models.SubscriptionPlan
 }
 
@@ -48,6 +49,6 @@ type PaymentProvider interface {
 	CreateCheckoutSession(ctx *CheckoutContext) (*CheckoutSession, error)
 	CreateBillingPortalSession(customerID, returnURL string) (string, error)
 	CancelSubscription(subscriptionID string) error
-	HandleWebhook(payload []byte, sigHeader string) (*WebhookEvent, error)
+	HandleWebhook(payload []byte, sigHeader string, extraHeaders ...map[string]string) (*WebhookEvent, error)
 	GetOrCreateCustomer(business *models.Business) (string, error)
 }

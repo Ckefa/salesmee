@@ -62,6 +62,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/stripe/webhook": true,
 		"/paddle/webhook": true,
+		"/polar/webhook":  true,
 	}
 
 	return func(c *gin.Context) {

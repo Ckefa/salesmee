@@ -70,6 +70,7 @@
   <div class="space-y-4">
     <h3 class="text-lg font-semibold text-[var(--color-text)]">Choose Payment Method</h3>
 
+    {{if .StripeEnabled}}
     <!-- Stripe -->
     <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" onclick="this.querySelector('form').submit()">
       <div class="flex items-center justify-between">
@@ -93,7 +94,9 @@
         </form>
       </div>
     </div>
+    {{end}}
 
+    {{if .PolarEnabled}}
     <!-- Polar -->
     <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" onclick="this.querySelector('form').submit()">
       <div class="flex items-center justify-between">
@@ -117,8 +120,9 @@
         </form>
       </div>
     </div>
+    {{end}}
 
-    {{if .PaddleClientToken}}
+    {{if and .PaddleEnabled .PaddleClientToken}}
     <!-- Paddle -->
     <div class="card p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer" id="paddleCheckoutCard">
       <div class="flex items-center justify-between">

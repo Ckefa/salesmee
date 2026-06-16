@@ -64,6 +64,9 @@ type CheckoutPageData struct {
 
 	PaddleClientToken  string
 	PaddleEnvironment  string
+	StripeEnabled      bool
+	PaddleEnabled      bool
+	PolarEnabled       bool
 
 	ProductCount        int
 	ServiceCount        int
@@ -313,17 +316,38 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 		paddleEnv = "sandbox"
 	}
 
+	stripeEnabled := os.Getenv("STRIPE_ENABLED")
+	stripeEnabledBool := stripeEnabled != "false"
+	paddleEnabled := os.Getenv("PADDLE_ENABLED")
+	paddleEnabledBool := paddleEnabled != "false"
+	polarEnabled := os.Getenv("POLAR_ENABLED")
+	polarEnabledBool := polarEnabled != "false"
+
+	var providers []string
+	if stripeEnabledBool {
+		providers = append(providers, "stripe")
+	}
+	if paddleEnabledBool {
+		providers = append(providers, "paddle")
+	}
+	if polarEnabledBool {
+		providers = append(providers, "polar")
+	}
+
 	data := CheckoutPageData{
 		ActivePage: "subscription",
 		Business:   business,
 		Plan:       &plan,
 		Interval:   billingInterval,
 		UnitAmount: unitAmount,
-		Providers:  []string{"stripe", "paddle", "polar"},
+		Providers:  providers,
 		CSRFToken:  c.GetString("csrf_token"),
 
 		PaddleClientToken: os.Getenv("PADDLE_CLIENT_TOKEN"),
 		PaddleEnvironment: paddleEnv,
+		StripeEnabled:     stripeEnabledBool,
+		PaddleEnabled:     paddleEnabledBool,
+		PolarEnabled:      polarEnabledBool,
 		AuthType:          c.GetString("auth_type"),
 		Role:              c.GetString("role"),
 	}

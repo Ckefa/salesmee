@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"salesmee/internal/db"
 	"salesmee/internal/services/onboarding"
@@ -72,6 +73,13 @@ func GetPublicProfile(c *gin.Context) {
 		specialObj = []interface{}{}
 	}
 
+	scheme := "https"
+	if c.Request.TLS == nil {
+		scheme = "http"
+	}
+	profileURL := fmt.Sprintf("%s://%s/b/%s", scheme, c.Request.Host, business.Slug)
+	encodedProfileURL := url.QueryEscape(profileURL)
+
 	c.HTML(http.StatusOK, "public_profile.html", middleware.TemplateData(c, gin.H{
 		"Title":                business.Name + " - SalesMee",
 		"Business":             business,
@@ -85,6 +93,8 @@ func GetPublicProfile(c *gin.Context) {
 		"Reviews":              reviews,
 		"AverageRating":        avgRating,
 		"ReviewCount":          int(reviewCount),
+		"ProfileURL":           profileURL,
+		"EncodedProfileURL":    encodedProfileURL,
 	}))
 }
 

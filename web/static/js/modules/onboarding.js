@@ -72,17 +72,7 @@
   };
 
   window.onboardingSkip = function() {
-    if (typeof showNotification !== 'undefined') {
-      showNotification('You can always revisit the guide at /guide', 'info');
-    }
-    csrfFetch('/business/onboarding/skip', { method: 'POST' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.completed) {
-        window.onboardingClose();
-      }
-    })
-    .catch(function() {});
+    window.onboardingClose();
   };
 
   window.onboardingCopyLink = function() {

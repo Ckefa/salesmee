@@ -995,6 +995,17 @@ func timeAgo(now, t time.Time) string {
 	}
 }
 
+func broadcastBizPendingCounts(db *gorm.DB, hub *ws.Hub, businessID uint) {
+	if hub == nil {
+		return
+	}
+	var orderCount, bookingCount, notifCount int64
+	db.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).Count(&orderCount)
+	db.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).Count(&bookingCount)
+	db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&notifCount)
+	ws.BroadcastPendingCount(hub, strconv.Itoa(int(businessID)), int(orderCount), int(bookingCount), int(notifCount))
+}
+
 // GetNotificationCount returns the unread notification count as JSON
 func (h *BusinessHandler) GetNotificationCount(c *gin.Context) {
 	businessID := c.GetUint("business_id")
@@ -1014,6 +1025,8 @@ func (h *BusinessHandler) MarkNotificationRead(c *gin.Context) {
 		Where("id = ? AND business_id = ?", id, businessID).
 		Update("is_read", true)
 
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
+
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
@@ -1025,6 +1038,8 @@ func (h *BusinessHandler) MarkAllNotificationsRead(c *gin.Context) {
 		Where("business_id = ? AND is_read = false", businessID).
 		Update("is_read", true)
 
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
+
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
@@ -1034,6 +1049,8 @@ func (h *BusinessHandler) DeleteNotification(c *gin.Context) {
 	id := c.Param("id")
 
 	h.db.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.InAppNotification{})
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }

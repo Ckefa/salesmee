@@ -203,6 +203,30 @@ function registerBusinessPresenceHandlers() {
       if (badge) badge.remove();
     }
   });
+
+  window.wsClient.on(14, function(frame) {
+    if (!frame.pending_count) return;
+    var pc = frame.pending_count;
+    var updateBadge = function(id, count) {
+      var el = document.getElementById(id);
+      if (count > 0) {
+        if (el) {
+          el.textContent = count > 99 ? '99+' : count;
+          el.style.display = '';
+        } else {
+          var parent = document.querySelector('[data-nav="' + (id === 'waOrdersBadge' ? 'orders' : id === 'waBookingsBadge' ? 'bookings' : 'notifications') + '"]');
+          if (parent) {
+            parent.insertAdjacentHTML('beforeend', '<span id="' + id + '" class="wa-nav-badge">' + (count > 99 ? '99+' : count) + '</span>');
+          }
+        }
+      } else {
+        if (el) el.style.display = 'none';
+      }
+    };
+    updateBadge('waOrdersBadge', pc.order_count);
+    updateBadge('waBookingsBadge', pc.booking_count);
+    updateBadge('waNotifBadge', pc.notif_count);
+  });
 }
 
 function startBusinessWS() {
@@ -361,39 +385,27 @@ document.addEventListener('click', function(e) {
 let notifCtxTarget = null, notifCtxId = null;
 
 function deleteNotification(id, btn) {
-  showConfirmModal({
-    title: 'Delete Notification',
-    message: 'Delete this notification?',
-    confirmText: 'Delete',
-    confirmClass: 'bg-[var(--color-error)] text-white'
-  }).then(function(confirmed) {
-    if (!confirmed) return;
-    btn.disabled = true;
-    var row = btn.closest('[data-notif-id]') || btn;
-    fetch('/business/notifications/' + id, {
-      method: 'DELETE',
-      headers: { 'X-CSRF-Token': getCookie('csrf_token') }
-    }).then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d.success) {
+  fetch('/business/notifications/' + id, {
+    method: 'DELETE',
+    headers: { 'X-CSRF-Token': getCookie('csrf_token') }
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        var row = btn.closest('[data-notif-id]') || btn;
+        if (row) {
           row.style.opacity = 0;
           setTimeout(function() { row.remove(); }, 160);
-          showNotification('Notification deleted', 'success');
-          var countEl = document.querySelector('.text-xs.text-[var(--color-text-muted)]');
-          if (countEl && countEl.textContent.match(/^\d+ unread/)) {
-            var n = parseInt(countEl.textContent); n = Math.max(n-1,0);
-            countEl.textContent = n === 0 ? 'All read' : n + ' unread';
-          }
-        } else {
-          btn.disabled = false;
-          showNotification(d.error || 'Failed to delete', 'error');
         }
-      })
-      .catch(function() {
-        btn.disabled = false;
-        showNotification('Failed to delete', 'error');
-      });
-  });
+        showNotification('Notification deleted', 'success');
+        var countEl = document.querySelector('.text-xs.text-[var(--color-text-muted)]');
+        if (countEl && countEl.textContent.match(/^\d+ unread/)) {
+          var n = parseInt(countEl.textContent); n = Math.max(n-1,0);
+          countEl.textContent = n === 0 ? 'All read' : n + ' unread';
+        }
+      } else {
+        showNotification(d.error || 'Failed to delete', 'error');
+      }
+    });
 }
 
 function hideNotifCtxMenu() {

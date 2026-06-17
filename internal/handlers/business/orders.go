@@ -194,6 +194,8 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		}
 	}
 
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"order":   order,
@@ -520,7 +522,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	sendOrderNotif(h.db, order, request.Status)
+	sendOrderNotif(h.db, h.hub, order, request.Status)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -532,6 +534,8 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
 }
@@ -1112,7 +1116,7 @@ func (h *OrderHandler) SendOrderToClient(c *gin.Context) {
 		return
 	}
 
-	sendOrderNotif(h.db, order, models.OrderPending)
+	sendOrderNotif(h.db, h.hub, order, models.OrderPending)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1124,6 +1128,8 @@ func (h *OrderHandler) SendOrderToClient(c *gin.Context) {
 		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success":      true,
@@ -1167,7 +1173,7 @@ func (h *OrderHandler) ConfirmOrderBusiness(c *gin.Context) {
 		return
 	}
 
-	sendOrderNotif(h.db, order, models.OrderConfirmed)
+	sendOrderNotif(h.db, h.hub, order, models.OrderConfirmed)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1216,7 +1222,7 @@ func (h *OrderHandler) RejectOrder(c *gin.Context) {
 		return
 	}
 
-	sendOrderNotif(h.db, order, models.OrderCancelled)
+	sendOrderNotif(h.db, h.hub, order, models.OrderCancelled)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1228,6 +1234,8 @@ func (h *OrderHandler) RejectOrder(c *gin.Context) {
 		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -1266,7 +1274,7 @@ func (h *OrderHandler) FulfillOrder(c *gin.Context) {
 		return
 	}
 
-	sendOrderNotif(h.db, order, models.OrderCompleted)
+	sendOrderNotif(h.db, h.hub, order, models.OrderCompleted)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1278,6 +1286,8 @@ func (h *OrderHandler) FulfillOrder(c *gin.Context) {
 		clientCardHTML := renderClientOrderCard(h.db, order)
 		ws.BroadcastOrderUpdateFull(h.hub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 	}
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -1359,7 +1369,7 @@ func (h *OrderHandler) MarkOrderAsPaid(c *gin.Context) {
 		return
 	}
 
-	sendOrderNotif(h.db, order, "paid")
+	sendOrderNotif(h.db, h.hub, order, "paid")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1378,7 +1388,7 @@ func (h *OrderHandler) MarkOrderAsPaid(c *gin.Context) {
 	})
 }
 
-func sendOrderNotif(db *gorm.DB, order models.Order, status string) {
+func sendOrderNotif(db *gorm.DB, hub *ws.Hub, order models.Order, status string) {
 	prefs, err := notifier.GetOrCreatePrefs(db, order.BusinessID)
 	if err != nil || !prefs.OrderStatusChange {
 		return
@@ -1411,6 +1421,9 @@ func sendOrderNotif(db *gorm.DB, order models.Order, status string) {
 		fmt.Sprintf("Order %s is now %s", order.OrderNumber, statusLabel),
 		"fa-shopping-cart",
 		"/business/orders")
+	if hub != nil {
+		broadcastBizPendingCounts(db, hub, order.BusinessID)
+	}
 }
 
 // buildOrderData creates the rich order data map for templates

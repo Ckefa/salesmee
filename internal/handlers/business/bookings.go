@@ -118,6 +118,8 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 		}
 	}
 
+	broadcastBizPendingCounts(h.db, h.hub, request.BusinessID)
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking, "service_name": service.Name})
 }
 
@@ -409,7 +411,7 @@ func (h *BookingHandler) GetBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
-func sendBookingNotif(db *gorm.DB, booking models.Booking, status string) {
+func sendBookingNotif(db *gorm.DB, hub *ws.Hub, booking models.Booking, status string) {
 	prefs, err := notifier.GetOrCreatePrefs(db, booking.BusinessID)
 	if err != nil || !prefs.BookingStatusChange {
 		return
@@ -442,6 +444,9 @@ func sendBookingNotif(db *gorm.DB, booking models.Booking, status string) {
 		fmt.Sprintf("Booking %s is now %s", booking.BookingNumber, statusLabel),
 		"fa-calendar-check",
 		"/business/bookings")
+	if hub != nil {
+		broadcastBizPendingCounts(db, hub, booking.BusinessID)
+	}
 }
 
 func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
@@ -502,7 +507,7 @@ func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
 		return
 	}
 
-	sendBookingNotif(h.db, booking, newStatus)
+	sendBookingNotif(h.db, h.hub, booking, newStatus)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
@@ -514,6 +519,8 @@ func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
 		clientCardHTML := renderClientBookingCard(h.db, booking)
 		ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 	}
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
@@ -554,7 +561,7 @@ func (h *BookingHandler) MarkBookingAsPaid(c *gin.Context) {
 		Notes:     "Marked as paid from dashboard",
 	})
 
-	sendBookingNotif(h.db, booking, "paid")
+	sendBookingNotif(h.db, h.hub, booking, "paid")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
@@ -778,7 +785,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	}
 
 	// Send notification for new booking
-	sendBookingNotif(h.db, booking, "created")
+	sendBookingNotif(h.db, h.hub, booking, "created")
 
 	// Auto-advance conversation progress and notify any open chat panes.
 	if conv, err := getOrCreateConversation(h.db, client.ID, businessID); err == nil {
@@ -809,6 +816,8 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
+
+	broadcastBizPendingCounts(h.db, h.hub, businessID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

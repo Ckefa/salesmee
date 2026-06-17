@@ -124,6 +124,7 @@ func (h *PaymentHandler) ClientSubmitOrderPayment(c *gin.Context) {
 				fmt.Sprintf("%s submitted a payment of %.2f for Order %s", client.Name, request.Amount, order.OrderNumber),
 				"fa-credit-card",
 				"/business/orders")
+			broadcastBizPendingCounts(h.db, h.hub, order.BusinessID)
 		}
 	}()
 
@@ -224,6 +225,7 @@ func (h *PaymentHandler) ClientSubmitBookingPayment(c *gin.Context) {
 				fmt.Sprintf("%s submitted a payment of %.2f for Booking %s", client.Name, request.Amount, booking.BookingNumber),
 				"fa-credit-card",
 				"/business/bookings")
+			broadcastBizPendingCounts(h.db, h.hub, booking.BusinessID)
 		}
 	}()
 

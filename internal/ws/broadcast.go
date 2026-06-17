@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"encoding/json"
 	"salesmee/internal/chatpb"
 	"time"
 )
@@ -231,4 +232,20 @@ func BroadcastUnreadCount(hub *Hub, conversationID string, count int32, roomID, 
 		},
 	}
 	hub.Broadcast(roomPrefix+":"+roomID, frame, nil)
+}
+
+func BroadcastPendingCount(hub *Hub, bizID string, orderCount, bookingCount, notifCount int) {
+	data, _ := json.Marshal(map[string]int{
+		"order_count":   orderCount,
+		"booking_count": bookingCount,
+		"notif_count":   notifCount,
+	})
+	frame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_PENDING_COUNT,
+		ConversationId: bizID,
+		SenderId:       string(data),
+		SenderType:     "system",
+		Timestamp:      time.Now().UnixMilli(),
+	}
+	hub.Broadcast("biz:"+bizID, frame, nil)
 }

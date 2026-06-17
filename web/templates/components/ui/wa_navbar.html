@@ -6,21 +6,15 @@
     </a>
     <a href="/business/orders" class="wa-nav-item" data-nav="orders" title="Orders">
       <i class="fas fa-shopping-cart"></i>
-      {{if gt .PendingOrderCount 0}}
-      <span class="wa-nav-badge">{{.PendingOrderCount}}</span>
-      {{end}}
+      <span id="waOrdersBadge" class="wa-nav-badge"{{if not (gt .PendingOrderCount 0)}} style="display:none"{{end}}>{{.PendingOrderCount}}</span>
     </a>
     <a href="/business/bookings" class="wa-nav-item" data-nav="bookings" title="Bookings">
       <i class="fas fa-calendar-check"></i>
-      {{if gt .PendingBookingCount 0}}
-      <span class="wa-nav-badge">{{.PendingBookingCount}}</span>
-      {{end}}
+      <span id="waBookingsBadge" class="wa-nav-badge"{{if not (gt .PendingBookingCount 0)}} style="display:none"{{end}}>{{.PendingBookingCount}}</span>
     </a>
     <button onclick="toggleNotifications()" class="wa-nav-item" data-nav="notifications" title="Notifications">
       <i class="fas fa-bell"></i>
-      {{if gt .UnreadNotifCount 0}}
-      <span class="wa-nav-badge">{{.UnreadNotifCount}}</span>
-      {{end}}
+      <span id="waNotifBadge" class="wa-nav-badge"{{if not (gt .UnreadNotifCount 0)}} style="display:none"{{end}}>{{.UnreadNotifCount}}</span>
     </button>
     <a href="/business/payments" class="wa-nav-item" data-nav="payments" title="Payments">
       <i class="fas fa-credit-card"></i>

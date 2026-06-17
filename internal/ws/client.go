@@ -309,6 +309,7 @@ type jsonFrame struct {
 	UnreadCount       *jsonUnreadCount       `json:"unread_count,omitempty"`
 	Presence          *jsonPresence          `json:"presence,omitempty"`
 	DeliveredReceipt  *jsonDeliveredReceipt  `json:"delivered_receipt,omitempty"`
+	PendingCount      *jsonPendingCount      `json:"pending_count,omitempty"`
 }
 
 type jsonNewMessage struct {
@@ -375,6 +376,12 @@ type jsonDeliveredReceipt struct {
 	DeliveredAt    int64  `json:"delivered_at"`
 }
 
+type jsonPendingCount struct {
+	OrderCount   int `json:"order_count"`
+	BookingCount int `json:"booking_count"`
+	NotifCount   int `json:"notif_count"`
+}
+
 func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 	jf := &jsonFrame{
 		EventType:      int(frame.GetEventType()),
@@ -382,6 +389,14 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 		SenderID:       frame.GetSenderId(),
 		SenderType:     frame.GetSenderType(),
 		Timestamp:      frame.GetTimestamp(),
+	}
+
+	if frame.GetEventType() == chatpb.WsEventType_PENDING_COUNT {
+		var pc jsonPendingCount
+		if err := json.Unmarshal([]byte(frame.GetSenderId()), &pc); err == nil {
+			jf.PendingCount = &pc
+		}
+		return jf
 	}
 
 	switch p := frame.Payload.(type) {

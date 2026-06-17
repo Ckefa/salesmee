@@ -950,6 +950,11 @@ func ClientCancelOrder(c *gin.Context) {
 		bizCardHTML := renderBizOrderCard(db.DB, order)
 		clientCardHTML := renderClientOrderCard(db.DB, order)
 		ws.BroadcastOrderUpdateFull(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
+		var oCount, bCount, nCount int64
+		db.DB.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", order.BusinessID).Count(&oCount)
+		db.DB.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", order.BusinessID).Count(&bCount)
+		db.DB.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", order.BusinessID).Count(&nCount)
+		ws.BroadcastPendingCount(wsHub, strconv.Itoa(int(order.BusinessID)), int(oCount), int(bCount), int(nCount))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1057,6 +1062,11 @@ func ClientCancelBooking(c *gin.Context) {
 		bizCardHTML := renderBizBookingCard(db.DB, booking)
 		clientCardHTML := renderClientBookingCard(db.DB, booking)
 		ws.BroadcastBookingUpdateFull(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
+		var oCount, bCount, nCount int64
+		db.DB.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", booking.BusinessID).Count(&oCount)
+		db.DB.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", booking.BusinessID).Count(&bCount)
+		db.DB.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", booking.BusinessID).Count(&nCount)
+		ws.BroadcastPendingCount(wsHub, strconv.Itoa(int(booking.BusinessID)), int(oCount), int(bCount), int(nCount))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -1,183 +1,167 @@
-# SalesMee — Implementation Plan
+# Production Hardening Plan
 
-**Priority:** Critical → High → Medium → Low
+> Status: Planned · Priority labels are relative within severity tiers.
 
----
+## HIGH Priority
 
-## Phase 1: Security Hardening
+### H1. Stored XSS in Product & Service Pickers
 
-### 1.1 Secure Cookie Helper
-**Files:** `internal/handlers/auth.go`, `internal/handlers/client/client_auth.go`, `internal/handlers/business/team_auth.go`, `internal/middleware/csrf.go`, `internal/handlers/admin/admin.go`
+**Files:**
+- `web/static/js/modules/product_picker.js` — `pickerRenderProducts()` builds innerHTML from product name, SKU, description, image URL (lines 284–329)
+- `web/static/js/modules/service_picker.js` — `renderServicePicker()` builds innerHTML from service name, description, price, category (lines 250–274), and category filter buttons (line 217)
+- Both fetch JSON from `/business/conversations/:id/products` and `/business/conversations/:id/services`
 
-**Changes:**
-- Create `internal/services/cookie.go` with `SetSecureCookie()` helper
-- Set `Secure: true, HttpOnly: true, SameSite: http.SameSiteStrictMode`
-- Gate `Secure` behind env check so local dev works over HTTP
-- Replace all raw `c.SetCookie()` calls
+**Vector:** A business creates a product with a malicious name/description containing `<script>`. When a client opens the picker, the JS renders it via innerHTML without sanitization. Stored XSS — the payload lives in the DB and executes on every load.
 
-### 1.2 Fix Admin Cookie
-**File:** `internal/handlers/admin/admin.go`
-
-**Changes:**
-- Replace `email:password[:20]` cookie with JWT signed by `JWT_SECRET`
-- Store `admin_id`, `admin_email` as claims
-- Validate via existing AdminMiddleware
-
-### 1.3 Fix Host Header Injection
-**Files:** `internal/handlers/seo.go`, `internal/handlers/business/business.go`, `internal/handlers/business/subscription.go`, `internal/handlers/auth.go`, `internal/services/email.go`
-
-**Changes:**
-- Read `APP_URL` from env, store globally or pass as config
-- Replace `c.Request.Host` usage with configured base URL
-- Add a `baseURL()` helper or pass `BaseURL` param
-
-### 1.4 Add Rate Limiting to OTP/Auth Endpoints
-**Files:** `internal/middleware/ratelimit.go`, `internal/routes/business_routes.go`, `internal/routes/client_routes.go`
-
-**Changes:**
-- Extend `rateLimitedPaths` to include `/client/send-otp`, `/client/verify-otp`, `/api/connect/:slug`, `/business/register*`, `/business/team/login`
-- Use `RateLimitAuth()` on OTP endpoints (5/s burst 10)
-- Add per-IP + per-email rate limiting for OTP verify
-
-### 1.5 Harden WebSocket Origin Check
-**File:** `internal/ws/handler.go`
-
-**Changes:**
-- Replace `return true` with origin validation against configured allowlist
-- Read `ALLOWED_ORIGINS` from env (comma-separated), fall back to `APP_URL`
-
-### 1.6 Add Security Headers Middleware
-**Files:** `internal/middleware/security.go` (new), `internal/routes/routes.go`
-
-**Changes:**
-- Create `SecurityHeadersMiddleware()` setting: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy
-- Apply globally in route setup
-
-### 1.7 Add Panic Recovery
-**File:** `cmd/server/main.go`
-
-**Changes:**
-- Add `router.Use(gin.Recovery())` after `gin.Default()` or explicitly
-
-### 1.8 Fix OTP Logging Leakage
-**Files:** `internal/services/customer_auth.go`, `internal/handlers/business/business.go`
-
-**Changes:**
-- Replace `fmt.Printf` OTP logging with structured debug-only logger (e.g., `slog.Debug`)
-- Mask OTP in log output, only log email + "OTP sent"
-
-### 1.9 Centralize Env Var Config
-**New File:** `internal/config/config.go`
-
-**Changes:**
-- Create a `Config` struct with all env vars
-- Validate required vars at startup
-- Replace raw `os.Getenv()` across codebase
+**Fix:**
+1. Sanitize all user-supplied fields (`name`, `description`, `sku`, `category`) before inserting into innerHTML — use `textContent` for text nodes, or `encodeURIComponent`/custom sanitizer for attribute values.
+2. Apply the same sanitization to the service picker's category filter buttons (line 217) where `cat` is injected directly into the button's onclick handler.
+3. Add Content-Security-Policy header to prevent inline script execution as defense-in-depth.
 
 ---
 
-## Phase 2: Reliability
+### H2. Nil Pointer Dereferences in Client Auth
 
-### 2.1 Error Handling for Silent DB Discards
-**Files:** `internal/handlers/business/orders.go`, `bookings.go`, `payments.go`, `business.go`, `products.go`, `services.go`
+**File:** `internal/handlers/client/client_auth.go`
 
-**Changes:**
-- Audit every `h.db.Save()`, `h.db.Create()`, `h.db.Update()`, `h.db.Delete()` that discards error
-- Wrap in `if err := ...; err != nil { log.Error(...); c.JSON(500, ...); return }`
-- Add `dbSave()` / `dbCreate()` helper methods on `BusinessHandler` that handle logging
+**Issue A — `getOrCreateConversation` (lines 236–239):**
+```go
+var client models.Client
+if err := db.DB.Where("id = ?", clientID).First(&client).Error; err != nil {
+    log.Print("Client not found by id ", clientID)
+}
+```
+The `err` is logged but never returned. The function returns `&client` which is a zero-value struct (ID=0). Callers (`GetClientMessages`, `CreateClientMessage`, `ClientDashboard`) then use `client.ID` in queries — orders with `client_id = 0` return zero results.
 
-### 2.2 Fix Stock Deduction Race Condition
-**File:** `internal/handlers/business/orders.go`
+**Fix:** Return an error when the client is not found instead of silently swallowing.
 
-**Changes:**
-- Use `db.Clauses(clause.Locking{Strength: "UPDATE"})` when reading product stock
-- Or use optimistic locking with a `version` column on Product
+**Issue B — `ClientUpdateOrder` (lines 726–738):**
+In multi-item JSON update, stock is restored for old items before verifying new items are valid. If a product lookup fails (`db.DB.First(&product, item.ProductID)` errors), the old stock has already been incremented but no new stock is decremented, leaving inventory inconsistent.
 
-### 2.3 Move OTP Store to DB
-**File:** `internal/handlers/business/profile_change_store.go`
-
-**Changes:**
-- Create `ProfileChangeRequest` model in DB
-- Move in-memory map to DB-backed storage
-- Add TTL cleanup via GORM `-` or `deleted_at`
+**Fix:** Use a DB transaction — roll back if any item validation fails.
 
 ---
 
-## Phase 3: Maintainability
+### H3. Admin Login Not Rate-Limited
 
-### 3.1 Create Status Constants
-**New File:** `internal/models/status.go`
+**Files:**
+- `internal/middleware/ratelimit.go` — `rateLimitedPaths` and `rateLimitedPrefixes` define what gets rate-limited (line 93–104)
+- `internal/routes/admin_routes.go` — `POST /admin/login` (line 12) is unprotected
 
-**Changes:**
-- Define `StatusPending`, `StatusConfirmed`, `StatusFulfilled`, `StatusCancelled`, etc. as typed constants
-- Replace all string literals across handler files
+The admin login endpoint is not in any rate-limited path list. Attackers can brute-force credentials via the admin login form with no throttling.
 
-### 3.2 Refactor BusinessHandler God Object
-**Files:** Split `internal/handlers/business/` into sub-handlers
-
-**Changes:**
-- Create `OrderHandler`, `BookingHandler`, `PaymentHandler`, `ProductHandler`, `ServiceHandler`, `ProfileHandler`, `AnalyticsHandler`, `ReportHandler`, `TeamHandler`, `LocationHandler`, `HoursHandler`
-- Each gets its own file with receiver on its own struct
-- Share DB + Hub via a common `HandlerDeps` struct
-
-### 3.3 Consolidate Duplicated JS Code
-**Files:** `web/static/js/modules/business_chat.js`, `client_chat.js`, `product_picker.js`, `service_picker.js`
-
-**Changes:**
-- Extract shared functions into `chat_common.js`: `escapeHtml`, `formatTime`, `scrollToBottom`, `markAsRead`, `tickSvg`, `setMessageTickState`, `renderMediaMessage`, `showTypingIndicator`, `hideTypingIndicator`
-- Create a `Wizard` base module for the 3-step picker pattern
-- Use `const`/`let` consistently, wrap in IIFE or ES module
-
-### 3.4 Split Monolithic CSS
-**File:** `web/static/css/styles.css`
-
-**Changes:**
-- Split into: `tokens.css`, `layout.css`, `components.css`, `utilities.css`
-- Each file scoped to `@layer`
+**Fix:** Add `/admin/login` to `rateLimitedPaths` in `ratelimit.go`. Consider adding a dedicated admin-only rate limiter with lower thresholds (e.g., 3 req/s, burst 5) vs the auth limiter (5 req/s, burst 10).
 
 ---
 
-## Phase 4: Polish
+## MEDIUM Priority
 
-### 4.1 Replace `location.reload()` with HTMX Partial Swaps
-**Files:** `web/templates/pages/business/dashboard/orders.html`, `bookings.html`
+### M1. Hardcoded Production Email & Domain
 
-**Changes:**
-- Replace inline JS `location.reload()` handlers with HTMX `hx-*` attributes
-- Use `hx-swap` to update only the table body / stats grid
+**File:** `web/templates/pages/legal/*.html`, `web/templates/pages/business/business_login.html`, `web/templates/pages/error_500.html`, `web/templates/partials/landing/`, `internal/handlers/dev.go`
 
-### 4.2 Use `http` Constants
-**File:** `internal/handlers/business/business.go`
+11 occurrences of `support@salesmee.com` hardcoded across error pages, legal pages (privacy, terms, cookies, refund), checkout, and landing page. Should be configurable.
 
-**Change:** Replace numeric status codes with `http.Status*` constants.
+Additional items:
+- `business_login.html:117` — Demo credentials `demo@salesmee.com / password` shown unconditionally (not gated behind dev env)
+- `landing_head.html:11` — `og:url` hardcoded to `https://salesmee.com`
+- `dev.go:80–95` — Email preview templates hardcode `https://app.salesmee.com`
 
-### 4.3 Remove Dead Code
-**File:** `internal/handlers/business/business.go`
+**Fix:**
+1. Add `SupportEmail` to config and inject into template data.
+2. Gate demo credentials in login template behind `{{if eq .Env "dev"}}`.
+3. Read `AppDomain` config for meta tags and email templates.
+4. Move email template URLs to config values.
 
-**Change:** Remove `GetLogoUploadPage` (unrouted duplicate of `GetDashboard`).
+---
 
-============= Tests ===============
+### M2. Hardcoded Demo Credentials in Login Template
 
-## Browser Test Steps
+**File:** `web/templates/pages/business/business_login.html:117`
 
-### Phase 1 — Security
-1. **Cookies:** Log in as business owner. DevTools → Application → Cookies. Verify all cookies have `HttpOnly` + `SameSite: Strict`. `Secure` flag present unless on dev.
-2. **Security headers:** DevTools → Network tab → response headers on any page. Look for `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
-3. **OTP not leaked:** Trigger "forgot password" or login OTP. Verify no OTP value in terminal logs (only `[DEV] OTP for email: ...` in dev mode).
-4. **Rate limiting:** Click "Send OTP" rapidly 10+ times. After ~5 requests you should see 429 responses.
+```html
+<div><span class="font-medium">Demo:</span> demo@salesmee.com / password</div>
+```
 
-### Phase 2 — Reliability
-5. **DB errors:** Create an order with invalid/missing data. Should see a server error notification, not a blank page.
-6. **Stock race:** Open two tabs, create orders for the same product simultaneously. Both succeed or one fails gracefully — never negative stock.
+Shown unconditionally on the business login page. Exposes valid-looking credentials and an email pattern. Should be gated behind dev/staging environment.
 
-### Phase 3 — Maintainability (visual)
-7. **CSS split:** Load any page — cards, buttons, sidebar, chat bubbles, inputs all render correctly.
-8. **JS consolidation:** Open Orders/Bookings → 3-step Quick Wizard works. Chat messages render properly.
+**Fix:** Gate behind `{{if .IsDev}}` condition using config-driven template variable.
 
-### Phase 4 — Polish (interaction)
-9. **Orders (no reload):** Click Send/Confirm/Mark Paid/Complete/Cancel. Page updates without full browser reload (no flash, scroll preserved).
-10. **Bookings (no reload):** Same — Approve/Mark Paid/Complete/Cancel.
-11. **Products:** Add/edit/delete via modal. Grid updates without reload.
-12. **Services:** Same as products.
-13. **Payments:** Confirm/reject a payment claim. Ledger updates without reload.
-14. **Share page:** Click "Regenerate Links". QR code + slug update without reload.
+---
+
+### M3. Client Token Cookie Missing Secure Flag
+
+**File:** `internal/handlers/client/client_auth.go:135`
+
+```go
+c.SetCookie("client_token", token, 86400, "/", "", false, false)
+```
+
+Unlike the social auth handler which sets `secure := config.C.AppEnv != "dev"`, the OTP-based auth path hardcodes `false` for `secure`. In production, the token cookie can be sent over unencrypted HTTP connections.
+
+**Fix:** Use `config.C.AppEnv != "dev"` for the secure flag, matching the pattern in `social_auth.go`.
+
+---
+
+### M4. In-Memory Registration Store (No Expiry)
+
+**File:** `internal/handlers/register.go`
+
+The `RegStore` in-memory store holds uncompleted OAuth registration data with no TTL. Data accumulates until the app restarts.
+
+**Fix:** Add a TTL (e.g., 15 minutes) with a background cleanup goroutine, or switch to a cookie/token-encoded store.
+
+---
+
+### M5. WebSocket Rate Limiting
+
+**File:** `internal/ws/hub.go`
+
+WebSocket connections can send unlimited messages through the system without rate limiting. No per-connection or per-IP throttling exists for WS message delivery.
+
+**Fix:** Add per-connection rate limiting (e.g., token bucket per WS session) with appropriate thresholds for chat vs broadcast messages.
+
+---
+
+### M6. Audit Log Stored Action Mismatch
+
+**File:** `internal/handlers/admin/admin.go:297,325,394`
+
+`DeleteBusiness` stores `action: "delete", resource: "business"`; `DeleteClient` stores `action: "delete", resource: "client"`. The audit filter previously offered `delete_business`/`delete_client` as separate action values (matched action, not resource+action combo). **This was already partially fixed** by mapping both to `"delete"` in the handler, but the dropdown options still show "Delete Business" / "Delete Client" as action-level filters when they're really filter combinations of action+resource.
+
+**Fix (cleanup):** Replace the two delete action dropdown entries with a single "Delete" option. Or keep the split labels but filter on both `action` AND `resource` columns.
+
+---
+
+## LOW Priority
+
+### L1. Hardcoded Page Size in Admin Templates
+
+Pagination buttons in all 4 admin templates hardcode `page=1` in HTMX URLs. If a user navigates to page 5 and then applies a filter, the request goes to `page=1`, resetting pagination. This is a minor UX annoyance.
+
+**Fix:** Include `page` in the filter form and carry it through.
+
+---
+
+### L2. No CSRF Token on Admin Login Form
+
+**File:** `web/templates/pages/admin/admin_login.html`
+
+The admin login form `<form method="POST">` has no CSRF hidden input or `hx-post`. It can be targeted by CSRF attacks from other origins.
+
+**Fix:** Add CSRF middleware to `POST /admin/login` route (may require adjusting `CSRFMiddleware()` to not skip GET + specific paths), or add a custom CSRF token to the login form.
+
+---
+
+### L3. Admin Logout Missing POST Method
+
+**File:** `internal/routes/admin_routes.go:18`
+
+```go
+adminGroup.GET("/logout", admin.AdminLogout)
+```
+
+Uses GET for logout. This is susceptible to CSRF-based logout (an attacker can trigger logout via `<img src="/admin/logout">`).
+
+**Fix:** Change to POST and use a form.
+

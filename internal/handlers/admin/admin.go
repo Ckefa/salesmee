@@ -103,7 +103,7 @@ func AdminMiddleware() gin.HandlerFunc {
 
 func ShowDashboard(c *gin.Context) {
 	var totalBiz, activeBiz, suspendedBiz int64
-	var totalClients, totalOrders int64
+	var totalClients, totalOrders, totalBookings int64
 	var totalRevenue float64
 
 	db.DB.Model(&models.Business{}).Count(&totalBiz)
@@ -111,6 +111,7 @@ func ShowDashboard(c *gin.Context) {
 	db.DB.Model(&models.Business{}).Where("is_public = ?", false).Count(&suspendedBiz)
 	db.DB.Model(&models.Client{}).Count(&totalClients)
 	db.DB.Model(&models.Order{}).Count(&totalOrders)
+	db.DB.Model(&models.Booking{}).Count(&totalBookings)
 	db.DB.Model(&models.Payment{}).Where("status = ?", "completed").
 		Select("COALESCE(SUM(amount), 0)").Scan(&totalRevenue)
 
@@ -139,6 +140,7 @@ func ShowDashboard(c *gin.Context) {
 		"SuspendedBiz":       suspendedBiz,
 		"TotalClients":       totalClients,
 		"TotalOrders":        totalOrders,
+		"TotalBookings":      totalBookings,
 		"TotalRevenue":       totalRevenue,
 		"RecentBusinesses":   recentBiz,
 		"RecentLogs":         recentLogs,

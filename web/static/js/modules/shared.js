@@ -3,6 +3,16 @@
 
   var toastCounter = 0;
 
+  window.escapeHtml = function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+
   function playNotificationSound() {
     var enabled = localStorage.getItem('soundEnabled');
     if (enabled === 'false') return;

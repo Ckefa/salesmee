@@ -25,6 +25,15 @@ func TemplateData(c *gin.Context, data gin.H) gin.H {
 	if _, exists := data["Role"]; !exists {
 		data["Role"] = c.GetString("role")
 	}
+	if _, exists := data["SupportEmail"]; !exists {
+		data["SupportEmail"] = config.C.SupportEmail
+	}
+	if _, exists := data["IsDev"]; !exists {
+		data["IsDev"] = config.C.AppEnv == "dev"
+	}
+	if _, exists := data["AppDomain"]; !exists {
+		data["AppDomain"] = config.C.AppDomain
+	}
 	return data
 }
 

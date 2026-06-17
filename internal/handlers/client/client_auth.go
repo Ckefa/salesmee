@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"salesmee/internal/config"
 	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/services/media"
@@ -132,7 +133,7 @@ func VerifyClientOTP(c *gin.Context) {
 	}
 
 	// Set cookie and redirect to saved destination
-	c.SetCookie("client_token", token, 86400, "/", "", false, false)
+	c.SetCookie("client_token", token, 86400, "/", "", config.C.AppEnv != "dev", false)
 	redirect, _ := c.Cookie("client_redirect")
 	c.SetCookie("client_redirect", "", -1, "/client", "", false, true)
 	c.Redirect(http.StatusFound, safeClientOAuthRedirect(redirect))
@@ -235,7 +236,7 @@ func getOrCreateConversation(clientID uint, businessID uint) (*models.Conversati
 	// Get client
 	var client models.Client
 	if err := db.DB.Where("id = ?", clientID).First(&client).Error; err != nil {
-		log.Print("Client not found by id ", clientID)
+		return nil, nil, fmt.Errorf("client not found: %w", err)
 	}
 
 	// Get or create conversation by client_id AND business_id
@@ -722,34 +723,43 @@ func ClientUpdateOrder(c *gin.Context) {
 
 	if c.GetHeader("Content-Type") == "application/json" {
 		if err := c.ShouldBindJSON(&jsonRequest); err == nil && len(jsonRequest.Items) > 0 {
-			// Multi-item JSON update: replace all items
+			tx := db.DB.Begin()
+
 			var oldItems []models.OrderItem
-			db.DB.Where("order_id = ?", order.ID).Find(&oldItems)
+			tx.Where("order_id = ?", order.ID).Find(&oldItems)
 
 			// Restore stock for old items
 			for _, oldItem := range oldItems {
 				var product models.Product
-				db.DB.First(&product, oldItem.ProductID)
+				if err := tx.First(&product, oldItem.ProductID).Error; err != nil {
+					tx.Rollback()
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Product not found"})
+					return
+				}
 				product.Stock += oldItem.Quantity
-				db.DB.Save(&product)
+				tx.Save(&product)
 			}
 
 			// Delete old items
-			db.DB.Where("order_id = ?", order.ID).Delete(&models.OrderItem{})
+			tx.Where("order_id = ?", order.ID).Delete(&models.OrderItem{})
 
 			// Create new items
 			var totalAmount float64
 			for _, item := range jsonRequest.Items {
 				var product models.Product
-				if err := db.DB.First(&product, item.ProductID).Error; err != nil {
-					continue
+				if err := tx.First(&product, item.ProductID).Error; err != nil {
+					tx.Rollback()
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Product not found"})
+					return
 				}
 				if product.Stock < item.Quantity {
-					continue
+					tx.Rollback()
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Insufficient stock for product: " + product.Name})
+					return
 				}
 				itemTotal := float64(item.Quantity) * product.Price
 				totalAmount += itemTotal
-				db.DB.Create(&models.OrderItem{
+				tx.Create(&models.OrderItem{
 					OrderID:    order.ID,
 					ProductID:  product.ID,
 					Quantity:   item.Quantity,
@@ -757,7 +767,7 @@ func ClientUpdateOrder(c *gin.Context) {
 					TotalPrice: itemTotal,
 				})
 				product.Stock -= item.Quantity
-				db.DB.Save(&product)
+				tx.Save(&product)
 			}
 
 			fullNotes := jsonRequest.Notes
@@ -767,7 +777,13 @@ func ClientUpdateOrder(c *gin.Context) {
 			order.TotalAmount = totalAmount
 			order.Quantity = len(jsonRequest.Items)
 			order.Notes = fullNotes
-			db.DB.Save(&order)
+			tx.Save(&order)
+
+			if err := tx.Commit().Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order"})
+				return
+			}
 			c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
 			return
 		}

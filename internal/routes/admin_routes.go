@@ -8,14 +8,14 @@ import (
 )
 
 func SetupAdminRoutes(r *gin.Engine) {
-	r.GET("/admin/login", admin.ShowLogin)
-	r.POST("/admin/login", admin.Login)
+	r.GET("/admin/login", middleware.CSRFMiddleware(), admin.ShowLogin)
+	r.POST("/admin/login", middleware.CSRFMiddleware(), admin.Login)
 
 	adminGroup := r.Group("/admin")
 	adminGroup.Use(admin.AdminMiddleware(), middleware.CSRFMiddleware())
 	{
 		adminGroup.GET("", admin.ShowDashboard)
-		adminGroup.GET("/logout", admin.AdminLogout)
+		adminGroup.POST("/logout", admin.AdminLogout)
 		adminGroup.GET("/businesses", admin.ListBusinesses)
 		adminGroup.GET("/businesses/:id", admin.GetBusinessDetail)
 		adminGroup.POST("/businesses/:id/suspend", admin.SuspendBusiness)

@@ -112,10 +112,12 @@
         </button>
       </form>
 
+      {{if .IsDev}}
       <div class="mt-4 p-3 rounded-xl text-xs flex items-start gap-2" style="background: color-mix(in srgb, var(--color-warning) 8%, transparent); color: var(--color-warning); border: 1px solid; border-color: color-mix(in srgb, var(--color-warning) 20%, transparent);">
         <i class="fas fa-flask mt-0.5"></i>
         <div><span class="font-medium">Demo:</span> demo@salesmee.com / password</div>
       </div>
+      {{end}}
 
       <div class="text-center mt-6">
         <p class="text-sm text-[var(--color-text-secondary)]">

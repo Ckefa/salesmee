@@ -93,6 +93,7 @@ func (rl *rateLimiter) cleanupLoop() {
 var rateLimitedPaths = map[string]bool{
 	"/business/login":           true,
 	"/business/forgot-password": true,
+	"/admin/login":              true,
 }
 
 var rateLimitedPrefixes = []string{

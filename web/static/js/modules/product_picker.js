@@ -286,7 +286,7 @@ function pickerRenderProducts() {
         <div class="flex p-3 gap-3">
           <!-- Image -->
           <div class="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] relative">
-            ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover">` :
+            ${imgUrl ? `<img src="${escapeHtml(imgUrl)}" class="w-full h-full object-cover">` :
               `<div class="w-full h-full flex items-center justify-center text-2xl text-[var(--color-text-muted)]"><i class="fas fa-box"></i></div>`}
             ${outOfStock ? `<div class="absolute inset-0 bg-[var(--color-surface)]/60 flex items-center justify-center"><span class="text-[var(--color-error)] text-[10px] font-bold bg-[var(--color-error-light)] px-1.5 py-0.5 rounded">UNAVAILABLE</span></div>` : ''}
             ${inCart && !outOfStock ? `<div class="absolute top-1 right-1 bg-[var(--color-primary)] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">${cartQty}</div>` : ''}
@@ -294,11 +294,11 @@ function pickerRenderProducts() {
           <!-- Info -->
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-1">
-              <h5 class="font-semibold text-sm text-[var(--color-text)] truncate">${name}</h5>
+              <h5 class="font-semibold text-sm text-[var(--color-text)] truncate">${escapeHtml(name)}</h5>
               <span class="text-base font-extrabold text-[var(--color-primary-dark)] flex-shrink-0 ml-1">$${price.toFixed(2)}</span>
             </div>
-            ${sku ? `<span class="text-[10px] font-mono text-[var(--color-text-muted)] bg-[var(--color-surface-secondary)] px-1.5 py-0.5 rounded inline-block mt-0.5">SKU: ${sku}</span>` : ''}
-            ${description ? `<p class="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">${description}</p>` : ''}
+            ${sku ? `<span class="text-[10px] font-mono text-[var(--color-text-muted)] bg-[var(--color-surface-secondary)] px-1.5 py-0.5 rounded inline-block mt-0.5">SKU: ${escapeHtml(sku)}</span>` : ''}
+            ${description ? `<p class="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">${escapeHtml(description)}</p>` : ''}
             <!-- Stock bar -->
             ${stock > 0 ? `
             <div class="mt-1.5 flex items-center gap-1.5">
@@ -396,11 +396,11 @@ function pickerRenderCart() {
     html += `
       <div class="flex flex-wrap items-center gap-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border-light)] rounded-xl hover:border-[var(--color-border)] transition cart-item" data-cart-item-id="${item.product.id}">
         <div class="w-10 sm:w-14 h-10 sm:h-14 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] flex items-center justify-center text-xl text-[var(--color-text-muted)]">
-          ${item.product.imgUrl ? `<img src="${item.product.imgUrl}" class="w-full h-full object-cover">` : '<i class="fas fa-box"></i>'}
+          ${item.product.imgUrl ? `<img src="${escapeHtml(item.product.imgUrl)}" class="w-full h-full object-cover">` : '<i class="fas fa-box"></i>'}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="font-semibold text-sm text-[var(--color-text)] truncate">${item.product.name}</p>
-          ${item.product.sku ? `<span class="text-[10px] font-mono text-[var(--color-text-muted)]">SKU: ${item.product.sku}</span>` : ''}
+          <p class="font-semibold text-sm text-[var(--color-text)] truncate">${escapeHtml(item.product.name)}</p>
+          ${item.product.sku ? `<span class="text-[10px] font-mono text-[var(--color-text-muted)]">SKU: ${escapeHtml(item.product.sku)}</span>` : ''}
           <p class="text-xs text-[var(--color-text-muted)] mt-0.5">${
             item.product.price.toFixed(2)} each</p>
         </div>
@@ -460,7 +460,7 @@ function pickerRenderCheckout() {
   let html = '';
   pickerCart.forEach(item => {
     html += `<div class="flex items-center justify-between text-xs">
-      <span class="truncate max-w-[200px]">${item.quantity}x ${item.product.name}</span>
+      <span class="truncate max-w-[200px]">${item.quantity}x ${escapeHtml(item.product.name)}</span>
       <span class="font-medium text-[var(--color-text)]">$${(item.quantity * item.product.price).toFixed(2)}</span>
     </div>`;
   });

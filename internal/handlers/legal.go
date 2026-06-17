@@ -11,19 +11,19 @@ import (
 )
 
 func ShowPrivacy(c *gin.Context) {
-	c.HTML(http.StatusOK, "privacy.html", nil)
+	c.HTML(http.StatusOK, "privacy.html", middleware.TemplateData(c, gin.H{}))
 }
 
 func ShowTerms(c *gin.Context) {
-	c.HTML(http.StatusOK, "terms.html", nil)
+	c.HTML(http.StatusOK, "terms.html", middleware.TemplateData(c, gin.H{}))
 }
 
 func ShowCookies(c *gin.Context) {
-	c.HTML(http.StatusOK, "cookies.html", nil)
+	c.HTML(http.StatusOK, "cookies.html", middleware.TemplateData(c, gin.H{}))
 }
 
 func ShowRefund(c *gin.Context) {
-	c.HTML(http.StatusOK, "refund.html", nil)
+	c.HTML(http.StatusOK, "refund.html", middleware.TemplateData(c, gin.H{}))
 }
 
 func ShowUserDeletion(c *gin.Context) {

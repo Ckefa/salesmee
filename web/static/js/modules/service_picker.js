@@ -214,7 +214,7 @@ function renderServicePicker(category) {
     let catHtml = '<button onclick="filterServiceCategory(\'\')" class="px-3 py-1.5 rounded-full text-xs font-medium transition ' +
       (!category ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)]') + '">All</button>';
     servicePickerCategories.forEach(cat => {
-      catHtml += `<button onclick="filterServiceCategory('${cat.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-full text-xs font-medium transition ${category === cat ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)]'}">${cat}</button>`;
+      catHtml += `<button onclick="filterServiceCategory('${cat.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-full text-xs font-medium transition ${category === cat ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)]'}">${escapeHtml(cat)}</button>`;
     });
     catFilter.innerHTML = catHtml;
   }
@@ -252,17 +252,17 @@ function renderServicePicker(category) {
         onclick="selectService(${svcId})">
         <div class="flex p-3 gap-3">
           <div class="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-gradient-to-br from-[var(--color-secondary-light)] to-pink-50 border border-[var(--color-secondary-light)] flex items-center justify-center text-2xl">
-            ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover">` :
+            ${imgUrl ? `<img src="${escapeHtml(imgUrl)}" class="w-full h-full object-cover">` :
               `<i class="fas fa-concierge-bell text-[var(--color-secondary)]"></i>`}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-1">
-              <h5 class="font-semibold text-sm text-[var(--color-text)] truncate">${name}</h5>
-              <span class="text-sm font-bold text-[var(--color-secondary)] flex-shrink-0 ml-1 whitespace-nowrap">${priceDisplay}</span>
+              <h5 class="font-semibold text-sm text-[var(--color-text)] truncate">${escapeHtml(name)}</h5>
+              <span class="text-sm font-bold text-[var(--color-secondary)] flex-shrink-0 ml-1 whitespace-nowrap">${escapeHtml(priceDisplay)}</span>
             </div>
-            ${category ? `<span class="text-[10px] text-[var(--color-secondary)] bg-[var(--color-secondary-light)] px-1.5 py-0.5 rounded inline-block mt-0.5">${category}</span>` : ''}
-            ${description ? `<p class="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">${description}</p>` : ''}
-            ${duration ? `<div class="flex items-center gap-1 mt-1.5 text-[11px] text-[var(--color-text-muted)]"><i class="far fa-clock"></i><span>${duration} min</span></div>` : ''}
+            ${category ? `<span class="text-[10px] text-[var(--color-secondary)] bg-[var(--color-secondary-light)] px-1.5 py-0.5 rounded inline-block mt-0.5">${escapeHtml(category)}</span>` : ''}
+            ${description ? `<p class="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">${escapeHtml(description)}</p>` : ''}
+            ${duration ? `<div class="flex items-center gap-1 mt-1.5 text-[11px] text-[var(--color-text-muted)]"><i class="far fa-clock"></i><span>${escapeHtml(String(duration))} min</span></div>` : ''}
           </div>
         </div>
         <div class="px-3 pb-3">
@@ -316,7 +316,7 @@ function selectService(svcId) {
   const imgContainer = document.getElementById('selectedServiceImage');
   if (imgContainer) {
     if (servicePickerSelectedService.imgUrl) {
-      imgContainer.innerHTML = `<img src="${servicePickerSelectedService.imgUrl}" class="w-full h-full object-cover">`;
+      imgContainer.innerHTML = `<img src="${escapeHtml(servicePickerSelectedService.imgUrl)}" class="w-full h-full object-cover">`;
     } else {
       imgContainer.innerHTML = '<i class="fas fa-concierge-bell text-[var(--color-secondary)] text-2xl"></i>';
     }
@@ -396,8 +396,8 @@ function renderServiceConfirmation() {
           <i class="fas fa-concierge-bell text-[var(--color-secondary)]"></i>
         </div>
         <div>
-          <h4 class="font-bold text-[var(--color-text)]">${servicePickerSelectedService.name}</h4>
-          ${servicePickerSelectedService.category ? `<span class="text-xs text-[var(--color-secondary)]">${servicePickerSelectedService.category}</span>` : ''}
+          <h4 class="font-bold text-[var(--color-text)]">${escapeHtml(servicePickerSelectedService.name)}</h4>
+          ${servicePickerSelectedService.category ? `<span class="text-xs text-[var(--color-secondary)]">${escapeHtml(servicePickerSelectedService.category)}</span>` : ''}
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3 text-sm">
@@ -420,7 +420,7 @@ function renderServiceConfirmation() {
           <p class="font-semibold text-[var(--color-secondary)]">${price}</p>
         </div>` : ''}
       </div>
-      ${notes ? `<div class="mt-3 bg-[var(--color-surface)]/60 rounded-lg p-2.5 text-sm text-[var(--color-text)]"><span class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider block mb-0.5">Notes</span>${notes}</div>` : ''}
+      ${notes ? `<div class="mt-3 bg-[var(--color-surface)]/60 rounded-lg p-2.5 text-sm text-[var(--color-text)]"><span class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider block mb-0.5">Notes</span>${escapeHtml(notes)}</div>` : ''}
     </div>`;
 }
 

@@ -69,6 +69,9 @@ type Config struct {
 	PolarEnvironment    string
 	PolarWebhookSecret  string
 
+	// Support
+	SupportEmail string
+
 	// Notifications
 	NotifScheduler bool
 
@@ -144,6 +147,9 @@ func Load() {
 		PolarAccessToken:     getEnv("POLAR_ACCESS_TOKEN", ""),
 		PolarEnvironment:     getEnv("POLAR_ENVIRONMENT", "sandbox"),
 		PolarWebhookSecret:   getEnv("POLAR_WEBHOOK_SECRET", ""),
+
+		// Support
+		SupportEmail: getEnv("SUPPORT_EMAIL", "support@salesmee.com"),
 
 		// Notifications
 		NotifScheduler: os.Getenv("NOTIF_SCHEDULER") == "true",

@@ -2,16 +2,17 @@
   <h2 class="text-sm font-semibold text-white mb-4"><i class="fas fa-crown mr-2 text-teal-400"></i>Subscriptions</h2>
 
   <!-- Filters -->
+  <form id="sub-filters">
   <div class="flex flex-wrap gap-3 mb-4">
     <select name="plan" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
-      hx-get="/admin/subscriptions?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="plan,status">
+      hx-get="/admin/subscriptions?page=1" hx-trigger="change" hx-target="#admin-content" hx-include="#sub-filters" hx-params="*">
       <option value="">All Plans</option>
       <option value="silver" {{if eq .PlanFilter "silver"}}selected{{end}}>Silver</option>
       <option value="gold" {{if eq .PlanFilter "gold"}}selected{{end}}>Gold</option>
       <option value="diamond" {{if eq .PlanFilter "diamond"}}selected{{end}}>Diamond</option>
     </select>
     <select name="status" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
-      hx-get="/admin/subscriptions?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="plan,status">
+      hx-get="/admin/subscriptions?page=1" hx-trigger="change" hx-target="#admin-content" hx-include="#sub-filters" hx-params="*">
       <option value="">All Status</option>
       <option value="active" {{if eq .StatusFilter "active"}}selected{{end}}>Active</option>
       <option value="trialing" {{if eq .StatusFilter "trialing"}}selected{{end}}>Trialing</option>
@@ -20,6 +21,7 @@
       <option value="incomplete" {{if eq .StatusFilter "incomplete"}}selected{{end}}>Incomplete</option>
     </select>
   </div>
+  </form>
 
   <!-- Table -->
   <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">

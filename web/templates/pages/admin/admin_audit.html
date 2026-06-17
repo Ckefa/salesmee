@@ -2,9 +2,10 @@
   <h2 class="text-sm font-semibold text-white mb-4"><i class="fas fa-history mr-2 text-teal-400"></i>Audit Log</h2>
 
   <!-- Filters -->
+  <form id="audit-filters">
   <div class="flex flex-wrap gap-3 mb-4">
     <select name="action" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
-      hx-get="/admin/audit?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="action,resource">
+      hx-get="/admin/audit?page=1" hx-trigger="change" hx-target="#admin-content" hx-include="#audit-filters" hx-params="*">
       <option value="">All Actions</option>
       <option value="suspend" {{if eq .ActionFilter "suspend"}}selected{{end}}>Suspend</option>
       <option value="activate" {{if eq .ActionFilter "activate"}}selected{{end}}>Activate</option>
@@ -13,13 +14,14 @@
       <option value="login" {{if eq .ActionFilter "login"}}selected{{end}}>Login</option>
     </select>
     <select name="resource" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
-      hx-get="/admin/audit?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="action,resource">
+      hx-get="/admin/audit?page=1" hx-trigger="change" hx-target="#admin-content" hx-include="#audit-filters" hx-params="*">
       <option value="">All Resources</option>
       <option value="business" {{if eq .ResourceFilter "business"}}selected{{end}}>Business</option>
       <option value="client" {{if eq .ResourceFilter "client"}}selected{{end}}>Client</option>
       <option value="subscription" {{if eq .ResourceFilter "subscription"}}selected{{end}}>Subscription</option>
     </select>
   </div>
+  </form>
 
   <!-- Table -->
   <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">

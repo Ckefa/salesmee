@@ -349,7 +349,9 @@ func ListClients(c *gin.Context) {
 		like := "%" + search + "%"
 		countQ = countQ.Where("clients.name ILIKE ? OR clients.email ILIKE ? OR clients.phone ILIKE ? OR businesses.name ILIKE ?", like, like, like, like)
 	}
-	if statusF != "" {
+	if statusF == "inactive" {
+		countQ = countQ.Where("clients.status != ?", "active")
+	} else if statusF != "" {
 		countQ = countQ.Where("clients.status = ?", statusF)
 	}
 	countQ.Count(&total)
@@ -366,7 +368,9 @@ func ListClients(c *gin.Context) {
 		like := "%" + search + "%"
 		findQ = findQ.Where("clients.name ILIKE ? OR clients.email ILIKE ? OR clients.phone ILIKE ? OR businesses.name ILIKE ?", like, like, like, like)
 	}
-	if statusF != "" {
+	if statusF == "inactive" {
+		findQ = findQ.Where("clients.status != ?", "active")
+	} else if statusF != "" {
 		findQ = findQ.Where("clients.status = ?", statusF)
 	}
 	findQ.Order("clients.created_at desc").Limit(pageSize()).Offset(offset).Scan(&clients)
@@ -450,6 +454,9 @@ func ShowAuditLog(c *gin.Context) {
 	}
 	offset := (page - 1) * pageSize()
 	actionF := c.Query("action")
+	if actionF == "delete_business" || actionF == "delete_client" {
+		actionF = "delete"
+	}
 	resourceF := c.Query("resource")
 
 	var total int64

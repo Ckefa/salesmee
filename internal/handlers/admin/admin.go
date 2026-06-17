@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"salesmee/internal/config"
+	"salesmee/internal/data"
 	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
@@ -287,6 +288,99 @@ func GetBusinessDetail(c *gin.Context) {
 		"ServiceCount":  serviceCount,
 		"TeamCount":     teamCount,
 		"LocationCount": locationCount,
+	}))
+}
+
+type RecentOrderRow struct {
+	ID          uint
+	OrderNumber string
+	Status      string
+	TotalAmount float64
+	PaidAmount  float64
+	CreatedAt   time.Time
+	ClientName  string
+}
+
+type RecentBookingRow struct {
+	ID            uint
+	BookingNumber string
+	Status        string
+	ScheduledDate time.Time
+	TotalAmount   float64
+	ClientName    string
+	ServiceName   string
+}
+
+func ShowBusinessDetail(c *gin.Context) {
+	id := c.Param("id")
+	var biz models.Business
+	if err := db.DB.Preload("Subscription.Plan").Preload("Locations").Preload("TeamMembers").First(&biz, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Business not found")
+		return
+	}
+
+	var clientCount, orderCount, bookingCount, productCount, serviceCount, reviewCount int64
+	db.DB.Model(&models.Client{}).Where("business_id = ?", biz.ID).Count(&clientCount)
+	db.DB.Table("orders").Joins("JOIN clients ON clients.id = orders.client_id").
+		Where("clients.business_id = ?", biz.ID).Count(&orderCount)
+	db.DB.Table("bookings").Joins("JOIN clients ON clients.id = bookings.client_id").
+		Where("clients.business_id = ?", biz.ID).Count(&bookingCount)
+	db.DB.Model(&models.Product{}).Where("business_id = ?", biz.ID).Count(&productCount)
+	db.DB.Model(&models.Service{}).Where("business_id = ?", biz.ID).Count(&serviceCount)
+	db.DB.Model(&models.Review{}).Where("business_id = ?", biz.ID).Count(&reviewCount)
+
+	var recentOrders []RecentOrderRow
+	db.DB.Table("orders").
+		Select("orders.id, orders.order_number, orders.status, orders.total_amount, orders.paid_amount, orders.created_at, clients.name as client_name").
+		Joins("JOIN clients ON clients.id = orders.client_id").
+		Where("clients.business_id = ?", biz.ID).
+		Order("orders.created_at DESC").
+		Limit(5).
+		Scan(&recentOrders)
+
+	var recentBookings []RecentBookingRow
+	db.DB.Table("bookings").
+		Select("bookings.id, bookings.booking_number, bookings.status, bookings.scheduled_date, bookings.total_amount, clients.name as client_name, services.name as service_name").
+		Joins("JOIN clients ON clients.id = bookings.client_id").
+		Joins("LEFT JOIN booking_items ON booking_items.booking_id = bookings.id").
+		Joins("LEFT JOIN services ON services.id = booking_items.service_id").
+		Where("clients.business_id = ?", biz.ID).
+		Order("bookings.created_at DESC").
+		Limit(5).
+		Scan(&recentBookings)
+
+	var bizType *data.BusinessType
+	for _, bt := range data.BusinessTypes {
+		if bt.Value == biz.BusinessType {
+			bizType = &bt
+			break
+		}
+	}
+
+	var countryName string
+	for _, c := range data.Countries {
+		if c.Code == biz.Country {
+			countryName = c.Name
+			break
+		}
+	}
+
+	c.HTML(http.StatusOK, "admin_business_detail_page.html", middleware.TemplateData(c, gin.H{
+		"Business":      biz,
+		"ClientCount":   clientCount,
+		"OrderCount":    orderCount,
+		"BookingCount":  bookingCount,
+		"ProductCount":  productCount,
+		"ServiceCount":  serviceCount,
+		"ReviewCount":   reviewCount,
+		"TeamCount":     len(biz.TeamMembers),
+		"LocationCount": len(biz.Locations),
+		"RecentOrders":  recentOrders,
+		"RecentBookings": recentBookings,
+		"BusinessType":  bizType,
+		"CountryName":   countryName,
+		"Title":         biz.Name + " - SalesMee Admin",
+		"ActiveTab":     "businesses",
 	}))
 }
 

@@ -18,6 +18,7 @@ func SetupAdminRoutes(r *gin.Engine) {
 		adminGroup.POST("/logout", admin.AdminLogout)
 		adminGroup.GET("/businesses", admin.ListBusinesses)
 		adminGroup.GET("/businesses/:id", admin.GetBusinessDetail)
+		adminGroup.GET("/businesses/:id/detail", admin.ShowBusinessDetail)
 		adminGroup.POST("/businesses/:id/suspend", admin.SuspendBusiness)
 		adminGroup.POST("/businesses/:id/activate", admin.ActivateBusiness)
 		adminGroup.POST("/businesses/:id/delete", admin.DeleteBusiness)

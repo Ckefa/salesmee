@@ -1,0 +1,424 @@
+<div class="p-6">
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4">
+    <button class="hover:text-teal-400 transition flex items-center gap-1"
+      hx-get="/admin/businesses?page=1" hx-target="#admin-content">
+      <i class="fas fa-arrow-left"></i> Businesses
+    </button>
+    <span>/</span>
+    <span class="text-slate-300">{{.Business.Name}}</span>
+  </div>
+
+  <!-- Header -->
+  <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5 mb-4">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0">
+        {{if .Business.Logo}}
+        <img src="{{.Business.Logo}}" class="w-16 h-16 rounded-xl object-cover bg-slate-700" alt="">
+        {{else}}
+        <div class="w-16 h-16 rounded-xl bg-slate-700 flex items-center justify-center text-slate-400 text-2xl">
+          <i class="fas fa-store"></i>
+        </div>
+        {{end}}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-3 flex-wrap">
+          <h1 class="text-xl font-bold text-white truncate">{{.Business.Name}}</h1>
+          {{if .Business.IsPublic}}
+          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">Active</span>
+          {{else}}
+          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Suspended</span>
+          {{end}}
+          {{if .BusinessType}}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-{{.BusinessType.Color}}-500/20 text-{{.BusinessType.Color}}-400">
+            <i class="fas {{.BusinessType.Icon}}"></i> {{.BusinessType.Label}}
+          </span>
+          {{end}}
+        </div>
+        <div class="flex items-center gap-4 mt-1.5 text-sm flex-wrap">
+          <span class="text-teal-400">@{{.Business.Slug}}</span>
+          <span class="text-slate-400">{{.Business.Email}}</span>
+          {{if .Business.EmailVerified}}
+          <span class="text-emerald-400 text-xs"><i class="fas fa-check-circle"></i> Email verified</span>
+          {{else}}
+          <span class="text-slate-500 text-xs"><i class="fas fa-times-circle"></i> Email not verified</span>
+          {{end}}
+          <span class="text-slate-500 text-xs">Onboarding: step {{.Business.OnboardingStep}}/5</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        {{if .Business.IsPublic}}
+        <form method="POST" action="/admin/businesses/{{.Business.ID}}/suspend" class="inline"
+          hx-post="/admin/businesses/{{.Business.ID}}/suspend" hx-target="#admin-content" hx-swap="innerHTML"
+          onsubmit="return confirm('Suspend this business?')">
+          <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
+          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30"><i class="fas fa-pause mr-1"></i>Suspend</button>
+        </form>
+        {{else}}
+        <form method="POST" action="/admin/businesses/{{.Business.ID}}/activate" class="inline"
+          hx-post="/admin/businesses/{{.Business.ID}}/activate" hx-target="#admin-content" hx-swap="innerHTML">
+          <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
+          <button class="px-3 py-1.5 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition border border-emerald-500/30"><i class="fas fa-play mr-1"></i>Activate</button>
+        </form>
+        {{end}}
+        <form method="POST" action="/admin/businesses/{{.Business.ID}}/delete" class="inline"
+          hx-post="/admin/businesses/{{.Business.ID}}/delete" hx-target="#admin-content" hx-swap="innerHTML"
+          onsubmit="return confirm('Soft-delete this business? This will suspend it.')">
+          <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
+          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-4">
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400"><i class="fas fa-users text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.ClientCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Clients</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400"><i class="fas fa-shopping-cart text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.OrderCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Orders</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="fas fa-calendar-check text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.BookingCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Bookings</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400"><i class="fas fa-box text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.ProductCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Products</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400"><i class="fas fa-concierge-bell text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.ServiceCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Services</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400"><i class="fas fa-star text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.ReviewCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Reviews</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400"><i class="fas fa-user-gear text-xs"></i></div>
+        <div>
+          <p class="text-lg font-bold text-white">{{.TeamCount}}</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-wider">Team</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column: Details + Subscription -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+    <!-- Details -->
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-info-circle mr-2 text-teal-400"></i>Business Details</h3>
+      <div class="space-y-2.5 text-sm">
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Business ID</span>
+          <span class="text-slate-300 font-mono">#{{.Business.ID}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Name</span>
+          <span class="text-slate-300">{{.Business.Name}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Email</span>
+          <span class="text-slate-300">{{.Business.Email}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Slug</span>
+          <span class="text-teal-400 font-mono">{{.Business.Slug}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Username</span>
+          <span class="text-slate-300">{{if .Business.Username}}@{{.Business.Username}}{{else}}<span class="text-slate-600">—</span>{{end}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Business Type</span>
+          <span class="text-slate-300">{{if .BusinessType}}{{.BusinessType.Label}}{{else}}{{.Business.BusinessType | title}}{{end}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Country</span>
+          <span class="text-slate-300">{{if .CountryName}}{{.CountryName}} ({{.Business.Country}}){{else}}{{.Business.Country}}{{end}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Currency</span>
+          <span class="text-slate-300">{{currencySymbol .Business.Currency}} {{.Business.Currency}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Time Zone</span>
+          <span class="text-slate-300">{{.Business.TimeZone}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Email Verified</span>
+          <span class="text-slate-300">{{if .Business.EmailVerified}}<span class="text-emerald-400"><i class="fas fa-check-circle"></i> Yes</span>{{else}}<span class="text-red-400"><i class="fas fa-times-circle"></i> No</span>{{end}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Accepting Bookings</span>
+          <span class="text-slate-300">{{if .Business.IsAcceptingBookings}}<span class="text-emerald-400"><i class="fas fa-check"></i> Yes</span>{{else}}<span class="text-red-400"><i class="fas fa-times"></i> No</span>{{end}}</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Onboarding Step</span>
+          <span class="text-slate-300">{{.Business.OnboardingStep}} / 5</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Created</span>
+          <span class="text-slate-300">{{formatDate .Business.CreatedAt}}</span>
+        </div>
+        <div class="flex justify-between py-1">
+          <span class="text-slate-500">Last Updated</span>
+          <span class="text-slate-300">{{formatDate .Business.UpdatedAt}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscription -->
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-crown mr-2 text-amber-400"></i>Subscription</h3>
+      {{if .Business.Subscription}}
+      <div class="space-y-2.5 text-sm">
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Plan</span>
+          <span class="text-indigo-400 font-semibold">{{if .Business.Subscription.Plan}}{{.Business.Subscription.Plan.Name}}{{else}}—{{end}}</span>
+        </div>
+        {{if .Business.Subscription.Plan}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Price</span>
+          <span class="text-slate-300">{{currencySymbol .Business.Subscription.Plan.Currency}}{{printf "%.0f" .Business.Subscription.Plan.PriceMonthly}}/mo</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Billing</span>
+          <span class="text-slate-300">{{.Business.Subscription.BillingInterval}}ly</span>
+        </div>
+        {{end}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Status</span>
+          <span class="text-slate-300">
+            {{$subStatus := .Business.Subscription.Status}}
+            {{if eq $subStatus "active"}}<span class="text-emerald-400">Active</span>
+            {{else if eq $subStatus "trialing"}}<span class="text-sky-400">Trialing</span>
+            {{else if eq $subStatus "past_due"}}<span class="text-red-400">Past Due</span>
+            {{else if eq $subStatus "cancelled"}}<span class="text-red-400">Cancelled</span>
+            {{else if eq $subStatus "incomplete"}}<span class="text-amber-400">Incomplete</span>
+            {{else}}{{.Business.Subscription.Status}}{{end}}
+          </span>
+        </div>
+        {{if not .Business.Subscription.CurrentPeriodStart.IsZero}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Period Start</span>
+          <span class="text-slate-300">{{formatDate .Business.Subscription.CurrentPeriodStart}}</span>
+        </div>
+        {{end}}
+        {{if not .Business.Subscription.CurrentPeriodEnd.IsZero}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Period End</span>
+          <span class="text-slate-300">{{formatDate .Business.Subscription.CurrentPeriodEnd}}</span>
+        </div>
+        {{end}}
+        {{if .Business.Subscription.TrialEndsAt}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Trial Ends</span>
+          <span class="text-slate-300">{{formatDate .Business.Subscription.TrialEndsAt}}</span>
+        </div>
+        {{end}}
+        {{if .Business.Subscription.CanceledAt}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Canceled At</span>
+          <span class="text-slate-300">{{formatDate .Business.Subscription.CanceledAt}}</span>
+        </div>
+        {{end}}
+        <div class="flex justify-between py-1 border-b border-slate-700/50">
+          <span class="text-slate-500">Provider</span>
+          <span class="text-slate-300">
+            {{if .Business.Subscription.StripeSubscriptionID}}<span class="text-sky-400">Stripe</span>
+            {{else if .Business.Subscription.PaddleSubscriptionID}}<span class="text-orange-400">Paddle</span>
+            {{else}}<span class="text-slate-600">—</span>{{end}}
+          </span>
+        </div>
+        {{if .Business.Subscription.Plan}}
+        <div class="pt-2 space-y-1 text-xs">
+          <p class="text-slate-500 font-medium">Plan Features</p>
+          <div class="flex justify-between"><span class="text-slate-500">Max Clients</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxClients 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxClients}}{{end}}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Max Products</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxProducts 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxProducts}}{{end}}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Max Services</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxServices 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxServices}}{{end}}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Analytics</span><span class="text-slate-300">{{if .Business.Subscription.Plan.HasAnalytics}}<span class="text-emerald-400"><i class="fas fa-check"></i>{{else}}<span class="text-slate-500"><i class="fas fa-times"></i>{{end}}</span></span></div>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <div class="flex flex-col items-center justify-center py-8 text-slate-500">
+        <i class="fas fa-crown text-3xl mb-2 opacity-30"></i>
+        <p class="text-sm">No active subscription</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- Two-column: Locations + Team -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+    <!-- Locations -->
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-location-dot mr-2 text-teal-400"></i>Locations {{if gt (len .Business.Locations) 0}}<span class="text-slate-500 font-normal">({{len .Business.Locations}})</span>{{end}}</h3>
+      {{if .Business.Locations}}
+      <div class="space-y-2">
+        {{range .Business.Locations}}
+        <div class="bg-slate-750 border border-slate-700/50 rounded-xl p-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm font-medium text-white">{{.Name}}</p>
+              {{if .Address}}<p class="text-xs text-slate-400 mt-0.5">{{.Address}}</p>{{end}}
+            </div>
+            {{if not .IsActive}}<span class="text-xs text-slate-500">Inactive</span>{{end}}
+          </div>
+          <div class="flex gap-3 mt-1.5 text-xs text-slate-500">
+            {{if .Phone}}<span><i class="fas fa-phone mr-1"></i>{{.Phone}}</span>{{end}}
+            {{if .Email}}<span><i class="fas fa-envelope mr-1"></i>{{.Email}}</span>{{end}}
+            {{if .TimeZone}}<span><i class="fas fa-clock mr-1"></i>{{.TimeZone}}</span>{{end}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <div class="flex flex-col items-center justify-center py-6 text-slate-500">
+        <i class="fas fa-location-dot text-2xl mb-1 opacity-30"></i>
+        <p class="text-xs">No locations configured</p>
+      </div>
+      {{end}}
+    </div>
+
+    <!-- Team Members -->
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-user-gear mr-2 text-teal-400"></i>Team Members {{if gt (len .Business.TeamMembers) 0}}<span class="text-slate-500 font-normal">({{len .Business.TeamMembers}})</span>{{end}}</h3>
+      {{if .Business.TeamMembers}}
+      <div class="space-y-2">
+        {{range .Business.TeamMembers}}
+        <div class="bg-slate-750 border border-slate-700/50 rounded-xl p-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-medium">
+              {{substr .Name 0 1}}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="text-sm font-medium text-white truncate">{{.Name}}</p>
+                <span class="text-xs {{if eq .Role "manager"}}text-purple-400{{else}}text-sky-400{{end}}">{{.Role}}</span>
+              </div>
+              <p class="text-xs text-slate-400 truncate">{{.Email}}</p>
+            </div>
+            <div class="text-right shrink-0">
+              {{if .IsActive}}
+              <span class="text-xs text-emerald-400">Active</span>
+              {{else}}
+              <span class="text-xs text-red-400">Inactive</span>
+              {{end}}
+              {{if .Phone}}<p class="text-xs text-slate-500">{{.Phone}}</p>{{end}}
+            </div>
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <div class="flex flex-col items-center justify-center py-6 text-slate-500">
+        <i class="fas fa-user-gear text-2xl mb-1 opacity-30"></i>
+        <p class="text-xs">No team members</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- Two-column: Recent Orders + Recent Bookings -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <!-- Recent Orders -->
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-shopping-cart mr-2 text-orange-400"></i>Recent Orders</h3>
+      {{if .RecentOrders}}
+      <div class="space-y-2">
+        {{range .RecentOrders}}
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-xs font-mono text-slate-400 shrink-0">{{.OrderNumber}}</span>
+            <span class="text-sm text-slate-300 truncate">{{.ClientName}}</span>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-xs text-slate-400">{{currencySymbol $.Business.Currency}}{{printf "%.2f" .TotalAmount}}</span>
+            {{$status := .Status}}
+            {{if eq $status "draft"}}<span class="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">Draft</span>
+            {{else if eq $status "pending"}}<span class="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Pending</span>
+            {{else if eq $status "confirmed"}}<span class="text-xs px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400">Confirmed</span>
+            {{else if eq $status "fulfilled"}}<span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Completed</span>
+            {{else if eq $status "cancelled"}}<span class="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">Cancelled</span>
+            {{else}}<span class="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">{{$status}}</span>{{end}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <div class="flex flex-col items-center justify-center py-6 text-slate-500">
+        <i class="fas fa-shopping-cart text-2xl mb-1 opacity-30"></i>
+        <p class="text-xs">No orders yet</p>
+      </div>
+      {{end}}
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-calendar-check mr-2 text-purple-400"></i>Recent Bookings</h3>
+      {{if .RecentBookings}}
+      <div class="space-y-2">
+        {{range .RecentBookings}}
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-xs font-mono text-slate-400 shrink-0">{{.BookingNumber}}</span>
+            <span class="text-sm text-slate-300 truncate">{{.ClientName}}</span>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-xs text-slate-400">{{.ServiceName}}</span>
+            {{$status := .Status}}
+            {{if eq $status "pending"}}<span class="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Pending</span>
+            {{else if eq $status "confirmed"}}<span class="text-xs px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400">Confirmed</span>
+            {{else if eq $status "completed"}}<span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Completed</span>
+            {{else if eq $status "cancelled"}}<span class="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">Cancelled</span>
+            {{else}}<span class="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">{{$status}}</span>{{end}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <div class="flex flex-col items-center justify-center py-6 text-slate-500">
+        <i class="fas fa-calendar-check text-2xl mb-1 opacity-300"></i>
+        <p class="text-xs">No bookings yet</p>
+      </div>
+      {{end}}
+    </div>
+  </div>
+</div>

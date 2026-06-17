@@ -43,8 +43,8 @@
       <tbody>
         {{if .Businesses}}
         {{range .Businesses}}
-        <tr class="border-b border-slate-700/50 hover:bg-slate-750 transition"
-          hx-get="/admin/businesses/{{.ID}}" hx-trigger="click" hx-target="#detail-{{.ID}}" hx-swap="innerHTML">
+        <tr class="border-b border-slate-700/50 hover:bg-slate-750 transition cursor-pointer"
+          hx-get="/admin/businesses/{{.ID}}/detail" hx-trigger="click" hx-target="#admin-content" hx-swap="innerHTML">
           <td class="px-4 py-3">
             <div class="flex items-center gap-3">
               {{if .Logo}}
@@ -99,9 +99,6 @@
               </form>
             </div>
           </td>
-        </tr>
-        <tr id="detail-{{.ID}}" class="expand-row">
-          <td colspan="8" class="px-0 py-0 bg-slate-850"></td>
         </tr>
         {{end}}
         {{else}}

@@ -386,6 +386,9 @@ func GetClientMessages(c *gin.Context) {
 		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, models.PaymentPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
 
+		var orderPayments []models.Payment
+		db.DB.Where("order_id = ?", order.ID).Order("created_at desc").Find(&orderPayments)
+
 		var orderHasReview int64
 		db.DB.Model(&models.Review{}).Where("order_id = ?", order.ID).Count(&orderHasReview)
 
@@ -414,6 +417,7 @@ func GetClientMessages(c *gin.Context) {
 			"first_product_name":   firstProductName,
 			"created_at":           order.CreatedAt,
 			"payment_methods":      orderPaymentMethods,
+			"payments":             orderPayments,
 		}
 
 		isSelf := order.Sender == "client"
@@ -461,6 +465,9 @@ func GetClientMessages(c *gin.Context) {
 		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, models.PaymentPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
+		var bookingPayments []models.Payment
+		db.DB.Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&bookingPayments)
+
 		var bookingActionRequired string
 		if booking.Status == models.BookingPending && booking.Sender == "business" {
 			bookingActionRequired = "client"
@@ -496,6 +503,7 @@ func GetClientMessages(c *gin.Context) {
 			"created_at":           booking.CreatedAt,
 			"service_names":        serviceNames,
 			"payment_methods":      bookingPaymentMethods,
+			"payments":             bookingPayments,
 		}
 
 		isSelf := booking.Sender == "client"

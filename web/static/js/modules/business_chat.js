@@ -71,29 +71,75 @@ function reloadBusinessChatFromServer() {
 }
 
 function updateOrderPendingPaymentsUI(orderId, pendingAmount) {
-  var el = document.getElementById('orderPendingPayments-' + orderId);
-  if (!el) return;
-  if (pendingAmount > 0) {
-    el.innerHTML =
-      '<div class="text-[10px] font-medium text-[var(--color-warning)] mb-2"><i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation</div>' +
-      '<button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm" onclick="confirmAllOrderPayments(' + orderId + ')">' +
-      '<i class="fas fa-check mr-1"></i>Confirm Payment</button>';
-  } else {
-    el.innerHTML = '<div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>';
-  }
+  reloadBusinessChatFromServer();
 }
 
 function updateBookingPendingPaymentsUI(bookingId, pendingAmount) {
-  var el = document.getElementById('bookingPendingPayments-' + bookingId);
-  if (!el) return;
-  if (pendingAmount > 0) {
-    el.innerHTML =
-      '<div class="text-[10px] font-medium text-[var(--color-warning)] mb-2"><i class="fas fa-clock mr-0.5"></i>Awaiting payment confirmation</div>' +
-      '<button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm" onclick="confirmAllBookingPayments(' + bookingId + ')">' +
-      '<i class="fas fa-check mr-1"></i>Confirm Payment</button>';
-  } else {
-    el.innerHTML = '<div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>';
-  }
+  reloadBusinessChatFromServer();
+}
+
+function confirmOrderPayment(orderId, paymentId) {
+  showConfirmModal({ title: 'Confirm Payment', message: 'Confirm this payment claim?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/confirm', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification(data.message || 'Payment confirmed!', 'success');
+      } else {
+        showNotification(data.error || 'Failed to confirm payment', 'error');
+      }
+    })
+    .catch(function(e) { console.error(e); showNotification('Failed to confirm payment', 'error'); });
+  });
+}
+
+function rejectOrderPayment(orderId, paymentId) {
+  showConfirmModal({ title: 'Reject Payment', message: 'Reject this payment claim? The client will be notified.', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Reject' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/reject', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification('Payment rejected', 'info');
+      } else {
+        showNotification(data.error || 'Failed to reject payment', 'error');
+      }
+    })
+    .catch(function(e) { console.error(e); showNotification('Failed to reject payment', 'error'); });
+  });
+}
+
+function confirmBookingPayment(bookingId, paymentId) {
+  showConfirmModal({ title: 'Confirm Payment', message: 'Confirm this payment claim?' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/confirm', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification(data.message || 'Payment confirmed!', 'success');
+      } else {
+        showNotification(data.error || 'Failed to confirm payment', 'error');
+      }
+    })
+    .catch(function(e) { console.error(e); showNotification('Failed to confirm payment', 'error'); });
+  });
+}
+
+function rejectBookingPayment(bookingId, paymentId) {
+  showConfirmModal({ title: 'Reject Payment', message: 'Reject this payment claim? The client will be notified.', confirmClass: 'bg-[var(--color-error)] text-white', confirmText: 'Reject' }).then(function(confirmed) {
+    if (!confirmed) return;
+    fetch('/business/bookings/' + bookingId + '/payments/' + paymentId + '/reject', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showNotification('Payment rejected', 'info');
+      } else {
+        showNotification(data.error || 'Failed to reject payment', 'error');
+      }
+    })
+    .catch(function(e) { console.error(e); showNotification('Failed to reject payment', 'error'); });
+  });
 }
 
 function applyOrderCardUpdate(upd) {

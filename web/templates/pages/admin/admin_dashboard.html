@@ -11,80 +11,155 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <style>
+    .admin-tab.active { background: rgba(20,184,166,0.15); color: #2dd4bf; }
+    .admin-tab:not(.active):hover { background: rgba(51,65,85,0.5); }
+    .pagination-btn { transition: all 0.15s; }
+    .pagination-btn:hover:not(:disabled) { background: rgba(20,184,166,0.2); }
+    .pagination-btn.active { background: #0d9488; color: white; }
+    .expand-row { display: none; }
+    .expand-row.open { display: table-row; }
+    .expand-row td { padding: 0 !important; }
+    .expand-content { padding: 1rem 1.5rem; }
+  </style>
 </head>
-<body class="font-sans antialiased bg-slate-900 min-h-screen">
-  <div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <div class="w-64 bg-slate-800 border-r border-slate-700 p-4 flex flex-col">
-      <div class="flex items-center gap-2 mb-8 px-2">
-        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
-        <span class="text-white font-bold text-sm">Admin Panel</span>
+<body class="font-sans antialiased bg-slate-900 min-h-screen" hx-headers='{"X-CSRF-Token": "{{.CSRFToken}}"}'>
+  <div class="min-h-screen flex flex-col">
+    <!-- Top Bar -->
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6"></div>
+        <span class="text-white font-bold text-sm hidden sm:inline">SalesMee Admin</span>
       </div>
-      <nav class="space-y-1 flex-1">
-        <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-teal-500/10 text-teal-400 text-sm font-medium">
-          <i class="fas fa-chart-simple w-5"></i>Dashboard
-        </a>
-        <a href="/admin/businesses" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-store w-5"></i>Businesses
-        </a>
-        <a href="/admin/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-crown w-5"></i>Subscriptions
-        </a>
-        <a href="/admin/audit" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-history w-5"></i>Audit Log
-        </a>
-      </nav>
-      <div class="border-t border-slate-700 pt-4">
-        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-white text-sm transition-all">
-          <i class="fas fa-arrow-left w-5"></i>Back to Site
-        </a>
+      <div class="flex items-center gap-4">
+        <span class="text-slate-400 text-xs hidden sm:inline">{{.AdminEmail}}</span>
+        <a href="/" class="text-slate-500 hover:text-white text-xs transition"><i class="fas fa-external-link-alt mr-1"></i>Site</a>
+        <form method="POST" action="/admin/logout" class="inline">
+          <input type="hidden" name="_csrf" value="{{.CSRFToken}}">
+          <button class="text-slate-500 hover:text-red-400 text-xs transition"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
+        </form>
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="bg-slate-800/50 border-b border-slate-700/50 px-6 py-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+          <p class="text-2xl font-bold text-white">{{.TotalBusinesses}}</p>
+          <p class="text-xs text-slate-400 mt-0.5">Businesses</p>
+          <p class="text-[10px] text-emerald-400">{{.ActiveBusinesses}} active <span class="text-red-400">{{.SuspendedBiz}} suspended</span></p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+          <p class="text-2xl font-bold text-white">{{.TotalClients}}</p>
+          <p class="text-xs text-slate-400 mt-0.5">Clients</p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+          <p class="text-2xl font-bold text-white">{{.TotalOrders}}</p>
+          <p class="text-xs text-slate-400 mt-0.5">Orders</p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+          <p class="text-2xl font-bold text-teal-400">{{printf "$%.1f" .TotalRevenue}}</p>
+          <p class="text-xs text-slate-400 mt-0.5">Lifetime Transactions</p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 col-span-2 lg:col-span-1">
+          <p class="text-xs text-slate-400 mb-1">Plan Distribution</p>
+          <div class="space-y-0.5">
+            {{range .PlanDistribution}}
+            <div class="flex items-center gap-2 text-[10px]">
+              <span class="text-slate-400 w-12 truncate">{{.Name}}</span>
+              <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-teal-500 rounded-full" style="width:100%"></div>
+              </div>
+              <span class="text-slate-300 w-6 text-right">{{.Count}}</span>
+            </div>
+            {{end}}
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-1 p-8 overflow-y-auto">
-      <h1 class="text-2xl font-bold text-white mb-8">Dashboard</h1>
+    <!-- Tab Navigation -->
+    <div class="bg-slate-800/30 border-b border-slate-700/50 px-6 flex gap-1 overflow-x-auto">
+      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "dashboard"}}active{{end}}"
+        hx-get="/admin" hx-target="#admin-content" hx-push-url="false"
+        onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
+        <i class="fas fa-chart-simple mr-1.5"></i>Dashboard
+      </button>
+      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "businesses"}}active{{end}}"
+        hx-get="/admin/businesses?page=1" hx-target="#admin-content" hx-push-url="false"
+        onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
+        <i class="fas fa-store mr-1.5"></i>Businesses
+      </button>
+      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "clients"}}active{{end}}"
+        hx-get="/admin/clients?page=1" hx-target="#admin-content" hx-push-url="false"
+        onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
+        <i class="fas fa-users mr-1.5"></i>Clients
+      </button>
+      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "subscriptions"}}active{{end}}"
+        hx-get="/admin/subscriptions?page=1" hx-target="#admin-content" hx-push-url="false"
+        onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
+        <i class="fas fa-crown mr-1.5"></i>Subscriptions
+      </button>
+      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "audit"}}active{{end}}"
+        hx-get="/admin/audit?page=1" hx-target="#admin-content" hx-push-url="false"
+        onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
+        <i class="fas fa-history mr-1.5"></i>Audit Log
+      </button>
+    </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center text-teal-400">
-              <i class="fas fa-store"></i>
+    <!-- Content Area -->
+    <div id="admin-content" class="flex-1 overflow-y-auto">
+      {{if eq .ActiveTab "dashboard"}}
+      <div class="p-6 space-y-6">
+        <!-- Recent Signups -->
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+          <h2 class="text-sm font-semibold text-white mb-3"><i class="fas fa-store mr-2 text-teal-400"></i>Recent Business Signups</h2>
+          {{if .RecentBusinesses}}
+          <div class="space-y-2">
+            {{range .RecentBusinesses}}
+            <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
+              <div class="flex items-center gap-3">
+                {{if .Logo}}<img src="{{.Logo}}" class="w-7 h-7 rounded-lg object-cover bg-slate-700">{{else}}<div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 text-xs"><i class="fas fa-store"></i></div>{{end}}
+                <div>
+                  <p class="text-sm font-medium text-white">{{.Name}}</p>
+                  <p class="text-xs text-slate-400">{{.Email}}</p>
+                </div>
+              </div>
+              <span class="text-xs text-slate-500">{{formatDate .CreatedAt}}</span>
             </div>
+            {{end}}
           </div>
-          <p class="text-3xl font-bold text-white">{{.TotalBusinesses}}</p>
-          <p class="text-sm text-slate-400 mt-1">Total Businesses</p>
+          {{else}}
+          <p class="text-sm text-slate-500 text-center py-4">No businesses yet</p>
+          {{end}}
         </div>
-        <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <i class="fas fa-users"></i>
+
+        <!-- Recent Audit Activity -->
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+          <h2 class="text-sm font-semibold text-white mb-3"><i class="fas fa-history mr-2 text-purple-400"></i>Recent Activity</h2>
+          {{if .RecentLogs}}
+          <div class="space-y-2">
+            {{range .RecentLogs}}
+            <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
+              <div class="flex items-center gap-3">
+                <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{if eq .Action "suspend"}}bg-red-500/20 text-red-400{{else if eq .Action "activate"}}bg-emerald-500/20 text-emerald-400{{else}}bg-slate-700 text-slate-300{{end}}">{{.Action}}</span>
+                <div>
+                  <p class="text-sm text-slate-300">{{.Admin.Email}} <span class="text-slate-500">on {{.Resource}}</span></p>
+                  {{if .Details}}<p class="text-xs text-slate-500">{{.Details}}</p>{{end}}
+                </div>
+              </div>
+              <span class="text-xs text-slate-500">{{formatDate .CreatedAt}}</span>
             </div>
+            {{end}}
           </div>
-          <p class="text-3xl font-bold text-white">{{.TotalClients}}</p>
-          <p class="text-sm text-slate-400 mt-1">Total Clients</p>
-        </div>
-        <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
-              <i class="fas fa-shopping-cart"></i>
-            </div>
-          </div>
-          <p class="text-3xl font-bold text-white">{{.TotalOrders}}</p>
-          <p class="text-sm text-slate-400 mt-1">Total Orders</p>
-        </div>
-        <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400">
-              <i class="fas fa-crown"></i>
-            </div>
-          </div>
-          <p class="text-3xl font-bold text-white">{{.TotalSubscriptions}}</p>
-          <p class="text-sm text-slate-400 mt-1">Subscriptions</p>
+          {{else}}
+          <p class="text-sm text-slate-500 text-center py-4">No activity yet</p>
+          {{end}}
         </div>
       </div>
+      {{end}}
     </div>
   </div>
-  {{template "csrf_script" .}}
 </body>
 </html>

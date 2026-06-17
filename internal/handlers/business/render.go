@@ -109,6 +109,9 @@ func BuildBizOrderCardData(db *gorm.DB, order models.Order) map[string]interface
 	db.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
 		Select("COALESCE(SUM(amount), 0)").Scan(&pendingAmt)
 
+	var payments []models.Payment
+	db.Where("order_id = ?", order.ID).Order("created_at desc").Find(&payments)
+
 	var reviewRating int
 	var hasReview bool
 	db.Model(&models.Review{}).Where("order_id = ?", order.ID).Select("rating").Scan(&reviewRating)
@@ -145,6 +148,7 @@ func BuildBizOrderCardData(db *gorm.DB, order models.Order) map[string]interface
 		"first_product_name": firstProductName,
 		"created_at":         order.CreatedAt,
 		"payment_methods":    paymentMethods,
+		"payments":           payments,
 	}
 }
 
@@ -177,6 +181,9 @@ func BuildBizBookingCardData(db *gorm.DB, booking models.Booking) map[string]int
 	var pendingAmt float64
 	db.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
 		Select("COALESCE(SUM(amount), 0)").Scan(&pendingAmt)
+
+	var payments []models.Payment
+	db.Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&payments)
 
 	actionRequired := bizBookingActionRequired(booking)
 
@@ -213,6 +220,7 @@ func BuildBizBookingCardData(db *gorm.DB, booking models.Booking) map[string]int
 		}(),
 		"created_at":      booking.CreatedAt,
 		"payment_methods": paymentMethods,
+		"payments":        payments,
 	}
 }
 
@@ -293,6 +301,9 @@ func BuildClientOrderCardData(d *gorm.DB, order models.Order) map[string]interfa
 	d.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
 		Select("COALESCE(SUM(amount), 0)").Scan(&pendingAmt)
 
+	var payments []models.Payment
+	d.Where("order_id = ?", order.ID).Order("created_at desc").Find(&payments)
+
 	var reviewRating int
 	var hasReview bool
 	d.Model(&models.Review{}).Where("order_id = ?", order.ID).Select("rating").Scan(&reviewRating)
@@ -330,6 +341,7 @@ func BuildClientOrderCardData(d *gorm.DB, order models.Order) map[string]interfa
 		"first_product_name": firstProductName,
 		"created_at":         order.CreatedAt,
 		"payment_methods":    paymentMethods,
+		"payments":           payments,
 	}
 }
 
@@ -359,6 +371,9 @@ func BuildClientBookingCardData(d *gorm.DB, booking models.Booking) map[string]i
 	var pendingAmt float64
 	d.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
 		Select("COALESCE(SUM(amount), 0)").Scan(&pendingAmt)
+
+	var payments []models.Payment
+	d.Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&payments)
 
 	actionRequired := clientBookingActionRequired(booking)
 
@@ -397,6 +412,7 @@ func BuildClientBookingCardData(d *gorm.DB, booking models.Booking) map[string]i
 		"created_at":         booking.CreatedAt,
 		"service_names":      serviceNames,
 		"payment_methods":    paymentMethods,
+		"payments":           payments,
 	}
 }
 

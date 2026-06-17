@@ -1,112 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{.Title}}</title>
-  <meta name="color-scheme" content="light dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="/static/js/core/theme.js?v=1"></script>
-</head>
-<body class="font-sans antialiased bg-slate-900 min-h-screen">
-  <div class="flex min-h-screen">
-    <div class="w-64 bg-slate-800 border-r border-slate-700 p-4 flex flex-col">
-      <div class="flex items-center gap-2 mb-8 px-2">
-        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
-        <span class="text-white font-bold text-sm">Admin Panel</span>
-      </div>
-      <nav class="space-y-1 flex-1">
-        <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-chart-simple w-5"></i>Dashboard
-        </a>
-        <a href="/admin/businesses" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-teal-500/10 text-teal-400 text-sm font-medium">
-          <i class="fas fa-store w-5"></i>Businesses
-        </a>
-        <a href="/admin/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-crown w-5"></i>Subscriptions
-        </a>
-        <a href="/admin/audit" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-history w-5"></i>Audit Log
-        </a>
-      </nav>
-      <div class="border-t border-slate-700 pt-4">
-        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-white text-sm transition-all">
-          <i class="fas fa-arrow-left w-5"></i>Back to Site
-        </a>
-      </div>
+<div class="p-6">
+  <h2 class="text-sm font-semibold text-white mb-4"><i class="fas fa-store mr-2 text-teal-400"></i>Businesses</h2>
+
+  <!-- Search & Filter Bar -->
+  <div class="flex flex-wrap gap-3 mb-4">
+    <div class="flex-1 min-w-[200px]">
+      <input type="text" name="search" placeholder="Search by name, email, or slug..."
+        class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-teal-500"
+        hx-get="/admin/businesses?page=1" hx-trigger="keyup changed delay:300ms" hx-target="#admin-content" hx-include="closest div" hx-params="search">
     </div>
+    <select name="status" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
+      hx-get="/admin/businesses?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="status,search">
+      <option value="">All Status</option>
+      <option value="active" {{if eq .StatusFilter "active"}}selected{{end}}>Active</option>
+      <option value="suspended" {{if eq .StatusFilter "suspended"}}selected{{end}}>Suspended</option>
+    </select>
+    <select name="plan" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
+      hx-get="/admin/businesses?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="plan,status,search">
+      <option value="">All Plans</option>
+      <option value="silver" {{if eq .PlanFilter "silver"}}selected{{end}}>Silver</option>
+      <option value="gold" {{if eq .PlanFilter "gold"}}selected{{end}}>Gold</option>
+      <option value="diamond" {{if eq .PlanFilter "diamond"}}selected{{end}}>Diamond</option>
+    </select>
+  </div>
 
-    <div class="flex-1 p-8 overflow-y-auto">
-      <h1 class="text-2xl font-bold text-white mb-8">Manage Businesses</h1>
-
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-700 text-slate-400">
-              <th class="text-left px-6 py-3 font-medium">Name</th>
-              <th class="text-left px-6 py-3 font-medium">Email</th>
-              <th class="text-left px-6 py-3 font-medium">Type</th>
-              <th class="text-left px-6 py-3 font-medium">Plan</th>
-              <th class="text-left px-6 py-3 font-medium">Status</th>
-              <th class="text-left px-6 py-3 font-medium">Joined</th>
-              <th class="text-left px-6 py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range .Businesses}}
-            <tr class="border-b border-slate-700/50 text-slate-300 hover:bg-slate-700/30">
-              <td class="px-6 py-4 font-medium">{{.Name}}</td>
-              <td class="px-6 py-4 text-slate-400">{{.Email}}</td>
-              <td class="px-6 py-4">
-                <span class="inline-block px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-xs capitalize">{{.BusinessType}}</span>
-              </td>
-              <td class="px-6 py-4">
-                {{if .Subscription}}
-                <span class="inline-block px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 text-xs capitalize">{{.Subscription.Plan.Name}}</span>
-                {{else}}
-                <span class="inline-block px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-xs">No Plan</span>
-                {{end}}
-              </td>
-              <td class="px-6 py-4">
-                {{if .IsPublic}}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs">
-                  <i class="fas fa-circle text-[6px]"></i>Active
-                </span>
-                {{else}}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 text-xs">
-                  <i class="fas fa-circle text-[6px]"></i>Suspended
-                </span>
-                {{end}}
-              </td>
-              <td class="px-6 py-4 text-slate-400">{{formatDate .CreatedAt}}</td>
-              <td class="px-6 py-4">
-                {{if .IsPublic}}
-                <form method="POST" action="/admin/businesses/{{.ID}}/suspend" class="inline">
-                  {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
-                  <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-medium transition-all">
-                    <i class="fas fa-ban mr-1"></i>Suspend
-                  </button>
-                </form>
-                {{else}}
-                <form method="POST" action="/admin/businesses/{{.ID}}/activate" class="inline">
-                  {{if .CSRFToken}}<input type="hidden" name="_csrf" value="{{.CSRFToken}}">{{end}}
-                  <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-xs font-medium transition-all">
-                    <i class="fas fa-check mr-1"></i>Activate
-                  </button>
-                </form>
-                {{end}}
-              </td>
-            </tr>
+  <!-- Table -->
+  <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-xs text-slate-500 uppercase tracking-wider border-b border-slate-700">
+          <th class="text-left px-4 py-3 font-medium">Business</th>
+          <th class="text-left px-4 py-3 font-medium hidden md:table-cell">Email</th>
+          <th class="text-center px-4 py-3 font-medium hidden lg:table-cell">Clients</th>
+          <th class="text-center px-4 py-3 font-medium hidden lg:table-cell">Orders</th>
+          <th class="text-center px-4 py-3 font-medium hidden xl:table-cell">Bookings</th>
+          <th class="text-center px-4 py-3 font-medium">Status</th>
+          <th class="text-center px-4 py-3 font-medium">Plan</th>
+          <th class="text-right px-4 py-3 font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{if .Businesses}}
+        {{range .Businesses}}
+        <tr class="border-b border-slate-700/50 hover:bg-slate-750 transition"
+          hx-get="/admin/businesses/{{.ID}}" hx-trigger="click" hx-target="#detail-{{.ID}}" hx-swap="innerHTML">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-3">
+              {{if .Logo}}
+              <img src="{{.Logo}}" class="w-8 h-8 rounded-lg object-cover bg-slate-700" alt="">
+              {{else}}
+              <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400"><i class="fas fa-store"></i></div>
+              {{end}}
+              <div>
+                <p class="text-white font-medium">{{.Name}}</p>
+                <p class="text-slate-500 text-xs">{{.Slug}}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-slate-400 hidden md:table-cell">{{.Email}}</td>
+          <td class="px-4 py-3 text-center text-slate-400 hidden lg:table-cell">
+            {{index $.ClientCounts .ID | default "0"}}
+          </td>
+          <td class="px-4 py-3 text-center text-slate-400 hidden lg:table-cell">
+            {{index $.OrderCounts .ID | default "0"}}
+          </td>
+          <td class="px-4 py-3 text-center text-slate-400 hidden xl:table-cell">
+            {{index $.BookingCounts .ID | default "0"}}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {{if .IsPublic}}
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">Active</span>
+            {{else}}
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Suspended</span>
             {{end}}
-          </tbody>
-        </table>
-      </div>
+          </td>
+          <td class="px-4 py-3 text-center">
+            {{if .Subscription}}{{if .Subscription.Plan}}
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-400">{{.Subscription.Plan.Name}}</span>
+            {{else}}<span class="text-slate-500 text-xs">—</span>{{end}}{{else}}<span class="text-slate-500 text-xs">—</span>{{end}}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-1">
+              {{if .IsPublic}}
+              <form method="POST" action="/admin/businesses/{{.ID}}/suspend" class="inline" hx-post="/admin/businesses/{{.ID}}/suspend" hx-target="#admin-content" hx-swap="innerHTML">
+                <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
+                <button class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition">Suspend</button>
+              </form>
+              {{else}}
+              <form method="POST" action="/admin/businesses/{{.ID}}/activate" class="inline" hx-post="/admin/businesses/{{.ID}}/activate" hx-target="#admin-content" hx-swap="innerHTML">
+                <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
+                <button class="px-2 py-1 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded transition">Activate</button>
+              </form>
+              {{end}}
+              <form method="POST" action="/admin/businesses/{{.ID}}/delete" class="inline" onsubmit="return confirm('Delete this business? This is a soft delete.')" hx-post="/admin/businesses/{{.ID}}/delete" hx-target="#admin-content" hx-swap="innerHTML">
+                <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
+                <button class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition"><i class="fas fa-trash-alt"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <tr id="detail-{{.ID}}" class="expand-row">
+          <td colspan="8" class="px-0 py-0 bg-slate-850"></td>
+        </tr>
+        {{end}}
+        {{else}}
+        <tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">No businesses found</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {{if gt .TotalPages 1}}
+  <div class="flex items-center justify-between mt-4">
+    <p class="text-xs text-slate-500">{{.Total}} results — page {{.Page}} of {{.TotalPages}}</p>
+    <div class="flex gap-1">
+      {{$prevDisabled := le .Page 1}}
+      <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $prevDisabled}} opacity-30 cursor-default{{end}}"
+        {{if not $prevDisabled}}hx-get="/admin/businesses?page={{sub (float .Page) 1}}&search={{.Search}}&status={{.StatusFilter}}&plan={{.PlanFilter}}" hx-target="#admin-content"{{end}}>
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      {{$page := .Page}}{{$totalPages := .TotalPages}}
+      {{range $i := seq 1 $totalPages}}
+      {{if or (le $i 3) (gt $i (sub (float $totalPages) 2)) (and (ge $i (sub (float $page) 1)) (le $i (add (float $page) 1)))}}
+      <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs {{if eq $i $page}}active{{else}}text-slate-400 bg-slate-800 border border-slate-700{{end}}"
+        hx-get="/admin/businesses?page={{$i}}&search={{$.Search}}&status={{$.StatusFilter}}&plan={{$.PlanFilter}}" hx-target="#admin-content">
+        {{$i}}
+      </button>
+      {{else if eq $i (sub (float $page) 2)}}
+      <span class="px-2 py-1.5 text-slate-600">…</span>
+      {{end}}
+      {{end}}
+      {{$nextDisabled := ge .Page .TotalPages}}
+      <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $nextDisabled}} opacity-30 cursor-default{{end}}"
+        {{if not $nextDisabled}}hx-get="/admin/businesses?page={{add (float .Page) 1}}&search={{.Search}}&status={{.StatusFilter}}&plan={{.PlanFilter}}" hx-target="#admin-content"{{end}}>
+        <i class="fas fa-chevron-right"></i>
+      </button>
     </div>
   </div>
-  {{template "csrf_script" .}}
-</body>
-</html>
+  {{end}}
+</div>

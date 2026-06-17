@@ -22,6 +22,9 @@
       <span class="wa-nav-badge">{{.UnreadNotifCount}}</span>
       {{end}}
     </button>
+    <a href="/business/payments" class="wa-nav-item" data-nav="payments" title="Payments">
+      <i class="fas fa-credit-card"></i>
+    </a>
   </div>
   <div class="wa-navbar-divider"></div>
   <div class="wa-navbar-bottom">
@@ -39,6 +42,9 @@
     <button onclick="waToggleNavMenu()" class="wa-nav-item" title="Menu" id="navMenuBtn">
       <i class="fas fa-ellipsis-h"></i>
     </button>
+    <a href="/business/subscription" class="wa-nav-item" title="Subscription" id="navSubscriptionBadge">
+      <i class="fas fa-crown"></i>
+    </a>
     <button onclick="showBusinessProfile()" class="wa-nav-item wa-nav-avatar" title="Business Profile">
       {{if .Business.Logo}}
       <img src="/static/{{.Business.Logo}}" class="wa-nav-avatar-img">

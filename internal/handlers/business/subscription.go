@@ -182,6 +182,8 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 		Subscription: business.Subscription,
 		Plans:        plans,
 		Usage:        usage,
+		AuthType:     c.GetString("auth_type"),
+		Role:         c.GetString("role"),
 	}
 
 	if business.Subscription != nil {

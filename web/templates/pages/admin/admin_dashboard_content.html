@@ -1,0 +1,47 @@
+<div class="p-6 space-y-6">
+  <!-- Recent Signups -->
+  <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+    <h2 class="text-sm font-semibold text-white mb-3"><i class="fas fa-store mr-2 text-teal-400"></i>Recent Business Signups</h2>
+    {{if .RecentBusinesses}}
+    <div class="space-y-2">
+      {{range .RecentBusinesses}}
+      <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
+        <div class="flex items-center gap-3">
+          {{if .Logo}}<img src="{{.Logo}}" class="w-7 h-7 rounded-lg object-cover bg-slate-700">{{else}}<div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 text-xs"><i class="fas fa-store"></i></div>{{end}}
+          <div>
+            <p class="text-sm font-medium text-white">{{.Name}}</p>
+            <p class="text-xs text-slate-400">{{.Email}}</p>
+          </div>
+        </div>
+        <span class="text-xs text-slate-500">{{formatDate .CreatedAt}}</span>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <p class="text-sm text-slate-500 text-center py-4">No businesses yet</p>
+    {{end}}
+  </div>
+
+  <!-- Recent Audit Activity -->
+  <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
+    <h2 class="text-sm font-semibold text-white mb-3"><i class="fas fa-history mr-2 text-purple-400"></i>Recent Activity</h2>
+    {{if .RecentLogs}}
+    <div class="space-y-2">
+      {{range .RecentLogs}}
+      <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
+        <div class="flex items-center gap-3">
+          <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{if eq .Action "suspend"}}bg-red-500/20 text-red-400{{else if eq .Action "activate"}}bg-emerald-500/20 text-emerald-400{{else}}bg-slate-700 text-slate-300{{end}}">{{.Action}}</span>
+          <div>
+            <p class="text-sm text-slate-300">{{.Admin.Email}} <span class="text-slate-500">on {{.Resource}}</span></p>
+            {{if .Details}}<p class="text-xs text-slate-500">{{.Details}}</p>{{end}}
+          </div>
+        </div>
+        <span class="text-xs text-slate-500">{{formatDate .CreatedAt}}</span>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <p class="text-sm text-slate-500 text-center py-4">No activity yet</p>
+    {{end}}
+  </div>
+</div>

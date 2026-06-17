@@ -1,0 +1,42 @@
+<div class="expand-content bg-slate-850 border-b border-slate-700/50">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Info -->
+    <div>
+      <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Details</h4>
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between"><span class="text-slate-500">Name</span><span class="text-slate-300">{{.Business.Name}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="text-slate-300">{{.Business.Email}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Country</span><span class="text-slate-300">{{.Business.Country}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Currency</span><span class="text-slate-300">{{.Business.Currency}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Time Zone</span><span class="text-slate-300">{{.Business.TimeZone}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Slug</span><span class="text-teal-400">{{.Business.Slug}}</span></div>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div>
+      <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Stats</h4>
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between"><span class="text-slate-500">Clients</span><span class="text-slate-300">{{.ClientCount}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Orders</span><span class="text-slate-300">{{.OrderCount}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Bookings</span><span class="text-slate-300">{{.BookingCount}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Products</span><span class="text-slate-300">{{.ProductCount}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Services</span><span class="text-slate-300">{{.ServiceCount}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Created</span><span class="text-slate-300">{{formatDate .Business.CreatedAt}}</span></div>
+      </div>
+    </div>
+    <!-- Subscription -->
+    <div>
+      <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subscription</h4>
+      <div class="space-y-1.5 text-xs">
+        {{if .Business.Subscription}}
+        {{if .Business.Subscription.Plan}}
+        <div class="flex justify-between"><span class="text-slate-500">Plan</span><span class="text-indigo-400">{{.Business.Subscription.Plan.Name}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Status</span><span class="text-slate-300">{{.Business.Subscription.Status}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Period Start</span><span class="text-slate-300">{{if not .Business.Subscription.CurrentPeriodStart.IsZero}}{{formatDate .Business.Subscription.CurrentPeriodStart}}{{else}}—{{end}}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Period End</span><span class="text-slate-300">{{if not .Business.Subscription.CurrentPeriodEnd.IsZero}}{{formatDate .Business.Subscription.CurrentPeriodEnd}}{{else}}—{{end}}</span></div>
+        {{else}}<div class="text-slate-500">No subscription</div>{{end}}
+        {{else}}<div class="text-slate-500">No subscription</div>{{end}}
+      </div>
+    </div>
+  </div>
+</div>

@@ -56,8 +56,8 @@ function scrollToBottomBtn() {
 }
 </script>
 <script>
-async function clientSubmitOrderPayment(orderId, maxAmount) {
-  const result = await showPaymentModal(maxAmount, currencySymbol);
+async function clientSubmitOrderPayment(orderId, maxAmount, paymentMethods) {
+  const result = await showPaymentModal(maxAmount, currencySymbol, paymentMethods);
   if (!result) return;
   fetch('/client/orders/' + orderId + '/payment', {
     method: 'POST',
@@ -74,8 +74,8 @@ if (typeof showNotification === 'function') showNotification('Payment recorded! 
     });
 }
 
-async function clientSubmitBookingPayment(bookingId, maxAmount) {
-  const result = await showPaymentModal(maxAmount, currencySymbol);
+async function clientSubmitBookingPayment(bookingId, maxAmount, paymentMethods) {
+  const result = await showPaymentModal(maxAmount, currencySymbol, paymentMethods);
   if (!result) return;
   fetch('/client/bookings/' + bookingId + '/payment', {
     method: 'POST',

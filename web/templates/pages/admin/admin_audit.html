@@ -1,76 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{.Title}}</title>
-  <meta name="color-scheme" content="light dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="/static/js/core/theme.js?v=1"></script>
-</head>
-<body class="font-sans antialiased bg-slate-900 min-h-screen">
-  <div class="flex min-h-screen">
-    <div class="w-64 bg-slate-800 border-r border-slate-700 p-4 flex flex-col">
-      <div class="flex items-center gap-2 mb-8 px-2">
-        <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
-        <span class="text-white font-bold text-sm">Admin Panel</span>
-      </div>
-      <nav class="space-y-1 flex-1">
-        <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-chart-simple w-5"></i>Dashboard
-        </a>
-        <a href="/admin/businesses" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-store w-5"></i>Businesses
-        </a>
-        <a href="/admin/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white text-sm transition-all">
-          <i class="fas fa-crown w-5"></i>Subscriptions
-        </a>
-        <a href="/admin/audit" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-teal-500/10 text-teal-400 text-sm font-medium">
-          <i class="fas fa-history w-5"></i>Audit Log
-        </a>
-      </nav>
-      <div class="border-t border-slate-700 pt-4">
-        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-white text-sm transition-all">
-          <i class="fas fa-arrow-left w-5"></i>Back to Site
-        </a>
-      </div>
-    </div>
+<div class="p-6">
+  <h2 class="text-sm font-semibold text-white mb-4"><i class="fas fa-history mr-2 text-teal-400"></i>Audit Log</h2>
 
-    <div class="flex-1 p-8 overflow-y-auto">
-      <h1 class="text-2xl font-bold text-white mb-8">Audit Log</h1>
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-3 mb-4">
+    <select name="action" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
+      hx-get="/admin/audit?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="action,resource">
+      <option value="">All Actions</option>
+      <option value="suspend" {{if eq .ActionFilter "suspend"}}selected{{end}}>Suspend</option>
+      <option value="activate" {{if eq .ActionFilter "activate"}}selected{{end}}>Activate</option>
+      <option value="delete_business" {{if eq .ActionFilter "delete_business"}}selected{{end}}>Delete Business</option>
+      <option value="delete_client" {{if eq .ActionFilter "delete_client"}}selected{{end}}>Delete Client</option>
+      <option value="login" {{if eq .ActionFilter "login"}}selected{{end}}>Login</option>
+    </select>
+    <select name="resource" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
+      hx-get="/admin/audit?page=1" hx-trigger="change" hx-target="#admin-content" hx-params="action,resource">
+      <option value="">All Resources</option>
+      <option value="business" {{if eq .ResourceFilter "business"}}selected{{end}}>Business</option>
+      <option value="client" {{if eq .ResourceFilter "client"}}selected{{end}}>Client</option>
+      <option value="subscription" {{if eq .ResourceFilter "subscription"}}selected{{end}}>Subscription</option>
+    </select>
+  </div>
 
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-700 text-slate-400">
-              <th class="text-left px-6 py-3 font-medium">Admin</th>
-              <th class="text-left px-6 py-3 font-medium">Action</th>
-              <th class="text-left px-6 py-3 font-medium">Resource</th>
-              <th class="text-left px-6 py-3 font-medium">Resource ID</th>
-              <th class="text-left px-6 py-3 font-medium">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range .Logs}}
-            <tr class="border-b border-slate-700/50 text-slate-300">
-              <td class="px-6 py-4 font-medium">{{.Admin.Email}}</td>
-              <td class="px-6 py-4">
-                <span class="inline-block px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-xs capitalize">{{.Action}}</span>
-              </td>
-              <td class="px-6 py-4 text-slate-400">{{.Resource}}</td>
-              <td class="px-6 py-4 text-slate-400">{{.ResourceID}}</td>
-              <td class="px-6 py-4 text-slate-400">{{formatDate .CreatedAt}}</td>
-            </tr>
-            {{end}}
-          </tbody>
-        </table>
-      </div>
+  <!-- Table -->
+  <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-xs text-slate-500 uppercase tracking-wider border-b border-slate-700">
+          <th class="text-left px-4 py-3 font-medium">Admin</th>
+          <th class="text-left px-4 py-3 font-medium">Action</th>
+          <th class="text-left px-4 py-3 font-medium hidden md:table-cell">Resource</th>
+          <th class="text-left px-4 py-3 font-medium hidden lg:table-cell">Details</th>
+          <th class="text-right px-4 py-3 font-medium">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{if .Logs}}
+        {{range .Logs}}
+        <tr class="border-b border-slate-700/50 hover:bg-slate-750 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-medium">
+                {{substr .Admin.Email 0 1 | upper}}
+              </div>
+              <span class="text-slate-300">{{.Admin.Email}}</span>
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium
+              {{if eq .Action "suspend"}}bg-red-500/20 text-red-400
+              {{else if eq .Action "activate"}}bg-emerald-500/20 text-emerald-400
+              {{else if hasPrefix .Action "delete"}}bg-red-500/20 text-red-400
+              {{else if eq .Action "login"}}bg-blue-500/20 text-blue-400
+              {{else}}bg-slate-700 text-slate-300{{end}}">{{.Action}}</span>
+          </td>
+          <td class="px-4 py-3 text-slate-400 hidden md:table-cell">{{.Resource}}</td>
+          <td class="px-4 py-3 text-slate-500 text-xs hidden lg:table-cell max-w-xs truncate">{{.Details}}</td>
+          <td class="px-4 py-3 text-right text-xs text-slate-500">{{formatDate .CreatedAt}}</td>
+        </tr>
+        {{end}}
+        {{else}}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No audit log entries found</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {{if gt .TotalPages 1}}
+  <div class="flex items-center justify-between mt-4">
+    <p class="text-xs text-slate-500">{{.Total}} results — page {{.Page}} of {{.TotalPages}}</p>
+    <div class="flex gap-1">
+      {{$prevDisabled := le .Page 1}}
+      <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $prevDisabled}} opacity-30 cursor-default{{end}}"
+        {{if not $prevDisabled}}hx-get="/admin/audit?page={{sub (float .Page) 1}}&action={{.ActionFilter}}&resource={{.ResourceFilter}}" hx-target="#admin-content"{{end}}>
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      {{$page := .Page}}{{$totalPages := .TotalPages}}
+      {{range $i := seq 1 $totalPages}}
+      {{if or (le $i 3) (gt $i (sub (float $totalPages) 2)) (and (ge $i (sub (float $page) 1)) (le $i (add (float $page) 1)))}}
+      <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs {{if eq $i $page}}active{{else}}text-slate-400 bg-slate-800 border border-slate-700{{end}}"
+        hx-get="/admin/audit?page={{$i}}&action={{$.ActionFilter}}&resource={{$.ResourceFilter}}" hx-target="#admin-content">
+        {{$i}}
+      </button>
+      {{else if eq $i (sub (float $page) 2)}}
+      <span class="px-2 py-1.5 text-slate-600">…</span>
+      {{end}}
+      {{end}}
+      {{$nextDisabled := ge .Page .TotalPages}}
+      <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $nextDisabled}} opacity-30 cursor-default{{end}}"
+        {{if not $nextDisabled}}hx-get="/admin/audit?page={{add (float .Page) 1}}&action={{.ActionFilter}}&resource={{.ResourceFilter}}" hx-target="#admin-content"{{end}}>
+        <i class="fas fa-chevron-right"></i>
+      </button>
     </div>
   </div>
-  {{template "csrf_script" .}}
-</body>
-</html>
+  {{end}}
+</div>

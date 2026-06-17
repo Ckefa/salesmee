@@ -174,6 +174,8 @@ func main() {
 			return dict, nil
 		},
 		"title": strings.Title,
+		"upper": strings.ToUpper,
+		"lower": strings.ToLower,
 		"default": func(def, val interface{}) interface{} {
 			if val == nil || val == "" {
 				return def

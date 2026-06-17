@@ -18,7 +18,7 @@ func generateInviteToken() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-func (h *BusinessHandler) GetTeam(c *gin.Context) {
+func (h *TeamHandler) GetTeam(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Business not authenticated"})
@@ -54,7 +54,7 @@ func (h *BusinessHandler) GetTeam(c *gin.Context) {
 	c.HTML(http.StatusOK, "team.html", data)
 }
 
-func (h *BusinessHandler) InviteTeamMember(c *gin.Context) {
+func (h *TeamHandler) InviteTeamMember(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var req struct {
@@ -121,7 +121,7 @@ func (h *BusinessHandler) InviteTeamMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "invite_token": token})
 }
 
-func (h *BusinessHandler) UpdateTeamMember(c *gin.Context) {
+func (h *TeamHandler) UpdateTeamMember(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	memberID := c.Param("id")
 
@@ -172,7 +172,7 @@ func (h *BusinessHandler) UpdateTeamMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) DeleteTeamMember(c *gin.Context) {
+func (h *TeamHandler) DeleteTeamMember(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	memberID := c.Param("id")
 
@@ -190,7 +190,7 @@ func (h *BusinessHandler) DeleteTeamMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) ShowAcceptInvite(c *gin.Context) {
+func (h *TeamHandler) ShowAcceptInvite(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
 		c.HTML(http.StatusBadRequest, "team_accept.html", gin.H{"Error": "Invalid invite token"})
@@ -214,7 +214,7 @@ func (h *BusinessHandler) ShowAcceptInvite(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) AcceptInvite(c *gin.Context) {
+func (h *TeamHandler) AcceptInvite(c *gin.Context) {
 	var req struct {
 		Token    string `json:"token"`
 		Password string `json:"password"`

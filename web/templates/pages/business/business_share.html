@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/share_content"}}
+<div id="share-page">
       <div class="py-8">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
@@ -165,6 +166,9 @@
       </div>
 
   <script>
+    function reloadSharePage() {
+      htmx.ajax('GET', window.location.href, {target: '#share-page', swap: 'outerHTML'});
+    }
     function copyLink(inputId) {
       const input = document.getElementById(inputId);
       input.select();
@@ -201,7 +205,7 @@
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            location.reload();
+            reloadSharePage();
           } else {
             showNotification(data.error || 'Failed to regenerate', 'error');
             btn.disabled = false;
@@ -240,5 +244,6 @@
         });
     }
   </script>
+</div>
 {{end}}
 

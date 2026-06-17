@@ -73,11 +73,7 @@ func SendBusinessVerification(c *gin.Context) {
 
 	db.DB.Model(&business).Update("verification_token", token)
 
-	scheme := "https"
-	if c.Request.TLS == nil {
-		scheme = "http"
-	}
-	verifyLink := scheme + "://" + c.Request.Host + "/business/verify?token=" + token
+	verifyLink := services.GetBaseURL(c) + "/business/verify?token=" + token
 
 	if err := services.SendVerificationEmail(business.Email, verifyLink); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"})

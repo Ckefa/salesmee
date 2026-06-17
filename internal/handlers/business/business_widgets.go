@@ -1,6 +1,7 @@
 package business
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
@@ -16,21 +17,21 @@ func QuickBooking(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.String(400, "Invalid client ID")
+		c.String(http.StatusBadRequest, "Invalid client ID")
 		return
 	}
 
 	// Verify client belongs to user
 	var client models.Client
 	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
-		c.String(404, "Client not found")
+		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
 	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
-		c.String(404, "Conversation not found")
+		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
@@ -44,13 +45,13 @@ func QuickBooking(c *gin.Context) {
 		Title:       title,
 		Description: description,
 		Priority:    "high",
-		Status:      "pending",
+		Status:      models.OrderPending,
 		DueDate:     &time.Time{}, // Will be set by user
 		CreatedAt:   time.Now(),
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.String(500, "Failed to create booking")
+		c.String(http.StatusInternalServerError, "Failed to create booking")
 		return
 	}
 
@@ -62,7 +63,7 @@ func QuickBooking(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&message).Error; err != nil {
-		c.String(500, "Failed to create booking message")
+		c.String(http.StatusInternalServerError, "Failed to create booking message")
 		return
 	}
 
@@ -72,7 +73,7 @@ func QuickBooking(c *gin.Context) {
 
 	progress.AutoCalculateProgress(conversation.ID)
 
-	c.HTML(200, "confirmations/booking_confirmation.html", gin.H{
+	c.HTML(http.StatusOK, "confirmations/booking_confirmation.html", gin.H{
 		"Client":  client,
 		"Action":  action,
 		"Message": message,
@@ -84,21 +85,21 @@ func QuickOrder(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.String(400, "Invalid client ID")
+		c.String(http.StatusBadRequest, "Invalid client ID")
 		return
 	}
 
 	// Verify client belongs to user
 	var client models.Client
 	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
-		c.String(404, "Client not found")
+		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
 	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
-		c.String(404, "Conversation not found")
+		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
@@ -112,12 +113,12 @@ func QuickOrder(c *gin.Context) {
 		Title:       title,
 		Description: description,
 		Priority:    "medium",
-		Status:      "pending",
+		Status:      models.OrderPending,
 		CreatedAt:   time.Now(),
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.String(500, "Failed to create order")
+		c.String(http.StatusInternalServerError, "Failed to create order")
 		return
 	}
 
@@ -129,7 +130,7 @@ func QuickOrder(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&message).Error; err != nil {
-		c.String(500, "Failed to create order message")
+		c.String(http.StatusInternalServerError, "Failed to create order message")
 		return
 	}
 
@@ -139,7 +140,7 @@ func QuickOrder(c *gin.Context) {
 
 	progress.AutoCalculateProgress(conversation.ID)
 
-	c.HTML(200, "confirmations/order_confirmation.html", gin.H{
+	c.HTML(http.StatusOK, "confirmations/order_confirmation.html", gin.H{
 		"Client":  client,
 		"Action":  action,
 		"Message": message,
@@ -151,21 +152,21 @@ func RequestPayment(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.String(400, "Invalid client ID")
+		c.String(http.StatusBadRequest, "Invalid client ID")
 		return
 	}
 
 	// Verify client belongs to user
 	var client models.Client
 	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
-		c.String(404, "Client not found")
+		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
 	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
-		c.String(404, "Conversation not found")
+		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
@@ -179,12 +180,12 @@ func RequestPayment(c *gin.Context) {
 		Title:       title,
 		Description: description,
 		Priority:    "high",
-		Status:      "pending",
+		Status:      models.OrderPending,
 		CreatedAt:   time.Now(),
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.String(500, "Failed to create payment request")
+		c.String(http.StatusInternalServerError, "Failed to create payment request")
 		return
 	}
 
@@ -196,7 +197,7 @@ func RequestPayment(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&message).Error; err != nil {
-		c.String(500, "Failed to create payment message")
+		c.String(http.StatusInternalServerError, "Failed to create payment message")
 		return
 	}
 
@@ -206,7 +207,7 @@ func RequestPayment(c *gin.Context) {
 
 	progress.AutoCalculateProgress(conversation.ID)
 
-	c.HTML(200, "confirmations/payment_confirmation.html", gin.H{
+	c.HTML(http.StatusOK, "confirmations/payment_confirmation.html", gin.H{
 		"Client":  client,
 		"Action":  action,
 		"Message": message,
@@ -218,21 +219,21 @@ func SetGoal(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.String(400, "Invalid client ID")
+		c.String(http.StatusBadRequest, "Invalid client ID")
 		return
 	}
 
 	// Verify client belongs to user
 	var client models.Client
 	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
-		c.String(404, "Client not found")
+		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
 	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
-		c.String(404, "Conversation not found")
+		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
@@ -250,7 +251,7 @@ func SetGoal(c *gin.Context) {
 		Title:       title,
 		Description: description,
 		Priority:    "medium",
-		Status:      "pending",
+		Status:      models.OrderPending,
 		CreatedAt:   time.Now(),
 	}
 
@@ -261,7 +262,7 @@ func SetGoal(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.String(500, "Failed to create goal")
+		c.String(http.StatusInternalServerError, "Failed to create goal")
 		return
 	}
 
@@ -273,7 +274,7 @@ func SetGoal(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&message).Error; err != nil {
-		c.String(500, "Failed to create goal message")
+		c.String(http.StatusInternalServerError, "Failed to create goal message")
 		return
 	}
 
@@ -283,7 +284,7 @@ func SetGoal(c *gin.Context) {
 
 	progress.AutoCalculateProgress(conversation.ID)
 
-	c.HTML(200, "confirmations/goal_confirmation.html", gin.H{
+	c.HTML(http.StatusOK, "confirmations/goal_confirmation.html", gin.H{
 		"Client":  client,
 		"Action":  action,
 		"Message": message,

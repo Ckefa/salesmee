@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *BusinessHandler) GetLocations(c *gin.Context) {
+func (h *LocationHandler) GetLocations(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Business not authenticated"})
@@ -39,7 +39,7 @@ func (h *BusinessHandler) GetLocations(c *gin.Context) {
 	c.HTML(http.StatusOK, "locations.html", data)
 }
 
-func (h *BusinessHandler) CreateLocation(c *gin.Context) {
+func (h *LocationHandler) CreateLocation(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
@@ -90,7 +90,7 @@ func (h *BusinessHandler) CreateLocation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "location": loc})
 }
 
-func (h *BusinessHandler) UpdateLocation(c *gin.Context) {
+func (h *LocationHandler) UpdateLocation(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	locationID := c.Param("id")
 
@@ -142,7 +142,7 @@ func (h *BusinessHandler) UpdateLocation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) DeleteLocation(c *gin.Context) {
+func (h *LocationHandler) DeleteLocation(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	locationID := c.Param("id")
 

@@ -506,6 +506,9 @@
         });
     }
 
+    function reloadBookingsPage() {
+      htmx.ajax('GET', window.location.href, {target: '#bookings-page', swap: 'outerHTML'});
+    }
     function approveBooking(bookingId) {
       fetch(`/business/bookings/${bookingId}/status`, {
         method: 'PUT',
@@ -513,7 +516,7 @@
         body: JSON.stringify({status: 'client_confirmed'})
       })
         .then(r => r.json())
-        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to approve booking', 'error'); })
+        .then(d => { if (d.success) reloadBookingsPage(); else showNotification(d.error || 'Failed to approve booking', 'error'); })
         .catch(() => showNotification('Failed to approve booking', 'error'));
     }
 
@@ -523,7 +526,7 @@
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }
       })
         .then(r => r.json())
-        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to mark as paid', 'error'); })
+        .then(d => { if (d.success) reloadBookingsPage(); else showNotification(d.error || 'Failed to mark as paid', 'error'); })
         .catch(() => showNotification('Failed to mark as paid', 'error'));
     }
 
@@ -534,7 +537,7 @@
         body: JSON.stringify({status: 'completed'})
       })
         .then(r => r.json())
-        .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to complete booking', 'error'); })
+        .then(d => { if (d.success) reloadBookingsPage(); else showNotification(d.error || 'Failed to complete booking', 'error'); })
         .catch(() => showNotification('Failed to complete booking', 'error'));
     }
 
@@ -547,7 +550,7 @@
           body: JSON.stringify({status: 'cancelled'})
         })
           .then(r => r.json())
-          .then(d => { if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
+          .then(d => { if (d.success) reloadBookingsPage(); else showNotification(d.error || 'Failed to cancel booking', 'error'); })
           .catch(() => showNotification('Failed to cancel booking', 'error'));
       });
     }
@@ -647,7 +650,7 @@
             hideQuickBookingModal();
             // Reset the form's data-booking-id attribute
             this.removeAttribute('data-booking-id');
-            location.reload();
+            reloadBookingsPage();
           } else {
             showNotification(data.error || `Failed to ${isEdit ? 'update' : 'create'} booking`, 'error');
           }

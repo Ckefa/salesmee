@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
-	"os"
 	"sync"
 
+	"salesmee/internal/config"
 	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
@@ -24,14 +24,14 @@ var (
 
 func getBusinessGoogleAdapter() *services.GoogleAdapter {
 	businessGoogleAdapterOnce.Do(func() {
-		businessGoogleAdapter = services.NewGoogleAdapter(os.Getenv("GOOGLE_REDIRECT_URL"))
+		businessGoogleAdapter = services.NewGoogleAdapter(config.C.GoogleRedirectURL)
 	})
 	return businessGoogleAdapter
 }
 
 func getBusinessFacebookAdapter() *services.FacebookAdapter {
 	businessFacebookAdapterOnce.Do(func() {
-		businessFacebookAdapter = services.NewFacebookAdapter(os.Getenv("FB_REDIRECT_URL"))
+		businessFacebookAdapter = services.NewFacebookAdapter(config.C.FBRedirectURL)
 	})
 	return businessFacebookAdapter
 }
@@ -44,7 +44,7 @@ func generateState() string {
 
 func InitiateBusinessGoogleAuth(c *gin.Context) {
 	state := generateState()
-	c.SetCookie("google_oauth_state", state, 600, "/business/auth/google", "", false, true)
+	services.SetSecureCookie(c, "google_oauth_state", state, 600, "/business/auth/google")
 	url := getBusinessGoogleAdapter().GetAuthURL(state)
 	c.Redirect(http.StatusFound, url)
 }
@@ -53,17 +53,17 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	state := c.Query("state")
 	cookieState, err := c.Cookie("google_oauth_state")
 	if err != nil || state == "" || state != cookieState {
-		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
 		}))
 		return
 	}
-	c.SetCookie("google_oauth_state", "", -1, "/business/auth/google", "", false, true)
+	services.ClearCookie(c, "google_oauth_state", "/business/auth/google")
 
 	code := c.Query("code")
 	if code == "" {
-		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "No authorization code provided.",
 		}))
@@ -72,7 +72,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 
 	user, err := getBusinessGoogleAdapter().ExchangeCode(code)
 	if err != nil {
-		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to authenticate with Google.",
 		}))
@@ -103,20 +103,20 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
-		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token.",
 		}))
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, false)
+	services.SetSecureCookie(c, "token", token, 86400, "/business")
 	c.Redirect(http.StatusFound, "/business")
 }
 
 func InitiateBusinessFacebookAuth(c *gin.Context) {
 	state := generateState()
-	c.SetCookie("facebook_oauth_state", state, 600, "/business/auth/facebook", "", false, true)
+	services.SetSecureCookie(c, "facebook_oauth_state", state, 600, "/business/auth/facebook")
 	url := getBusinessFacebookAdapter().GetAuthURL(state)
 	c.Redirect(http.StatusFound, url)
 }
@@ -125,17 +125,17 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	state := c.Query("state")
 	cookieState, err := c.Cookie("facebook_oauth_state")
 	if err != nil || state == "" || state != cookieState {
-		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Invalid state parameter. Please try again.",
 		}))
 		return
 	}
-	c.SetCookie("facebook_oauth_state", "", -1, "/business/auth/facebook", "", false, true)
+	services.ClearCookie(c, "facebook_oauth_state", "/business/auth/facebook")
 
 	code := c.Query("code")
 	if code == "" {
-		c.HTML(400, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "No authorization code provided.",
 		}))
@@ -144,7 +144,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 
 	user, err := getBusinessFacebookAdapter().ExchangeCode(code)
 	if err != nil {
-		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to authenticate with Facebook.",
 		}))
@@ -175,14 +175,14 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
-		c.HTML(500, "business_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Failed to generate token.",
 		}))
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, false)
+	services.SetSecureCookie(c, "token", token, 86400, "/business")
 	c.Redirect(http.StatusFound, "/business")
 }
 
@@ -194,7 +194,7 @@ func ShowRegisterGoogle(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "register_google.html", middleware.TemplateData(c, gin.H{
+	c.HTML(http.StatusOK, "register_google.html", middleware.TemplateData(c, gin.H{
 		"Title":     "Complete Registration - SalesMee",
 		"Token":     tok,
 		"Name":      data.Name,
@@ -213,7 +213,7 @@ func CompleteRegisterGoogle(c *gin.Context) {
 
 	businessType := c.PostForm("business_type")
 	if businessType == "" || !validBusinessTypes[businessType] {
-		c.HTML(200, "register_google.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusOK, "register_google.html", middleware.TemplateData(c, gin.H{
 			"Title":     "Complete Registration - SalesMee",
 			"Token":     tok,
 			"Name":      data.Name,
@@ -245,7 +245,7 @@ func CompleteRegisterGoogle(c *gin.Context) {
 
 	if err := db.DB.Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
-		c.HTML(200, "register_google.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusOK, "register_google.html", middleware.TemplateData(c, gin.H{
 			"Title":     "Complete Registration - SalesMee",
 			"Token":     tok,
 			"Name":      data.Name,
@@ -264,6 +264,6 @@ func CompleteRegisterGoogle(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 86400, "/business", "", false, false)
+	services.SetSecureCookie(c, "token", token, 86400, "/business")
 	c.Redirect(http.StatusFound, "/business")
 }

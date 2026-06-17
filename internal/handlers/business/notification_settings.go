@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *BusinessHandler) GetNotificationSettings(c *gin.Context) {
+func (h *NotificationHandler) GetNotificationSettings(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Redirect(http.StatusFound, "/business/login")
@@ -44,7 +44,7 @@ func (h *BusinessHandler) GetNotificationSettings(c *gin.Context) {
 	c.HTML(http.StatusOK, "notification_settings.html", data)
 }
 
-func (h *BusinessHandler) UpdateNotificationSettings(c *gin.Context) {
+func (h *NotificationHandler) UpdateNotificationSettings(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})

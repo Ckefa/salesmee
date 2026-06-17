@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
+
+	"salesmee/internal/config"
 )
 
 type Message struct {
@@ -36,11 +37,11 @@ const groqBaseURL = "https://api.groq.com/openai/v1/chat/completions"
 const defaultModel = "llama-3.1-8b-instant"
 
 func IsEnabled() bool {
-	return os.Getenv("GROQ_API_KEY") != ""
+	return config.C.GroqAPIKey != ""
 }
 
 func ChatCompletion(systemPrompt string, messages []Message) (string, error) {
-	apiKey := os.Getenv("GROQ_API_KEY")
+	apiKey := config.C.GroqAPIKey
 	if apiKey == "" {
 		return "", fmt.Errorf("GROQ_API_KEY not set")
 	}

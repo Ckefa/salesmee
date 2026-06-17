@@ -172,7 +172,7 @@
         .then(function(data){
           if (data.verified) {
             showNotification('Email verified! Reloading...', 'success');
-            setTimeout(function(){ location.reload(); }, 1200);
+            setTimeout(function(){ htmx.ajax('GET', window.location.href, {target: 'body', swap: 'innerHTML'}); }, 1200);
           } else {
             showNotification('Email not yet verified. Check your spam folder or click Resend above.', 'warning');
           }
@@ -229,14 +229,18 @@
   {{template "business_profile_script" .}}
   {{template "dashboard_footer" .}}
 
-  <script>var BUSINESS_ID = '{{.Business.ID}}';</script>
+  <script>var BUSINESS_ID = '{{.Business.ID}}';
+var AUTH_TOKEN = '{{.AuthToken}}';</script>
   <script src="/static/js/modules/shared.js?v=1"></script>
   <script src="/static/js/modules/ws.js?v=2"></script>
   <script src="/static/js/modules/assist.js?v=1"></script>
   <script src="/static/js/modules/business.js?v=2"></script>
+  <script src="/static/js/modules/wizard_common.js?v=1"></script>
   <script src="/static/js/modules/product_picker.js?v=1"></script>
   <script src="/static/js/modules/service_picker.js?v=1"></script>
   <script src="/static/js/modules/onboarding.js?v=1"></script>
+  <script src="/static/js/modules/chat_common.js?v=1"></script>
+  <script src="/static/js/modules/business_chat.js?v=3"></script>
   <script src="/static/js/core/app.js?v=1"></script>
 
   <script>

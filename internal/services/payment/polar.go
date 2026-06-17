@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/polarsource/polar-go/models/components"
 	"github.com/polarsource/polar-go/models/operations"
 
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 )
 
@@ -26,9 +26,9 @@ type PolarAdapter struct {
 }
 
 func NewPolarAdapter() *PolarAdapter {
-	accessToken := os.Getenv("POLAR_ACCESS_TOKEN")
-	webhookSecret := os.Getenv("POLAR_WEBHOOK_SECRET")
-	environment := os.Getenv("POLAR_ENVIRONMENT")
+	accessToken := config.C.PolarAccessToken
+	webhookSecret := config.C.PolarWebhookSecret
+	environment := config.C.PolarEnvironment
 	if environment == "" {
 		environment = "sandbox"
 	}
@@ -70,7 +70,6 @@ func (p *PolarAdapter) CreateCheckoutSession(ctx *CheckoutContext) (*CheckoutSes
 	req := components.CheckoutCreate{
 		Products:      []string{ctx.Plan.PolarPriceID},
 		SuccessURL:    &ctx.SuccessURL,
-		ReturnURL:     &ctx.CancelURL,
 		Metadata:      metadata,
 		CustomerEmail: &ctx.CustomerEmail,
 	}
@@ -97,7 +96,6 @@ func (p *PolarAdapter) CreateBillingPortalSession(customerID, returnURL string) 
 	req := operations.CreateCustomerSessionsCreateCustomerSessionCreateCustomerSessionCustomerExternalIDCreate(
 		components.CustomerSessionCustomerExternalIDCreate{
 			ExternalCustomerID: customerID,
-			ReturnURL:          &returnURL,
 		},
 	)
 
@@ -248,27 +246,20 @@ func (p *PolarAdapter) GetOrCreateCustomer(business *models.Business) (string, e
 	}
 
 	externalID := fmt.Sprintf("biz_%d", business.ID)
-	customerReq := components.CreateCustomerCreateCustomerIndividualCreate(
-		components.CustomerIndividualCreate{
-			Email:      business.Email,
-			Name:       &business.Name,
-			ExternalID: &externalID,
-		},
-	)
+	customerReq := components.CustomerCreate{
+		Email:      business.Email,
+		Name:       &business.Name,
+		ExternalID: &externalID,
+	}
 
 	res, err := p.sdk.Customers.Create(context.Background(), customerReq)
 	if err != nil {
 		return "", fmt.Errorf("polar create customer: %w", err)
 	}
 
-	var customerID string
-	if res.Customer != nil && res.Customer.CustomerIndividual != nil {
-		customerID = res.Customer.CustomerIndividual.ID
-	} else if res.Customer != nil && res.Customer.CustomerTeam != nil {
-		customerID = res.Customer.CustomerTeam.ID
-	} else {
+	if res.Customer == nil {
 		return "", fmt.Errorf("polar: empty customer response")
 	}
 
-	return customerID, nil
+	return res.Customer.ID, nil
 }

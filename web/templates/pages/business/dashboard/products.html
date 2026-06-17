@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/products_content"}}
+<div id="products-page">
   <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Page Header -->
@@ -244,6 +245,9 @@
     </div>
 
     <script>
+      function reloadProductsPage() {
+        htmx.ajax('GET', window.location.href, {target: '#products-page', swap: 'outerHTML'});
+      }
       function showAddProductModal() {
         document.getElementById('modalTitle').textContent = 'Add Product';
         document.getElementById('productForm').reset();
@@ -299,7 +303,7 @@
             .then(response => response.json())
             .then(data => {
               if (data.success) {
-                location.reload();
+                reloadProductsPage();
               } else {
                 showNotification('Failed to delete product', 'error');
               }
@@ -357,10 +361,7 @@
       }
 
       function updateImageCountBadge(productId) {
-        const card = document.querySelector(`[data-product-id="${productId}"] .relative`);
-        if (!card) return;
-        const existingBadge = card.querySelector('.absolute.bottom-2.right-2');
-        location.reload();
+        reloadProductsPage();
       }
 
       function previewProductImage(productId, name) {
@@ -542,7 +543,7 @@
           .then(data => {
             if (data.success) {
               hideProductModal();
-              location.reload();
+              reloadProductsPage();
             } else {
               showNotification('Failed to save product', 'error');
             }
@@ -603,6 +604,6 @@
         document.getElementById('locationFilter').value = '/business/products?location_id=' + locId;
       }
     </script>
-
+</div>
   {{end}}
 

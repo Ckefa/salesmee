@@ -95,9 +95,29 @@ var rateLimitedPaths = map[string]bool{
 	"/business/forgot-password": true,
 }
 
+var rateLimitedPrefixes = []string{
+	"/client/send-otp",
+	"/client/verify-otp",
+	"/api/connect/",
+	"/business/register",
+	"/business/team/login",
+}
+
+func isRateLimited(path string) bool {
+	if rateLimitedPaths[path] {
+		return true
+	}
+	for _, prefix := range rateLimitedPrefixes {
+		if len(path) >= len(prefix) && path[:len(prefix)] == prefix {
+			return true
+		}
+	}
+	return false
+}
+
 func RateLimitGlobal() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.Method == "POST" && rateLimitedPaths[c.Request.URL.Path] {
+		if c.Request.Method == "POST" && isRateLimited(c.Request.URL.Path) {
 			ip := c.ClientIP()
 			if !authLimiter.allow(ip) {
 				c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{

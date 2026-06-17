@@ -191,7 +191,7 @@
           {{range $order.payment_methods}}
           <div class="bg-[var(--color-surface)] rounded-lg p-2 border border-[var(--color-border-light)]">
             <div class="flex items-center gap-1.5 mb-1">
-              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<span>💳</span>{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else}}<span>✏️</span>{{end}}
+              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<img src="/static/images/paypal" alt="PayPal" class="w-3.5 h-3.5 object-contain inline align-text-bottom">{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else if eq .MethodType "card"}}<span>💳</span>{{else}}<span>✏️</span>{{end}}
               <span class="text-[10px] font-semibold text-[var(--color-text)]">{{.Label}}</span>
             </div>
             {{if eq .MethodType "bank"}}
@@ -218,6 +218,10 @@
               {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}
               {{if index .Details "wallet_address"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Address: {{index .Details "wallet_address"}}</p>{{end}}
               {{if index .Details "description"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "description"}}</p>{{end}}
+            {{else if eq .MethodType "card"}}
+              {{if index .Details "card_brands"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Accepts: {{index .Details "card_brands"}}</p>{{end}}
+              {{if index .Details "terminal"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Terminal: {{index .Details "terminal"}}</p>{{end}}
+              {{if index .Details "instructions"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "instructions"}}</p>{{end}}
             {{else if eq .MethodType "custom"}}
               {{if index .Details "content"}}<p class="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap">{{index .Details "content"}}</p>{{end}}
             {{end}}
@@ -250,7 +254,7 @@
           {{range $order.payment_methods}}
           <div class="bg-[var(--color-surface)] rounded-lg p-2 border border-[var(--color-border-light)]">
             <div class="flex items-center gap-1.5 mb-1">
-              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<span>💳</span>{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else}}<span>✏️</span>{{end}}
+              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<img src="/static/images/paypal" alt="PayPal" class="w-3.5 h-3.5 object-contain inline align-text-bottom">{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else if eq .MethodType "card"}}<span>💳</span>{{else}}<span>✏️</span>{{end}}
               <span class="text-[10px] font-semibold text-[var(--color-text)]">{{.Label}}</span>
             </div>
             {{if eq .MethodType "bank"}}
@@ -277,6 +281,10 @@
               {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}
               {{if index .Details "wallet_address"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Address: {{index .Details "wallet_address"}}</p>{{end}}
               {{if index .Details "description"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "description"}}</p>{{end}}
+            {{else if eq .MethodType "card"}}
+              {{if index .Details "card_brands"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Accepts: {{index .Details "card_brands"}}</p>{{end}}
+              {{if index .Details "terminal"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Terminal: {{index .Details "terminal"}}</p>{{end}}
+              {{if index .Details "instructions"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "instructions"}}</p>{{end}}
             {{else if eq .MethodType "custom"}}
               {{if index .Details "content"}}<p class="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap">{{index .Details "content"}}</p>{{end}}
             {{end}}
@@ -313,7 +321,7 @@
           {{range $order.payment_methods}}
           <div class="bg-[var(--color-surface)] rounded-lg p-2 border border-[var(--color-border-light)]">
             <div class="flex items-center gap-1.5 mb-1">
-              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<span>💳</span>{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else}}<span>✏️</span>{{end}}
+              {{if eq .MethodType "bank"}}<span>🏦</span>{{else if eq .MethodType "mobile_wallet"}}<span>📱</span>{{else if eq .MethodType "paypal"}}<img src="/static/images/paypal" alt="PayPal" class="w-3.5 h-3.5 object-contain inline align-text-bottom">{{else if eq .MethodType "link"}}<span>🔗</span>{{else if eq .MethodType "crypto"}}<span>₿</span>{{else if eq .MethodType "card"}}<span>💳</span>{{else}}<span>✏️</span>{{end}}
               <span class="text-[10px] font-semibold text-[var(--color-text)]">{{.Label}}</span>
             </div>
             {{if eq .MethodType "bank"}}
@@ -327,6 +335,9 @@
               {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">Pay Link</a>{{end}}
             {{else if eq .MethodType "crypto"}}
               {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}
+            {{else if eq .MethodType "card"}}
+              {{if index .Details "card_brands"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Accepts: {{index .Details "card_brands"}}</p>{{end}}
+              {{if index .Details "terminal"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Terminal: {{index .Details "terminal"}}</p>{{end}}
             {{else if eq .MethodType "custom"}}
               {{if index .Details "content"}}<p class="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap">{{index .Details "content"}}</p>{{end}}
             {{end}}

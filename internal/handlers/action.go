@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
@@ -15,7 +16,7 @@ func CreateAction(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	messageID, err := strconv.ParseUint(c.Param("message_id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid message ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
 		return
 	}
 
@@ -24,7 +25,7 @@ func CreateAction(c *gin.Context) {
 	if err := db.DB.Joins("JOIN conversations ON messages.conversation_id = conversations.id").
 		Where("messages.id = ? AND conversations.business_id = ?", messageID, userID).
 		First(&message).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Message not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		return
 	}
 
@@ -70,18 +71,18 @@ func CreateAction(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create action"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create action"})
 		return
 	}
 
-	c.JSON(200, gin.H{"action": action})
+	c.JSON(http.StatusOK, gin.H{"action": action})
 }
 
 func UpdateConversationStatus(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	conversationID, err := strconv.ParseUint(c.Param("conversation_id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid conversation ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
 		return
 	}
 
@@ -89,7 +90,7 @@ func UpdateConversationStatus(c *gin.Context) {
 	var conversation models.Conversation
 	if err := db.DB.Where("id = ? AND business_id = ?", conversationID, userID).
 		First(&conversation).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Conversation not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
 		return
 	}
 
@@ -147,7 +148,7 @@ func UpdateConversationStatus(c *gin.Context) {
 		db.DB.Save(&progress)
 	}
 
-	c.JSON(200, gin.H{"progress": progress})
+	c.JSON(http.StatusOK, gin.H{"progress": progress})
 }
 
 func GetActions(c *gin.Context) {
@@ -159,18 +160,18 @@ func GetActions(c *gin.Context) {
 		Where("conversations.business_id = ?", userID).
 		Order("actions.created_at DESC").
 		Find(&actions).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to load actions"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load actions"})
 		return
 	}
 
-	c.JSON(200, gin.H{"actions": actions})
+	c.JSON(http.StatusOK, gin.H{"actions": actions})
 }
 
 func UpdateActionStatus(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	actionID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid action ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid action ID"})
 		return
 	}
 
@@ -180,7 +181,7 @@ func UpdateActionStatus(c *gin.Context) {
 		Joins("JOIN conversations ON messages.conversation_id = conversations.id").
 		Where("actions.id = ? AND conversations.business_id = ?", actionID, userID).
 		First(&action).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Action not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Action not found"})
 		return
 	}
 
@@ -188,9 +189,9 @@ func UpdateActionStatus(c *gin.Context) {
 	action.IsCompleted = isCompleted
 
 	if err := db.DB.Save(&action).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to update action"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update action"})
 		return
 	}
 
-	c.JSON(200, gin.H{"action": action})
+	c.JSON(http.StatusOK, gin.H{"action": action})
 }

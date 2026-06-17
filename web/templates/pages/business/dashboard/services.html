@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/services_content"}}
+<div id="services-page">
   <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Page Header -->
@@ -208,6 +209,9 @@
   </div>
 
   <script>
+    function reloadServicesPage() {
+      htmx.ajax('GET', window.location.href, {target: '#services-page', swap: 'outerHTML'});
+    }
     function showAddServiceModal() {
       document.getElementById('modalTitle').textContent = 'Add Service';
       document.getElementById('serviceForm').reset();
@@ -287,7 +291,7 @@
           .then(response => response.json())
           .then(data => {
             if (data.success) {
-              location.reload();
+              reloadServicesPage();
             } else {
               showNotification('Failed to delete service', 'error');
             }
@@ -410,7 +414,7 @@
         .then(data => {
           if (data.success) {
             hideServiceModal();
-            location.reload();
+            reloadServicesPage();
           } else {
             showNotification('Failed to save service', 'error');
           }
@@ -472,5 +476,6 @@
       document.getElementById('locationFilter').value = '/business/services?location_id=' + locId;
     }
   </script>
+</div>
 {{end}}
 

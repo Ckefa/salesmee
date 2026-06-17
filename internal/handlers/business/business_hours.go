@@ -31,7 +31,7 @@ type specialHourEntry struct {
 	Reason   string `json:"reason"`
 }
 
-func (h *BusinessHandler) GetBusinessHours(c *gin.Context) {
+func (h *HoursHandler) GetBusinessHours(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
@@ -78,7 +78,7 @@ func (h *BusinessHandler) GetBusinessHours(c *gin.Context) {
 	c.HTML(http.StatusOK, "hours.html", data)
 }
 
-func (h *BusinessHandler) UpdateBusinessHours(c *gin.Context) {
+func (h *HoursHandler) UpdateBusinessHours(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var req struct {
@@ -116,7 +116,7 @@ func (h *BusinessHandler) UpdateBusinessHours(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) UpdateSpecialHours(c *gin.Context) {
+func (h *HoursHandler) UpdateSpecialHours(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var req struct {
@@ -144,7 +144,7 @@ func (h *BusinessHandler) UpdateSpecialHours(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) ToggleAcceptingBookings(c *gin.Context) {
+func (h *HoursHandler) ToggleAcceptingBookings(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var req struct {

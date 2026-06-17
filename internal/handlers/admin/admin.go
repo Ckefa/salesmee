@@ -2,12 +2,13 @@ package admin
 
 import (
 	"net/http"
-	"os"
 	"time"
 
+	"salesmee/internal/config"
 	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
+	"salesmee/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -48,7 +49,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("admin_token", admin.Email+":"+admin.Password[:20], 86400, "/admin", "", false, true)
+	token, err := services.GenerateAdminToken(admin.ID, admin.Email)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_login.html", middleware.TemplateData(c, gin.H{
+			"Title": "Admin Login - SalesMee",
+			"Error": "Failed to generate session",
+		}))
+		return
+	}
+
+	services.SetSecureCookie(c, "admin_token", token, 86400, "/admin")
 	c.Redirect(http.StatusFound, "/admin")
 }
 
@@ -56,9 +66,10 @@ func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("admin_token")
 		if err == nil && cookie != "" {
-			var admin models.Admin
-			if db.DB.Where("email = ?", cookie[:len(cookie)-21]).First(&admin).Error == nil {
-				if cookie == admin.Email+":"+admin.Password[:20] {
+			claims, err := services.ValidateToken(cookie)
+			if err == nil && claims.Subject == "admin" {
+				var admin models.Admin
+				if db.DB.First(&admin, claims.UserID).Error == nil {
 					c.Set("admin_id", admin.ID)
 					c.Set("admin_email", admin.Email)
 					c.Set("admin_name", admin.Name)
@@ -164,8 +175,8 @@ func SeedAdmin() {
 		return
 	}
 
-	email := os.Getenv("ADMIN_EMAIL")
-	password := os.Getenv("ADMIN_PASSWORD")
+	email := config.C.AdminEmail
+	password := config.C.AdminPassword
 	if email == "" || password == "" {
 		return
 	}

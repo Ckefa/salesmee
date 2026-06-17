@@ -10,11 +10,11 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 )
 
@@ -28,10 +28,10 @@ type PaddleAdapter struct {
 }
 
 func NewPaddleAdapter() *PaddleAdapter {
-	apiKey := os.Getenv("PADDLE_API_KEY")
-	clientToken := os.Getenv("PADDLE_CLIENT_TOKEN")
-	webhookSecret := os.Getenv("PADDLE_WEBHOOK_SECRET")
-	environment := os.Getenv("PADDLE_ENVIRONMENT")
+	apiKey := config.C.PaddleAPIKey
+	clientToken := config.C.PaddleClientToken
+	webhookSecret := config.C.PaddleWebhookSecret
+	environment := config.C.PaddleEnvironment
 	if environment == "" {
 		environment = "sandbox"
 	}

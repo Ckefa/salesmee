@@ -33,7 +33,7 @@ type TaxRow struct {
 	Revenue float64
 }
 
-func (h *BusinessHandler) GetReportsPage(c *gin.Context) {
+func (h *ReportHandler) GetReportsPage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Not authenticated"})
@@ -52,7 +52,7 @@ func (h *BusinessHandler) GetReportsPage(c *gin.Context) {
 			"Business":   currentBusiness,
 			"ActivePage": "reports",
 			"ActiveTab":  "revenue",
-			"Onboarding": h.onboardingData(businessID),
+			"Onboarding": onboardingData(h.db, businessID),
 			"AuthType":   c.GetString("auth_type"),
 			"Role":       c.GetString("role"),
 		})
@@ -63,13 +63,13 @@ func (h *BusinessHandler) GetReportsPage(c *gin.Context) {
 		"Business":   currentBusiness,
 		"ActivePage": "reports",
 		"ActiveTab":  "revenue",
-		"Onboarding": h.onboardingData(businessID),
+		"Onboarding": onboardingData(h.db, businessID),
 		"AuthType":   c.GetString("auth_type"),
 		"Role":       c.GetString("role"),
 	})
 }
 
-func (h *BusinessHandler) GetRevenueReport(c *gin.Context) {
+func (h *ReportHandler) GetRevenueReport(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Status(http.StatusUnauthorized)
@@ -157,7 +157,7 @@ func (h *BusinessHandler) GetRevenueReport(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetSalesReport(c *gin.Context) {
+func (h *ReportHandler) GetSalesReport(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Status(http.StatusUnauthorized)
@@ -268,7 +268,7 @@ func (h *BusinessHandler) GetSalesReport(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetClientReport(c *gin.Context) {
+func (h *ReportHandler) GetClientReport(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Status(http.StatusUnauthorized)
@@ -312,7 +312,7 @@ func (h *BusinessHandler) GetClientReport(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetTaxReport(c *gin.Context) {
+func (h *ReportHandler) GetTaxReport(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Status(http.StatusUnauthorized)
@@ -363,7 +363,7 @@ func (h *BusinessHandler) GetTaxReport(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) ExportOrdersCSV(c *gin.Context) {
+func (h *ReportHandler) ExportOrdersCSV(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusUnauthorized, "Not authenticated")
@@ -393,7 +393,7 @@ func (h *BusinessHandler) ExportOrdersCSV(c *gin.Context) {
 	wr.Flush()
 }
 
-func (h *BusinessHandler) ExportBookingsCSV(c *gin.Context) {
+func (h *ReportHandler) ExportBookingsCSV(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusUnauthorized, "Not authenticated")
@@ -424,7 +424,7 @@ func (h *BusinessHandler) ExportBookingsCSV(c *gin.Context) {
 	wr.Flush()
 }
 
-func (h *BusinessHandler) ExportPaymentsCSV(c *gin.Context) {
+func (h *ReportHandler) ExportPaymentsCSV(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusUnauthorized, "Not authenticated")
@@ -453,7 +453,7 @@ func (h *BusinessHandler) ExportPaymentsCSV(c *gin.Context) {
 	wr.Flush()
 }
 
-func (h *BusinessHandler) ExportRevenueCSV(c *gin.Context) {
+func (h *ReportHandler) ExportRevenueCSV(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusUnauthorized, "Not authenticated")
@@ -508,7 +508,7 @@ func (h *BusinessHandler) ExportRevenueCSV(c *gin.Context) {
 	wr.Flush()
 }
 
-func (h *BusinessHandler) ExportClientsCSV(c *gin.Context) {
+func (h *ReportHandler) ExportClientsCSV(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusUnauthorized, "Not authenticated")

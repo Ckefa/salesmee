@@ -164,13 +164,9 @@ function filterClients() {
   });
 }
 
-function startBusinessWS() {
-  if (window.wsClient && window.wsClient.isConnected) return;
-  var token = getCookie('token') || getCookie('team_token');
-  if (!token) return;
-  window.wsClient = new WsClient();
-  window.wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + (window.BUSINESS_ID || ''));
-
+function registerBusinessPresenceHandlers() {
+  if (window._businessPresenceRegistered) return;
+  window._businessPresenceRegistered = true;
   window.wsClient.on(5, function(frame) {
     var p = frame.presence;
     if (!p) return;
@@ -207,6 +203,18 @@ function startBusinessWS() {
       if (badge) badge.remove();
     }
   });
+}
+
+function startBusinessWS() {
+  if (window.wsClient) {
+    registerBusinessPresenceHandlers();
+    return;
+  }
+  var token = window.AUTH_TOKEN || getCookie('token') || getCookie('team_token');
+  if (!token) return;
+  window.wsClient = new WsClient();
+  window.wsClient.connect('/ws/business?token=' + encodeURIComponent(token) + '&business_id=' + (window.BUSINESS_ID || ''));
+  registerBusinessPresenceHandlers();
 }
 
 window.addEventListener('beforeunload', function() {

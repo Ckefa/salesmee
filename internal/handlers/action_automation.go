@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
@@ -42,7 +43,7 @@ func CreateActionWithProgress(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	messageID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.String(400, "Invalid message ID")
+		c.String(http.StatusBadRequest, "Invalid message ID")
 		return
 	}
 
@@ -50,7 +51,7 @@ func CreateActionWithProgress(c *gin.Context) {
 	var message models.Message
 	if err := db.DB.Where("id = ? AND conversation_id IN (SELECT id FROM conversations WHERE client_id IN (SELECT id FROM clients WHERE business_id = ?))",
 		messageID, userID).First(&message); err != nil {
-		c.String(404, "Message not found")
+		c.String(http.StatusNotFound, "Message not found")
 		return
 	}
 
@@ -79,14 +80,14 @@ func CreateActionWithProgress(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.String(500, "Failed to create action")
+		c.String(http.StatusInternalServerError, "Failed to create action")
 		return
 	}
 
 	// Get conversation and current progress
 	var conversation models.Conversation
 	if err := db.DB.Where("id = ?", message.ConversationID).First(&conversation); err != nil {
-		c.String(404, "Conversation not found")
+		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
@@ -123,7 +124,7 @@ func CreateActionWithProgress(c *gin.Context) {
 	}
 
 	// Return updated actions panel
-	c.HTML(200, "actions_panel.html", gin.H{
+	c.HTML(http.StatusOK, "actions_panel.html", gin.H{
 		"Actions": []models.Action{action},
 		"Message": message,
 	})

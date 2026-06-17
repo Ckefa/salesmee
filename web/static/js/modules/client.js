@@ -39,13 +39,9 @@ document.addEventListener('DOMContentLoaded', function () {
   startPresenceWS();
 });
 
-function startPresenceWS() {
-  if (window.wsClient) return;
-  var token = getCookie('client_token');
-  if (!token) return;
-  window.wsClient = new WsClient();
-  window.wsClient.connect('/ws/client?token=' + encodeURIComponent(token));
-
+function registerClientPresenceHandlers() {
+  if (window._clientPresenceRegistered) return;
+  window._clientPresenceRegistered = true;
   window.wsClient.on(8, function(frame) {
     if (!frame.unread_count) return;
     var uc = frame.unread_count;
@@ -66,6 +62,18 @@ function startPresenceWS() {
       if (badge) badge.remove();
     }
   });
+}
+
+function startPresenceWS() {
+  if (window.wsClient) {
+    registerClientPresenceHandlers();
+    return;
+  }
+  var token = getCookie('client_token');
+  if (!token) return;
+  window.wsClient = new WsClient();
+  window.wsClient.connect('/ws/client?token=' + encodeURIComponent(token));
+  registerClientPresenceHandlers();
 }
 
 window.addEventListener('beforeunload', function() {
@@ -163,7 +171,7 @@ function disconnectBusiness(businessId) {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          location.reload();
+          htmx.ajax('GET', window.location.href, {target: 'body', swap: 'innerHTML'});
         } else {
           showNotification('Failed to remove business', 'error');
         }

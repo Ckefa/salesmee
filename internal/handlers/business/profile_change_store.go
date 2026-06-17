@@ -3,85 +3,86 @@ package business
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"sync"
+	"salesmee/internal/db"
+	"salesmee/internal/models"
 	"time"
 )
 
 type PendingProfileChange struct {
-	BusinessID  uint
-	Token       string
-	Name        string
-	Username    string
-	Email       string
-	Password    string
-	Logo        string
-	Country     string
-	Currency    string
-	OTPCode     string
-	OTPExpiresAt time.Time
-	ExpiresAt   time.Time
+	BusinessID    uint
+	Token         string
+	Name          string
+	Username      string
+	Email         string
+	Password      string
+	Logo          string
+	Country       string
+	Currency      string
+	OTPCode       string
+	OTPExpiresAt  time.Time
+	ExpiresAt     time.Time
 }
 
-type ProfileChangeStore struct {
-	mu    sync.RWMutex
-	store map[string]*PendingProfileChange
-}
-
-var profileChangeStore = &ProfileChangeStore{
-	store: make(map[string]*PendingProfileChange),
-}
-
-func init() {
-	go profileChangeStore.cleanup()
-}
-
-func (s *ProfileChangeStore) cleanup() {
-	for {
-		time.Sleep(5 * time.Minute)
-		s.mu.Lock()
-		for token, data := range s.store {
-			if time.Since(data.ExpiresAt) > 0 {
-				delete(s.store, token)
-			}
-		}
-		s.mu.Unlock()
-	}
-}
-
-func (s *ProfileChangeStore) Save(data *PendingProfileChange) string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
+func saveProfileChange(data *PendingProfileChange) string {
 	token := data.Token
 	if token == "" {
 		b := make([]byte, 16)
 		rand.Read(b)
 		token = hex.EncodeToString(b)
-		data.Token = token
 	}
 
-	data.ExpiresAt = time.Now().Add(15 * time.Minute)
-	s.store[token] = data
+	rec := models.ProfileChangeRequest{
+		Token:        token,
+		BusinessID:   data.BusinessID,
+		Name:         data.Name,
+		Username:     data.Username,
+		Email:        data.Email,
+		Password:     data.Password,
+		Logo:         data.Logo,
+		Country:      data.Country,
+		Currency:     data.Currency,
+		OTPCode:      data.OTPCode,
+		OTPExpiresAt: data.OTPExpiresAt,
+		ExpiresAt:    time.Now().Add(15 * time.Minute),
+		CreatedAt:    time.Now(),
+	}
+
+	db.DB.Where("token = ?", token).Delete(&models.ProfileChangeRequest{})
+	db.DB.Create(&rec)
 	return token
 }
 
-func (s *ProfileChangeStore) Get(token string) (*PendingProfileChange, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func getProfileChange(token string) (*PendingProfileChange, bool) {
+	var rec models.ProfileChangeRequest
+	if err := db.DB.Where("token = ? AND expires_at > ?", token, time.Now()).First(&rec).Error; err != nil {
+		return nil, false
+	}
 
-	data, ok := s.store[token]
-	if !ok {
-		return nil, false
-	}
-	if time.Since(data.ExpiresAt) > 0 {
-		return nil, false
-	}
-	return data, true
+	return &PendingProfileChange{
+		BusinessID:    rec.BusinessID,
+		Token:         rec.Token,
+		Name:          rec.Name,
+		Username:      rec.Username,
+		Email:         rec.Email,
+		Password:      rec.Password,
+		Logo:          rec.Logo,
+		Country:       rec.Country,
+		Currency:      rec.Currency,
+		OTPCode:       rec.OTPCode,
+		OTPExpiresAt:  rec.OTPExpiresAt,
+		ExpiresAt:     rec.ExpiresAt,
+	}, true
 }
 
-func (s *ProfileChangeStore) Delete(token string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func deleteProfileChange(token string) {
+	db.DB.Where("token = ?", token).Delete(&models.ProfileChangeRequest{})
+}
 
-	delete(s.store, token)
+func init() {
+	go func() {
+		for {
+			time.Sleep(5 * time.Minute)
+			db.DB.Where("expires_at <= ?", time.Now()).Delete(&models.ProfileChangeRequest{})
+		}
+	}()
 }

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 
 	"github.com/stripe/stripe-go/v76"
@@ -23,9 +23,9 @@ type StripeAdapter struct {
 }
 
 func NewStripeAdapter() *StripeAdapter {
-	sk := os.Getenv("STRIPE_SECRET_KEY")
-	pk := os.Getenv("STRIPE_PUBLISHABLE_KEY")
-	ws := os.Getenv("STRIPE_WEBHOOK_SECRET")
+	sk := config.C.StripeSecretKey
+	pk := config.C.StripePublishableKey
+	ws := config.C.StripeWebhookSecret
 
 	if sk == "" || pk == "" {
 		log.Println("WARNING: Stripe keys not fully configured. Payment features will fail at runtime.")
@@ -210,5 +210,5 @@ func (s *StripeAdapter) GetOrCreateCustomer(business *models.Business) (string, 
 }
 
 func init() {
-	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+	stripe.Key = config.C.StripeSecretKey
 }

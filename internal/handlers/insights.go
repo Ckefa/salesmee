@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 
 	"salesmee/internal/db"
@@ -21,7 +22,7 @@ func GetConversationInsightsBadge(c *gin.Context) {
 	var insight models.CustomerInsight
 	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
 
-	c.HTML(200, "insights_badge", gin.H{
+	c.HTML(http.StatusOK, "insights_badge", gin.H{
 		"Insight": insight,
 	})
 }
@@ -41,7 +42,7 @@ func GetConversationInsightsPanel(c *gin.Context) {
 	var business models.Business
 	db.DB.First(&business, businessID)
 
-	c.HTML(200, "insights_panel", gin.H{
+	c.HTML(http.StatusOK, "insights_panel", gin.H{
 		"Insight":  insight,
 		"Business": business,
 	})
@@ -59,7 +60,7 @@ func RefreshConversationInsights(c *gin.Context) {
 	var insight models.CustomerInsight
 	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
 
-	c.HTML(200, "insights_badge", gin.H{
+	c.HTML(http.StatusOK, "insights_badge", gin.H{
 		"Insight": insight,
 	})
 }

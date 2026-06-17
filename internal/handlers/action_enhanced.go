@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
@@ -17,11 +18,11 @@ func ShowActionModal(c *gin.Context) {
 	// Get message details
 	var message models.Message
 	if err := db.DB.First(&message, messageID).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Message not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		return
 	}
 
-	c.HTML(200, "action_modal.html", gin.H{
+	c.HTML(http.StatusOK, "action_modal.html", gin.H{
 		"Message": message,
 	})
 }
@@ -57,21 +58,21 @@ func CreateEnhancedAction(c *gin.Context) {
 		Description:   description,
 		DueDate:       dueDate,
 		Priority:      priority,
-		Status:        "pending",
+		Status:        models.OrderPending,
 		AssignedTo:    assignedTo,
 		EstimatedCost: estimatedCost,
 		Notes:         c.PostForm("notes"),
 	}
 
 	if err := db.DB.Create(&action).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create action"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create action"})
 		return
 	}
 
 	// Update conversation progress
 	updateConversationProgress(uint(messageID))
 
-	c.JSON(200, gin.H{"success": true, "action": action})
+	c.JSON(http.StatusOK, gin.H{"success": true, "action": action})
 }
 
 func GetEnhancedActions(c *gin.Context) {
@@ -86,11 +87,11 @@ func GetEnhancedActions(c *gin.Context) {
 		Find(&actions).Error
 
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to load actions"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load actions"})
 		return
 	}
 
-	c.JSON(200, gin.H{"actions": actions})
+	c.JSON(http.StatusOK, gin.H{"actions": actions})
 }
 
 func UpdateEnhancedActionStatus(c *gin.Context) {
@@ -98,16 +99,16 @@ func UpdateEnhancedActionStatus(c *gin.Context) {
 	status := c.PostForm("status")
 
 	if err := db.DB.Model(&models.Action{}).Where("id = ?", actionID).Update("status", status).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to update action"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update action"})
 		return
 	}
 
 	// Mark as completed if status is completed
-	if status == "completed" {
+	if status == models.OrderCompleted {
 		db.DB.Model(&models.Action{}).Where("id = ?", actionID).Update("is_completed", true)
 	}
 
-	c.JSON(200, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
 func GetConversationProgress(c *gin.Context) {
@@ -134,7 +135,7 @@ func GetConversationProgress(c *gin.Context) {
 		db.DB.Create(&progress)
 	}
 
-	c.JSON(200, gin.H{"progress": progress})
+	c.JSON(http.StatusOK, gin.H{"progress": progress})
 }
 
 func UpdateConversationStage(c *gin.Context) {
@@ -144,7 +145,7 @@ func UpdateConversationStage(c *gin.Context) {
 
 	var progress models.ConversationProgress
 	if err := db.DB.Where("conversation_id = ?", conversationID).First(&progress).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Progress not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Progress not found"})
 		return
 	}
 
@@ -181,7 +182,7 @@ func UpdateConversationStage(c *gin.Context) {
 	}
 
 	db.DB.Save(&progress)
-	c.JSON(200, gin.H{"success": true, "progress": progress})
+	c.JSON(http.StatusOK, gin.H{"success": true, "progress": progress})
 }
 
 func updateConversationProgress(messageID uint) {

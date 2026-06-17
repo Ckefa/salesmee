@@ -20,7 +20,7 @@ type ReviewStats struct {
 	Rating1Count  int
 }
 
-func (h *BusinessHandler) GetReviews(c *gin.Context) {
+func (h *ReviewHandler) GetReviews(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Not authenticated"})
@@ -54,7 +54,7 @@ func (h *BusinessHandler) GetReviews(c *gin.Context) {
 			"Rating3Count":   stats.Rating3Count,
 			"Rating2Count":   stats.Rating2Count,
 			"Rating1Count":   stats.Rating1Count,
-			"Onboarding":     h.onboardingData(businessID),
+			"Onboarding":     onboardingData(h.db, businessID),
 			"AuthType":       c.GetString("auth_type"),
 			"Role":           c.GetString("role"),
 		})
@@ -72,13 +72,13 @@ func (h *BusinessHandler) GetReviews(c *gin.Context) {
 		"Rating3Count":   stats.Rating3Count,
 		"Rating2Count":   stats.Rating2Count,
 		"Rating1Count":   stats.Rating1Count,
-		"Onboarding":     h.onboardingData(businessID),
+		"Onboarding":     onboardingData(h.db, businessID),
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
 	})
 }
 
-func (h *BusinessHandler) ReplyToReview(c *gin.Context) {
+func (h *ReviewHandler) ReplyToReview(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})

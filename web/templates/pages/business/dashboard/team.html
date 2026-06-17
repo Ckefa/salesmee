@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/team_content"}}
+<div id="team-page">
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
@@ -124,6 +125,9 @@
 </div>
 
 <script>
+    function reloadTeamPage() {
+      htmx.ajax('GET', window.location.href, {target: '#team-page', swap: 'outerHTML'});
+    }
 var csrfToken = getCookie('csrf_token');
 
 function showInviteModal() {
@@ -184,7 +188,7 @@ function saveMember() {
   }).then(function(r) { return r.json(); }).then(function(resp) {
     if (resp.success) {
       showNotification(id ? 'Team member updated' : 'Invitation sent', 'success');
-      setTimeout(function() { location.reload(); }, 500);
+      setTimeout(function() { reloadTeamPage(); }, 500);
     } else {
       showNotification(resp.error || 'Failed to save', 'error');
     }
@@ -217,7 +221,7 @@ function deleteMember(id) {
     }).then(function(r) { return r.json(); }).then(function(resp) {
       if (resp.success) {
         showNotification('Team member removed', 'success');
-        setTimeout(function() { location.reload(); }, 500);
+        setTimeout(function() { reloadTeamPage(); }, 500);
       } else {
         showNotification('Failed to remove', 'error');
       }
@@ -225,5 +229,6 @@ function deleteMember(id) {
   });
 }
 </script>
+</div>
 {{end}}
 

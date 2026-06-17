@@ -1,5 +1,8 @@
 {{define "business_profile_script"}}
 <script>
+  function reloadPage() {
+    htmx.ajax('GET', window.location.href, {target: 'body', swap: 'innerHTML'});
+  }
 function showBusinessProfile() {
   var el = document.getElementById('businessProfileModal');
   if (el) { el.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
@@ -59,7 +62,7 @@ var otpTimerInterval = null;
         btn.innerHTML = 'Continue';
         if (d.success) {
           hideBusinessProfile();
-          location.reload();
+          reloadPage();
         } else if (d.requires_otp) {
           profileChangeToken = d.token;
           showProfileStep2();
@@ -142,7 +145,7 @@ function confirmProfileChanges() {
       if (d.success) {
         clearInterval(otpTimerInterval);
         hideBusinessProfile();
-        location.reload();
+        reloadPage();
       } else {
         var otpErr2 = document.getElementById('otpError');
         if (otpErr2) { otpErr2.textContent = d.error || 'Invalid verification code'; otpErr2.classList.remove('hidden'); }

@@ -28,7 +28,8 @@ clean:
 
 # Run tests
 test:
-	go test ./...
+	go test ./... -count=1
+	go vet ./...
 
 # Production build
 build-prod: css

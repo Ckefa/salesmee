@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"html"
 	"salesmee/internal/db"
 	"salesmee/internal/models"
@@ -24,7 +25,7 @@ func DevPage(c *gin.Context) {
 		db.DB.Where("business_id = ?", businessID).Find(&clients)
 	}
 
-	c.HTML(200, "test.html", gin.H{
+	c.HTML(http.StatusOK, "test.html", gin.H{
 		"Title":    "Dev Panel",
 		"LoggedIn": isLoggedIn,
 		"Clients":  clients,
@@ -32,7 +33,7 @@ func DevPage(c *gin.Context) {
 }
 
 func Ping(c *gin.Context) {
-	c.HTML(200, "ping.html", gin.H{
+	c.HTML(http.StatusOK, "ping.html", gin.H{
 		"Status": "OK",
 		"Time":   time.Now().Format("15:04:05"),
 	})
@@ -42,7 +43,7 @@ func ListItems(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	var clients []models.Client
 	db.DB.Where("business_id = ?", userID).Find(&clients)
-	c.HTML(200, "items.html", gin.H{
+	c.HTML(http.StatusOK, "items.html", gin.H{
 		"Items": clients,
 		"Count": len(clients),
 	})
@@ -80,15 +81,15 @@ var emailPreviews = []emailPreview{
 	{"Verify Email", services.VerificationEmailHTML("https://app.salesmee.com/verify?token=abc123")},
 	{"Subscription Payment Failed", services.SubscriptionFailedHTML("Acme Corp")},
 	{"Booking Reminder", services.BookingReminderHTML("Jane Doe", "Acme Corp", "Haircut", "June 20, 2026", "2:00 PM", "45 min")},
-	{"Order Status — Pending", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", "pending", "https://app.salesmee.com/chat/1")},
-	{"Order Status — Confirmed", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", "confirmed", "https://app.salesmee.com/chat/1")},
+	{"Order Status — Pending", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", models.OrderPending, "https://app.salesmee.com/chat/1")},
+	{"Order Status — Confirmed", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", models.OrderConfirmed, "https://app.salesmee.com/chat/1")},
 	{"Order Status — Paid", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", "paid", "https://app.salesmee.com/chat/1")},
-	{"Order Status — Completed", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", "fulfilled", "https://app.salesmee.com/chat/1")},
-	{"Order Status — Cancelled", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", "cancelled", "https://app.salesmee.com/chat/1")},
-	{"Booking Status — Pending", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", "pending", "https://app.salesmee.com/chat/1")},
-	{"Booking Status — Confirmed", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", "confirmed", "https://app.salesmee.com/chat/1")},
-	{"Booking Status — Completed", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", "completed", "https://app.salesmee.com/chat/1")},
-	{"Booking Status — Cancelled", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", "cancelled", "https://app.salesmee.com/chat/1")},
+	{"Order Status — Completed", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", models.OrderFulfilled, "https://app.salesmee.com/chat/1")},
+	{"Order Status — Cancelled", services.OrderStatusHTML("Jane Doe", "Acme Corp", "ORD-001", models.OrderCancelled, "https://app.salesmee.com/chat/1")},
+	{"Booking Status — Pending", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", models.OrderPending, "https://app.salesmee.com/chat/1")},
+	{"Booking Status — Confirmed", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", models.OrderConfirmed, "https://app.salesmee.com/chat/1")},
+	{"Booking Status — Completed", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", models.OrderCompleted, "https://app.salesmee.com/chat/1")},
+	{"Booking Status — Cancelled", services.BookingStatusHTML("Jane Doe", "Acme Corp", "BKG-001", models.OrderCancelled, "https://app.salesmee.com/chat/1")},
 	{"Payment Reminder", services.PaymentReminderHTML("Jane Doe", "Acme Corp", "ORD-001", "$50.00")},
 	{"Abandoned Cart", services.AbandonedCartHTML("Jane Doe", "Acme Corp", "ORD-001", "https://app.salesmee.com/chat/1")},
 	{"Inactive Client", services.InactiveClientHTML("Jane Doe", "Acme Corp", "https://app.salesmee.com/b/acme")},
@@ -99,11 +100,11 @@ func ShowEmailTestPage(c *gin.Context) {
 	if name != "" {
 		for _, e := range emailPreviews {
 			if e.Name == name {
-				c.Data(200, "text/html; charset=utf-8", []byte(e.HTML))
+				c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(e.HTML))
 				return
 			}
 		}
-		c.String(404, "Not found")
+		c.String(http.StatusNotFound, "Not found")
 		return
 	}
 
@@ -131,7 +132,7 @@ h1{font-size:20px;margin-bottom:16px;color:#0f172a}
 	}
 
 	page += `</div></body></html>`
-	c.Data(200, "text/html; charset=utf-8", []byte(page))
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(page))
 }
 
 func itoa(n int) string {

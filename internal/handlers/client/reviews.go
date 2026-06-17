@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"salesmee/internal/db"
@@ -68,7 +69,7 @@ func SubmitReview(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 			return
 		}
-		if order.Status != "fulfilled" && order.Status != "completed" {
+		if order.Status != models.OrderFulfilled && order.Status != models.OrderCompleted {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Can only review completed orders"})
 			return
 		}
@@ -85,7 +86,7 @@ func SubmitReview(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 			return
 		}
-		if booking.Status != "completed" {
+		if booking.Status != models.OrderCompleted {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Can only review completed bookings"})
 			return
 		}
@@ -171,10 +172,12 @@ func updateBusinessRating(businessID uint) {
 	var count int64
 	db.DB.Model(&models.Review{}).Where("business_id = ?", businessID).Select("COALESCE(AVG(rating), 0)").Scan(&avg)
 	db.DB.Model(&models.Review{}).Where("business_id = ?", businessID).Count(&count)
-	db.DB.Model(&models.Business{}).Where("id = ?", businessID).Updates(map[string]interface{}{
+	if err := db.DB.Model(&models.Business{}).Where("id = ?", businessID).Updates(map[string]interface{}{
 		"average_rating": avg,
 		"review_count":   int(count),
-	})
+	}).Error; err != nil {
+		log.Printf("Failed to update business rating: %v", err)
+	}
 }
 
 func parseUint(s string, val *uint) (uint, error) {

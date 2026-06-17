@@ -3,14 +3,15 @@ package services
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
+
+	"salesmee/internal/config"
 
 	"github.com/resend/resend-go/v3"
 )
 
 func getFromEmail() string {
-	from := os.Getenv("RESEND_FROM_EMAIL")
+	from := config.C.ResendFromEmail
 	if from == "" {
 		from = "onboarding@resend.dev"
 	}
@@ -18,13 +19,13 @@ func getFromEmail() string {
 }
 
 func isResendEnabled() bool {
-	return os.Getenv("RESEND") == "true"
+	return config.C.ResendEnabled
 }
 
 func AppURL(path string) string {
-	base := os.Getenv("APP_URL")
+	base := config.C.AppURL
 	if base == "" {
-		domain := os.Getenv("APP_DOMAIN")
+		domain := config.C.AppDomain
 		if domain == "" {
 			return path
 		}
@@ -38,12 +39,11 @@ func SendOTPEmail(toEmail, otpCode string) error {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your SalesMee verification code\n  Body: Your verification code is: %s\n  Expires in: 10 minutes", toEmail, otpCode)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := OTPEmailHTML(otpCode)
 
@@ -68,12 +68,11 @@ func SendSubscriptionSuccess(toEmail, businessName, planName string) error {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment successful - SalesMee %s plan\n  Body: Hi %s, your %s plan is now active.", toEmail, planName, businessName, planName)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := SubscriptionSuccessHTML(businessName, planName)
 
@@ -98,12 +97,11 @@ func SendSubscriptionExpired(toEmail, businessName string) error {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Your salesmee subscription has ended\n  Body: Hi %s, your SalesMee subscription has ended. Your account has been downgraded to the Free plan.", toEmail, businessName)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := SubscriptionExpiredHTML(businessName)
 
@@ -128,12 +126,11 @@ func SendPasswordResetEmail(toEmail, resetLink string) error {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Reset your SalesMee password\n  Body: Click the link below to reset your password (expires in 1 hour):\n  %s", toEmail, resetLink)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := PasswordResetHTML(resetLink)
 
@@ -158,12 +155,11 @@ func SendVerificationEmail(toEmail, verifyLink string) error {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Verify your SalesMee email address\n  Body: Click the link below to verify your email:\n  %s", toEmail, verifyLink)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := VerificationEmailHTML(verifyLink)
 
@@ -188,12 +184,11 @@ func SendSubscriptionFailed(toEmail, businessName string) error {
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment failed - SalesMee subscription\n  Body: Hi %s, we were unable to process your latest payment. Please update your payment method.", toEmail, businessName)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := SubscriptionFailedHTML(businessName)
 
@@ -218,12 +213,11 @@ func SendBookingReminderEmail(toEmail, clientName, businessName, serviceName, da
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Reminder — %s at %s", toEmail, serviceName, date)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
@@ -278,12 +272,11 @@ func SendOrderStatusEmail(toEmail, clientName, businessName, orderNumber, status
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Order %s — %s\n  Chat: %s", toEmail, orderNumber, status, chatLink)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := OrderStatusHTML(clientName, businessName, orderNumber, status, chatLink)
 
@@ -308,12 +301,11 @@ func SendBookingStatusEmail(toEmail, clientName, businessName, bookingNumber, st
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Booking %s — %s\n  Chat: %s", toEmail, bookingNumber, status, chatLink)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := BookingStatusHTML(clientName, businessName, bookingNumber, status, chatLink)
 
@@ -338,12 +330,11 @@ func SendPaymentReminderEmail(toEmail, clientName, businessName, refNumber, amou
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Payment reminder — %s", toEmail, refNumber)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := PaymentReminderHTML(clientName, businessName, refNumber, amount)
 
@@ -368,12 +359,11 @@ func SendAbandonedCartEmail(toEmail, clientName, businessName, orderNumber, link
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Complete your order %s", toEmail, orderNumber)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := AbandonedCartHTML(clientName, businessName, orderNumber, link)
 
@@ -398,12 +388,11 @@ func SendInactiveClientEmail(toEmail, clientName, businessName, link string) err
 		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: We miss you at %s", toEmail, businessName)
 		return nil
 	}
-	apiKey := os.Getenv("RESEND_API_KEY")
-	if apiKey == "" {
+	if config.C.ResendAPIKey == "" {
 		return fmt.Errorf("RESEND_API_KEY not set")
 	}
 
-	client := resend.NewClient(apiKey)
+	client := resend.NewClient(config.C.ResendAPIKey)
 
 	html := InactiveClientHTML(clientName, businessName, link)
 

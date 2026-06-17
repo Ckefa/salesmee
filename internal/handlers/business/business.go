@@ -4,12 +4,14 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"log"
 	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"salesmee/internal/config"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -31,16 +33,16 @@ func NewBusinessHandler(db *gorm.DB, hub *ws.Hub) *BusinessHandler {
 	return &BusinessHandler{db: db, hub: hub}
 }
 
-func (h *BusinessHandler) bizIDStr(c *gin.Context) string {
+func bizIDStr(c *gin.Context) string {
 	return strconv.Itoa(int(c.GetUint("business_id")))
 }
 
-func (h *BusinessHandler) onboardingData(businessID uint) *onboarding.OnboardingData {
+func onboardingData(db *gorm.DB, businessID uint) *onboarding.OnboardingData {
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := db.First(&business, businessID).Error; err != nil {
 		return &onboarding.OnboardingData{Step: 6, TotalSteps: 5, Completed: true}
 	}
-	data, err := onboarding.DetectStep(h.db, &business)
+	data, err := onboarding.DetectStep(db, &business)
 	if err != nil {
 		return &onboarding.OnboardingData{Step: 6, TotalSteps: 5, Completed: true}
 	}
@@ -112,7 +114,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 		"TotalClients":   int(totalClients),
 		"TotalProducts":  int(totalProducts),
 		"ActivePage":     "share",
-		"Onboarding":     h.onboardingData(businessID),
+		"Onboarding":     onboardingData(h.db, businessID),
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
 	}
@@ -130,7 +132,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(500, "business.html", gin.H{
+		c.HTML(http.StatusInternalServerError, "business.html", gin.H{
 			"Title":    "SalesMee",
 			"Error":    "Business not found",
 			"AuthType": c.GetString("auth_type"),
@@ -167,7 +169,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	`
 
 	if err := h.db.Raw(query, businessID).Scan(&clientsWithUnread).Error; err != nil {
-		c.HTML(500, "business.html", gin.H{
+		c.HTML(http.StatusInternalServerError, "business.html", gin.H{
 			"Title":     "SalesMee",
 			"Error":     "Failed to load clients",
 			"Business":  business,
@@ -242,7 +244,12 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizProductCount)
 	h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizServiceCount)
 
-	c.HTML(200, "business.html", gin.H{
+	token, _ := c.Cookie("token")
+	if token == "" {
+		token, _ = c.Cookie("team_token")
+	}
+
+	c.HTML(http.StatusOK, "business.html", gin.H{
 		"Title":               "SalesMee",
 		"Business":            business,
 		"Clients":             clientsWithUnread,
@@ -253,12 +260,13 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"OnlineCount":         onlineCount,
 		"Countries":           data.Countries,
 		"Currencies":          data.Currencies,
-		"Onboarding":          h.onboardingData(businessID),
+		"Onboarding":          onboardingData(h.db, businessID),
 		"AuthType":            c.GetString("auth_type"),
 		"Role":                c.GetString("role"),
 		"AssistEnabled":       assist.IsEnabled(),
 		"ProductCount":        bizProductCount,
 		"ServiceCount":        bizServiceCount,
+		"AuthToken":           token,
 	})
 }
 
@@ -365,7 +373,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 		LowStockProducts:    lowStockProducts,
 		Countries:           data.Countries,
 		Currencies:          data.Currencies,
-		Onboarding:          h.onboardingData(businessID),
+		Onboarding:          onboardingData(h.db, businessID),
 		Locations:           locations,
 		QueryLocationID:     locID,
 	}
@@ -382,15 +390,15 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 }
 
 // Helper function to get or create conversation by client and business ID
-func (h *BusinessHandler) getOrCreateConversation(clientID uint, businessID uint) (*models.Conversation, error) {
+func getOrCreateConversation(db *gorm.DB, clientID uint, businessID uint) (*models.Conversation, error) {
 	var conversation models.Conversation
-	err := h.db.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error
+	err := db.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error
 	if err != nil {
 		conversation = models.Conversation{
 			ClientID:   clientID,
 			BusinessID: businessID,
 		}
-		if err := h.db.Create(&conversation).Error; err != nil {
+		if err := db.Create(&conversation).Error; err != nil {
 			return nil, fmt.Errorf("failed to create conversation: %v", err)
 		}
 	}
@@ -517,79 +525,6 @@ func (h *BusinessHandler) UploadBusinessLogo(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetLogoUploadPage(c *gin.Context) {
-	businessID := c.GetUint("business_id")
-	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "dashboard.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
-		return
-	}
-
-	// Get counts
-	var productCount, serviceCount, pendingOrderCount, pendingBookingCount int64
-
-	h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&productCount)
-	h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&serviceCount)
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookingCount)
-
-	var recentOrders []models.Order
-	h.db.Preload("Client").Where("business_id = ?", businessID).Order("created_at DESC").Limit(5).Find(&recentOrders)
-
-	var recentBookings []models.Booking
-	h.db.Preload("Client").Where("business_id = ?", businessID).Order("created_at DESC").Limit(5).Find(&recentBookings)
-
-	var lowStockProducts []models.Product
-	h.db.Where("business_id = ? AND stock <= min_stock AND is_active = ?", businessID, true).Find(&lowStockProducts)
-
-	startTime, endTime, _ := timeRangeBounds("this_month")
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
-	var totalOrders, totalBookings, activeClients int64
-	var completedOrders, completedBookings int64
-	var pendingOrders, pendingBookings int64
-	var confirmedOrders, confirmedBookings int64
-	var cancelledOrders, cancelledBookings int64
-	var ordersRevenue, bookingsRevenue float64
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Count(&totalOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Count(&totalBookings)
-	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&activeClients)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Scan(&ordersRevenue)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Scan(&bookingsRevenue)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"fulfilled", "completed"}).Count(&completedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "completed").Count(&completedBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&pendingOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "pending").Count(&pendingBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", businessID, startTime, endTime, []string{"confirmed", "client_confirmed"}).Count(&confirmedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "client_confirmed").Count(&confirmedBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&cancelledOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", businessID, startTime, endTime, "cancelled").Count(&cancelledBookings)
-
-	data := DashboardData{
-		Business:            business,
-		ProductCount:        productCount,
-		ServiceCount:        serviceCount,
-		PendingOrderCount:   pendingOrderCount,
-		PendingBookingCount: pendingBookingCount,
-		TotalRevenue:        ordersRevenue + bookingsRevenue,
-		TotalOrders:         totalOrders,
-		TotalBookings:       totalBookings,
-		ActiveClients:       activeClients,
-		CompletedCount:      completedOrders + completedBookings,
-		PendingCount:        pendingOrders + pendingBookings,
-		ConfirmedCount:      confirmedOrders + confirmedBookings,
-		CancelledCount:      cancelledOrders + cancelledBookings,
-		PeriodLabel:         "This Month",
-		RecentOrders:        recentOrders,
-		RecentBookings:      recentBookings,
-		LowStockProducts:    lowStockProducts,
-		Countries:           data.Countries,
-		Currencies:          data.Currencies,
-		AuthType:            c.GetString("auth_type"),
-		Role:                c.GetString("role"),
-	}
-
-	c.HTML(http.StatusOK, "dashboard.html", data)
-}
 
 func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {
 	businessID := c.GetUint("business_id")
@@ -757,15 +692,17 @@ func (h *BusinessHandler) InitiateProfileChange(c *gin.Context) {
 	change.OTPCode = otpCode
 	change.OTPExpiresAt = time.Now().Add(10 * time.Minute)
 
-	token := profileChangeStore.Save(change)
+	token := saveProfileChange(change)
 
 	go func() {
 		if err := services.SendOTPEmail(business.Email, otpCode); err != nil {
-			fmt.Printf("Warning: failed to send profile change OTP email: %v\n", err)
+			log.Printf("Warning: failed to send profile change OTP email to business %d: %v", businessID, err)
 		}
 	}()
 
-	fmt.Printf("Profile change OTP for business %d: %s\n", businessID, otpCode)
+	if config.IsDev() {
+		log.Printf("[DEV] Profile change OTP for business %d: %s", businessID, otpCode)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"requires_otp": true,
@@ -783,7 +720,7 @@ func (h *BusinessHandler) ConfirmProfileChange(c *gin.Context) {
 		return
 	}
 
-	pending, ok := profileChangeStore.Get(token)
+	pending, ok := getProfileChange(token)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired change request"})
 		return
@@ -827,7 +764,7 @@ func (h *BusinessHandler) ConfirmProfileChange(c *gin.Context) {
 		return
 	}
 
-	profileChangeStore.Delete(token)
+	deleteProfileChange(token)
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
@@ -841,7 +778,7 @@ func (h *BusinessHandler) ResendProfileOTP(c *gin.Context) {
 		return
 	}
 
-	pending, ok := profileChangeStore.Get(token)
+	pending, ok := getProfileChange(token)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired change request"})
 		return
@@ -861,15 +798,17 @@ func (h *BusinessHandler) ResendProfileOTP(c *gin.Context) {
 	otpCode := services.GenerateOTP()
 	pending.OTPCode = otpCode
 	pending.OTPExpiresAt = time.Now().Add(10 * time.Minute)
-	profileChangeStore.Save(pending)
+	saveProfileChange(pending)
 
 	go func() {
 		if err := services.SendOTPEmail(business.Email, otpCode); err != nil {
-			fmt.Printf("Warning: failed to resend profile change OTP email: %v\n", err)
+			log.Printf("Warning: failed to resend profile change OTP email: %v", err)
 		}
 	}()
 
-	fmt.Printf("Resent profile change OTP for business %d: %s\n", businessID, otpCode)
+	if config.IsDev() {
+		log.Printf("[DEV] Profile change OTP resent for business %d: %s", businessID, otpCode)
+	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }

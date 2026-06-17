@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/locations_content"}}
+<div id="locations-page">
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
@@ -122,6 +123,10 @@
 </div>
 
 <script>
+function reloadLocationsPage() {
+  htmx.ajax('GET', window.location.href, {target: '#locations-page', swap: 'outerHTML'});
+}
+
 var csrfToken = getCookie('csrf_token');
 
 function showCreateLocationModal() {
@@ -182,7 +187,7 @@ function saveLocation() {
   }).then(function(r) { return r.json(); }).then(function(resp) {
     if (resp.success) {
       showNotification('Location saved', 'success');
-      setTimeout(function() { location.reload(); }, 500);
+      setTimeout(function() { reloadLocationsPage(); }, 500);
     } else {
       showNotification(resp.error || 'Failed to save location', 'error');
     }
@@ -198,7 +203,7 @@ function deleteLocation(id) {
     }).then(function(r) { return r.json(); }).then(function(resp) {
       if (resp.success) {
         showNotification('Location deleted', 'success');
-        setTimeout(function() { location.reload(); }, 500);
+        setTimeout(function() { reloadLocationsPage(); }, 500);
       } else {
         showNotification('Failed to delete location', 'error');
       }
@@ -206,5 +211,6 @@ function deleteLocation(id) {
   });
 }
 </script>
+</div>
 {{end}}
 

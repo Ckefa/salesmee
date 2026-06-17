@@ -17,7 +17,7 @@ import (
 )
 
 // GetProducts for business
-func (h *BusinessHandler) GetProducts(c *gin.Context) {
+func (h *ProductHandler) GetProducts(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Business not authenticated"})
@@ -73,7 +73,7 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 			"TotalCount": totalCount,
 			"Countries":  data.Countries,
 			"Currencies": data.Currencies,
-			"Onboarding": h.onboardingData(businessID),
+			"Onboarding": onboardingData(h.db, businessID),
 			"Locations":  locations,
 			"AuthType":   c.GetString("auth_type"),
 			"Role":       c.GetString("role"),
@@ -92,7 +92,7 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 		"ActivePage": "products",
 		"Countries":  data.Countries,
 		"Currencies": data.Currencies,
-		"Onboarding": h.onboardingData(businessID),
+		"Onboarding": onboardingData(h.db, businessID),
 		"Locations":  locations,
 		"AuthType":   c.GetString("auth_type"),
 		"Role":       c.GetString("role"),
@@ -100,7 +100,7 @@ func (h *BusinessHandler) GetProducts(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) CreateProduct(c *gin.Context) {
+func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -141,7 +141,7 @@ func (h *BusinessHandler) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "product": product})
 }
 
-func (h *BusinessHandler) GetProduct(c *gin.Context) {
+func (h *ProductHandler) GetProduct(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -165,7 +165,7 @@ func (h *BusinessHandler) GetProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "product": product})
 }
 
-func (h *BusinessHandler) UpdateProduct(c *gin.Context) {
+func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -199,7 +199,7 @@ func (h *BusinessHandler) UpdateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "product": product})
 }
 
-func (h *BusinessHandler) DeleteProduct(c *gin.Context) {
+func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -234,7 +234,7 @@ func (h *BusinessHandler) DeleteProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) UploadProductImage(c *gin.Context) {
+func (h *ProductHandler) UploadProductImage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -309,7 +309,7 @@ func (h *BusinessHandler) UploadProductImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "image_url": imageURL, "image_id": productImage.ID})
 }
 
-func (h *BusinessHandler) GetProductImages(c *gin.Context) {
+func (h *ProductHandler) GetProductImages(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -343,7 +343,7 @@ func (h *BusinessHandler) GetProductImages(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "images": images})
 }
 
-func (h *BusinessHandler) DeleteProductImage(c *gin.Context) {
+func (h *ProductHandler) DeleteProductImage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -389,7 +389,7 @@ func (h *BusinessHandler) DeleteProductImage(c *gin.Context) {
 }
 
 // GetBusinessProducts as a struct
-func (h *BusinessHandler) GetBusinessProducts(c *gin.Context) {
+func (h *ProductHandler) GetBusinessProducts(c *gin.Context) {
 	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid business ID"})
@@ -405,7 +405,7 @@ func (h *BusinessHandler) GetBusinessProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-func (h *BusinessHandler) ShowClientProductsPage(c *gin.Context) {
+func (h *ProductHandler) ShowClientProductsPage(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Client not authenticated"})
@@ -439,7 +439,7 @@ func (h *BusinessHandler) ShowClientProductsPage(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetClientProductImages(c *gin.Context) {
+func (h *ProductHandler) GetClientProductImages(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Client not authenticated"})

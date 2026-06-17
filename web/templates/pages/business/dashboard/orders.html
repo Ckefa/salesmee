@@ -271,28 +271,31 @@ hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders
   {{end}}
 
   <script>
+    function reloadOrdersPage() {
+      htmx.ajax('GET', window.location.href, {target: '#orders-page', swap: 'outerHTML'});
+    }
     function sendOrderToClient(orderId) {
       fetch('orders/' + orderId + '/send', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
         .then(function (r) {return r.json();})
-        .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to send order', 'error');})
+        .then(function (d) {if (d.success) reloadOrdersPage(); else showNotification(d.error || 'Failed to send order', 'error');})
         .catch(function () {showNotification('Failed to send order', 'error');});
     }
     function businessConfirmOrder(orderId) {
       fetch('orders/' + orderId + '/confirm', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
         .then(function (r) {return r.json();})
-        .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to confirm order', 'error');})
+        .then(function (d) {if (d.success) reloadOrdersPage(); else showNotification(d.error || 'Failed to confirm order', 'error');})
         .catch(function () {showNotification('Failed to confirm order', 'error');});
     }
     function markOrderAsPaid(orderId) {
       fetch('orders/' + orderId + '/paid', {method: 'PUT', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
         .then(function (r) {return r.json();})
-        .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to mark as paid', 'error');})
+        .then(function (d) {if (d.success) reloadOrdersPage(); else showNotification(d.error || 'Failed to mark as paid', 'error');})
         .catch(function () {showNotification('Failed to mark as paid', 'error');});
     }
     function fulfillOrder(orderId) {
       fetch('orders/' + orderId + '/fulfill', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
         .then(function (r) {return r.json();})
-        .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to complete order', 'error');})
+        .then(function (d) {if (d.success) reloadOrdersPage(); else showNotification(d.error || 'Failed to complete order', 'error');})
         .catch(function () {showNotification('Failed to complete order', 'error');});
     }
     function rejectOrder(orderId) {
@@ -300,7 +303,7 @@ hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders
         if (!confirmed) return;
         fetch('orders/' + orderId + '/reject', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')}})
           .then(function (r) {return r.json();})
-          .then(function (d) {if (d.success) location.reload(); else showNotification(d.error || 'Failed to cancel order', 'error');})
+          .then(function (d) {if (d.success) reloadOrdersPage(); else showNotification(d.error || 'Failed to cancel order', 'error');})
           .catch(function () {showNotification('Failed to cancel order', 'error');});
       });
     }

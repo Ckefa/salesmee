@@ -6,7 +6,8 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
-	"os"
+
+	"salesmee/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,9 +31,9 @@ func TemplateData(c *gin.Context, data gin.H) gin.H {
 var csrfSecret string
 
 func init() {
-	csrfSecret = os.Getenv("CSRF_SECRET")
+	csrfSecret = config.C.CSRFSecret
 	if csrfSecret == "" {
-		csrfSecret = os.Getenv("JWT_SECRET")
+		csrfSecret = config.C.JWTSecret
 	}
 }
 
@@ -48,11 +49,11 @@ func generateCSRFToken() string {
 func GetCSRFToken(c *gin.Context) string {
 	if existing, err := c.Cookie("csrf_token"); err == nil && existing != "" {
 		c.Set("csrf_token", existing)
-		c.SetCookie("csrf_token", existing, 3600, "/", "", false, false)
+		c.SetCookie("csrf_token", existing, 3600, "/", "", config.C.AppEnv != "dev", false)
 		return existing
 	}
 	token := generateCSRFToken()
-	c.SetCookie("csrf_token", token, 3600, "/", "", false, false)
+	c.SetCookie("csrf_token", token, 3600, "/", "", config.C.AppEnv != "dev", false)
 	// Also set in context for template rendering
 	c.Set("csrf_token", token)
 	return token

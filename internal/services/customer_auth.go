@@ -3,10 +3,11 @@ package services
 import (
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
-	"os"
 	"time"
 
+	"salesmee/internal/config"
 	"salesmee/internal/db"
 	"salesmee/internal/models"
 
@@ -31,10 +32,7 @@ func SendClientOTP(email string) (string, error) {
 	}
 
 	// Generate OTP
-	otpCode := "000000"              // For testing, always use 000000
-	if email != "test@example.com" { // Allow real OTP for non-test emails
-		otpCode = GenerateOTP()
-	}
+	otpCode := GenerateOTP()
 
 	// Create or update customer auth record
 	var customerAuth models.ClientAuth
@@ -54,13 +52,15 @@ func SendClientOTP(email string) (string, error) {
 		db.DB.Save(&customerAuth)
 	}
 
-	// Log OTP for dev fallback
-	fmt.Printf("OTP for %s: %s\n", email, otpCode)
+	// Log OTP for dev fallback (only in dev mode)
+	if config.IsDev() {
+		log.Printf("[DEV] OTP for %s: %s", email, otpCode)
+	}
 
 	// Send OTP via email only if RESEND=true
-	if os.Getenv("RESEND") == "true" {
+	if config.C.ResendEnabled {
 		if err := SendOTPEmail(email, otpCode); err != nil {
-			fmt.Printf("Warning: failed to send OTP email: %v\n", err)
+			log.Printf("Warning: failed to send OTP email to %s: %v", email, err)
 		}
 	}
 
@@ -98,5 +98,5 @@ func GenerateClientToken(clientAuth *models.ClientAuth) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	return token.SignedString([]byte(config.C.JWTSecret))
 }

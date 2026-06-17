@@ -3,10 +3,10 @@ package notifier
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 
@@ -14,7 +14,7 @@ import (
 )
 
 func StartNotificationScheduler(db *gorm.DB) {
-	enabled := os.Getenv("NOTIF_SCHEDULER") == "true"
+	enabled := config.C.NotifScheduler
 	if !enabled {
 		log.Println("[NOTIFIER] Scheduler disabled (NOTIF_SCHEDULER != true)")
 		return

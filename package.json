@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "css:build": "tailwindcss -i ./web/static/css/styles.css -o ./web/static/css/dist/styles.css --minify",
-    "css:watch": "tailwindcss -i ./web/static/css/styles.css -o ./web/static/css/dist/styles.css --watch"
+    "css:build": "NODE_ENV=production postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css",
+    "css:watch": "postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css --watch"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.18",
+    "cssnano": "^8.0.2",
     "postcss": "^8.4.35",
-    "autoprefixer": "^10.4.18"
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^3.4.17"
   }
 }

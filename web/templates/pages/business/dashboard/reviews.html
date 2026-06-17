@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/reviews_content"}}
+<div id="reviews-page">
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="flex items-center justify-between">
           <div>
@@ -113,6 +114,9 @@
 
       </div>
 <script>
+    function reloadReviewsPage() {
+      htmx.ajax('GET', window.location.href, {target: '#reviews-page', swap: 'outerHTML'});
+    }
     function showReplyForm(id) {
       document.getElementById('reply-form-' + id).classList.remove('hidden');
     }
@@ -132,12 +136,13 @@
       .then(function(d) {
         if (d.success) {
           showNotification('Reply posted!', 'success');
-          setTimeout(function() { location.reload(); }, 1000);
+          setTimeout(function() { reloadReviewsPage(); }, 1000);
         } else {
           showNotification(d.error || 'Failed to post reply', 'error');
         }
       });
     }
   </script>
+</div>
 {{end}}
 

@@ -29,7 +29,7 @@ func (h *BusinessHandler) CheckOnboardingProgress(c *gin.Context) {
 	}
 
 	if data.Completed {
-		c.JSON(http.StatusOK, gin.H{"completed": true})
+		c.JSON(http.StatusOK, gin.H{models.OrderCompleted: true})
 		return
 	}
 
@@ -44,31 +44,31 @@ func (h *BusinessHandler) CheckOnboardingProgress(c *gin.Context) {
 func (h *BusinessHandler) GetOnboardingStatus(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
-		c.JSON(http.StatusOK, gin.H{"completed": true})
+		c.JSON(http.StatusOK, gin.H{models.OrderCompleted: true})
 		return
 	}
 
 	var business models.Business
 	if err := h.db.First(&business, businessID).Error; err != nil {
-		c.JSON(http.StatusOK, gin.H{"completed": true})
+		c.JSON(http.StatusOK, gin.H{models.OrderCompleted: true})
 		return
 	}
 
 	data, err := onboarding.DetectStep(h.db, &business)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"completed": true})
+		c.JSON(http.StatusOK, gin.H{models.OrderCompleted: true})
 		return
 	}
 
 	if data.Completed {
-		c.JSON(http.StatusOK, gin.H{"completed": true})
+		c.JSON(http.StatusOK, gin.H{models.OrderCompleted: true})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"step":        data.Step,
 		"total_steps": data.TotalSteps,
-		"completed":   false,
+		models.OrderCompleted:   false,
 	})
 }
 
@@ -88,7 +88,7 @@ func (h *BusinessHandler) AdvanceOnboarding(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"step":        data.Step,
 		"total_steps": data.TotalSteps,
-		"completed":   data.Completed,
+		models.OrderCompleted:   data.Completed,
 	})
 }
 
@@ -104,5 +104,5 @@ func (h *BusinessHandler) SkipOnboarding(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"completed": true})
+	c.JSON(http.StatusOK, gin.H{models.OrderCompleted: true})
 }

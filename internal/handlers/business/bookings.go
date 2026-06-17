@@ -13,10 +13,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // ClientCreateBooking allows customers to create bookings
-func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
+func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 	// Get client ID from authenticated context (set by ClientMiddleware)
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
@@ -61,7 +62,7 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 		BusinessID:    request.BusinessID,
 		ClientID:      client.ID,
 		BookingNumber: generateBookingNumber(),
-		Status:        "pending",
+		Status: models.BookingPending,
 		Sender:        "client",
 		ScheduledDate: bookingDate,
 		Duration:      service.Duration,
@@ -88,7 +89,7 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 		return
 	}
 
-	if conv, err := h.getOrCreateConversation(client.ID, request.BusinessID); err == nil {
+	if conv, err := getOrCreateConversation(h.db, client.ID, request.BusinessID); err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 		if h.hub != nil {
 			ws.BroadcastNewMessage(
@@ -120,7 +121,7 @@ func (h *BusinessHandler) ClientCreateBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking, "service_name": service.Name})
 }
 
-func (h *BusinessHandler) GetBookings(c *gin.Context) {
+func (h *BookingHandler) GetBookings(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -158,13 +159,13 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
-		case "pending":
+		case models.BookingPending:
 			pendingCount = sc.Count
-		case "client_confirmed":
+		case models.BookingClientConfirmed:
 			confirmedCount = sc.Count
-		case "completed":
+		case models.BookingCompleted:
 			completedCount = sc.Count
-		case "cancelled":
+		case models.BookingCancelled:
 			cancelledCount = sc.Count
 		}
 	}
@@ -210,7 +211,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 			"Range":          r,
 			"Countries":      data.Countries,
 			"Currencies":     data.Currencies,
-			"Onboarding":     h.onboardingData(businessID),
+			"Onboarding":     onboardingData(h.db, businessID),
 			"Locations":      locations,
 			"AuthType":       c.GetString("auth_type"),
 			"Role":           c.GetString("role"),
@@ -234,7 +235,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 		"Range":          r,
 		"Countries":      data.Countries,
 		"Currencies":     data.Currencies,
-		"Onboarding":     h.onboardingData(businessID),
+		"Onboarding":     onboardingData(h.db, businessID),
 		"Locations":      locations,
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
@@ -242,7 +243,7 @@ func (h *BusinessHandler) GetBookings(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
+func (h *BookingHandler) GetBookingsStats(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -279,13 +280,13 @@ func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
-		case "pending":
+		case models.BookingPending:
 			pendingCount = sc.Count
-		case "client_confirmed":
+		case models.BookingClientConfirmed:
 			confirmedCount = sc.Count
-		case "completed":
+		case models.BookingCompleted:
 			completedCount = sc.Count
-		case "cancelled":
+		case models.BookingCancelled:
 			cancelledCount = sc.Count
 		}
 	}
@@ -331,7 +332,7 @@ func (h *BusinessHandler) GetBookingsStats(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetBookingsStatsGrid(c *gin.Context) {
+func (h *BookingHandler) GetBookingsStatsGrid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -358,13 +359,13 @@ func (h *BusinessHandler) GetBookingsStatsGrid(c *gin.Context) {
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
-		case "pending":
+		case models.BookingPending:
 			pendingCount = sc.Count
-		case "client_confirmed":
+		case models.BookingClientConfirmed:
 			confirmedCount = sc.Count
-		case "completed":
+		case models.BookingCompleted:
 			completedCount = sc.Count
-		case "cancelled":
+		case models.BookingCancelled:
 			cancelledCount = sc.Count
 		}
 	}
@@ -386,7 +387,7 @@ func (h *BusinessHandler) GetBookingsStatsGrid(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetBooking(c *gin.Context) {
+func (h *BookingHandler) GetBooking(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -408,23 +409,23 @@ func (h *BusinessHandler) GetBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
-func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string) {
-	prefs, err := notifier.GetOrCreatePrefs(h.db, booking.BusinessID)
+func sendBookingNotif(db *gorm.DB, booking models.Booking, status string) {
+	prefs, err := notifier.GetOrCreatePrefs(db, booking.BusinessID)
 	if err != nil || !prefs.BookingStatusChange {
 		return
 	}
 	var client models.Client
-	if err := h.db.First(&client, booking.ClientID).Error; err != nil || client.Email == "" {
+	if err := db.First(&client, booking.ClientID).Error; err != nil || client.Email == "" {
 		return
 	}
 	var biz models.Business
-	if err := h.db.First(&biz, booking.BusinessID).Error; err != nil {
+	if err := db.First(&biz, booking.BusinessID).Error; err != nil {
 		return
 	}
 
 	notifType := "booking_status"
 	rid := booking.ID
-	if notifier.HasBeenSent(h.db, booking.BusinessID, client.ID, notifType, &rid) {
+	if notifier.HasBeenSent(db, booking.BusinessID, client.ID, notifType, &rid) {
 		return
 	}
 
@@ -432,18 +433,18 @@ func (h *BusinessHandler) sendBookingNotif(booking models.Booking, status string
 	chatLink := services.AppURL(fmt.Sprintf("/client?business_id=%d", biz.ID))
 
 	if err := services.SendBookingStatusEmail(client.Email, client.Name, biz.Name, booking.BookingNumber, statusLabel, chatLink); err != nil {
-		notifier.MarkNotificationSent(h.db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "failed")
+		notifier.MarkNotificationSent(db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "failed")
 		return
 	}
-	notifier.MarkNotificationSent(h.db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "sent")
-	notifier.CreateInAppNotif(h.db, booking.BusinessID, &client.ID,
+	notifier.MarkNotificationSent(db, booking.BusinessID, client.ID, notifType, "booking", &rid, client.Email, "sent")
+	notifier.CreateInAppNotif(db, booking.BusinessID, &client.ID,
 		fmt.Sprintf("Booking %s", statusLabel),
 		fmt.Sprintf("Booking %s is now %s", booking.BookingNumber, statusLabel),
 		"fa-calendar-check",
 		"/business/bookings")
 }
 
-func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
+func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -468,10 +469,10 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 
 	newStatus := request.Status
 	validTransitions := map[string][]string{
-		"pending":          {"client_confirmed", "cancelled"},
-		"client_confirmed": {"completed", "cancelled"},
-		"completed":        {},
-		"cancelled":        {},
+		"pending":          {models.BookingClientConfirmed, models.BookingCancelled},
+		models.BookingClientConfirmed: {models.BookingCompleted, models.BookingCancelled},
+		models.BookingCompleted:        {},
+		models.BookingCancelled:        {},
 	}
 
 	allowed, ok := validTransitions[booking.Status]
@@ -501,7 +502,7 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 		return
 	}
 
-	h.sendBookingNotif(booking, newStatus)
+	sendBookingNotif(h.db, booking, newStatus)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
@@ -518,7 +519,7 @@ func (h *BusinessHandler) UpdateBookingStatus(c *gin.Context) {
 }
 
 // MarkBookingAsPaid sets the booking's paid amount to the total (quick mark as fully paid)
-func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
+func (h *BookingHandler) MarkBookingAsPaid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -534,7 +535,7 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 		return
 	}
 
-	if booking.Status != "client_confirmed" {
+	if booking.Status != models.BookingClientConfirmed {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking must be confirmed before marking as paid"})
 		return
 	}
@@ -548,12 +549,12 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 		ClientID:  booking.ClientID,
 		Amount:    booking.TotalAmount,
 		Method:    "cash",
-		Status:    "completed",
+		Status:    models.BookingCompleted,
 		Reference: "quick-paid",
 		Notes:     "Marked as paid from dashboard",
 	})
 
-	h.sendBookingNotif(booking, "paid")
+	sendBookingNotif(h.db, booking, "paid")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
@@ -573,7 +574,7 @@ func (h *BusinessHandler) MarkBookingAsPaid(c *gin.Context) {
 }
 
 // GetBookingReceipt renders a print-friendly receipt for a completed booking
-func (h *BusinessHandler) GetBookingReceipt(c *gin.Context) {
+func (h *BookingHandler) GetBookingReceipt(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Redirect(http.StatusFound, "/business/login")
@@ -592,7 +593,7 @@ func (h *BusinessHandler) GetBookingReceipt(c *gin.Context) {
 		return
 	}
 
-	if booking.Status != "completed" {
+	if booking.Status != models.BookingCompleted {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Booking is not completed"})
 		return
 	}
@@ -603,7 +604,7 @@ func (h *BusinessHandler) GetBookingReceipt(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) UpdateBooking(c *gin.Context) {
+func (h *BookingHandler) UpdateBooking(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -664,7 +665,7 @@ func (h *BusinessHandler) UpdateBooking(c *gin.Context) {
 }
 
 // CreateBooking for business
-func (h *BusinessHandler) CreateBooking(c *gin.Context) {
+func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -723,9 +724,9 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 		return
 	}
 
-	status := "pending"
+	status := models.BookingPending
 	if request.MarkCompleted {
-		status = "completed"
+		status = models.BookingCompleted
 	}
 
 	// Create booking
@@ -770,17 +771,17 @@ func (h *BusinessHandler) CreateBooking(c *gin.Context) {
 			BookingID: &booking.ID,
 			Amount:    booking.TotalAmount,
 			Method:    "cash",
-			Status:    "completed",
+			Status:    models.BookingCompleted,
 			Reference: "Walk-in counter payment",
 		}
 		h.db.Create(&payment)
 	}
 
 	// Send notification for new booking
-	h.sendBookingNotif(booking, "created")
+	sendBookingNotif(h.db, booking, "created")
 
 	// Auto-advance conversation progress and notify any open chat panes.
-	if conv, err := h.getOrCreateConversation(client.ID, businessID); err == nil {
+	if conv, err := getOrCreateConversation(h.db, client.ID, businessID); err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 		if h.hub != nil {
 			ws.BroadcastNewMessage(

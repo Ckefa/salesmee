@@ -36,7 +36,7 @@ func ShowClientLogin(c *gin.Context) {
 			return
 		}
 	}
-	c.HTML(200, "client_login.html", middleware.TemplateData(c, gin.H{
+	c.HTML(http.StatusOK, "client_login.html", middleware.TemplateData(c, gin.H{
 		"Title": "Client Login - SalesMee",
 	}))
 }
@@ -44,7 +44,7 @@ func ShowClientLogin(c *gin.Context) {
 func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
-		c.HTML(400, "client_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Login - SalesMee",
 			"Error": "Email is required",
 		}))
@@ -62,7 +62,7 @@ func SendClientOTP(c *gin.Context) {
 			Status: models.StatusNew,
 		}
 		if err := db.DB.Create(&client).Error; err != nil {
-			c.HTML(500, "client_login.html", middleware.TemplateData(c, gin.H{
+			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account",
 			}))
@@ -72,14 +72,14 @@ func SendClientOTP(c *gin.Context) {
 
 	_, err = services.SendClientOTP(email)
 	if err != nil {
-		c.HTML(400, "client_login.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Login - SalesMee",
 			"Error": "Failed to send OTP",
 		}))
 		return
 	}
 
-	c.HTML(200, "client_otp.html", middleware.TemplateData(c, gin.H{
+	c.HTML(http.StatusOK, "client_otp.html", middleware.TemplateData(c, gin.H{
 		"Title": "Enter OTP - SalesMee",
 		"Email": email,
 	}))
@@ -90,7 +90,7 @@ func VerifyClientOTP(c *gin.Context) {
 	otpCode := c.PostForm("otp")
 
 	if email == "" || otpCode == "" {
-		c.HTML(400, "client_otp.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Email and OTP are required",
@@ -100,7 +100,7 @@ func VerifyClientOTP(c *gin.Context) {
 
 	clientAuth, err := services.VerifyClientOTP(email, otpCode)
 	if err != nil {
-		c.HTML(400, "client_otp.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusBadRequest, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Invalid or expired OTP",
@@ -123,7 +123,7 @@ func VerifyClientOTP(c *gin.Context) {
 	// Generate JWT token
 	token, err := services.GenerateClientToken(clientAuth)
 	if err != nil {
-		c.HTML(500, "client_otp.html", middleware.TemplateData(c, gin.H{
+		c.HTML(http.StatusInternalServerError, "client_otp.html", middleware.TemplateData(c, gin.H{
 			"Title": "Enter OTP - SalesMee",
 			"Email": email,
 			"Error": "Failed to generate token",
@@ -183,7 +183,7 @@ func ClientDashboard(c *gin.Context) {
 	`
 	if err := db.DB.Raw(query, clientID).Scan(&businesses).Error; err != nil {
 		log.Printf("[ClientDashboard] ERROR running businesses query: %v", err)
-		c.HTML(500, "client.html", gin.H{
+		c.HTML(http.StatusInternalServerError, "client.html", gin.H{
 			"Title":         "Client Dashboard - SalesMee",
 			"Error":         "Failed to load businesses",
 			"AssistEnabled": assist.IsEnabled(),
@@ -205,7 +205,7 @@ func ClientDashboard(c *gin.Context) {
 		log.Printf("[ClientDashboard] conversation DB row: ID=%d, ClientID=%d, BusinessID=%d", c.ID, c.ClientID, c.BusinessID)
 	}
 
-	c.HTML(200, "client.html", gin.H{
+	c.HTML(http.StatusOK, "client.html", gin.H{
 		"Title":         "Client Dashboard - SalesMee",
 		"Email":         email,
 		"Businesses":    businesses,
@@ -261,7 +261,7 @@ func GetClientMessages(c *gin.Context) {
 	businessIDStr := c.Param("business_id")
 	var businessID uint
 	if _, err := fmt.Sscanf(businessIDStr, "%d", &businessID); err != nil {
-		c.String(400, "Invalid business ID")
+		c.String(http.StatusBadRequest, "Invalid business ID")
 		return
 	}
 
@@ -269,14 +269,14 @@ func GetClientMessages(c *gin.Context) {
 	conversation, client, err := getOrCreateConversation(clientID, businessID)
 	if err != nil {
 		log.Printf("Error getting conversation: %v", err)
-		c.String(500, "Failed to get conversation")
+		c.String(http.StatusInternalServerError, "Failed to get conversation")
 		return
 	}
 
 	// Get messages for this conversation
 	var messages []models.Message
 	if err := db.DB.Where("conversation_id = ?", conversation.ID).Order("created_at ASC").Find(&messages).Error; err != nil {
-		c.String(500, "Failed to load messages")
+		c.String(http.StatusInternalServerError, "Failed to load messages")
 		return
 	}
 
@@ -350,7 +350,7 @@ func GetClientMessages(c *gin.Context) {
 		editable := false
 
 		switch order.Status {
-		case "draft":
+		case models.OrderDraft:
 			actionRequired = "none"
 			editable = true
 		case "pending":
@@ -362,13 +362,13 @@ func GetClientMessages(c *gin.Context) {
 			} else {
 				actionRequired = "none"
 			}
-		case "client_confirmed":
+		case models.OrderClientConfirmed:
 			actionRequired = "business"
-		case "confirmed":
+		case models.OrderConfirmed:
 			actionRequired = "none"
-		case "fulfilled":
+		case models.OrderFulfilled:
 			actionRequired = "none"
-		case "cancelled":
+		case models.OrderCancelled:
 			actionRequired = "none"
 		default:
 			actionRequired = "none"
@@ -383,7 +383,7 @@ func GetClientMessages(c *gin.Context) {
 		db.DB.Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
 
 		var orderPendingAmt float64
-		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, "pending").
+		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, models.PaymentPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
 
 		var orderHasReview int64
@@ -394,12 +394,12 @@ func GetClientMessages(c *gin.Context) {
 			"business_id":          order.BusinessID,
 			"order_number":         order.OrderNumber,
 			"status":               order.Status,
-			"client_confirmed":     order.ConfirmedByClient,
+			models.OrderClientConfirmed:     order.ConfirmedByClient,
 			"business_confirmed":   order.ConfirmedByBusiness,
 			"action_required":      actionRequired,
 			"editable":             editable,
 			"sender":               order.Sender,
-			"draft":                order.Draft,
+			models.OrderDraft:                order.Draft,
 			"items":                items,
 			"total_amount":         order.TotalAmount,
 			"paid_amount":          order.PaidAmount,
@@ -458,13 +458,13 @@ func GetClientMessages(c *gin.Context) {
 		db.DB.Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
 
 		var bookingPendingAmt float64
-		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, "pending").
+		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, models.PaymentPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
 		var bookingActionRequired string
-		if booking.Status == "pending" && booking.Sender == "business" {
+		if booking.Status == models.BookingPending && booking.Sender == "business" {
 			bookingActionRequired = "client"
-		} else if booking.Status == "client_confirmed" && booking.PaidAmount < booking.TotalAmount {
+		} else if booking.Status == models.BookingClientConfirmed && booking.PaidAmount < booking.TotalAmount {
 			bookingActionRequired = "client"
 		} else {
 			bookingActionRequired = "none"
@@ -522,7 +522,7 @@ func GetClientMessages(c *gin.Context) {
 		}
 	}
 
-	c.HTML(200, "client_chat.html", gin.H{
+	c.HTML(http.StatusOK, "client_chat.html", gin.H{
 		"Business":       business,
 		"Client":         client,
 		"ConversationID": conversation.ID,
@@ -537,7 +537,7 @@ func CreateClientMessage(c *gin.Context) {
 	businessIDStr := c.Param("business_id")
 	var businessID uint
 	if _, err := fmt.Sscanf(businessIDStr, "%d", &businessID); err != nil {
-		c.String(400, "Invalid business ID")
+		c.String(http.StatusBadRequest, "Invalid business ID")
 		return
 	}
 
@@ -547,7 +547,7 @@ func CreateClientMessage(c *gin.Context) {
 	conversation, _, err := getOrCreateConversation(clientID, businessID)
 	if err != nil {
 		log.Printf("Error getting conversation: %v", err)
-		c.String(500, "Failed to get conversation")
+		c.String(http.StatusInternalServerError, "Failed to get conversation")
 		return
 	}
 
@@ -575,9 +575,14 @@ func CreateClientMessage(c *gin.Context) {
 		}
 	}
 
+	if content == "" && message.MediaURL == "" {
+		c.String(http.StatusBadRequest, "Message cannot be empty")
+		return
+	}
+
 	if err := db.DB.Create(&message).Error; err != nil {
 		log.Printf("Error creating message: %v", err)
-		c.String(500, "Failed to create message")
+		c.String(http.StatusInternalServerError, "Failed to create message")
 		return
 	}
 
@@ -621,7 +626,7 @@ func CreateClientMessage(c *gin.Context) {
 		CreatedAt: message.CreatedAt,
 	}
 
-	c.HTML(200, "client_message_partial.html", gin.H{
+	c.HTML(http.StatusOK, "client_message_partial.html", gin.H{
 		"MessageObj": messageObj,
 	})
 }
@@ -801,7 +806,7 @@ func ClientConfirmOrder(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "pending" {
+	if order.Status != models.OrderPending {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order cannot be confirmed in current status"})
 		return
 	}
@@ -865,7 +870,7 @@ func ClientConfirmOrder(c *gin.Context) {
 	now := time.Now()
 	order.ConfirmedByClient = true
 	order.ConfirmedByClientAt = &now
-	order.Status = "client_confirmed"
+	order.Status = models.OrderClientConfirmed
 	order.UpdatedAt = now
 
 	if err := db.DB.Save(&order).Error; err != nil {
@@ -903,17 +908,17 @@ func ClientCancelOrder(c *gin.Context) {
 		return
 	}
 
-	if order.Status == "confirmed" || order.Status == "fulfilled" {
+	if order.Status == models.OrderConfirmed || order.Status == models.OrderFulfilled {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot cancel a confirmed/fulfilled order"})
 		return
 	}
 
-	if order.Status == "cancelled" {
+	if order.Status == models.OrderCancelled {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order is already cancelled"})
 		return
 	}
 
-	order.Status = "cancelled"
+	order.Status = models.OrderCancelled
 	order.UpdatedAt = time.Now()
 	db.DB.Save(&order)
 
@@ -1010,17 +1015,17 @@ func ClientCancelBooking(c *gin.Context) {
 		return
 	}
 
-	if booking.Status == "completed" {
+	if booking.Status == models.BookingCompleted {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot cancel a completed booking"})
 		return
 	}
 
-	if booking.Status == "cancelled" {
+	if booking.Status == models.BookingCancelled {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking is already cancelled"})
 		return
 	}
 
-	booking.Status = "cancelled"
+	booking.Status = models.BookingCancelled
 	booking.UpdatedAt = time.Now()
 	db.DB.Save(&booking)
 
@@ -1054,7 +1059,7 @@ func ClientConfirmBooking(c *gin.Context) {
 		return
 	}
 
-	if booking.Status != "pending" {
+	if booking.Status != models.BookingPending {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking cannot be confirmed in current status"})
 		return
 	}
@@ -1064,7 +1069,7 @@ func ClientConfirmBooking(c *gin.Context) {
 		return
 	}
 
-	booking.Status = "client_confirmed"
+	booking.Status = models.BookingClientConfirmed
 	booking.UpdatedAt = time.Now()
 	db.DB.Save(&booking)
 
@@ -1086,7 +1091,7 @@ func DeleteClientMessage(c *gin.Context) {
 	messageIDStr := c.Param("message_id")
 	messageID, err := strconv.ParseUint(messageIDStr, 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid message ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
 		return
 	}
 
@@ -1095,39 +1100,39 @@ func DeleteClientMessage(c *gin.Context) {
 		bookingID := messageID - 20000
 		var booking models.Booking
 		if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
-			c.JSON(404, gin.H{"error": "Booking not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 			return
 		}
 		db.DB.Model(&booking).Update("hidden_from_chat", true)
 		if wsHub != nil {
 			ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 		}
-		c.JSON(200, gin.H{"success": true, "type": "booking", "id": bookingID})
+		c.JSON(http.StatusOK, gin.H{"success": true, "type": "booking", "id": bookingID})
 
 	case messageID >= 10000:
 		orderID := messageID - 10000
 		var order models.Order
 		if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
-			c.JSON(404, gin.H{"error": "Order not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 			return
 		}
 		db.DB.Model(&order).Update("hidden_from_chat", true)
 		if wsHub != nil {
 			ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 		}
-		c.JSON(200, gin.H{"success": true, "type": "order", "id": orderID})
+		c.JSON(http.StatusOK, gin.H{"success": true, "type": "order", "id": orderID})
 
 	default:
 		var msg models.Message
 		if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
-			c.JSON(404, gin.H{"error": "Message not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 			return
 		}
 		if msg.Conversation.ClientID != clientID {
-			c.JSON(403, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "Unauthorized"})
 			return
 		}
 		db.DB.Delete(&msg)
-		c.JSON(200, gin.H{"success": true, "type": "message", "id": messageID})
+		c.JSON(http.StatusOK, gin.H{"success": true, "type": "message", "id": messageID})
 	}
 }

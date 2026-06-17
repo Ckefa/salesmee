@@ -19,7 +19,7 @@ type MonthlyRevenue struct {
 	Revenue float64
 }
 
-func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
+func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Business not authenticated"})
@@ -56,7 +56,7 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 			"MonthlyRevenue":    data.MonthlyRevenue,
 			"Countries":         dataPkg.Countries,
 			"Currencies":        dataPkg.Currencies,
-			"Onboarding":        h.onboardingData(businessID),
+			"Onboarding":        onboardingData(h.db, businessID),
 			"AuthType":          c.GetString("auth_type"),
 			"Role":              c.GetString("role"),
 			"ActivePage":        "analytics",
@@ -85,7 +85,7 @@ func (h *BusinessHandler) GetAnalytics(c *gin.Context) {
 		"MonthlyRevenue":    data.MonthlyRevenue,
 		"Countries":         dataPkg.Countries,
 		"Currencies":        dataPkg.Currencies,
-		"Onboarding":        h.onboardingData(businessID),
+		"Onboarding":        onboardingData(h.db, businessID),
 		"AuthType":          c.GetString("auth_type"),
 		"Role":              c.GetString("role"),
 	})
@@ -102,7 +102,7 @@ type analyticsData struct {
 	ReviewCount int
 }
 
-func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string) analyticsData {
+func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string) analyticsData {
 	startTime, endTime, _ := timeRangeBounds(rangeKey)
 
 	var d analyticsData
@@ -119,13 +119,13 @@ func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string)
 		Scan(&orderCounts)
 	for _, sc := range orderCounts {
 		switch sc.Status {
-		case "pending":
+		case models.OrderPending:
 			d.PendingOrders = int(sc.Count)
-		case "confirmed":
+		case models.OrderConfirmed:
 			d.ConfirmedOrders = int(sc.Count)
-		case "fulfilled":
+		case models.OrderFulfilled:
 			d.FulfilledOrders = int(sc.Count)
-		case "cancelled":
+		case models.OrderCancelled:
 			d.CancelledOrders = int(sc.Count)
 		}
 		d.TotalOrders += int(sc.Count)
@@ -143,13 +143,13 @@ func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string)
 		Scan(&bookingCounts)
 	for _, sc := range bookingCounts {
 		switch sc.Status {
-		case "pending":
+		case models.OrderPending:
 			d.PendingBookings = int(sc.Count)
-		case "client_confirmed":
+		case models.OrderClientConfirmed:
 			d.ConfirmedBookings = int(sc.Count)
-		case "completed":
+		case models.OrderCompleted:
 			d.CompletedBookings = int(sc.Count)
-		case "cancelled":
+		case models.OrderCancelled:
 			d.CancelledBookings = int(sc.Count)
 		}
 		d.TotalBookings += int(sc.Count)
@@ -219,7 +219,7 @@ func (h *BusinessHandler) computeAnalyticsData(businessID uint, rangeKey string)
 	return d
 }
 
-func (h *BusinessHandler) GetAnalyticsStats(c *gin.Context) {
+func (h *AnalyticsHandler) GetAnalyticsStats(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
@@ -259,7 +259,7 @@ func (h *BusinessHandler) GetAnalyticsStats(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetAnalyticsStatsGrid(c *gin.Context) {
+func (h *AnalyticsHandler) GetAnalyticsStatsGrid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})

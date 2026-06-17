@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *BusinessHandler) ShowTeamLogin(c *gin.Context) {
+func (h *TeamHandler) ShowTeamLogin(c *gin.Context) {
 	token, _ := c.Cookie("team_token")
 	if token != "" {
 		if claims, err := services.ValidateToken(token); err == nil && claims != nil {
@@ -28,7 +28,7 @@ func (h *BusinessHandler) ShowTeamLogin(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) TeamLogin(c *gin.Context) {
+func (h *TeamHandler) TeamLogin(c *gin.Context) {
 	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -64,8 +64,8 @@ func (h *BusinessHandler) TeamLogin(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", "", -1, "/business", "", false, true)
-	c.SetCookie("team_token", token, 86400*7, "/", "", false, false)
+	services.ClearCookie(c, "token", "/business")
+	services.SetSecureCookie(c, "team_token", token, 86400*7, "/")
 	c.Set("team_member_id", member.ID)
 	c.Set("business_id", member.BusinessID)
 	c.Set("role", member.Role)
@@ -73,7 +73,7 @@ func (h *BusinessHandler) TeamLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) TeamLogout(c *gin.Context) {
-	c.SetCookie("team_token", "", -1, "/", "", false, true)
+func (h *TeamHandler) TeamLogout(c *gin.Context) {
+	services.ClearCookie(c, "team_token", "/")
 	c.Redirect(http.StatusFound, "/business/team/login")
 }

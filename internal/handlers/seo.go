@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"net/http"
 
+	"salesmee/internal/services"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +21,7 @@ type url struct {
 }
 
 func SitemapXML(c *gin.Context) {
-	base := "https://" + c.Request.Host
+	base := services.GetBaseURL(c)
 	c.XML(http.StatusOK, urlset{
 		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		URLs: []url{
@@ -47,6 +49,6 @@ Disallow: /client/
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: https://`+c.Request.Host+`/sitemap.xml
+Sitemap: `+services.GetBaseURL(c)+`/sitemap.xml
 `)
 }

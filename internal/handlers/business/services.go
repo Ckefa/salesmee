@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *BusinessHandler) GetBusinessServices(c *gin.Context) {
+func (h *ServiceHandler) GetBusinessServices(c *gin.Context) {
 	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid business ID"})
@@ -26,7 +26,7 @@ func (h *BusinessHandler) GetBusinessServices(c *gin.Context) {
 }
 
 // GetServices for the business
-func (h *BusinessHandler) GetServices(c *gin.Context) {
+func (h *ServiceHandler) GetServices(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Business not authenticated"})
@@ -80,7 +80,7 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 			"TotalCount":       totalCount,
 			"Countries":        data.Countries,
 			"Currencies":       data.Currencies,
-			"Onboarding":       h.onboardingData(businessID),
+			"Onboarding":       onboardingData(h.db, businessID),
 			"Locations":        locations,
 			"AuthType":         c.GetString("auth_type"),
 			"Role":             c.GetString("role"),
@@ -99,7 +99,7 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 		"ActivePage":       "services",
 		"Countries":        data.Countries,
 		"Currencies":       data.Currencies,
-		"Onboarding":       h.onboardingData(businessID),
+		"Onboarding":       onboardingData(h.db, businessID),
 		"Locations":        locations,
 		"AuthType":         c.GetString("auth_type"),
 		"Role":             c.GetString("role"),
@@ -107,7 +107,7 @@ func (h *BusinessHandler) GetServices(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) CreateService(c *gin.Context) {
+func (h *ServiceHandler) CreateService(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -151,7 +151,7 @@ func (h *BusinessHandler) CreateService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "service": service})
 }
 
-func (h *BusinessHandler) GetService(c *gin.Context) {
+func (h *ServiceHandler) GetService(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -173,7 +173,7 @@ func (h *BusinessHandler) GetService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "service": service})
 }
 
-func (h *BusinessHandler) UpdateService(c *gin.Context) {
+func (h *ServiceHandler) UpdateService(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -205,7 +205,7 @@ func (h *BusinessHandler) UpdateService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "service": service})
 }
 
-func (h *BusinessHandler) DeleteService(c *gin.Context) {
+func (h *ServiceHandler) DeleteService(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -226,7 +226,7 @@ func (h *BusinessHandler) DeleteService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) ShowClientServicesPage(c *gin.Context) {
+func (h *ServiceHandler) ShowClientServicesPage(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"error": "Client not authenticated"})

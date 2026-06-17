@@ -3,6 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/payments_content"}}
+<div id="payments-page">
 <style>
   .method-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; }
   .pm-track { background: var(--color-surface-tertiary); transition: background 0.2s; }
@@ -43,8 +44,8 @@
                 <tr class="table-row-hover" id="pm-row-{{.ID}}">
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                     <div class="flex items-center gap-2">
-                      <span class="method-icon" style="background:var(--color-{{if eq .MethodType "bank"}}primary{{else if eq .MethodType "mobile_wallet"}}success{{else if eq .MethodType "paypal"}}info{{else if eq .MethodType "link"}}warning{{else if eq .MethodType "crypto"}}secondary{{else}}surface-tertiary{{end}}-light)">
-                        {{if eq .MethodType "bank"}}🏦{{else if eq .MethodType "mobile_wallet"}}📱{{else if eq .MethodType "paypal"}}💳{{else if eq .MethodType "link"}}🔗{{else if eq .MethodType "crypto"}}₿{{else}}✏️{{end}}
+                      <span class="method-icon" style="background:var(--color-{{if eq .MethodType "bank"}}primary{{else if eq .MethodType "mobile_wallet"}}success{{else if eq .MethodType "paypal"}}info{{else if eq .MethodType "link"}}warning{{else if eq .MethodType "crypto"}}secondary{{else if eq .MethodType "card"}}info{{else}}surface-tertiary{{end}}-light)">
+                        {{if eq .MethodType "bank"}}🏦{{else if eq .MethodType "mobile_wallet"}}📱{{else if eq .MethodType "paypal"}}<img src="/static/images/paypal" alt="PayPal" class="w-[18px] h-[18px] object-contain">{{else if eq .MethodType "link"}}🔗{{else if eq .MethodType "crypto"}}₿{{else if eq .MethodType "card"}}💳{{else}}✏️{{end}}
                       </span>
                       <div>
                         <span class="text-xs sm:text-sm font-medium text-[var(--color-text)]">{{.Label}}</span>
@@ -63,6 +64,8 @@
                       {{if index .Details "url"}}{{index .Details "url"}}{{end}}
                     {{else if eq .MethodType "crypto"}}
                       {{if index .Details "network"}}{{index .Details "network"}}{{end}}{{if index .Details "wallet_address"}} · {{printf "%.12s" (index .Details "wallet_address")}}...{{end}}
+                    {{else if eq .MethodType "card"}}
+                      {{if index .Details "card_brands"}}{{index .Details "card_brands"}}{{end}}{{if index .Details "terminal"}} · {{index .Details "terminal"}}{{end}}
                     {{else if eq .MethodType "custom"}}
                       {{if index .Details "content"}}{{printf "%.40s" (index .Details "content")}}{{end}}
                     {{end}}
@@ -229,6 +232,7 @@
             <option value="paypal">PayPal</option>
             <option value="link">Payment Link</option>
             <option value="crypto">Crypto Wallet</option>
+            <option value="card">Credit / Debit Card</option>
             <option value="custom">Custom Instructions</option>
           </select>
         </div>
@@ -292,6 +296,12 @@
         <textarea id="pmCryptoDescription" class="input text-sm" style="min-height:5rem" placeholder="Notes for clients"></textarea>
       </div>
 
+      <div id="pmCardFields" class="hidden space-y-3 rounded-xl border border-[var(--color-border)] p-4">
+        <input id="pmCardBrands" class="input text-sm" placeholder="Accepted cards, e.g. Visa, Mastercard, Amex">
+        <input id="pmCardTerminal" class="input text-sm" placeholder="Terminal or POS name (optional)">
+        <textarea id="pmCardInstructions" class="input text-sm" style="min-height:5rem" placeholder="Notes for clients (optional)"></textarea>
+      </div>
+
       <div id="pmCustomFields" class="hidden rounded-xl border border-[var(--color-border)] p-4">
         <textarea id="pmCustomContent" class="input text-sm" style="min-height:7rem" placeholder="Write payment instructions shown to clients"></textarea>
       </div>
@@ -326,6 +336,7 @@
     document.getElementById('pmPaypalFields').classList.toggle('hidden', t !== 'paypal');
     document.getElementById('pmLinkFields').classList.toggle('hidden', t !== 'link');
     document.getElementById('pmCryptoFields').classList.toggle('hidden', t !== 'crypto');
+    document.getElementById('pmCardFields').classList.toggle('hidden', t !== 'card');
     document.getElementById('pmCustomFields').classList.toggle('hidden', t !== 'custom');
   }
 
@@ -385,6 +396,11 @@
         d.wallet_address = document.getElementById('pmCryptoAddress').value;
         d.description = document.getElementById('pmCryptoDescription').value;
         break;
+      case 'card':
+        d.card_brands = document.getElementById('pmCardBrands').value;
+        d.terminal = document.getElementById('pmCardTerminal').value;
+        d.instructions = document.getElementById('pmCardInstructions').value;
+        break;
       case 'custom':
         d.content = document.getElementById('pmCustomContent').value;
         break;
@@ -435,6 +451,11 @@
         document.getElementById('pmCryptoNetwork').value = details.network || '';
         document.getElementById('pmCryptoAddress').value = details.wallet_address || '';
         document.getElementById('pmCryptoDescription').value = details.description || '';
+        break;
+      case 'card':
+        document.getElementById('pmCardBrands').value = details.card_brands || '';
+        document.getElementById('pmCardTerminal').value = details.terminal || '';
+        document.getElementById('pmCardInstructions').value = details.instructions || '';
         break;
       case 'custom':
         document.getElementById('pmCustomContent').value = details.content || '';
@@ -488,10 +509,10 @@
       .then(function(d) {
         btn.disabled = false;
         btn.innerHTML = editId ? '<i class="fas fa-save mr-1"></i> Update Method' : '<i class="fas fa-save mr-1"></i> Save Method';
-        if (d.success) {
-          if (typeof showNotification === 'function') showNotification(editId ? 'Payment method updated' : 'Payment method added', 'success');
-          hidePaymentMethodModal();
-          location.reload();
+          if (d.success) {
+            if (typeof showNotification === 'function') showNotification(editId ? 'Payment method updated' : 'Payment method added', 'success');
+            hidePaymentMethodModal();
+            reloadPaymentsPage();
         } else {
           errEl.textContent = d.error || 'Failed to save payment method';
           errEl.classList.remove('hidden');
@@ -598,6 +619,10 @@
     });
   }
 
+  function reloadPaymentsPage() {
+    htmx.ajax('GET', window.location.href, {target: '#payments-page', swap: 'outerHTML'});
+  }
+
   function confirmOrderPayment(orderId, paymentId) {
     fetch('/business/orders/' + orderId + '/payments/' + paymentId + '/confirm', {
       method: 'POST',
@@ -607,7 +632,7 @@
       .then(function(d) {
         if (d.success) {
           if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
-          location.reload();
+          reloadPaymentsPage();
         } else {
           if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
         }
@@ -623,7 +648,7 @@
       .then(function(d) {
         if (d.success) {
           if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
-          location.reload();
+          reloadPaymentsPage();
         } else {
           if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
         }
@@ -639,7 +664,7 @@
       .then(function(d) {
         if (d.success) {
           if (typeof showNotification === 'function') showNotification('Payment confirmed!', 'success');
-          location.reload();
+          reloadPaymentsPage();
         } else {
           if (typeof showNotification === 'function') showNotification(d.error || 'Failed to confirm', 'error');
         }
@@ -655,7 +680,7 @@
       .then(function(d) {
         if (d.success) {
           if (typeof showNotification === 'function') showNotification('Payment claim rejected', 'info');
-          location.reload();
+          reloadPaymentsPage();
         } else {
           if (typeof showNotification === 'function') showNotification(d.error || 'Failed to reject', 'error');
         }
@@ -737,5 +762,6 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 {{end}}

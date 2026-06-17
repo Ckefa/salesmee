@@ -8,7 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
+
+	"salesmee/internal/config"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -35,12 +36,12 @@ type GoogleAdapter struct {
 func NewGoogleAdapter(redirectURL string) *GoogleAdapter {
 	url := redirectURL
 	if url == "" {
-		url = os.Getenv("GOOGLE_REDIRECT_URL")
+		url = config.C.GoogleRedirectURL
 	}
 	return &GoogleAdapter{
 		config: &oauth2.Config{
-			ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-			ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+			ClientID:     config.C.GoogleClientID,
+			ClientSecret: config.C.GoogleClientSecret,
 			RedirectURL:  url,
 			Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
 			Endpoint:     google.Endpoint,
@@ -104,8 +105,8 @@ type FacebookAdapter struct {
 func NewFacebookAdapter(redirectURL string) *FacebookAdapter {
 	return &FacebookAdapter{
 		config: &oauth2.Config{
-			ClientID:     os.Getenv("FB_APP_ID"),
-			ClientSecret: os.Getenv("FB_SECRET"),
+			ClientID:     config.C.FBAppID,
+			ClientSecret: config.C.FBSecret,
 			RedirectURL:  redirectURL,
 			Scopes:       []string{"email", "public_profile"},
 			Endpoint: oauth2.Endpoint{

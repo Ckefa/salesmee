@@ -1,18 +1,12 @@
 package business
 
 import (
-	"os"
-	"strconv"
+	"salesmee/internal/config"
 )
 
 func pageSize() int {
-	s := os.Getenv("TABLE_PAGE_SIZE")
-	if s == "" {
+	if config.C.TablePageSize < 1 {
 		return 8
 	}
-	n, err := strconv.Atoi(s)
-	if err != nil || n < 1 {
-		return 8
-	}
-	return n
+	return config.C.TablePageSize
 }

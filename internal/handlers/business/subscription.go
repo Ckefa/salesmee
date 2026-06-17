@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/payment"
@@ -102,7 +104,7 @@ type UpcomingInvoiceInfo struct {
 
 
 
-func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
+func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Redirect(http.StatusFound, "/business/login")
@@ -242,7 +244,7 @@ func (h *BusinessHandler) GetSubscriptionPage(c *gin.Context) {
 	}
 }
 
-func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
+func (h *SubscriptionHandler) GetPlansPage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Redirect(http.StatusFound, "/business/login")
@@ -282,7 +284,7 @@ func (h *BusinessHandler) GetPlansPage(c *gin.Context) {
 	}
 }
 
-func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
+func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Redirect(http.StatusFound, "/business/login")
@@ -311,17 +313,14 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 		unitAmount = plan.PriceMonthly
 	}
 
-	paddleEnv := os.Getenv("PADDLE_ENVIRONMENT")
+	paddleEnv := config.C.PaddleEnvironment
 	if paddleEnv == "" {
 		paddleEnv = "sandbox"
 	}
 
-	stripeEnabled := os.Getenv("STRIPE_ENABLED")
-	stripeEnabledBool := stripeEnabled != "false"
-	paddleEnabled := os.Getenv("PADDLE_ENABLED")
-	paddleEnabledBool := paddleEnabled != "false"
-	polarEnabled := os.Getenv("POLAR_ENABLED")
-	polarEnabledBool := polarEnabled != "false"
+	stripeEnabledBool := config.C.StripeEnabled
+	paddleEnabledBool := config.C.PaddleEnabled
+	polarEnabledBool := config.C.PolarEnabled
 
 	var providers []string
 	if stripeEnabledBool {
@@ -343,7 +342,7 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 		Providers:  providers,
 		CSRFToken:  c.GetString("csrf_token"),
 
-		PaddleClientToken: os.Getenv("PADDLE_CLIENT_TOKEN"),
+		PaddleClientToken: config.C.PaddleClientToken,
 		PaddleEnvironment: paddleEnv,
 		StripeEnabled:     stripeEnabledBool,
 		PaddleEnabled:     paddleEnabledBool,
@@ -355,7 +354,7 @@ func (h *BusinessHandler) GetCheckoutPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "checkout.html", data)
 }
 
-func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
+func (h *SubscriptionHandler) CreateCheckout(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	planCode := c.PostForm("plan_code")
 	billingInterval := c.PostForm("interval")
@@ -386,15 +385,11 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 		unitAmount = plan.PriceMonthly
 	}
 
-	scheme := "https"
-	if c.Request.TLS == nil {
-		scheme = "http"
-	}
-	host := c.Request.Host
+	host := services.GetBaseURL(c)
 
 	provider := payment.GetProvider(providerName)
 
-	paddleEnv := os.Getenv("PADDLE_ENVIRONMENT")
+	paddleEnv := config.C.PaddleEnvironment
 	if paddleEnv == "" {
 		paddleEnv = "sandbox"
 	}
@@ -402,7 +397,7 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 	envKey := fmt.Sprintf("PADDLE_%s_%s_%s_PRICE_ID", paddleEnvUpper, strings.ToUpper(planCode), strings.ToUpper(billingInterval))
 	paddlePriceID := os.Getenv(envKey)
 
-	polarEnv := os.Getenv("POLAR_ENVIRONMENT")
+	polarEnv := config.C.PolarEnvironment
 	if polarEnv == "" {
 		polarEnv = "sandbox"
 	}
@@ -433,8 +428,8 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 		BillingInterval: billingInterval,
 		UnitAmount:      unitAmount,
 		Currency:        "usd",
-		SuccessURL:      fmt.Sprintf("%s://%s/business/subscription?checkout=success&plan_code=%s&interval=%s", scheme, host, planCode, billingInterval),
-		CancelURL:       fmt.Sprintf("%s://%s/business/subscription?checkout=canceled", scheme, host),
+		SuccessURL:      fmt.Sprintf("%s/business/subscription?checkout=success&plan_code=%s&interval=%s", host, planCode, billingInterval),
+		CancelURL:       fmt.Sprintf("%s/business/subscription?checkout=canceled", host),
 		Plan: &payment.PlanMeta{
 			Name:          plan.Name,
 			Description:   plan.Description,
@@ -462,7 +457,7 @@ func (h *BusinessHandler) CreateCheckout(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, session.URL)
 }
 
-func (h *BusinessHandler) ChangePlan(c *gin.Context) {
+func (h *SubscriptionHandler) ChangePlan(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	planCode := c.PostForm("plan_code")
 
@@ -504,7 +499,7 @@ func (h *BusinessHandler) ChangePlan(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Plan changed successfully"})
 }
 
-func (h *BusinessHandler) CancelSubscription(c *gin.Context) {
+func (h *SubscriptionHandler) CancelSubscription(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
@@ -563,7 +558,7 @@ func (h *BusinessHandler) CancelSubscription(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Subscription canceled. You still have access until the end of your billing period."})
 }
 
-func (h *BusinessHandler) BillingPortal(c *gin.Context) {
+func (h *SubscriptionHandler) BillingPortal(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
@@ -577,11 +572,7 @@ func (h *BusinessHandler) BillingPortal(c *gin.Context) {
 		return
 	}
 
-	scheme := "https"
-	if c.Request.TLS == nil {
-		scheme = "http"
-	}
-	returnURL := fmt.Sprintf("%s://%s/business/subscription", scheme, c.Request.Host)
+	returnURL := services.GetBaseURL(c) + "/business/subscription"
 
 	var portalURL string
 	var err error
@@ -608,7 +599,7 @@ func (h *BusinessHandler) BillingPortal(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"url": portalURL})
 }
 
-func (h *BusinessHandler) GetPlanBadge(c *gin.Context) {
+func (h *SubscriptionHandler) GetPlanBadge(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusOK, "")
@@ -642,7 +633,7 @@ func (h *BusinessHandler) GetPlanBadge(c *gin.Context) {
 		</a>`, planName))
 }
 
-func (h *BusinessHandler) GetPlanBadgeSidebar(c *gin.Context) {
+func (h *SubscriptionHandler) GetPlanBadgeSidebar(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.String(http.StatusOK, "")

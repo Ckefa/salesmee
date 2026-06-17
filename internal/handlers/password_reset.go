@@ -108,11 +108,7 @@ func SendForgotPassword(c *gin.Context) {
 		return
 	}
 
-	scheme := "https"
-	if c.Request.TLS == nil {
-		scheme = "http"
-	}
-	resetLink := scheme + "://" + c.Request.Host + "/business/reset-password?token=" + token
+	resetLink := services.GetBaseURL(c) + "/business/reset-password?token=" + token
 
 	if err := services.SendPasswordResetEmail(email, resetLink); err != nil {
 		passwordResetCooldownsMu.Lock()

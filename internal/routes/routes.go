@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"net/http"
 	"salesmee/internal/handlers"
 	"salesmee/internal/handlers/business"
 	"salesmee/internal/handlers/client"
@@ -34,14 +35,14 @@ func Setup(r *gin.Engine) {
 
 	// Test template rendering
 	r.GET("/test-template", func(c *gin.Context) {
-		c.HTML(200, "minimal.html", gin.H{
+		c.HTML(http.StatusOK, "minimal.html", gin.H{
 			"Title": "Test Template",
 		})
 	})
 
 	// Simple test route
 	r.GET("/simple", func(c *gin.Context) {
-		c.HTML(200, "simple.html", gin.H{
+		c.HTML(http.StatusOK, "simple.html", gin.H{
 			"Title": "Simple Test",
 		})
 	})

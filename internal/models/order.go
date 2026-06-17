@@ -9,8 +9,8 @@ type Order struct {
 	BusinessID         uint       `gorm:"not null;index" json:"business_id"`
 	ClientID           uint       `gorm:"not null;index" json:"client_id"`
 	OrderNumber        string     `gorm:"unique;not null" json:"order_number"`
-	Status             string     `gorm:"default:'draft'" json:"status"` // draft, pending, client_confirmed, confirmed, fulfilled, cancelled
-	Sender             string     `gorm:"default:'client'" json:"sender"` // client, business
+	Status             string `gorm:"default:'draft'" json:"status"`
+	Sender             string `gorm:"default:'client'" json:"sender"`
 	Quantity           int        `gorm:"default:1" json:"quantity"`
 	TotalAmount        float64    `gorm:"not null" json:"total_amount"`
 	PaidAmount         float64    `gorm:"default:0" json:"paid_amount"`
@@ -56,8 +56,8 @@ type Booking struct {
 	BusinessID    uint      `gorm:"not null;index" json:"business_id"`
 	ClientID      uint      `gorm:"not null;index" json:"client_id"`
 	BookingNumber string    `gorm:"unique;not null" json:"booking_number"`
-	Status        string    `gorm:"default:'pending'" json:"status"` // pending, client_confirmed, completed, cancelled
-	Sender        string    `gorm:"default:'client'" json:"sender"`  // client, business
+	Status        string `gorm:"default:'pending'" json:"status"`
+	Sender        string `gorm:"default:'client'" json:"sender"`
 	ScheduledDate time.Time `gorm:"not null" json:"scheduled_date"`
 	Duration      int       `gorm:"not null" json:"duration"` // in minutes
 	TotalAmount   float64   `gorm:"not null" json:"total_amount"`
@@ -99,8 +99,8 @@ type Payment struct {
 	BookingID *uint     `gorm:"index" json:"booking_id,omitempty"`
 	ClientID  uint      `gorm:"not null;index" json:"client_id"`
 	Amount    float64   `gorm:"not null" json:"amount"`
-	Method    string    `gorm:"not null" json:"method"`          // cash, card, bank_transfer, mobile_money
-	Status    string    `gorm:"default:'pending'" json:"status"` // pending, completed, failed
+	Method    string    `gorm:"not null" json:"method"`
+	Status    string    `gorm:"default:'pending'" json:"status"`
 	Reference string    `json:"reference"`
 	Notes     string    `gorm:"type:text" json:"notes"`
 	CreatedAt time.Time `json:"created_at"`

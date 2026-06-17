@@ -48,8 +48,8 @@ func PageDescription(path string) string {
 }
 
 var dataKeywords = []string{
-	"revenue", "sales", "orders", "bookings", "paid", "pending",
-	"completed", "cancelled", "confirmed", "stats", "total",
+	"revenue", "sales", "orders", "bookings", "paid", models.OrderPending,
+	models.OrderCompleted, models.OrderCancelled, models.OrderConfirmed, "stats", "total",
 	"growth", "earnings", "income", "profit", "how many",
 	"how much", "data", "dashboard", "analytics", "summary",
 	"overview", "count", "number of", "what is", "what are",
@@ -137,11 +137,11 @@ func fetchData(db *gorm.DB, businessID uint, page, periodLabel string, start, en
 	switch {
 	case page == "/business/dashboard" || page == "/business/analytics":
 		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Count(&d.orderCount)
-		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "fulfilled").Count(&d.completedOrders)
-		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "pending").Count(&d.pendingOrders)
+		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderFulfilled).Count(&d.completedOrders)
+		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderPending).Count(&d.pendingOrders)
 		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Count(&d.bookingCount)
-		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "completed").Count(&d.completedBookings)
-		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "pending").Count(&d.pendingBookings)
+		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderCompleted).Count(&d.completedBookings)
+		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderPending).Count(&d.pendingBookings)
 		db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Scan(&d.orderRevenue)
 		db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Scan(&d.bookingRevenue)
 		d.totalRevenue = d.orderRevenue + d.bookingRevenue
@@ -149,16 +149,16 @@ func fetchData(db *gorm.DB, businessID uint, page, periodLabel string, start, en
 
 	case page == "/business/orders":
 		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Count(&d.orderCount)
-		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "fulfilled").Count(&d.completedOrders)
-		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ?", businessID, start, end, []string{"pending", "client_confirmed"}).Count(&d.pendingOrders)
-		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "cancelled").Count(&d.cancelledOrders)
+		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderFulfilled).Count(&d.completedOrders)
+		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ?", businessID, start, end, []string{models.OrderPending, models.OrderClientConfirmed}).Count(&d.pendingOrders)
+		db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderCancelled).Count(&d.cancelledOrders)
 		db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Scan(&d.orderRevenue)
 
 	case page == "/business/bookings":
 		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Count(&d.bookingCount)
-		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "completed").Count(&d.completedBookings)
-		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, "cancelled").Count(&d.cancelledBookings)
-		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ?", businessID, start, end, []string{"pending", "client_confirmed"}).Count(&d.pendingBookings)
+		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderCompleted).Count(&d.completedBookings)
+		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status = ?", businessID, start, end, models.OrderCancelled).Count(&d.cancelledBookings)
+		db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ?", businessID, start, end, []string{models.OrderPending, models.OrderClientConfirmed}).Count(&d.pendingBookings)
 		db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?", businessID, start, end).Scan(&d.bookingRevenue)
 
 	case page == "/business/products":
@@ -169,7 +169,7 @@ func fetchData(db *gorm.DB, businessID uint, page, periodLabel string, start, en
 		db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&d.serviceCount)
 
 	case page == "/business/payments":
-		db.Raw("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE (order_id IN (SELECT id FROM orders WHERE business_id = ?) OR booking_id IN (SELECT id FROM bookings WHERE business_id = ?)) AND created_at BETWEEN ? AND ? AND status = ?", businessID, businessID, start, end, "completed").Scan(&d.totalCollected)
+		db.Raw("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE (order_id IN (SELECT id FROM orders WHERE business_id = ?) OR booking_id IN (SELECT id FROM bookings WHERE business_id = ?)) AND created_at BETWEEN ? AND ? AND status = ?", businessID, businessID, start, end, models.OrderCompleted).Scan(&d.totalCollected)
 	}
 
 	return d

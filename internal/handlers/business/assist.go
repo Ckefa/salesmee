@@ -21,7 +21,7 @@ type suggestionItem struct {
 	Prompt  string `json:"prompt"`
 }
 
-func (h *BusinessHandler) AssistChat(c *gin.Context) {
+func (h *AssistHandler) AssistChat(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
@@ -82,7 +82,7 @@ func (h *BusinessHandler) AssistChat(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"reply": reply})
 }
 
-func (h *BusinessHandler) GetAssistSuggestions(c *gin.Context) {
+func (h *AssistHandler) GetAssistSuggestions(c *gin.Context) {
 	suggestions := []suggestionItem{
 		{ID: "draft-reply", Label: "Draft a reply", Prompt: "Draft a professional reply to a customer conversation. Keep it friendly and helpful."},
 		{ID: "suggest-product", Label: "Suggest a product", Prompt: "Suggest a product recommendation for a customer. Briefly explain why it's a good choice."},

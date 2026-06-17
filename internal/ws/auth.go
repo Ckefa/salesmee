@@ -2,8 +2,8 @@ package ws
 
 import (
 	"errors"
-	"os"
 
+	"salesmee/internal/config"
 	"salesmee/internal/services"
 )
 
@@ -32,7 +32,7 @@ func Authenticate(tokenString string) (*AuthResult, error) {
 		return result, nil
 	}
 
-	if os.Getenv("BIZ_ID") != "" {
+	if config.C.BizID != "" {
 		result.BusinessID = claims.UserID
 	} else {
 		result.BusinessID = claims.UserID

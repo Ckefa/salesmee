@@ -16,7 +16,7 @@ import (
 )
 
 // UpdatePaymentInstructions saves the business's payment instructions
-func (h *BusinessHandler) UpdatePaymentInstructions(c *gin.Context) {
+func (h *PaymentHandler) UpdatePaymentInstructions(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
@@ -35,7 +35,7 @@ func (h *BusinessHandler) UpdatePaymentInstructions(c *gin.Context) {
 }
 
 // ClientSubmitOrderPayment lets a client claim they've paid for an order
-func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
+func (h *PaymentHandler) ClientSubmitOrderPayment(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated as client"})
@@ -85,7 +85,7 @@ func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
 		ClientID:  clientID,
 		Amount:    request.Amount,
 		Method:    request.Method,
-		Status:    "pending",
+		Status: models.PaymentPending,
 		Reference: request.Reference,
 		Notes:     request.Notes,
 	}
@@ -135,7 +135,7 @@ func (h *BusinessHandler) ClientSubmitOrderPayment(c *gin.Context) {
 }
 
 // ClientSubmitBookingPayment lets a client claim they've paid for a booking
-func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
+func (h *PaymentHandler) ClientSubmitBookingPayment(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated as client"})
@@ -155,7 +155,7 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 		return
 	}
 
-	if booking.Status != "client_confirmed" && booking.Status != "completed" {
+	if booking.Status != "client_confirmed" && booking.Status != models.BookingCompleted {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking must be confirmed before payment"})
 		return
 	}
@@ -185,7 +185,7 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 		ClientID:  clientID,
 		Amount:    request.Amount,
 		Method:    request.Method,
-		Status:    "pending",
+		Status: models.PaymentPending,
 		Reference: request.Reference,
 		Notes:     request.Notes,
 	}
@@ -235,7 +235,7 @@ func (h *BusinessHandler) ClientSubmitBookingPayment(c *gin.Context) {
 }
 
 // ConfirmOrderPayment confirms a payment for an order (business side)
-func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
+func (h *PaymentHandler) ConfirmOrderPayment(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -260,13 +260,13 @@ func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
 		return
 	}
 
-	if payment.Status != "pending" {
+	if payment.Status != models.PaymentPending {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Payment is not in pending status"})
 		return
 	}
 
 	now := time.Now()
-	payment.Status = "completed"
+	payment.Status = models.PaymentCompleted
 	payment.UpdatedAt = now
 
 	if err := h.db.Save(&payment).Error; err != nil {
@@ -309,7 +309,7 @@ func (h *BusinessHandler) ConfirmOrderPayment(c *gin.Context) {
 }
 
 // RejectOrderPayment rejects a payment claim for an order (business side)
-func (h *BusinessHandler) RejectOrderPayment(c *gin.Context) {
+func (h *PaymentHandler) RejectOrderPayment(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -334,12 +334,12 @@ func (h *BusinessHandler) RejectOrderPayment(c *gin.Context) {
 		return
 	}
 
-	if payment.Status != "pending" {
+	if payment.Status != models.PaymentPending {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Payment is not in pending status"})
 		return
 	}
 
-	payment.Status = "failed"
+	payment.Status = models.PaymentFailed
 	payment.UpdatedAt = time.Now()
 	h.db.Save(&payment)
 
@@ -351,7 +351,7 @@ func (h *BusinessHandler) RejectOrderPayment(c *gin.Context) {
 }
 
 // ConfirmBookingPayment confirms a payment for a booking (business side)
-func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
+func (h *PaymentHandler) ConfirmBookingPayment(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -376,13 +376,13 @@ func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
 		return
 	}
 
-	if payment.Status != "pending" {
+	if payment.Status != models.PaymentPending {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Payment is not in pending status"})
 		return
 	}
 
 	now := time.Now()
-	payment.Status = "completed"
+	payment.Status = models.PaymentCompleted
 	payment.UpdatedAt = now
 	h.db.Save(&payment)
 
@@ -421,7 +421,7 @@ func (h *BusinessHandler) ConfirmBookingPayment(c *gin.Context) {
 }
 
 // RejectBookingPayment rejects a payment claim for a booking (business side)
-func (h *BusinessHandler) RejectBookingPayment(c *gin.Context) {
+func (h *PaymentHandler) RejectBookingPayment(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -446,12 +446,12 @@ func (h *BusinessHandler) RejectBookingPayment(c *gin.Context) {
 		return
 	}
 
-	if payment.Status != "pending" {
+	if payment.Status != models.PaymentPending {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Payment is not in pending status"})
 		return
 	}
 
-	payment.Status = "failed"
+	payment.Status = models.PaymentFailed
 	payment.UpdatedAt = time.Now()
 	h.db.Save(&payment)
 
@@ -463,7 +463,7 @@ func (h *BusinessHandler) RejectBookingPayment(c *gin.Context) {
 }
 
 // GetPayments renders the payments dashboard with real data
-func (h *BusinessHandler) GetPayments(c *gin.Context) {
+func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	locID := c.Query("location_id")
 
@@ -569,11 +569,11 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		rows = append(rows, row)
 
 		switch p.Status {
-		case "completed":
+		case models.PaymentCompleted:
 			totalCompleted += p.Amount
-		case "pending":
+		case models.PaymentPending:
 			totalPending += p.Amount
-		case "failed":
+		case models.PaymentFailed:
 			totalFailed += p.Amount
 		}
 	}
@@ -619,7 +619,7 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 			"Page":              float64(page),
 			"TotalPages":        float64(totalPages),
 			"TotalCount":        totalCount,
-			"Onboarding":        h.onboardingData(businessID),
+			"Onboarding":        onboardingData(h.db, businessID),
 			"Locations":         locations,
 			"AuthType":          c.GetString("auth_type"),
 			"Role":              c.GetString("role"),
@@ -644,7 +644,7 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 		"Page":              float64(page),
 		"TotalPages":        float64(totalPages),
 		"TotalCount":        totalCount,
-		"Onboarding":        h.onboardingData(businessID),
+		"Onboarding":        onboardingData(h.db, businessID),
 		"Locations":         locations,
 		"AuthType":          c.GetString("auth_type"),
 		"Role":              c.GetString("role"),
@@ -652,7 +652,7 @@ func (h *BusinessHandler) GetPayments(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
+func (h *PaymentHandler) GetPaymentsStats(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	locID := c.Query("location_id")
 
@@ -742,11 +742,11 @@ func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
 		rows = append(rows, row)
 
 		switch p.Status {
-		case "completed":
+		case models.PaymentCompleted:
 			totalCompleted += p.Amount
-		case "pending":
+		case models.PaymentPending:
 			totalPending += p.Amount
-		case "failed":
+		case models.PaymentFailed:
 			totalFailed += p.Amount
 		}
 	}
@@ -772,7 +772,7 @@ func (h *BusinessHandler) GetPaymentsStats(c *gin.Context) {
 }
 
 // ConfirmAllOrderPayments confirms all pending payments for an order at once
-func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
+func (h *PaymentHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -799,7 +799,7 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	now := time.Now()
 	var totalConfirmed float64
 	for _, payment := range pendingPayments {
-		payment.Status = "completed"
+		payment.Status = models.PaymentCompleted
 		payment.UpdatedAt = now
 		h.db.Save(&payment)
 		totalConfirmed += payment.Amount
@@ -839,7 +839,7 @@ func (h *BusinessHandler) ConfirmAllOrderPayments(c *gin.Context) {
 }
 
 // ConfirmAllBookingPayments confirms all pending payments for a booking at once
-func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
+func (h *PaymentHandler) ConfirmAllBookingPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -866,7 +866,7 @@ func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
 	now := time.Now()
 	var totalConfirmed float64
 	for _, payment := range pendingPayments {
-		payment.Status = "completed"
+		payment.Status = models.PaymentCompleted
 		payment.UpdatedAt = now
 		h.db.Save(&payment)
 		totalConfirmed += payment.Amount
@@ -906,7 +906,7 @@ func (h *BusinessHandler) ConfirmAllBookingPayments(c *gin.Context) {
 }
 
 // GetOrderPayments returns payments for a specific order
-func (h *BusinessHandler) GetOrderPayments(c *gin.Context) {
+func (h *PaymentHandler) GetOrderPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	orderIDStr := c.Param("id")
 
@@ -940,7 +940,7 @@ func (h *BusinessHandler) GetOrderPayments(c *gin.Context) {
 }
 
 // GetBookingPayments returns payments for a specific booking
-func (h *BusinessHandler) GetBookingPayments(c *gin.Context) {
+func (h *PaymentHandler) GetBookingPayments(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	bookingIDStr := c.Param("id")
 
@@ -988,7 +988,7 @@ func buildOrderPaymentsData(order models.Order, dbPaymentInfo []models.Payment) 
 			"notes":      p.Notes,
 			"created_at": p.CreatedAt,
 		}
-		if p.Status == "pending" {
+		if p.Status == models.PaymentPending {
 			pendingPayments = append(pendingPayments, pm)
 		} else {
 			completedPayments = append(completedPayments, pm)
@@ -1006,7 +1006,7 @@ func buildOrderPaymentsData(order models.Order, dbPaymentInfo []models.Payment) 
 }
 
 // GetPaymentMethods returns all payment methods for the business
-func (h *BusinessHandler) GetPaymentMethods(c *gin.Context) {
+func (h *PaymentHandler) GetPaymentMethods(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var methods []models.PaymentMethod
@@ -1019,7 +1019,7 @@ func (h *BusinessHandler) GetPaymentMethods(c *gin.Context) {
 }
 
 // CreatePaymentMethod adds a new payment method
-func (h *BusinessHandler) CreatePaymentMethod(c *gin.Context) {
+func (h *PaymentHandler) CreatePaymentMethod(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var req struct {
@@ -1059,7 +1059,7 @@ func (h *BusinessHandler) CreatePaymentMethod(c *gin.Context) {
 }
 
 // UpdatePaymentMethod updates an existing payment method
-func (h *BusinessHandler) UpdatePaymentMethod(c *gin.Context) {
+func (h *PaymentHandler) UpdatePaymentMethod(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	idStr := c.Param("id")
 	id, _ := strconv.ParseUint(idStr, 10, 32)
@@ -1111,7 +1111,7 @@ func (h *BusinessHandler) UpdatePaymentMethod(c *gin.Context) {
 }
 
 // DeletePaymentMethod removes a payment method
-func (h *BusinessHandler) DeletePaymentMethod(c *gin.Context) {
+func (h *PaymentHandler) DeletePaymentMethod(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	idStr := c.Param("id")
 	id, _ := strconv.ParseUint(idStr, 10, 32)
@@ -1130,7 +1130,7 @@ func (h *BusinessHandler) DeletePaymentMethod(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (h *BusinessHandler) GetPaymentsStatsGrid(c *gin.Context) {
+func (h *PaymentHandler) GetPaymentsStatsGrid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
@@ -1165,11 +1165,11 @@ func (h *BusinessHandler) GetPaymentsStatsGrid(c *gin.Context) {
 	var totalCompleted, totalPending, totalFailed float64
 	for _, p := range payments {
 		switch p.Status {
-		case "completed":
+		case models.PaymentCompleted:
 			totalCompleted += p.Amount
-		case "pending":
+		case models.PaymentPending:
 			totalPending += p.Amount
-		case "failed":
+		case models.PaymentFailed:
 			totalFailed += p.Amount
 		}
 	}

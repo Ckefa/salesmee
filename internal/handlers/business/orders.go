@@ -13,10 +13,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // CreateOrder  Creation
-func (h *BusinessHandler) CreateOrder(c *gin.Context) {
+func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -41,19 +43,6 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Get product details
-	var product models.Product
-	if err := h.db.Where("id = ? AND business_id = ?", request.ProductID, businessID).First(&product).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
-		return
-	}
-
-	// Check stock availability
-	if product.Stock < request.Quantity {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Insufficient stock"})
-		return
-	}
-
 	// Get or create client
 	var client models.Client
 	if request.ClientID > 0 {
@@ -74,78 +63,98 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 		}
 	}
 
-	status := "pending"
-	if request.MarkCompleted {
-		status = "fulfilled"
-	}
-
-	// Create order
-	order := models.Order{
-		BusinessID:   businessID,
-		ClientID:     client.ID,
-		Quantity:     request.Quantity,
-		OrderNumber:  generateOrderNumber(),
-		Status:       status,
-		Sender:       "business",
-		TotalAmount:  float64(request.Quantity) * product.Price,
-		Notes:        fmt.Sprintf("Delivery: %s. %s", request.DeliveryAddress, request.Notes),
-		DeliveryDate: &[]time.Time{time.Now().AddDate(0, 0, 7)}[0],
-		LocationID:   request.LocationID,
-	}
-
-	if request.MarkCompleted {
-		order.PaidAmount = order.TotalAmount
-	}
-
-	if err := h.db.Create(&order).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
-		return
-	}
-
-	// Create order item
-	orderItem := models.OrderItem{
-		OrderID:    order.ID,
-		ProductID:  product.ID,
-		Quantity:   request.Quantity,
-		UnitPrice:  product.Price,
-		TotalPrice: float64(request.Quantity) * product.Price,
-	}
-
-	if err := h.db.Create(&orderItem).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order item"})
-		return
-	}
-
-	// Update product stock
-	product.Stock -= request.Quantity
-	if err := h.db.Save(&product).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update stock"})
-		return
-	}
-
-	// Create inventory log
-	inventoryLog := models.InventoryLog{
-		ProductID: product.ID,
-		Type:      "out",
-		Quantity:  request.Quantity,
-		Reason:    fmt.Sprintf("Order #%s", order.OrderNumber),
-	}
-	h.db.Create(&inventoryLog)
-
-	// If mark_completed, create payment record
-	if request.MarkCompleted {
-		payment := models.Payment{
-			OrderID:   &order.ID,
-			Amount:    order.TotalAmount,
-			Method:    "cash",
-			Status:    "completed",
-			Reference: "Walk-in counter payment",
+	// Create order in a transaction with row-level locking to prevent overselling
+	var order models.Order
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		var product models.Product
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("id = ? AND business_id = ?", request.ProductID, businessID).
+			First(&product).Error; err != nil {
+			return err
 		}
-		h.db.Create(&payment)
+
+		if product.Stock < request.Quantity {
+			return fmt.Errorf("insufficient stock")
+		}
+
+		status := models.OrderPending
+		if request.MarkCompleted {
+			status = models.OrderFulfilled
+		}
+
+		order = models.Order{
+			BusinessID:   businessID,
+			ClientID:     client.ID,
+			Quantity:     request.Quantity,
+			OrderNumber:  generateOrderNumber(),
+			Status:       status,
+			Sender:       "business",
+			TotalAmount:  float64(request.Quantity) * product.Price,
+			Notes:        fmt.Sprintf("Delivery: %s. %s", request.DeliveryAddress, request.Notes),
+			DeliveryDate: &[]time.Time{time.Now().AddDate(0, 0, 7)}[0],
+			LocationID:   request.LocationID,
+		}
+
+		if request.MarkCompleted {
+			order.PaidAmount = order.TotalAmount
+		}
+
+		if err := tx.Create(&order).Error; err != nil {
+			return err
+		}
+
+		orderItem := models.OrderItem{
+			OrderID:    order.ID,
+			ProductID:  product.ID,
+			Quantity:   request.Quantity,
+			UnitPrice:  product.Price,
+			TotalPrice: float64(request.Quantity) * product.Price,
+		}
+
+		if err := tx.Create(&orderItem).Error; err != nil {
+			return err
+		}
+
+		product.Stock -= request.Quantity
+		if err := tx.Save(&product).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.InventoryLog{
+			ProductID: product.ID,
+			Type:      "out",
+			Quantity:  request.Quantity,
+			Reason:    fmt.Sprintf("Order #%s", order.OrderNumber),
+		}).Error; err != nil {
+			return err
+		}
+
+		if request.MarkCompleted {
+			if err := tx.Create(&models.Payment{
+				OrderID:   &order.ID,
+				Amount:    order.TotalAmount,
+				Method:    "cash",
+				Status:    models.OrderCompleted,
+				Reference: "Walk-in counter payment",
+			}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		if err.Error() == "insufficient stock" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Insufficient stock"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Product not found"})
+		}
+		return
 	}
 
 	// Auto-advance conversation progress and notify any open chat panes.
-	if conv, err := h.getOrCreateConversation(client.ID, businessID); err == nil {
+	if conv, err := getOrCreateConversation(h.db, client.ID, businessID); err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 		if h.hub != nil {
 			ws.BroadcastNewMessage(
@@ -192,7 +201,7 @@ func (h *BusinessHandler) CreateOrder(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetOrders(c *gin.Context) {
+func (h *OrderHandler) GetOrders(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -230,17 +239,17 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
-		case "draft":
+		case models.OrderDraft:
 			draftCount = sc.Count
-		case "pending":
+		case models.OrderPending:
 			pendingCount = sc.Count
 		case "client_confirmed":
 			clientConfirmedCount = sc.Count
-		case "confirmed":
+		case models.OrderConfirmed:
 			confirmedCount = sc.Count
-		case "fulfilled":
+		case models.OrderFulfilled:
 			fulfilledCount = sc.Count
-		case "cancelled":
+		case models.OrderCancelled:
 			cancelledCount = sc.Count
 		}
 	}
@@ -288,7 +297,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 			"Range":                r,
 			"Countries":            data.Countries,
 			"Currencies":           data.Currencies,
-			"Onboarding":           h.onboardingData(businessID),
+			"Onboarding":           onboardingData(h.db, businessID),
 			"Locations":            locations,
 			"AuthType":             c.GetString("auth_type"),
 			"Role":                 c.GetString("role"),
@@ -314,7 +323,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 		"Range":                r,
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
-		"Onboarding":           h.onboardingData(businessID),
+		"Onboarding":           onboardingData(h.db, businessID),
 		"Locations":            locations,
 		"AuthType":             c.GetString("auth_type"),
 		"Role":                 c.GetString("role"),
@@ -322,7 +331,7 @@ func (h *BusinessHandler) GetOrders(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
+func (h *OrderHandler) GetOrdersStats(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -360,17 +369,17 @@ func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
-		case "draft":
+		case models.OrderDraft:
 			draftCount = sc.Count
-		case "pending":
+		case models.OrderPending:
 			pendingCount = sc.Count
 		case "client_confirmed":
 			clientConfirmedCount = sc.Count
-		case "confirmed":
+		case models.OrderConfirmed:
 			confirmedCount = sc.Count
-		case "fulfilled":
+		case models.OrderFulfilled:
 			fulfilledCount = sc.Count
-		case "cancelled":
+		case models.OrderCancelled:
 			cancelledCount = sc.Count
 		}
 	}
@@ -421,7 +430,7 @@ func (h *BusinessHandler) GetOrdersStats(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetOrdersStatsGrid(c *gin.Context) {
+func (h *OrderHandler) GetOrdersStatsGrid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -448,17 +457,17 @@ func (h *BusinessHandler) GetOrdersStatsGrid(c *gin.Context) {
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
-		case "draft":
+		case models.OrderDraft:
 			draftCount = sc.Count
-		case "pending":
+		case models.OrderPending:
 			pendingCount = sc.Count
 		case "client_confirmed":
 			clientConfirmedCount = sc.Count
-		case "confirmed":
+		case models.OrderConfirmed:
 			confirmedCount = sc.Count
-		case "fulfilled":
+		case models.OrderFulfilled:
 			fulfilledCount = sc.Count
-		case "cancelled":
+		case models.OrderCancelled:
 			cancelledCount = sc.Count
 		}
 	}
@@ -482,7 +491,7 @@ func (h *BusinessHandler) GetOrdersStatsGrid(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
+func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -511,7 +520,7 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	h.sendOrderNotif(order, request.Status)
+	sendOrderNotif(h.db, order, request.Status)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -528,7 +537,7 @@ func (h *BusinessHandler) UpdateOrderStatus(c *gin.Context) {
 }
 
 // ClientCreateOrder allows customers to create orders
-func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
+func (h *OrderHandler) ClientCreateOrder(c *gin.Context) {
 	// Get client ID from authenticated context (set by ClientMiddleware)
 	clientID := c.GetUint("client_id")
 	if clientID == 0 {
@@ -617,7 +626,7 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 		BusinessID:  request.BusinessID,
 		ClientID:    client.ID,
 		OrderNumber: generateOrderNumber(),
-		Status:      "pending",
+		Status:      models.OrderPending,
 		Sender:      "client",
 		Quantity:    len(itemList),
 		TotalAmount: totalAmount,
@@ -639,21 +648,34 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Deduct stock
-	for _, item := range itemList {
-		var product models.Product
-		h.db.First(&product, item.ProductID)
-		product.Stock -= item.Quantity
-		h.db.Save(&product)
-		h.db.Create(&models.InventoryLog{
-			ProductID: product.ID,
-			Type:      "out",
-			Quantity:  item.Quantity,
-			Reason:    fmt.Sprintf("Order #%s", order.OrderNumber),
-		})
+	// Deduct stock in a transaction with row-level locking
+	if err := h.db.Transaction(func(tx *gorm.DB) error {
+		for _, item := range itemList {
+			var product models.Product
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				First(&product, item.ProductID).Error; err != nil {
+				return fmt.Errorf("product_not_found:%d", item.ProductID)
+			}
+			product.Stock -= item.Quantity
+			if err := tx.Save(&product).Error; err != nil {
+				return err
+			}
+			if err := tx.Create(&models.InventoryLog{
+				ProductID: product.ID,
+				Type:      "out",
+				Quantity:  item.Quantity,
+				Reason:    fmt.Sprintf("Order #%s", order.OrderNumber),
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process order"})
+		return
 	}
 
-	if conv, err := h.getOrCreateConversation(client.ID, request.BusinessID); err == nil {
+	if conv, err := getOrCreateConversation(h.db, client.ID, request.BusinessID); err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 		if h.hub != nil {
 			ws.BroadcastNewMessage(
@@ -702,7 +724,7 @@ func (h *BusinessHandler) ClientCreateOrder(c *gin.Context) {
 }
 
 // UpdateOrder updates an existing order's items, notes, and delivery address
-func (h *BusinessHandler) UpdateOrder(c *gin.Context) {
+func (h *OrderHandler) UpdateOrder(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	orderIDStr := c.Param("id")
 
@@ -737,67 +759,88 @@ func (h *BusinessHandler) UpdateOrder(c *gin.Context) {
 		return
 	}
 
-	// Restore stock from old items
-	for _, oldItem := range order.OrderItems {
-		var product models.Product
-		h.db.First(&product, oldItem.ProductID)
-		product.Stock += oldItem.Quantity
-		h.db.Save(&product)
-	}
-
-	// Delete old order items
-	h.db.Where("order_id = ?", order.ID).Delete(&models.OrderItem{})
-
-	// Build new items and calculate total
-	var totalAmount float64
-	var orderItems []models.OrderItem
-
-	for _, item := range request.Items {
-		var product models.Product
-		if err := h.db.Where("id = ? AND business_id = ?", item.ProductID, businessID).First(&product).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Product %d not found", item.ProductID)})
-			return
+	err = h.db.Transaction(func(tx *gorm.DB) error {
+		// Restore stock from old items
+		for _, oldItem := range order.OrderItems {
+			var product models.Product
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				First(&product, oldItem.ProductID).Error; err != nil {
+				return err
+			}
+			product.Stock += oldItem.Quantity
+			if err := tx.Save(&product).Error; err != nil {
+				return err
+			}
 		}
-		if product.Stock < item.Quantity {
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Insufficient stock for %s", product.Name)})
-			return
+
+		// Delete old order items
+		if err := tx.Where("order_id = ?", order.ID).Delete(&models.OrderItem{}).Error; err != nil {
+			return err
 		}
-		itemTotal := float64(item.Quantity) * product.Price
-		totalAmount += itemTotal
-		orderItems = append(orderItems, models.OrderItem{
-			OrderID:    order.ID,
-			ProductID:  product.ID,
-			Quantity:   item.Quantity,
-			UnitPrice:  product.Price,
-			TotalPrice: itemTotal,
-		})
 
-		product.Stock -= item.Quantity
-		h.db.Save(&product)
-	}
+		// Build new items and calculate total
+		var totalAmount float64
+		var newItems []models.OrderItem
 
-	// Update order
-	order.TotalAmount = totalAmount
-	order.Quantity = len(request.Items)
+		for _, item := range request.Items {
+			var product models.Product
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				Where("id = ? AND business_id = ?", item.ProductID, businessID).
+				First(&product).Error; err != nil {
+				return fmt.Errorf("product_not_found:%d", item.ProductID)
+			}
+			if product.Stock < item.Quantity {
+				return fmt.Errorf("insufficient_stock:%s", product.Name)
+			}
+			itemTotal := float64(item.Quantity) * product.Price
+			totalAmount += itemTotal
+			newItems = append(newItems, models.OrderItem{
+				OrderID:    order.ID,
+				ProductID:  product.ID,
+				Quantity:   item.Quantity,
+				UnitPrice:  product.Price,
+				TotalPrice: itemTotal,
+			})
 
-	fullNotes := request.Notes
-	if request.DeliveryAddress != "" {
-		fullNotes = "📍 Delivery Address: " + request.DeliveryAddress + "\n" + fullNotes
-	}
-	order.Notes = fullNotes
-	order.UpdatedAt = time.Now()
+			product.Stock -= item.Quantity
+			if err := tx.Save(&product).Error; err != nil {
+				return err
+			}
+		}
 
-	if err := h.db.Save(&order).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order"})
+		// Update order
+		order.TotalAmount = totalAmount
+		order.Quantity = len(request.Items)
+		fullNotes := request.Notes
+		if request.DeliveryAddress != "" {
+			fullNotes = "📍 Delivery Address: " + request.DeliveryAddress + "\n" + fullNotes
+		}
+		order.Notes = fullNotes
+		order.UpdatedAt = time.Now()
+
+		if err := tx.Save(&order).Error; err != nil {
+			return err
+		}
+
+		for i := range newItems {
+			if err := tx.Create(&newItems[i]).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		errStr := err.Error()
+		if len(errStr) > 18 && errStr[:18] == "insufficient_stock:" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Insufficient stock for %s", errStr[18:])})
+		} else if len(errStr) > 17 && errStr[:17] == "product_not_found:" {
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Product %s not found", errStr[17:])})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order"})
+		}
 		return
-	}
-
-	// Create new order items
-	for i := range orderItems {
-		if err := h.db.Create(&orderItems[i]).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order items"})
-			return
-		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
@@ -808,7 +851,7 @@ func generateOrderNumber() string {
 }
 
 // GetConversationProducts returns all active products for the business in a conversation
-func (h *BusinessHandler) GetConversationProducts(c *gin.Context) {
+func (h *OrderHandler) GetConversationProducts(c *gin.Context) {
 	convIDStr := c.Param("conversation_id")
 	convID, err := strconv.ParseUint(convIDStr, 10, 32)
 	if err != nil {
@@ -834,7 +877,7 @@ func (h *BusinessHandler) GetConversationProducts(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) GetConversationServices(c *gin.Context) {
+func (h *OrderHandler) GetConversationServices(c *gin.Context) {
 	convIDStr := c.Param("conversation_id")
 	convID, err := strconv.ParseUint(convIDStr, 10, 32)
 	if err != nil {
@@ -861,7 +904,7 @@ func (h *BusinessHandler) GetConversationServices(c *gin.Context) {
 }
 
 // CreateOrderDraft creates a draft order inline in the chat (HTMX partial)
-func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
+func (h *OrderHandler) CreateOrderDraft(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	conversationIDStr := c.Param("conversation_id")
 
@@ -902,80 +945,100 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 		return
 	}
 
-	// Build order items and calculate total
+	// Build and create order in a transaction with row-level locking
 	var orderItems []models.OrderItem
-	var totalAmount float64
-	var productNames []string
+	var order models.Order
 	var firstProductName string
+	var productNames []string
 
-	for _, item := range request.Items {
-		var product models.Product
-		if err := h.db.Where("id = ? AND business_id = ?", item.ProductID, businessID).First(&product).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Product %d not found", item.ProductID)})
-			return
-		}
-		if product.Stock < item.Quantity {
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Insufficient stock for %s", product.Name)})
-			return
-		}
-		if firstProductName == "" {
-			firstProductName = product.Name
-		}
-		productNames = append(productNames, product.Name)
-		itemTotal := float64(item.Quantity) * product.Price
-		totalAmount += itemTotal
-		orderItems = append(orderItems, models.OrderItem{
-			ProductID:  product.ID,
-			Quantity:   item.Quantity,
-			UnitPrice:  product.Price,
-			TotalPrice: itemTotal,
-		})
-	}
+	err = h.db.Transaction(func(tx *gorm.DB) error {
+		var totalAmount float64
+		productNames = nil
+		firstProductName = ""
+		orderItems = nil
 
-	now := time.Now()
-	fullNotes := request.Notes
-	if request.DeliveryAddress != "" {
-		fullNotes = "📍 Delivery Address: " + request.DeliveryAddress + "\n" + fullNotes
-	}
-	order := models.Order{
-		BusinessID:  businessID,
-		ClientID:    conversation.ClientID,
-		OrderNumber: generateOrderNumber(),
-		Status:      "draft",
-		Sender:      "business",
-		Quantity:    len(request.Items),
-		TotalAmount: totalAmount,
-		Notes:       fullNotes,
-		Draft:       true,
-		CreatedAt:   now,
-	}
+		for _, item := range request.Items {
+			var product models.Product
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				Where("id = ? AND business_id = ?", item.ProductID, businessID).
+				First(&product).Error; err != nil {
+				return fmt.Errorf("product_not_found:%d", item.ProductID)
+			}
+			if product.Stock < item.Quantity {
+				return fmt.Errorf("insufficient_stock:%s", product.Name)
+			}
+			if firstProductName == "" {
+				firstProductName = product.Name
+			}
+			productNames = append(productNames, product.Name)
+			itemTotal := float64(item.Quantity) * product.Price
+			totalAmount += itemTotal
+			orderItems = append(orderItems, models.OrderItem{
+				ProductID:  product.ID,
+				Quantity:   item.Quantity,
+				UnitPrice:  product.Price,
+				TotalPrice: itemTotal,
+			})
 
-	if err := h.db.Create(&order).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
+			product.Stock -= item.Quantity
+			if err := tx.Save(&product).Error; err != nil {
+				return err
+			}
+		}
+
+		now := time.Now()
+		fullNotes := request.Notes
+		if request.DeliveryAddress != "" {
+			fullNotes = "📍 Delivery Address: " + request.DeliveryAddress + "\n" + fullNotes
+		}
+		order = models.Order{
+			BusinessID:  businessID,
+			ClientID:    conversation.ClientID,
+			OrderNumber: generateOrderNumber(),
+			Status:      models.OrderDraft,
+			Sender:      "business",
+			Quantity:    len(request.Items),
+			TotalAmount: totalAmount,
+			Notes:       fullNotes,
+			Draft:       true,
+			CreatedAt:   now,
+		}
+
+		if err := tx.Create(&order).Error; err != nil {
+			return err
+		}
+
+		for i := range orderItems {
+			orderItems[i].OrderID = order.ID
+		}
+		if err := tx.Create(&orderItems).Error; err != nil {
+			return err
+		}
+
+		for _, item := range request.Items {
+			if err := tx.Create(&models.InventoryLog{
+				ProductID: item.ProductID,
+				Type:      "out",
+				Quantity:  item.Quantity,
+				Reason:    fmt.Sprintf("Draft order #%s", order.OrderNumber),
+			}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		errStr := err.Error()
+		if len(errStr) > 18 && errStr[:18] == "insufficient_stock:" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Insufficient stock for %s", errStr[18:])})
+		} else if len(errStr) > 17 && errStr[:17] == "product_not_found:" {
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Product %s not found", errStr[17:])})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
+		}
 		return
-	}
-
-	// Save order items
-	for i := range orderItems {
-		orderItems[i].OrderID = order.ID
-	}
-	if err := h.db.Create(&orderItems).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order items"})
-		return
-	}
-
-	// Deduct stock and create inventory log for each item
-	for _, item := range request.Items {
-		var product models.Product
-		h.db.First(&product, item.ProductID)
-		product.Stock -= item.Quantity
-		h.db.Save(&product)
-		h.db.Create(&models.InventoryLog{
-			ProductID: product.ID,
-			Type:      "out",
-			Quantity:  item.Quantity,
-			Reason:    fmt.Sprintf("Draft order #%s", order.OrderNumber),
-		})
 	}
 
 	progress.AutoCalculateProgress(conversation.ID)
@@ -1014,12 +1077,12 @@ func (h *BusinessHandler) CreateOrderDraft(c *gin.Context) {
 		"total_amount":  order.TotalAmount,
 		"product_names": productNames,
 		"items":         request.Items,
-		"draft":         true,
+		models.OrderDraft:         true,
 	})
 }
 
 // SendOrderToClient publishes a draft order to the client
-func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
+func (h *OrderHandler) SendOrderToClient(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	orderIDStr := c.Param("id")
 
@@ -1035,18 +1098,21 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "draft" {
+	if order.Status != models.OrderDraft {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order is not in draft status"})
 		return
 	}
 
-	order.Status = "pending"
+	order.Status = models.OrderPending
 	order.Draft = false
 	now := time.Now()
 	order.UpdatedAt = now
-	h.db.Save(&order)
+	if err := h.db.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send order"})
+		return
+	}
 
-	h.sendOrderNotif(order, "pending")
+	sendOrderNotif(h.db, order, models.OrderPending)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1070,7 +1136,7 @@ func (h *BusinessHandler) SendOrderToClient(c *gin.Context) {
 }
 
 // ConfirmOrderBusiness confirms the order from the business side
-func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
+func (h *OrderHandler) ConfirmOrderBusiness(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	orderIDStr := c.Param("id")
 
@@ -1086,7 +1152,7 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "pending" && order.Status != "client_confirmed" {
+	if order.Status != models.OrderPending && order.Status != "client_confirmed" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order cannot be confirmed in current status"})
 		return
 	}
@@ -1094,11 +1160,14 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 	now := time.Now()
 	order.ConfirmedByBusiness = true
 	order.ConfirmedByBusinessAt = &now
-	order.Status = "confirmed"
+	order.Status = models.OrderConfirmed
 	order.UpdatedAt = now
-	h.db.Save(&order)
+	if err := h.db.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm order"})
+		return
+	}
 
-	h.sendOrderNotif(order, "confirmed")
+	sendOrderNotif(h.db, order, models.OrderConfirmed)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1119,7 +1188,7 @@ func (h *BusinessHandler) ConfirmOrderBusiness(c *gin.Context) {
 }
 
 // RejectOrder cancels/rejects an order
-func (h *BusinessHandler) RejectOrder(c *gin.Context) {
+func (h *OrderHandler) RejectOrder(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	orderIDStr := c.Param("id")
 
@@ -1135,16 +1204,19 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 		return
 	}
 
-	if order.Status == "confirmed" || order.Status == "fulfilled" {
+	if order.Status == models.OrderConfirmed || order.Status == models.OrderFulfilled {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot reject a confirmed/fulfilled order"})
 		return
 	}
 
-	order.Status = "cancelled"
+	order.Status = models.OrderCancelled
 	order.UpdatedAt = time.Now()
-	h.db.Save(&order)
+	if err := h.db.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reject order"})
+		return
+	}
 
-	h.sendOrderNotif(order, "cancelled")
+	sendOrderNotif(h.db, order, models.OrderCancelled)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1165,7 +1237,7 @@ func (h *BusinessHandler) RejectOrder(c *gin.Context) {
 }
 
 // FulfillOrder transitions confirmed → fulfilled
-func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
+func (h *OrderHandler) FulfillOrder(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	orderIDStr := c.Param("id")
 
@@ -1181,20 +1253,20 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "confirmed" && order.Status != "client_confirmed" {
+	if order.Status != models.OrderConfirmed && order.Status != "client_confirmed" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before fulfillment"})
 		return
 	}
 
 	now := time.Now()
-	order.Status = "fulfilled"
+	order.Status = models.OrderFulfilled
 	order.UpdatedAt = now
 	if err := h.db.Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fulfill order"})
 		return
 	}
 
-	h.sendOrderNotif(order, "completed")
+	sendOrderNotif(h.db, order, models.OrderCompleted)
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1214,7 +1286,7 @@ func (h *BusinessHandler) FulfillOrder(c *gin.Context) {
 }
 
 // GetOrderReceipt renders a print-friendly receipt for a completed order
-func (h *BusinessHandler) GetOrderReceipt(c *gin.Context) {
+func (h *OrderHandler) GetOrderReceipt(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.Redirect(http.StatusFound, "/business/login")
@@ -1233,7 +1305,7 @@ func (h *BusinessHandler) GetOrderReceipt(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "fulfilled" && order.Status != "completed" {
+	if order.Status != models.OrderFulfilled && order.Status != models.OrderCompleted {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Order is not completed"})
 		return
 	}
@@ -1245,7 +1317,7 @@ func (h *BusinessHandler) GetOrderReceipt(c *gin.Context) {
 }
 
 // MarkOrderAsPaid sets the order's paid amount to the total (quick mark as fully paid)
-func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
+func (h *OrderHandler) MarkOrderAsPaid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	if businessID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Business not authenticated"})
@@ -1261,27 +1333,33 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 		return
 	}
 
-	if order.Status != "confirmed" {
+	if order.Status != models.OrderConfirmed {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order must be confirmed before marking as paid"})
 		return
 	}
 
 	order.PaidAmount = order.TotalAmount
 	order.UpdatedAt = time.Now()
-	h.db.Save(&order)
+	if err := h.db.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark order as paid"})
+		return
+	}
 
 	// Create a completed payment record
-	h.db.Create(&models.Payment{
+	if err := h.db.Create(&models.Payment{
 		OrderID:   &order.ID,
 		ClientID:  order.ClientID,
 		Amount:    order.TotalAmount,
 		Method:    "cash",
-		Status:    "completed",
+		Status:    models.OrderCompleted,
 		Reference: "quick-paid",
 		Notes:     "Marked as paid from dashboard",
-	})
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create payment record"})
+		return
+	}
 
-	h.sendOrderNotif(order, "paid")
+	sendOrderNotif(h.db, order, "paid")
 
 	var conv models.Conversation
 	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
@@ -1300,35 +1378,35 @@ func (h *BusinessHandler) MarkOrderAsPaid(c *gin.Context) {
 	})
 }
 
-func (h *BusinessHandler) sendOrderNotif(order models.Order, status string) {
-	prefs, err := notifier.GetOrCreatePrefs(h.db, order.BusinessID)
+func sendOrderNotif(db *gorm.DB, order models.Order, status string) {
+	prefs, err := notifier.GetOrCreatePrefs(db, order.BusinessID)
 	if err != nil || !prefs.OrderStatusChange {
 		return
 	}
 	var client models.Client
-	if err := h.db.First(&client, order.ClientID).Error; err != nil || client.Email == "" {
+	if err := db.First(&client, order.ClientID).Error; err != nil || client.Email == "" {
 		return
 	}
 	var biz models.Business
-	if err := h.db.First(&biz, order.BusinessID).Error; err != nil {
+	if err := db.First(&biz, order.BusinessID).Error; err != nil {
 		return
 	}
 
 	statusLabel := status
 	notifType := "order_status"
 	rid := order.ID
-	if notifier.HasBeenSent(h.db, order.BusinessID, client.ID, notifType, &rid) {
+	if notifier.HasBeenSent(db, order.BusinessID, client.ID, notifType, &rid) {
 		return
 	}
 
 	chatLink := services.AppURL(fmt.Sprintf("/client?business_id=%d", biz.ID))
 
 	if err := services.SendOrderStatusEmail(client.Email, client.Name, biz.Name, order.OrderNumber, statusLabel, chatLink); err != nil {
-		notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "failed")
+		notifier.MarkNotificationSent(db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "failed")
 		return
 	}
-	notifier.MarkNotificationSent(h.db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "sent")
-	notifier.CreateInAppNotif(h.db, order.BusinessID, &client.ID,
+	notifier.MarkNotificationSent(db, order.BusinessID, client.ID, notifType, "order", &rid, client.Email, "sent")
+	notifier.CreateInAppNotif(db, order.BusinessID, &client.ID,
 		fmt.Sprintf("Order %s", statusLabel),
 		fmt.Sprintf("Order %s is now %s", order.OrderNumber, statusLabel),
 		"fa-shopping-cart",
@@ -1357,10 +1435,10 @@ func buildOrderData(order models.Order, orderItems []models.OrderItem, productNa
 	editable := false
 
 	switch order.Status {
-	case "draft":
+	case models.OrderDraft:
 		actionRequired = "none"
 		editable = true
-	case "pending":
+	case models.OrderPending:
 		if order.Sender == "business" && !order.ConfirmedByClient {
 			actionRequired = "client"
 			editable = true // client can edit quantities before confirming
@@ -1374,13 +1452,13 @@ func buildOrderData(order models.Order, orderItems []models.OrderItem, productNa
 	case "client_confirmed":
 		actionRequired = "business"
 		editable = false
-	case "confirmed":
+	case models.OrderConfirmed:
 		actionRequired = "none"
 		editable = false
-	case "fulfilled":
+	case models.OrderFulfilled:
 		actionRequired = "none"
 		editable = false
-	case "cancelled":
+	case models.OrderCancelled:
 		actionRequired = "none"
 		editable = false
 	default:
@@ -1406,7 +1484,7 @@ func buildOrderData(order models.Order, orderItems []models.OrderItem, productNa
 		"action_required":    actionRequired,
 		"editable":           editable,
 		"sender":             order.Sender,
-		"draft":              order.Draft,
+		models.OrderDraft:              order.Draft,
 		"items":              items,
 		"total_amount":       order.TotalAmount,
 		"paid_amount":        order.PaidAmount,

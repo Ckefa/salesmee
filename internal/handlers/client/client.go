@@ -139,7 +139,7 @@ func CreateClient(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&client).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create client"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
 		return
 	}
 
@@ -150,7 +150,7 @@ func CreateClient(c *gin.Context) {
 	}
 	db.DB.Create(&conversation)
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Customer created successfully",
 		"client":  client,
@@ -178,16 +178,16 @@ func DeleteClient(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid customer ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid customer ID"})
 		return
 	}
 
 	if err := deleteConversationWithDeps(uint(clientID), businessID); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to disconnect customer"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disconnect customer"})
 		return
 	}
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Customer disconnected successfully",
 	})
@@ -197,20 +197,20 @@ func UpdateClientStatus(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid customer ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid customer ID"})
 		return
 	}
 
 	// Verify client has a conversation with this business
 	var conversation models.Conversation
 	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Customer not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 		return
 	}
 
 	var client models.Client
 	if err := db.DB.First(&client, clientID).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Customer not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 		return
 	}
 
@@ -218,43 +218,43 @@ func UpdateClientStatus(c *gin.Context) {
 	client.Status = models.ClientStatus(newStatus)
 
 	if err := db.DB.Save(&client).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to update customer status"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update customer status"})
 		return
 	}
 
-	c.JSON(200, gin.H{"client": client})
+	c.JSON(http.StatusOK, gin.H{"client": client})
 }
 
 func GetClientConversationID(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid customer ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid customer ID"})
 		return
 	}
 
 	// Verify client has a conversation with this business
 	var conversation models.Conversation
 	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Customer not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 		return
 	}
 
-	c.JSON(200, gin.H{"conversation_id": conversation.ID})
+	c.JSON(http.StatusOK, gin.H{"conversation_id": conversation.ID})
 }
 
 func DisconnectFromBusiness(c *gin.Context) {
 	clientID := c.GetUint("client_id")
 	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid business ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid business ID"})
 		return
 	}
 
 	if err := deleteConversationWithDeps(clientID, uint(businessID)); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to disconnect"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disconnect"})
 		return
 	}
 
-	c.JSON(200, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }

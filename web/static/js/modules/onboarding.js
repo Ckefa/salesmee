@@ -10,7 +10,7 @@
     steps.forEach(function(s) { s.classList.add('hidden'); });
     document.getElementById('onboardingStepComplete').classList.remove('hidden');
     setTimeout(function() {
-      window.location.reload();
+      htmx.ajax('GET', window.location.href, {target: 'body', swap: 'innerHTML'});
     }, 1200);
   }
 
@@ -196,7 +196,7 @@
       } else if (data.step && data.step !== undefined) {
         var currentStepEl = document.querySelector('.onboarding-step:not(.hidden)');
         if (currentStepEl && currentStepEl.id !== 'onboardingStep' + data.step) {
-          window.location.reload();
+          htmx.ajax('GET', window.location.href, {target: 'body', swap: 'innerHTML'});
         }
       }
     })

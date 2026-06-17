@@ -4,8 +4,10 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	"salesmee/internal/config"
 	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -14,12 +16,40 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var allowedOrigins map[string]bool
+
+func init() {
+	allowedOrigins = make(map[string]bool)
+	if config.C.AllowedOrigins != "" {
+		for _, o := range strings.Split(config.C.AllowedOrigins, ",") {
+			o = strings.TrimSpace(o)
+			if o != "" {
+				allowedOrigins[o] = true
+			}
+		}
+	}
+	// Always allow same-origin (empty Origin header)
+}
+
+func checkOrigin(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+	if allowedOrigins[origin] {
+		return true
+	}
+	if config.C.AppURL != "" && origin == strings.TrimRight(config.C.AppURL, "/") {
+		return true
+	}
+	log.Printf("WebSocket connection rejected: origin=%s", origin)
+	return false
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  4096,
 	WriteBufferSize: 4096,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
+	CheckOrigin:     checkOrigin,
 }
 
 func ServeBusinessWS(hub *Hub) gin.HandlerFunc {

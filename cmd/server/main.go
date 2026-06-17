@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"salesmee/internal/config"
 	"salesmee/internal/data"
 	"salesmee/internal/db"
 	"salesmee/internal/handlers/admin"
@@ -27,8 +28,9 @@ import (
 
 func main() {
 	godotenv.Load()
+	config.Load()
 
-	gin.SetMode(os.Getenv("GIN_MODE"))
+	gin.SetMode(config.C.GinMode)
 
 	db.Connect()
 
@@ -62,6 +64,7 @@ func main() {
 		&models.Review{},
 		&models.Location{},
 		&models.TeamMember{},
+		&models.ProfileChangeRequest{},
 	}
 	for _, m := range migrateModels {
 		if err := db.DB.AutoMigrate(m); err != nil {
@@ -130,6 +133,8 @@ func main() {
 		log.Fatalf("failed to set trusted proxies: %v", err)
 	}
 
+	// Security headers (first, before any middleware)
+	r.Use(middleware.SecurityHeadersMiddleware())
 	// Rate limiting (before CSRF so blocked requests don't need tokens)
 	r.Use(middleware.RateLimitGlobal())
 	// Apply CSRF protection globally
@@ -156,7 +161,7 @@ func main() {
 	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
 		"hasPrefix": strings.HasPrefix,
 		"fbLogin": func() bool {
-			return os.Getenv("FB_LOGIN") == "TRUE"
+			return config.C.FBLogin
 		},
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
 			dict := make(map[string]interface{})
@@ -254,8 +259,8 @@ func main() {
 	// Start background notification scheduler
 	notifier.StartNotificationScheduler(db.DB)
 
-	log.Println("🚀 Running on :" + os.Getenv("APP_PORT"))
-	r.Run(":" + os.Getenv("APP_PORT"))
+	log.Println("🚀 Running on :" + config.C.AppPort)
+	r.Run(":" + config.C.AppPort)
 }
 
 func seedSubscriptionPlans(d *gorm.DB) {

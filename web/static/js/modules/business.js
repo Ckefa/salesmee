@@ -96,18 +96,30 @@ function hideNewClientModal() {
 
 function loadClient(clientId) {
   currentClientId = clientId;
+  window.clientId = clientId;
+  window.sender = 'business';
   var layout = document.getElementById('mainLayout');
+  window.businessId = window.BUSINESS_ID;
 
   document.querySelectorAll('.wa-chat-item').forEach(function(item) {
     item.classList.remove('selected');
   });
   var el = document.querySelector('[data-client-id="' + clientId + '"]');
-  if (el) el.classList.add('selected');
+  if (el) {
+    el.classList.add('selected');
+    window.conversationId = el.getAttribute('data-conversation-id');
+  }
 
-  htmx.ajax('GET', 'clients/' + clientId + '/messages', {
-    target: '#chat-area',
-    swap: 'innerHTML'
-  });
+  fetch('clients/' + clientId + '/messages')
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      var chatArea = document.getElementById('chat-area');
+      chatArea.innerHTML = html;
+      htmx.process(chatArea);
+      scrollToBottom();
+      markAsRead();
+    })
+    .catch(console.error);
 
   if (window.innerWidth < 1024) {
     layout.classList.add('wa-chat-open');
@@ -175,6 +187,11 @@ function registerBusinessPresenceHandlers() {
       el.classList.remove('online', 'offline');
       el.classList.add(p.is_online ? 'online' : 'offline');
     }
+    var card = document.querySelector('[data-client-id="' + p.client_id + '"]');
+    if (card) {
+      card.setAttribute('data-online', p.is_online ? 'true' : 'false');
+      deferredSort();
+    }
     if (String(p.client_id) === String(window.clientId || '')) {
       var statusEl = document.querySelector('.wa-header-online-text');
       if (statusEl) {
@@ -202,6 +219,8 @@ function registerBusinessPresenceHandlers() {
     } else {
       if (badge) badge.remove();
     }
+    item.setAttribute('data-unread', String(uc.count));
+    deferredSort();
   });
 
   window.wsClient.on(14, function(frame) {
@@ -247,6 +266,7 @@ window.addEventListener('beforeunload', function() {
 
 document.addEventListener('DOMContentLoaded', function() {
   startBusinessWS();
+  sortClientList();
 
   var form = document.getElementById('new-client-form');
   if (form) {
@@ -389,6 +409,53 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+// === WhatsApp-style pin & sort for client list ===
+function togglePinClient(id) {
+  var pins = JSON.parse(localStorage.getItem('pinned_clients') || '[]');
+  var nid = parseInt(id);
+  var idx = pins.indexOf(nid);
+  if (idx > -1) { pins.splice(idx, 1); } else { pins.push(nid); }
+  localStorage.setItem('pinned_clients', JSON.stringify(pins));
+  sortClientList();
+}
+
+var _sortTimer = null;
+function deferredSort() {
+  if (_sortTimer) clearTimeout(_sortTimer);
+  _sortTimer = setTimeout(sortClientList, 200);
+}
+
+function sortClientList() {
+  var pins = JSON.parse(localStorage.getItem('pinned_clients') || '[]');
+  var list = document.getElementById('client-list');
+  if (!list) return;
+  var items = Array.from(list.querySelectorAll('.wa-chat-item'));
+  if (items.length < 2) return;
+  items.sort(function(a, b) {
+    var aP = pins.indexOf(parseInt(a.getAttribute('data-client-id'))) > -1;
+    var bP = pins.indexOf(parseInt(b.getAttribute('data-client-id'))) > -1;
+    if (aP && !bP) return -1; if (!aP && bP) return 1;
+    var aO = a.getAttribute('data-online') === 'true';
+    var bO = b.getAttribute('data-online') === 'true';
+    if (aO && !bO) return -1; if (!aO && bO) return 1;
+    var aU = parseInt(a.getAttribute('data-unread') || '0');
+    var bU = parseInt(b.getAttribute('data-unread') || '0');
+    if (aU !== bU) return bU - aU;
+    var aT = a.getAttribute('data-last-message-at') || '';
+    var bT = b.getAttribute('data-last-message-at') || '';
+    return bT.localeCompare(aT);
+  });
+  items.forEach(function(el) { list.appendChild(el); });
+  items.forEach(function(el) {
+    var star = el.querySelector('.pin-btn i');
+    if (star) {
+      var id = parseInt(el.getAttribute('data-client-id'));
+      star.className = pins.indexOf(id) > -1 ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
+    }
+  });
+}
+// === End pin & sort ===
 
 // === Notification Context Menu & Delete ===
 let notifCtxTarget = null, notifCtxId = null;

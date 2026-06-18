@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"salesmee/internal/db"
 	"salesmee/internal/models"
+	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
@@ -116,6 +118,17 @@ func ConnectToBusiness(c *gin.Context) {
 	}
 	log.Printf("[ConnectToBusiness] created conversation ID=%d for clientID=%d, businessID=%d", conversation.ID, clientID, businessID)
 
+	// Broadcast conversation update so both sides see the new chat in real-time
+	if wsHub != nil {
+		var biz models.Business
+		db.DB.First(&biz, businessID)
+		var cl models.Client
+		db.DB.First(&cl, clientID)
+		bizCard := RenderBizSidebarCard(cl, conversation.ID, "", time.Now(), 0)
+		clientCard := RenderClientSidebarCard(biz, conversation.ID, "", time.Now(), 0)
+		ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(businessID)), strconv.Itoa(int(clientID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":           true,
 		"conversation_id":   conversation.ID,
@@ -150,6 +163,15 @@ func CreateClient(c *gin.Context) {
 	}
 	db.DB.Create(&conversation)
 
+	// Broadcast conversation update to both sides in real-time
+	if wsHub != nil {
+		var biz models.Business
+		db.DB.First(&biz, businessID)
+		bizCard := RenderBizSidebarCard(client, conversation.ID, "", time.Now(), 0)
+		clientCard := RenderClientSidebarCard(biz, conversation.ID, "", time.Now(), 0)
+		ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Customer created successfully",
@@ -182,9 +204,18 @@ func DeleteClient(c *gin.Context) {
 		return
 	}
 
+	// Get conversation before deleting so we can broadcast removal
+	var conversation models.Conversation
+	db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation)
+
 	if err := deleteConversationWithDeps(uint(clientID), businessID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disconnect customer"})
 		return
+	}
+
+	// Broadcast removal in real-time to business side only (WhatsApp behavior)
+	if wsHub != nil && conversation.ID > 0 {
+		ws.BroadcastConversationRemovedToBiz(wsHub, strconv.Itoa(int(conversation.ID)), strconv.Itoa(int(businessID)), strconv.Itoa(int(clientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -251,9 +282,18 @@ func DisconnectFromBusiness(c *gin.Context) {
 		return
 	}
 
+	// Get conversation before deleting so we can broadcast removal
+	var conversation models.Conversation
+	db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation)
+
 	if err := deleteConversationWithDeps(clientID, uint(businessID)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disconnect"})
 		return
+	}
+
+	// Broadcast removal in real-time to client side only (WhatsApp behavior)
+	if wsHub != nil && conversation.ID > 0 {
+		ws.BroadcastConversationRemovedToClient(wsHub, strconv.Itoa(int(conversation.ID)), strconv.Itoa(int(businessID)), strconv.Itoa(int(clientID)))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})

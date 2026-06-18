@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"net/http"
+	"salesmee/internal/db"
+	"salesmee/internal/services/notifier"
 	"salesmee/internal/services/subscription"
 
 	"github.com/gin-gonic/gin"
@@ -65,6 +67,7 @@ func CheckResourceLimit(resource string, label string) gin.HandlerFunc {
 		}
 
 		if !check.GraceAllowed {
+			notifier.NotifyLimitReached(db.DB, businessID, resource, label, check.Current, check.Max)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":            check.Message,
 				"current":          check.Current,

@@ -508,12 +508,20 @@
   window.toggleHeaderMenu = toggleHeaderMenu;
   window.playNotificationSound = playNotificationSound;
 
-  document.body.addEventListener('show-upgrade-modal', function(e) {
+  function _onUpgradeModal(e) {
     showUpgradeModal({
       title: 'Upgrade Required',
       message: e.detail.message || 'Media sharing requires an upgraded plan.',
       upgradeUrl: e.detail.upgradeUrl || '/business/subscription#plans',
       graceAllowed: false,
     });
-  });
+  }
+
+  if (document.body) {
+    document.body.addEventListener('show-upgrade-modal', _onUpgradeModal);
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.addEventListener('show-upgrade-modal', _onUpgradeModal);
+    });
+  }
 })();

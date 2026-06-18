@@ -251,6 +251,15 @@ func getOrCreateConversation(clientID uint, businessID uint) (*models.Conversati
 		}
 		log.Printf("Created new conversation ID=%d for client_id=%d, business_id=%d",
 			conversation.ID, clientID, businessID)
+
+		// Broadcast real-time update to both sides
+		if wsHub != nil {
+			var biz models.Business
+			db.DB.First(&biz, businessID)
+			bizCard := RenderBizSidebarCard(client, conversation.ID, "", time.Now(), 0)
+			clientCard := RenderClientSidebarCard(biz, conversation.ID, "", time.Now(), 0)
+			ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(businessID)), strconv.Itoa(int(clientID)))
+		}
 	}
 
 	return &conversation, &client, nil

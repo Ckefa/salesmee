@@ -29,9 +29,14 @@
     			<span class="wa-chat-preview">{{if .LastMessage}}{{.LastMessage}}{{else}}<span class="opacity-60 italic">No messages yet</span>{{end}}</span>
     		</div>
     	</div>
-    	<button onclick="event.stopPropagation(); deleteClient('{{.ID}}')" title="Delete" class="opacity-40 hover:opacity-100 transition-opacity p-1.5 rounded text-xs text-[var(--color-error)] bg-transparent ml-auto shrink-0">
-    		<i class="fas fa-trash-alt"></i>
-    	</button>
+     	<div class="flex items-center gap-0.5 ml-auto shrink-0">
+     		<button onclick="event.stopPropagation(); togglePinClient('{{.ID}}')" class="pin-btn wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-amber-500" title="Pin to top">
+     			<i class="fas fa-star text-[10px]"></i>
+     		</button>
+     		<button onclick="event.stopPropagation(); deleteClient('{{.ID}}')" title="Delete" class="wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-[var(--color-error)]">
+     			<i class="fas fa-trash-alt text-[10px]"></i>
+     		</button>
+     	</div>
     </div>
   {{else}}
   <div class="wa-empty-chat-list">

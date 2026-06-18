@@ -8,6 +8,7 @@ import (
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/services/progress"
+	"salesmee/internal/services/subscription"
 	"salesmee/internal/ws"
 	"strconv"
 	"time"
@@ -115,6 +116,12 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 			bizCardHTML := renderBizBookingCard(h.db, booking)
 			clientCardHTML := renderClientBookingCard(h.db, booking)
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
+
+			var biz models.Business
+			h.db.First(&biz, request.BusinessID)
+			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", booking.CreatedAt, int(bizUnread))
+			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, "", booking.CreatedAt, 0)
+			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 
@@ -712,6 +719,21 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 			return
 		}
 	} else {
+		check := subscription.CheckResourceLimit(businessID, "client")
+		if !check.Allowed && !check.GraceAllowed {
+			notifier.NotifyLimitReached(h.db, businessID, "client", "customers", check.Current, check.Max)
+			c.JSON(http.StatusConflict, gin.H{
+				"error":            "Client limit reached. You need to upgrade your plan to add more customers.",
+				"limit_reached":    true,
+				"requires_upgrade": true,
+				"upgrade_url":      "/business/subscription#plans",
+				"grace_allowed":    false,
+			})
+			return
+		}
+		if !check.Allowed && check.GraceAllowed {
+			subscription.UseGrace(businessID, "client")
+		}
 		client = models.Client{
 			BusinessID: &businessID,
 			Name:       request.CustomerName,
@@ -814,6 +836,16 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 			bizCardHTML := renderBizBookingCard(h.db, booking)
 			clientCardHTML := renderClientBookingCard(h.db, booking)
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
+
+			var biz models.Business
+			h.db.First(&biz, businessID)
+			var bizUnread int64
+			h.db.Model(&models.Message{}).
+				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
+				Count(&bizUnread)
+			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", booking.CreatedAt, int(bizUnread))
+			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, "", booking.CreatedAt, int(clientUnread))
+			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 		}
 	}
 

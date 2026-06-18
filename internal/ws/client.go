@@ -310,6 +310,7 @@ type jsonFrame struct {
 	Presence          *jsonPresence          `json:"presence,omitempty"`
 	DeliveredReceipt  *jsonDeliveredReceipt  `json:"delivered_receipt,omitempty"`
 	PendingCount      *jsonPendingCount      `json:"pending_count,omitempty"`
+	ConversationUpdate *jsonConversationUpdate `json:"conversation_update,omitempty"`
 }
 
 type jsonNewMessage struct {
@@ -380,6 +381,14 @@ type jsonPendingCount struct {
 	OrderCount   int `json:"order_count"`
 	BookingCount int `json:"booking_count"`
 	NotifCount   int `json:"notif_count"`
+}
+
+type jsonConversationUpdate struct {
+	ConversationID string `json:"conversation_id,omitempty"`
+	BizCardHTML    string `json:"biz_card_html,omitempty"`
+	ClientCardHTML string `json:"client_card_html,omitempty"`
+	ClientID       string `json:"client_id,omitempty"`
+	Removed        bool   `json:"removed,omitempty"`
 }
 
 func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
@@ -475,6 +484,16 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 		jf.DeliveredReceipt = &jsonDeliveredReceipt{
 			ConversationID: d.GetConversationId(),
 			DeliveredAt:    d.GetDeliveredAt(),
+		}
+	case *chatpb.WsFrame_ConversationUpdate:
+		cu := p.ConversationUpdate
+		isRemoved := cu.GetBizCardHtml() == "" && cu.GetClientCardHtml() == ""
+		jf.ConversationUpdate = &jsonConversationUpdate{
+			ConversationID: cu.GetConversationId(),
+			BizCardHTML:    cu.GetBizCardHtml(),
+			ClientCardHTML: cu.GetClientCardHtml(),
+			ClientID:       frame.GetSenderId(),
+			Removed:        isRemoved,
 		}
 	}
 

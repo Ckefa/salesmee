@@ -37,7 +37,7 @@ func CheckResourceLimit(businessID uint, resource string) *LimitCheck {
 			Message:      msg,
 			Current:      current,
 			Max:          limit,
-			GraceAllowed: true,
+			GraceAllowed: !graceUsed,
 			GraceUsed:    graceUsed,
 		}
 	}

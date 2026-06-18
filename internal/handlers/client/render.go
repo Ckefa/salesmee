@@ -480,7 +480,7 @@ func RenderClientSidebarCard(business models.Business, conversationID uint, last
 		avatar = fmt.Sprintf(`<img src="/static/%s" alt="%s" class="wa-chat-avatar">`, html.EscapeString(business.Logo), html.EscapeString(business.Name))
 	}
 	return fmt.Sprintf(
-		`<div class="wa-chat-item business-item" data-business-id="%d" data-conversation-id="%d" data-business-name="%s" data-business-type="%s">
+		`<div class="wa-chat-item business-item" data-business-id="%d" data-conversation-id="%d" data-business-name="%s" data-business-type="%s" data-last-message-at="%s" data-unread="%d" data-online="false">
 			<div class="wa-chat-avatar-wrapper">
 				%s
 				<div class="wa-online-dot"></div>
@@ -504,7 +504,7 @@ func RenderClientSidebarCard(business models.Business, conversationID uint, last
 				</button>
 			</div>
 		</div>`,
-		business.ID, conversationID, html.EscapeString(business.Name), html.EscapeString(business.BusinessType),
+		business.ID, conversationID, html.EscapeString(business.Name), html.EscapeString(business.BusinessType), timeStr, unreadCount,
 		avatar, html.EscapeString(business.Name), timeStr, preview, badge, business.ID, business.ID,
 	)
 }
@@ -532,11 +532,16 @@ func RenderBizSidebarCard(client models.Client, conversationID uint, lastMessage
 		}
 		badge = fmt.Sprintf("<span class=\"wa-unread-badge\">%s</span>", countStr)
 	}
+	onlineStr := fmt.Sprintf("%t", client.IsOnline)
+	onlineDot := "offline"
+	if client.IsOnline {
+		onlineDot = "online"
+	}
 	return fmt.Sprintf(
-		`<div class="wa-chat-item group" data-client-id="%d" data-conversation-id="%d" data-client-name="%s" data-last-message-at="%s" data-unread="%d" role="row">
+		`<div class="wa-chat-item group" data-client-id="%d" data-conversation-id="%d" data-client-name="%s" data-last-message-at="%s" data-unread="%d" data-online="%s" role="row">
 			<div class="wa-chat-avatar-wrapper">
 				<div class="wa-chat-avatar avatar-placeholder"><i class="fas fa-user text-white"></i></div>
-				<span class="wa-online-dot offline"></span>
+				<span class="wa-online-dot %s"></span>
 			</div>
 			<div class="wa-chat-info">
 				<div class="wa-chat-top">
@@ -550,11 +555,16 @@ func RenderBizSidebarCard(client models.Client, conversationID uint, lastMessage
 					<span class="wa-chat-preview">%s</span>
 				</div>
 			</div>
-			<button onclick="event.stopPropagation(); deleteClient('%d')" title="Delete" class="opacity-40 hover:opacity-100 transition-opacity p-1.5 rounded text-xs text-[var(--color-error)] bg-transparent ml-auto shrink-0">
-				<i class="fas fa-trash-alt"></i>
-			</button>
+			<div class="flex items-center gap-0.5 ml-auto shrink-0">
+				<button onclick="event.stopPropagation(); togglePinClient('%d')" class="pin-btn wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-amber-500" title="Pin to top">
+					<i class="fas fa-star text-[10px]"></i>
+				</button>
+				<button onclick="event.stopPropagation(); deleteClient('%d')" title="Delete" class="wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-[var(--color-error)]">
+					<i class="fas fa-trash-alt text-[10px]"></i>
+				</button>
+			</div>
 		</div>`,
-		client.ID, conversationID, html.EscapeString(client.Name), timeStr, unreadCount,
-		html.EscapeString(client.Name), timeStr, badge, preview, client.ID,
+		client.ID, conversationID, html.EscapeString(client.Name), timeStr, unreadCount, onlineStr,
+		onlineDot, html.EscapeString(client.Name), timeStr, badge, preview, client.ID, client.ID,
 	)
 }

@@ -275,3 +275,19 @@ func replaceBrandHeader(html, gradient string) string {
 	}
 	return html
 }
+
+func LimitReachedHTML(bizName, resourceName string, current, max int, planName string) string {
+	return emailHead("Plan Limit Reached") +
+		fmt.Sprintf(`<div style="text-align: center; margin-bottom: 20px; font-size: 48px;">&#9888;&#65039;</div>
+					<h2 style="color: #1e293b; font-size: 18px; margin: 0 0 8px; text-align: center;">Plan limit reached</h2>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px; text-align: center;">
+						Hi %s, you've reached the limit for <strong>%s</strong> on your %s plan (<strong>%d of %d</strong>).
+					</p>
+					<p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
+						To continue adding more, upgrade your plan. Higher-tier plans offer increased limits and additional features to help your business grow.
+					</p>
+					<div style="text-align: center;">
+						<a href="%s" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488, #0891b2); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600;">View Plans</a>
+					</div>`, bizName, resourceName, planName, current, max, AppURL("/business/subscription#plans")) +
+		emailTail()
+}

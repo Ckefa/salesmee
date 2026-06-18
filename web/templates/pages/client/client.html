@@ -193,21 +193,9 @@
       var idx = pins.indexOf(id);
       if (idx > -1) { pins.splice(idx, 1); } else { pins.push(id); }
       localStorage.setItem('pinned_businesses', JSON.stringify(pins));
-      var items = Array.from(document.querySelectorAll('.business-item'));
-      items.sort(function(a, b) {
-        var aPinned = pins.indexOf(parseInt(a.getAttribute('data-business-id'))) > -1;
-        var bPinned = pins.indexOf(parseInt(b.getAttribute('data-business-id'))) > -1;
-        if (aPinned && !bPinned) return -1;
-        if (!aPinned && bPinned) return 1;
-        return 0;
-      });
-      var list = document.getElementById('business-list');
-      items.forEach(function(el) {
-        var isPinned = pins.indexOf(parseInt(el.getAttribute('data-business-id'))) > -1;
-        var star = el.querySelector('.pin-btn i');
-        if (star) star.className = isPinned ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
-        list.appendChild(el);
-      });
+      if (typeof sortBusinessList === 'function') {
+        sortBusinessList();
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -219,6 +207,9 @@
           if (star) star.className = 'fas fa-star text-amber-500';
         }
       });
+      if (typeof sortBusinessList === 'function') {
+        sortBusinessList();
+      }
       document.querySelector('#clientSidebarOverlay')?.addEventListener('click', function() {
         var layout = document.getElementById('clientLayout');
         if (layout) layout.classList.remove('wa-chat-open');

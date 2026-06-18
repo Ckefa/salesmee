@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"salesmee/internal/db"
 	"salesmee/internal/services/onboarding"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/notifier"
+	"salesmee/internal/services/subscription"
+	"salesmee/internal/ws"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -141,6 +145,15 @@ func ShowConnect(c *gin.Context) {
 					BusinessID: business.ID,
 				}
 				db.DB.Create(&conversation)
+
+				// Broadcast real-time update to both sides
+				if wsHub != nil {
+					var cl models.Client
+					db.DB.First(&cl, clientID)
+					bizCard := RenderBizSidebarCard(cl, conversation.ID, "", time.Now(), 0)
+					clientCard := RenderClientSidebarCard(business, conversation.ID, "", time.Now(), 0)
+					ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(business.ID)), strconv.Itoa(int(clientID)))
+				}
 			}
 
 			onboarding.DetectStep(db.DB, &business)
@@ -178,6 +191,16 @@ func SendConnectOTP(c *gin.Context) {
 	var client models.Client
 	err := db.DB.Where("email = ? AND business_id = ?", email, business.ID).First(&client).Error
 	if err != nil {
+		check := subscription.CheckResourceLimit(business.ID, "client")
+		if !check.Allowed && !check.GraceAllowed {
+			notifier.NotifyLimitReached(db.DB, business.ID, "client", "customers", check.Current, check.Max)
+			c.HTML(http.StatusOK, "client_connect.html", middleware.TemplateData(c, gin.H{
+				"Title":    "Connect - SalesMee",
+				"Business": business,
+				"Error":    "This business is currently at full capacity and is not accepting new connections at this time. Please try again later or contact the business directly.",
+			}))
+			return
+		}
 		bizID := business.ID
 		client = models.Client{
 			BusinessID: &bizID,

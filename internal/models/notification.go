@@ -11,6 +11,7 @@ type BusinessNotifPrefs struct {
 	PaymentDueReminder  bool  `gorm:"default:true"`
 	AbandonedCart       bool  `gorm:"default:true"`
 	ReEngagement        bool  `gorm:"default:true"`
+	LimitReached        bool  `gorm:"default:true"`
 	AbandonedCartHours  int   `gorm:"default:24"`
 	InactiveDays        int   `gorm:"default:30"`
 	SoundEnabled        bool  `gorm:"default:true"`

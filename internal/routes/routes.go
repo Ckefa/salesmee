@@ -85,6 +85,7 @@ func Setup(r *gin.Engine) {
 	// Wire WebSocket hub into handler packages
 	if wsHub != nil {
 		handlers.SetWSHub(wsHub)
+		business.SetWSHub(wsHub)
 		client.SetWSHub(wsHub)
 	}
 

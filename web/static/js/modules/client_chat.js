@@ -39,6 +39,42 @@ function submitOrderForm() {
 
 // Shared functions from chat_common.js
 
+var _clientSortTimer = null;
+function deferredClientSort() {
+  if (_clientSortTimer) clearTimeout(_clientSortTimer);
+  _clientSortTimer = setTimeout(sortBusinessList, 200);
+}
+
+function sortBusinessList() {
+  var pins = JSON.parse(localStorage.getItem('pinned_businesses') || '[]');
+  var list = document.getElementById('business-list');
+  if (!list) return;
+  var items = Array.from(list.querySelectorAll('.business-item'));
+  if (items.length < 2) return;
+  items.sort(function(a, b) {
+    var aP = pins.indexOf(parseInt(a.getAttribute('data-business-id'))) > -1;
+    var bP = pins.indexOf(parseInt(b.getAttribute('data-business-id'))) > -1;
+    if (aP && !bP) return -1; if (!aP && bP) return 1;
+    var aO = a.getAttribute('data-online') === 'true';
+    var bO = b.getAttribute('data-online') === 'true';
+    if (aO && !bO) return -1; if (!aO && bO) return 1;
+    var aU = parseInt(a.getAttribute('data-unread') || '0');
+    var bU = parseInt(b.getAttribute('data-unread') || '0');
+    if (aU !== bU) return bU - aU;
+    var aT = a.getAttribute('data-last-message-at') || '';
+    var bT = b.getAttribute('data-last-message-at') || '';
+    return bT.localeCompare(aT);
+  });
+  items.forEach(function(el) { list.appendChild(el); });
+  items.forEach(function(el) {
+    var star = el.querySelector('.pin-btn i');
+    if (star) {
+      var id = parseInt(el.getAttribute('data-business-id'));
+      star.className = pins.indexOf(id) > -1 ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
+    }
+  });
+}
+
 function updateSidebarCard(frame) {
   if (frame.sender_type !== 'business') return;
   var msg = frame.new_message;
@@ -64,6 +100,7 @@ function updateSidebarCard(frame) {
   if (timeEl && msg.created_at) {
     var iso = new Date(Number(msg.created_at)).toISOString();
     timeEl.setAttribute('data-time', iso);
+    item.setAttribute('data-last-message-at', iso);
   }
 
   // Increment unread badge
@@ -78,11 +115,7 @@ function updateSidebarCard(frame) {
     }
   }
 
-  // Reorder card to top
-  var list = item.parentElement;
-  if (list && list.firstChild !== item) {
-    list.insertBefore(item, list.firstChild);
-  }
+  deferredClientSort();
 }
 
 function markAsRead() {
@@ -285,6 +318,8 @@ function registerClientChatHandlers() {
     } else {
       if (badge) badge.remove();
     }
+    item.setAttribute('data-unread', String(uc.count));
+    deferredClientSort();
   });
 
   window.wsClient.on(2, function(frame) {
@@ -292,7 +327,15 @@ function registerClientChatHandlers() {
   });
 
   window.wsClient.on(5, function(frame) {
-    // Presence updates not used on client chat page
+    var p = frame.presence;
+    if (!p) return;
+    var bid = frame.sender_id;
+    if (!bid) return;
+    var el = document.querySelector('.business-item[data-business-id="' + bid + '"]');
+    if (el) {
+      el.setAttribute('data-online', p.is_online ? 'true' : 'false');
+      deferredClientSort();
+    }
   });
 
   window.wsClient.on(12, function(frame) {
@@ -308,6 +351,46 @@ function registerClientChatHandlers() {
       tick.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
       tick.style.width = '14px';
     });
+  });
+
+  // CONVERSATION_UPDATE (type 13) — new conversation created/removed, add/remove card on sidebar
+  window.wsClient.on(13, function(frame) {
+    var update = frame.conversation_update;
+    if (!update) return;
+
+    // Handle removal — card deleted
+    if (update.removed) {
+      var bid = update.client_id || frame.sender_id;
+      if (!bid) return;
+      var card = document.querySelector('.business-item[data-business-id="' + bid + '"]');
+      if (card) card.remove();
+      return;
+    }
+
+    // Handle insertion / update
+    var html = update.client_card_html;
+    if (!html) return;
+
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(html, 'text/html');
+    var card = doc.body.firstElementChild;
+    if (!card) return;
+
+    var bid = card.getAttribute('data-business-id');
+    if (!bid) return;
+
+    var existing = document.querySelector('.business-item[data-business-id="' + bid + '"]');
+    var list = document.getElementById('business-list');
+    if (!list) return;
+
+    if (existing) {
+      existing.outerHTML = html;
+    } else {
+      var emptyState = list.querySelector('.wa-empty-chat-list');
+      if (emptyState) emptyState.remove();
+      list.insertAdjacentHTML('afterbegin', html);
+    }
+    deferredClientSort();
   });
 }
 

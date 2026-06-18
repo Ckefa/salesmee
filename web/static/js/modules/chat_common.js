@@ -48,9 +48,11 @@ function scrollToBottom() {
 }
 
 function markAsRead() {
-  fetch(`/business/clients/${clientId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+  var id = window.clientId || window.currentClientId;
+  if (!id) return;
+  fetch(`/business/clients/${id}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function() {
-      var badge = document.querySelector('.client-item[data-client-id="' + clientId + '"] .wa-unread-badge');
+      var badge = document.querySelector('.client-item[data-client-id="' + id + '"] .wa-unread-badge');
       if (badge) badge.remove();
     })
     .catch(console.error);
@@ -78,7 +80,9 @@ function setMessageTickState(item, state) {
 
 function applyReadReceipt(receipt) {
   if (!receipt || receipt.reader_type === 'business') return;
-  if (receipt.conversation_id && receipt.conversation_id !== String(conversationId)) return;
+  var cid = window.conversationId;
+  if (!cid) return;
+  if (receipt.conversation_id && receipt.conversation_id !== String(cid)) return;
 
   if (receipt.message_id) {
     setMessageTickState(document.querySelector('#messages-container .message-item.out[data-message-id="' + receipt.message_id + '"]'), 'read');
@@ -149,7 +153,8 @@ function myUserType() {
 }
 
 function showTypingIndicator(typing) {
-  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  if (!typing || !window.conversationId) return;
+  if (typing.conversation_id !== String(window.conversationId)) return;
   if (typing.user_type === myUserType()) return;
   var el = document.getElementById('typingIndicator');
   if (!el) {
@@ -162,7 +167,8 @@ function showTypingIndicator(typing) {
 }
 
 function hideTypingIndicator(typing) {
-  if (!typing || typing.conversation_id !== String(conversationId)) return;
+  if (!typing || !window.conversationId) return;
+  if (typing.conversation_id !== String(window.conversationId)) return;
   if (typing.user_type === myUserType()) return;
   var el = document.getElementById('typingIndicator');
   if (el) el.remove();
@@ -277,6 +283,7 @@ function onMessageInput(input) {
 
   // Typing indicator via WebSocket
   if (window.wsClient && window.wsClient.isConnected) {
+    if (!window.conversationId) return;
     if (typingTimeout) clearTimeout(typingTimeout);
     var myType = myUserType();
     var myId = myType === 'business' ? businessId : clientId;
@@ -302,6 +309,7 @@ function onMessageKeydown(event) {
   // Send typing stop on Enter (message sent)
   if (event.key === 'Enter' && !event.shiftKey) {
     if (window.wsClient && window.wsClient.isConnected) {
+      if (!window.conversationId) return;
       var myType = myUserType();
       var myId = myType === 'business' ? businessId : clientId;
       window.wsClient.sendTypingStop(conversationId, myId, myType, clientId, businessId);

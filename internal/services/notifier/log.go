@@ -1,7 +1,9 @@
 package notifier
 
 import (
+	"fmt"
 	"salesmee/internal/models"
+	"salesmee/internal/services"
 	"time"
 
 	"gorm.io/gorm"
@@ -55,4 +57,47 @@ func GetOrCreatePrefs(db *gorm.DB, businessID uint) (*models.BusinessNotifPrefs,
 		return &prefs, nil
 	}
 	return nil, err
+}
+
+func NotifyLimitReached(db *gorm.DB, businessID uint, resourceKey, resourceLabel string, current, max int) {
+	var business models.Business
+	if err := db.First(&business, businessID).Error; err != nil {
+		return
+	}
+
+	prefs, err := GetOrCreatePrefs(db, businessID)
+	if err != nil {
+		return
+	}
+	if !prefs.LimitReached {
+		return
+	}
+
+	planName := "Silver"
+	if business.SubscriptionPlanID != nil {
+		var plan models.SubscriptionPlan
+		if err := db.First(&plan, *business.SubscriptionPlanID).Error; err == nil {
+			planName = plan.Name
+		}
+	}
+
+	// Deduplicate: only send notification once per resource
+	var count int64
+	db.Model(&models.NotificationLog{}).Where("business_id = ? AND type = ? AND reference_type = ?", businessID, "limit_reached", resourceKey).Count(&count)
+	alreadySent := count > 0
+
+	if !alreadySent {
+		CreateInAppNotif(db, businessID, nil,
+			"Plan Limit Reached — "+resourceLabel,
+			fmt.Sprintf("You've reached the %s limit on your %s plan (%d of %d). Upgrade to add more.", resourceLabel, planName, current, max),
+			"fa-exclamation-triangle",
+			"/business/subscription#plans",
+		)
+
+		if business.Email != "" {
+			if err := services.SendLimitReachedEmail(business.Email, business.Name, resourceLabel, current, max, planName); err == nil {
+				MarkNotificationSent(db, businessID, 0, "limit_reached", resourceKey, nil, business.Email, "sent")
+			}
+		}
+	}
 }

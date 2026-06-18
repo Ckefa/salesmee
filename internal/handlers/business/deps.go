@@ -2,8 +2,15 @@ package business
 
 import (
 	"salesmee/internal/ws"
+
 	"gorm.io/gorm"
 )
+
+var wsHub *ws.Hub
+
+func SetWSHub(hub *ws.Hub) {
+	wsHub = hub
+}
 
 type HandlerDeps struct {
 	DB  *gorm.DB

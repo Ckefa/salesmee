@@ -59,6 +59,7 @@ func (h *NotificationHandler) UpdateNotificationSettings(c *gin.Context) {
 		PaymentDueReminder  bool `json:"payment_due_reminder"`
 		AbandonedCart       bool `json:"abandoned_cart"`
 		ReEngagement        bool `json:"re_engagement"`
+		LimitReached        bool `json:"limit_reached"`
 		AbandonedCartHours  int  `json:"abandoned_cart_hours"`
 		InactiveDays        int  `json:"inactive_days"`
 		SoundEnabled        bool `json:"sound_enabled"`
@@ -78,6 +79,7 @@ func (h *NotificationHandler) UpdateNotificationSettings(c *gin.Context) {
 		PaymentDueReminder:  request.PaymentDueReminder,
 		AbandonedCart:       request.AbandonedCart,
 		ReEngagement:        request.ReEngagement,
+		LimitReached:        request.LimitReached,
 		AbandonedCartHours:  request.AbandonedCartHours,
 		InactiveDays:        request.InactiveDays,
 		SoundEnabled:        request.SoundEnabled,

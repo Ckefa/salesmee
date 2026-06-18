@@ -86,6 +86,14 @@
                 <span class="text-xs text-[var(--color-text-muted)]">days inactive</span>
               </label>
             </div>
+
+            <label class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-[var(--color-text)]">Plan Limit Reached</p>
+                <p class="text-xs text-[var(--color-text-muted)]">Get notified when you hit a plan limit (customers, products, services)</p>
+              </div>
+              <input type="checkbox" class="toggle" id="limit_reached" {{if $prefs.LimitReached}}checked{{end}}>
+            </label>
           </div>
 
           <div class="pt-4 border-t border-[var(--color-border)] space-y-4">
@@ -126,6 +134,7 @@ function saveNotifSettings() {
     payment_due_reminder: document.getElementById('payment_due_reminder').checked,
     abandoned_cart: document.getElementById('abandoned_cart').checked,
     re_engagement: document.getElementById('re_engagement').checked,
+    limit_reached: document.getElementById('limit_reached').checked,
     abandoned_cart_hours: parseInt(document.getElementById('abandoned_cart_hours').value) || 24,
     inactive_days: parseInt(document.getElementById('inactive_days').value) || 30,
     sound_enabled: soundEnabled

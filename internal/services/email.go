@@ -411,3 +411,32 @@ func SendInactiveClientEmail(toEmail, clientName, businessName, link string) err
 	log.Printf("Inactive client email sent to %s: %s", toEmail, sent.Id)
 	return nil
 }
+
+func SendLimitReachedEmail(toEmail, bizName, resourceName string, current, max int, planName string) error {
+	if !isResendEnabled() {
+		log.Printf("[EMAIL SKIPPED] RESEND not active, email not sent:\n  To: %s\n  Subject: Plan limit reached — %s — SalesMee\n  Body: Hi %s, you've reached the limit for %s on your %s plan (%d/%d).", toEmail, resourceName, bizName, resourceName, planName, current, max)
+		return nil
+	}
+	if config.C.ResendAPIKey == "" {
+		return fmt.Errorf("RESEND_API_KEY not set")
+	}
+
+	client := resend.NewClient(config.C.ResendAPIKey)
+
+	html := LimitReachedHTML(bizName, resourceName, current, max, planName)
+
+	params := &resend.SendEmailRequest{
+		From:    getFromEmail(),
+		To:      []string{toEmail},
+		Subject: fmt.Sprintf("Plan limit reached — %s — SalesMee", resourceName),
+		Html:    html,
+	}
+
+	sent, err := client.Emails.Send(params)
+	if err != nil {
+		return fmt.Errorf("failed to send limit reached email: %w", err)
+	}
+
+	log.Printf("Limit reached email sent to %s: %s", toEmail, sent.Id)
+	return nil
+}

@@ -240,6 +240,16 @@
             htmx.ajax('GET', '/business/dashboard', {target: '#main-content', swap: 'innerHTML'});
           }
         }
+        else if (window.handlePlanResponse && window.handlePlanResponse(data, function() {
+          var fd = JSON.stringify(orderData);
+          fetch('/business/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: fd })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+              if (d.success) { hideQuickOrderModal(); showNotification(d.message || 'Order created!', 'success'); if (window.htmx && document.getElementById('orders-content')) { htmx.ajax('GET', '/business/orders', {target: '#orders-content', swap: 'outerHTML'}); } else if (window.htmx && document.getElementById('main-content')) { htmx.ajax('GET', '/business/dashboard', {target: '#main-content', swap: 'innerHTML'}); } }
+              else { showNotification(d.error || 'Failed', 'error'); }
+            })
+            .catch(function() { showNotification('Failed to create order', 'error'); });
+        })) {}
         else { showNotification(data.error || 'Failed', 'error'); }
       })
       .catch(function() { showNotification('Failed to create order', 'error'); });
@@ -271,6 +281,15 @@
             htmx.ajax('GET', '/business/dashboard', {target: '#main-content', swap: 'innerHTML'});
           }
         }
+        else if (window.handlePlanResponse && window.handlePlanResponse(data, function() {
+          fetch('/business/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') }, body: JSON.stringify(bookingData) })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+              if (d.success) { hideQuickBookingModal(); showNotification(d.message || 'Booking created!', 'success'); if (window.htmx && document.getElementById('bookings-content')) { htmx.ajax('GET', '/business/bookings', {target: '#bookings-content', swap: 'outerHTML'}); } else if (window.htmx && document.getElementById('main-content')) { htmx.ajax('GET', '/business/dashboard', {target: '#main-content', swap: 'innerHTML'}); } }
+              else { showNotification(d.error || 'Failed', 'error'); }
+            })
+            .catch(function() { showNotification('Failed to create booking', 'error'); });
+        })) {}
         else { showNotification(data.error || 'Failed', 'error'); }
       })
       .catch(function() { showNotification('Failed to create booking', 'error'); });

@@ -198,6 +198,38 @@ func BroadcastConversationUpdate(hub *Hub, conversationID, bizCardHTML, clientCa
 	}
 }
 
+func BroadcastConversationRemovedToBiz(hub *Hub, conversationID, bizID, clientID string) {
+	bizFrame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_CONVERSATION_UPDATE,
+		ConversationId: conversationID,
+		SenderId:       clientID,
+		SenderType:     "system",
+		Timestamp:      time.Now().UnixMilli(),
+		Payload: &chatpb.WsFrame_ConversationUpdate{
+			ConversationUpdate: &chatpb.ConversationUpdate{
+				ConversationId: conversationID,
+			},
+		},
+	}
+	hub.Broadcast("biz:"+bizID, bizFrame, nil)
+}
+
+func BroadcastConversationRemovedToClient(hub *Hub, conversationID, bizID, clientID string) {
+	clientFrame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_CONVERSATION_UPDATE,
+		ConversationId: conversationID,
+		SenderId:       bizID,
+		SenderType:     "system",
+		Timestamp:      time.Now().UnixMilli(),
+		Payload: &chatpb.WsFrame_ConversationUpdate{
+			ConversationUpdate: &chatpb.ConversationUpdate{
+				ConversationId: conversationID,
+			},
+		},
+	}
+	hub.Broadcast("client:"+clientID, clientFrame, nil)
+}
+
 func BroadcastBusinessPresenceUpdate(hub *Hub, businessID string, isOnline bool, clientIDs []string) {
 	frame := &chatpb.WsFrame{
 		EventType:      chatpb.WsEventType_PRESENCE_UPDATE,

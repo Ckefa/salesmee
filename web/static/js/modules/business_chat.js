@@ -55,7 +55,7 @@ markAsRead();
 startWsClient();
 
 function reloadBusinessChatFromServer() {
-  if (!clientId) return;
+  if (!window.clientId) return;
   fetch('clients/' + clientId + '/messages')
     .then(function(r) { return r.text(); })
     .then(function(html) {
@@ -257,10 +257,11 @@ function registerChatHandlers() {
     // Update sidebar card (preview, time, reorder, badge) for all received messages
     if (frame.conversation_id) {
       updateSidebarCard(frame);
+      deferredSort();
     }
 
     // Message for a different conversation — stop here (don't render in current chat)
-    if (frame.conversation_id && frame.conversation_id !== String(conversationId)) {
+    if (frame.conversation_id && window.conversationId && frame.conversation_id !== String(window.conversationId)) {
       return;
     }
 
@@ -325,6 +326,8 @@ function registerChatHandlers() {
     } else {
       if (badge) badge.remove();
     }
+    item.setAttribute('data-unread', String(uc.count));
+    deferredSort();
   });
 
   window.wsClient.on(2, function(frame) {
@@ -334,7 +337,7 @@ function registerChatHandlers() {
   window.wsClient.on(12, function(frame) {
     if (!frame.delivered_receipt) return;
     var dr = frame.delivered_receipt;
-    if (dr.conversation_id && dr.conversation_id !== String(conversationId)) return;
+    if (dr.conversation_id && window.conversationId && dr.conversation_id !== String(window.conversationId)) return;
     document.querySelectorAll('#messages-container .message-item.out').forEach(function(item) {
       var tick = item.querySelector('.msg-tick');
       if (!tick) return;
@@ -344,6 +347,46 @@ function registerChatHandlers() {
       tick.innerHTML = '<svg viewBox="0 0 16 12" width="14" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6L5 9L11 3"/><path d="M6 6L9 9L15 3"/></svg>';
       tick.style.width = '14px';
     });
+  });
+
+  // CONVERSATION_UPDATE (type 13) — new conversation created/removed, add/remove card on sidebar
+  window.wsClient.on(13, function(frame) {
+    var update = frame.conversation_update;
+    if (!update) return;
+
+    // Handle removal — card deleted
+    if (update.removed) {
+      var cid = update.client_id || frame.sender_id;
+      if (!cid) return;
+      var card = document.querySelector('.wa-chat-item[data-client-id="' + cid + '"]');
+      if (card) card.remove();
+      return;
+    }
+
+    // Handle insertion / update
+    var html = update.biz_card_html;
+    if (!html) return;
+
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(html, 'text/html');
+    var card = doc.body.firstElementChild;
+    if (!card) return;
+
+    var cid = card.getAttribute('data-client-id');
+    if (!cid) return;
+
+    var existing = document.querySelector('.wa-chat-item[data-client-id="' + cid + '"]');
+    var list = document.getElementById('client-list');
+    if (!list) return;
+
+    if (existing) {
+      existing.outerHTML = html;
+    } else {
+      var emptyState = list.querySelector('.wa-empty-chat-list');
+      if (emptyState) emptyState.remove();
+      list.insertAdjacentHTML('afterbegin', html);
+    }
+    deferredSort();
   });
 
 }

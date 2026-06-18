@@ -8,6 +8,7 @@ import (
 	"salesmee/internal/services"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/services/progress"
+	"salesmee/internal/services/subscription"
 	"salesmee/internal/ws"
 	"strconv"
 	"time"
@@ -51,6 +52,21 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 			return
 		}
 	} else {
+		check := subscription.CheckResourceLimit(businessID, "client")
+		if !check.Allowed && !check.GraceAllowed {
+			notifier.NotifyLimitReached(h.db, businessID, "client", "customers", check.Current, check.Max)
+			c.JSON(http.StatusConflict, gin.H{
+				"error":            "Client limit reached. You need to upgrade your plan to add more customers.",
+				"limit_reached":    true,
+				"requires_upgrade": true,
+				"upgrade_url":      "/business/subscription#plans",
+				"grace_allowed":    false,
+			})
+			return
+		}
+		if !check.Allowed && check.GraceAllowed {
+			subscription.UseGrace(businessID, "client")
+		}
 		client = models.Client{
 			BusinessID: &businessID,
 			Name:       request.CustomerName,

@@ -1,7 +1,7 @@
 {{define "message_input"}}
 <div class="wa-input-wrapper">
   <form id="message-form" hx-post="clients/{{.Customer.ID}}/messages" hx-target="#messages-container"
-    hx-swap="beforeend" hx-on::after-request="this.reset(); scrollMessagesToBottom()" hx-encoding="multipart/form-data">
+    hx-swap="beforeend" hx-on::after-request="this.reset(); scrollMessagesToBottom()" hx-encoding="multipart/form-data" hx-on::before-request="validateHtmxRequest(event)">
     <div class="wa-input-inner">
       <div class="relative" id="media-tray-container">
         <button type="button" onclick="toggleMediaTray()" class="wa-input-icon-btn" title="Attach">

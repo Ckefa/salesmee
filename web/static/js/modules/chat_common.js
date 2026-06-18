@@ -3,21 +3,23 @@
 if (window.typingTimeout) clearTimeout(window.typingTimeout);
 var typingTimeout = null;
 
-// Prevent empty message submission
-document.body.addEventListener('htmx:validateRequest', function(e) {
-  if (e.target.id === 'message-form') {
-    var content = e.target.querySelector('input[name="content"]');
-    var fileInputs = e.target.querySelectorAll('input[type="file"]');
-    var hasFile = false;
-    fileInputs.forEach(function(input) {
-      if (input.files && input.files.length > 0) hasFile = true;
-    });
-    if ((!content || !content.value.trim()) && !hasFile) {
-      e.preventDefault();
-      if (typeof showNotification === 'function') showNotification('Please enter a message', 'error');
+function validateHtmxRequest(evt) {
+  var form = evt.detail.elt;
+  var input = form.querySelector('#messageInput');
+  var message = input ? input.value.trim() : '';
+  var hasFile = false;
+  var fileInputs = form.querySelectorAll('input[type="file"]');
+  for (var i = 0; i < fileInputs.length; i++) {
+    if (fileInputs[i].files && fileInputs[i].files.length > 0) {
+      hasFile = true;
+      break;
     }
   }
-});
+  if (!message && !hasFile) {
+    if (typeof showNotification === 'function') showNotification('Please enter a valid message', 'warning');
+    evt.preventDefault();
+  }
+}
 
 var unreadBelow = 0;
 window.clearUnreadBelow = function() {
@@ -142,9 +144,13 @@ function formatTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function myUserType() {
+  return (typeof sender !== 'undefined' && sender === 'business') ? 'business' : 'client';
+}
+
 function showTypingIndicator(typing) {
   if (!typing || typing.conversation_id !== String(conversationId)) return;
-  if (typing.user_type === 'business') return;
+  if (typing.user_type === myUserType()) return;
   var el = document.getElementById('typingIndicator');
   if (!el) {
     el = document.createElement('div');
@@ -157,7 +163,7 @@ function showTypingIndicator(typing) {
 
 function hideTypingIndicator(typing) {
   if (!typing || typing.conversation_id !== String(conversationId)) return;
-  if (typing.user_type === 'business') return;
+  if (typing.user_type === myUserType()) return;
   var el = document.getElementById('typingIndicator');
   if (el) el.remove();
 }
@@ -272,13 +278,15 @@ function onMessageInput(input) {
   // Typing indicator via WebSocket
   if (window.wsClient && window.wsClient.isConnected) {
     if (typingTimeout) clearTimeout(typingTimeout);
+    var myType = myUserType();
+    var myId = myType === 'business' ? businessId : clientId;
     if (val.length > 0) {
-      window.wsClient.sendTypingStart(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStart(conversationId, myId, myType, clientId, businessId);
     } else {
-      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, myId, myType, clientId, businessId);
     }
     typingTimeout = setTimeout(function() {
-      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      window.wsClient.sendTypingStop(conversationId, myId, myType, clientId, businessId);
     }, 3000);
   }
 }
@@ -294,7 +302,9 @@ function onMessageKeydown(event) {
   // Send typing stop on Enter (message sent)
   if (event.key === 'Enter' && !event.shiftKey) {
     if (window.wsClient && window.wsClient.isConnected) {
-      window.wsClient.sendTypingStop(conversationId, businessId, 'business', clientId, businessId);
+      var myType = myUserType();
+      var myId = myType === 'business' ? businessId : clientId;
+      window.wsClient.sendTypingStop(conversationId, myId, myType, clientId, businessId);
     }
     if (typingTimeout) {
       clearTimeout(typingTimeout);

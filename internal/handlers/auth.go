@@ -303,6 +303,8 @@ func RegisterStep3(c *gin.Context) {
 		return
 	}
 
+	assignSilverPlan(user.ID)
+
 	// Send verification email
 	b := make([]byte, 32)
 	rand.Read(b)
@@ -322,6 +324,26 @@ func RegisterStep3(c *gin.Context) {
 
 	services.SetSecureCookie(c, "token", token, 86400, "/business")
 	c.Redirect(http.StatusFound, "/business")
+}
+
+func assignSilverPlan(businessID uint) {
+	var silver models.SubscriptionPlan
+	if err := db.DB.Where("code = ?", "silver").First(&silver).Error; err != nil {
+		return
+	}
+
+	var existing models.BusinessSubscription
+	if err := db.DB.Where("business_id = ?", businessID).First(&existing).Error; err == nil {
+		return
+	}
+
+	sub := models.BusinessSubscription{
+		BusinessID: businessID,
+		PlanID:     silver.ID,
+		Status:     "active",
+	}
+	db.DB.Create(&sub)
+	db.DB.Model(&models.Business{}).Where("id = ?", businessID).Update("subscription_plan_id", silver.ID)
 }
 
 func Login(c *gin.Context) {

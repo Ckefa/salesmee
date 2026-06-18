@@ -252,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+      var formEl = this;
       fetch('clients', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: new FormData(this) })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -259,7 +260,15 @@ document.addEventListener('DOMContentLoaded', function() {
             hideNewClientModal();
             showNotification('Client added successfully!', 'success');
             setTimeout(function() { window.location.href = '/business'; }, 1500);
-          } else {
+          } else if (window.handlePlanResponse(data, function() {
+            fetch('clients?grace=1', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: new FormData(formEl) })
+              .then(function(r) { return r.json(); })
+              .then(function(d) {
+                if (d.success) { hideNewClientModal(); showNotification('Client added successfully!', 'success'); setTimeout(function() { window.location.href = '/business'; }, 1500); }
+                else { showNotification(d.error || 'Failed to add client', 'error'); }
+              });
+          })) {}
+          else {
             showNotification(data.error || 'Failed to add client', 'error');
           }
         })

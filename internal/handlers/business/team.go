@@ -91,9 +91,9 @@ func (h *TeamHandler) InviteTeamMember(c *gin.Context) {
 
 	var permJSON string
 	if req.Role == "manager" {
-		permJSON = `{"orders:rw":true,"bookings:rw":true,"clients:rw":true,"analytics:view":true,"products:rw":true,"services:rw":true,"payments:rw":true,"reports:view":true,"locations:view":true}`
+		permJSON = `{"orders:rw":true,"bookings:rw":true,"clients:rw":true,"analytics:view":true,"products:rw":true,"services:rw":true,"payments:rw":true,"reports:view":true,"locations:view":true,"share:view":true,"subscription:view":true}`
 	} else {
-		permJSON = `{"orders:r":true,"bookings:r":true,"clients:r":true}`
+		permJSON = `{"orders:r":true,"bookings:r":true,"clients:r":true,"share:view":true,"subscription:view":true}`
 	}
 
 	member := models.TeamMember{
@@ -150,6 +150,11 @@ func (h *TeamHandler) UpdateTeamMember(c *gin.Context) {
 	}
 	if req.Role != "" {
 		updates["role"] = req.Role
+		if req.Role == "manager" {
+			updates["permissions"] = `{"orders:rw":true,"bookings:rw":true,"clients:rw":true,"analytics:view":true,"products:rw":true,"services:rw":true,"payments:rw":true,"reports:view":true,"locations:view":true,"share:view":true,"subscription:view":true}`
+		} else {
+			updates["permissions"] = `{"orders:r":true,"bookings:r":true,"clients:r":true,"share:view":true,"subscription:view":true}`
+		}
 	}
 	updates["phone"] = req.Phone
 	if req.IsActive != nil {
@@ -216,8 +221,9 @@ func (h *TeamHandler) ShowAcceptInvite(c *gin.Context) {
 
 func (h *TeamHandler) AcceptInvite(c *gin.Context) {
 	var req struct {
-		Token    string `json:"token"`
-		Password string `json:"password"`
+		Token           string `json:"token"`
+		Password        string `json:"password"`
+		ConfirmPassword string `json:"confirm_password"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -230,6 +236,10 @@ func (h *TeamHandler) AcceptInvite(c *gin.Context) {
 	}
 	if len(req.Password) < 6 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 6 characters"})
+		return
+	}
+	if req.Password != req.ConfirmPassword {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Passwords do not match"})
 		return
 	}
 

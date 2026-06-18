@@ -45,6 +45,7 @@ type BusinessSubscription struct {
 	CurrentPeriodEnd     time.Time  `json:"current_period_end"`
 	TrialEndsAt          *time.Time `json:"trial_ends_at"`
 	CanceledAt           *time.Time `json:"canceled_at"`
+	GraceUsed            string     `gorm:"type:jsonb;default:'[]'" json:"grace_used"`
 	CreatedAt            time.Time  `json:"created_at"`
 	UpdatedAt            time.Time  `json:"updated_at"`
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	dataPkg "salesmee/internal/data"
 	"salesmee/internal/models"
+	"salesmee/internal/services/subscription"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,6 +30,43 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 	var currentBusiness models.Business
 	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
+		return
+	}
+
+	if !subscription.HasFeature(businessID, "analytics") {
+		planName := subscription.PlanDisplayName(businessID)
+		isSilver := subscription.IsSilverPlan(businessID)
+		var pCount, sCount int64
+		h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&pCount)
+		h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&sCount)
+
+		var pendingOrders int64
+		var pendingBookings int64
+		h.db.Model(&models.Order{}).Where("business_id = ? AND status IN ?", businessID, []string{"pending", "client_confirmed", "confirmed"}).Count(&pendingOrders)
+		h.db.Model(&models.Booking{}).Where("business_id = ? AND status IN ?", businessID, []string{"pending", "client_confirmed"}).Count(&pendingBookings)
+
+		if c.GetHeader("HX-Request") == "true" {
+			c.HTML(http.StatusOK, "components/upgrade_prompt", gin.H{
+				"Feature":    "analytics",
+				"FeatureMsg": "Analytics is not available on your " + planName + " plan. Upgrade to unlock it.",
+				"PlanName":   planName,
+			})
+			return
+		}
+
+		c.HTML(http.StatusOK, "analytics.html", gin.H{
+			"Business":            currentBusiness,
+			"ActivePage":          "analytics",
+			"AuthType":            c.GetString("auth_type"),
+			"Role":                c.GetString("role"),
+			"IsSilverPlan":        isSilver,
+			"ProductCount":        int(pCount),
+			"ServiceCount":        int(sCount),
+			"PendingOrderCount":   int(pendingOrders),
+			"PendingBookingCount": int(pendingBookings),
+			"Onboarding":          onboardingData(h.db, businessID),
+			"UpgradeRequired":     true,
+		})
 		return
 	}
 
@@ -232,6 +270,16 @@ func (h *AnalyticsHandler) GetAnalyticsStats(c *gin.Context) {
 		return
 	}
 
+	if !subscription.HasFeature(businessID, "analytics") {
+		planName := subscription.PlanDisplayName(businessID)
+		c.HTML(http.StatusOK, "components/upgrade_prompt", gin.H{
+			"Feature":    "analytics",
+			"FeatureMsg": "Analytics is not available on your " + planName + " plan. Upgrade to unlock it.",
+			"PlanName":   planName,
+		})
+		return
+	}
+
 	r := c.DefaultQuery("range", "this_month")
 	data := h.computeAnalyticsData(businessID, r)
 
@@ -269,6 +317,16 @@ func (h *AnalyticsHandler) GetAnalyticsStatsGrid(c *gin.Context) {
 	var currentBusiness models.Business
 	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return
+	}
+
+	if !subscription.HasFeature(businessID, "analytics") {
+		planName := subscription.PlanDisplayName(businessID)
+		c.HTML(http.StatusOK, "components/upgrade_prompt", gin.H{
+			"Feature":    "analytics",
+			"FeatureMsg": "Analytics is not available on your " + planName + " plan. Upgrade to unlock it.",
+			"PlanName":   planName,
+		})
 		return
 	}
 

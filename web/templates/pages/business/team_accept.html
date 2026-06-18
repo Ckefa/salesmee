@@ -38,6 +38,10 @@
           <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Password</label>
           <input type="password" id="password" class="input w-full text-sm" placeholder="At least 6 characters" autocomplete="new-password">
         </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)] mb-1">Confirm Password</label>
+          <input type="password" id="confirmPassword" class="input w-full text-sm" placeholder="Confirm your password" autocomplete="new-password">
+        </div>
         <button onclick="acceptInvite()" class="btn btn-primary w-full">
           <i class="fas fa-check mr-1"></i> Accept & Set Password
         </button>
@@ -53,16 +57,22 @@
   }
   function acceptInvite() {
     var password = document.getElementById('password').value;
+    var confirm = document.getElementById('confirmPassword').value;
     var errorEl = document.getElementById('acceptError');
     if (!password || password.length < 6) {
       errorEl.textContent = 'Password must be at least 6 characters';
       errorEl.classList.remove('hidden');
       return;
     }
+    if (password !== confirm) {
+      errorEl.textContent = 'Passwords do not match';
+      errorEl.classList.remove('hidden');
+      return;
+    }
     fetch('/business/team/accept', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token')},
-      body: JSON.stringify({token: document.getElementById('token').value, password: password})
+      body: JSON.stringify({token: document.getElementById('token').value, password: password, confirm_password: confirm})
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.success) {
         window.location.href = '/business/team/login?activated=1';

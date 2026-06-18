@@ -415,7 +415,19 @@
           if (data.success) {
             hideServiceModal();
             reloadServicesPage();
-          } else {
+          } else if (window.handlePlanResponse(data, function() {
+            fetch(url + '?grace=1', {
+              method: method,
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+              body: JSON.stringify(serviceData)
+            })
+              .then(r => r.json())
+              .then(d => {
+                if (d.success) { hideServiceModal(); reloadServicesPage(); }
+                else { showNotification(d.error || 'Failed to save service', 'error'); }
+              });
+          })) {}
+          else {
             showNotification('Failed to save service', 'error');
           }
         })

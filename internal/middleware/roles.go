@@ -20,9 +20,11 @@ const (
 	PermProductsWrite Permission = "products:rw"
 	PermServicesWrite Permission = "services:rw"
 	PermPaymentsWrite Permission = "payments:rw"
-	PermAnalyticsView Permission = "analytics:view"
-	PermReportsView   Permission = "reports:view"
-	PermLocationsView Permission = "locations:view"
+	PermAnalyticsView       Permission = "analytics:view"
+	PermReportsView         Permission = "reports:view"
+	PermLocationsView       Permission = "locations:view"
+	PermShareView           Permission = "share:view"
+	PermSubscriptionView    Permission = "subscription:view"
 )
 
 func HasPermission(c *gin.Context, perm Permission) bool {

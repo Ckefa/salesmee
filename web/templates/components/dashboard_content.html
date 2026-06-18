@@ -7,6 +7,23 @@
       <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">Manage your business operations and track performance</p>
     </div>
 
+    {{if .IsSilverPlan}}
+    <div class="mb-6 bg-gradient-to-r from-[var(--color-primary-light)] to-[var(--color-info-light)] border border-[var(--color-primary)]/20 rounded-xl p-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0">
+          <i class="fas fa-rocket text-[var(--color-primary)]"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-[var(--color-text)]">Unlock more with Gold</p>
+          <p class="text-xs text-[var(--color-text-secondary)]">Get orders, bookings, analytics and higher limits when you upgrade.</p>
+        </div>
+      </div>
+      <a href="/business/subscription#plans" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium hover:brightness-110 transition whitespace-nowrap">
+        <i class="fas fa-arrow-up text-xs"></i> Upgrade
+      </a>
+    </div>
+    {{end}}
+
     <!-- Date Range Filter Pills -->
     <div class="flex flex-wrap gap-2 mb-6" id="stats-filter-pills">
       <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
@@ -33,6 +50,7 @@
       {{template "dashboard_stats" .}}
     </div>
 
+    {{if not .IsSilverPlan}}
     <!-- Walk-in Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 hover:shadow-lg transition-shadow">
@@ -66,6 +84,7 @@
         </div>
       </div>
     </div>
+    {{end}}
 
     <!-- Recent Orders and Bookings -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

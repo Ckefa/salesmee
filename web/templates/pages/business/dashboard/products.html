@@ -544,7 +544,21 @@
             if (data.success) {
               hideProductModal();
               reloadProductsPage();
-            } else {
+            } else if (window.handlePlanResponse(data, function() {
+              var form = document.getElementById('productForm');
+              var action = form.action || url;
+              fetch(action + '?grace=1', {
+                method: method,
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCookie('csrf_token') },
+                body: JSON.stringify(productData)
+              })
+                .then(r => r.json())
+                .then(d => {
+                  if (d.success) { hideProductModal(); reloadProductsPage(); }
+                  else { showNotification(d.error || 'Failed to save product', 'error'); }
+                });
+            })) {}
+            else {
               showNotification('Failed to save product', 'error');
             }
           })

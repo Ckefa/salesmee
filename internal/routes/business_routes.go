@@ -82,7 +82,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 
 		protected.GET("/products", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.GetProducts)
 		protected.GET("/products/:id", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.GetProduct)
-		protected.POST("/products", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.CreateProduct)
+		protected.POST("/products", middleware.RequirePermission(middleware.PermProductsWrite), middleware.CheckResourceLimit("product", "products"), productHandler.CreateProduct)
 		protected.PUT("/products/:id", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.UpdateProduct)
 		protected.DELETE("/products/:id", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.DeleteProduct)
 		protected.POST("/products/:id/image", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.UploadProductImage)
@@ -91,14 +91,14 @@ func SetupBusinessRoutes(r *gin.Engine) {
 
 		protected.GET("/services", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.GetServices)
 		protected.GET("/services/:id", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.GetService)
-		protected.POST("/services", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.CreateService)
+		protected.POST("/services", middleware.RequirePermission(middleware.PermServicesWrite), middleware.CheckResourceLimit("service", "services"), serviceHandler.CreateService)
 		protected.PUT("/services/:id", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.UpdateService)
 		protected.DELETE("/services/:id", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.DeleteService)
 
 		protected.GET("/orders", orderHandler.GetOrders)
 		protected.GET("/orders/stats", orderHandler.GetOrdersStats)
 		protected.GET("/orders/stats-grid", orderHandler.GetOrdersStatsGrid)
-		protected.POST("/orders", middleware.RequirePermission(middleware.PermOrdersWrite), orderHandler.CreateOrder)
+		protected.POST("/orders", middleware.RequirePermission(middleware.PermOrdersWrite), middleware.RequireFeature("orders_and_bookings", "Orders & Bookings"), orderHandler.CreateOrder)
 		protected.PUT("/orders/:id", middleware.RequirePermission(middleware.PermOrdersWrite), orderHandler.UpdateOrder)
 		protected.PUT("/orders/:id/status", middleware.RequirePermission(middleware.PermOrdersWrite), orderHandler.UpdateOrderStatus)
 
@@ -106,12 +106,12 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/bookings/stats", bookingHandler.GetBookingsStats)
 		protected.GET("/bookings/stats-grid", bookingHandler.GetBookingsStatsGrid)
 		protected.GET("/bookings/:id", bookingHandler.GetBooking)
-		protected.POST("/bookings", middleware.RequirePermission(middleware.PermBookingsWrite), bookingHandler.CreateBooking)
+		protected.POST("/bookings", middleware.RequirePermission(middleware.PermBookingsWrite), middleware.RequireFeature("orders_and_bookings", "Orders & Bookings"), bookingHandler.CreateBooking)
 		protected.PUT("/bookings/:id", middleware.RequirePermission(middleware.PermBookingsWrite), bookingHandler.UpdateBooking)
 		protected.PUT("/bookings/:id/status", middleware.RequirePermission(middleware.PermBookingsWrite), bookingHandler.UpdateBookingStatus)
 		protected.PUT("/bookings/:id/paid", middleware.RequirePermission(middleware.PermBookingsWrite), bookingHandler.MarkBookingAsPaid)
 
-		protected.POST("/clients", middleware.RequirePermission(middleware.PermClientsWrite), client.CreateClient)
+		protected.POST("/clients", middleware.RequirePermission(middleware.PermClientsWrite), middleware.CheckResourceLimit("client", "clients"), client.CreateClient)
 		protected.DELETE("/clients/:id", middleware.RequirePermission(middleware.PermClientsWrite), client.DeleteClient)
 		protected.PUT("/clients/:id/status", middleware.RequirePermission(middleware.PermClientsWrite), client.UpdateClientStatus)
 		protected.GET("/clients/:id/conversation-id", client.GetClientConversationID)
@@ -136,8 +136,8 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/actions/enhanced", handlers.GetEnhancedActions)
 		protected.PUT("/actions/:id/enhanced-status", handlers.UpdateEnhancedActionStatus)
 
-		protected.POST("/clients/:id/quick-booking", middleware.RequirePermission(middleware.PermClientsWrite), business.QuickBooking)
-		protected.POST("/clients/:id/quick-order", middleware.RequirePermission(middleware.PermClientsWrite), business.QuickOrder)
+		protected.POST("/clients/:id/quick-booking", middleware.RequirePermission(middleware.PermClientsWrite), middleware.RequireFeature("orders_and_bookings", "Orders & Bookings"), business.QuickBooking)
+		protected.POST("/clients/:id/quick-order", middleware.RequirePermission(middleware.PermClientsWrite), middleware.RequireFeature("orders_and_bookings", "Orders & Bookings"), business.QuickOrder)
 		protected.POST("/clients/:id/request-payment", middleware.RequirePermission(middleware.PermClientsWrite), business.RequestPayment)
 		protected.POST("/clients/:id/set-goal", middleware.RequirePermission(middleware.PermClientsWrite), business.SetGoal)
 
@@ -152,7 +152,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/orders/:id/receipt", orderHandler.GetOrderReceipt)
 		protected.GET("/bookings/:id/receipt", bookingHandler.GetBookingReceipt)
 
-		protected.GET("/share", middleware.RequireOwner(), bizHandler.GetSharePage)
+		protected.GET("/share", middleware.RequirePermission(middleware.PermShareView), bizHandler.GetSharePage)
 		protected.POST("/regenerate-slug", middleware.RequireOwner(), bizHandler.RegenerateSlug)
 
 		protected.POST("/logo", middleware.RequireOwner(), bizHandler.UploadBusinessLogo)
@@ -165,11 +165,11 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.POST("/onboarding/progress", middleware.RequireOwner(), bizHandler.CheckOnboardingProgress)
 		protected.POST("/onboarding/advance", middleware.RequireOwner(), bizHandler.AdvanceOnboarding)
 		protected.POST("/onboarding/skip", middleware.RequireOwner(), bizHandler.SkipOnboarding)
-
 		protected.GET("/analytics", middleware.RequirePermission(middleware.PermAnalyticsView), analyticsHandler.GetAnalytics)
-		protected.GET("/analytics/stats", middleware.RequirePermission(middleware.PermAnalyticsView), analyticsHandler.GetAnalyticsStats)
-		protected.GET("/analytics/stats-grid", middleware.RequirePermission(middleware.PermAnalyticsView), analyticsHandler.GetAnalyticsStatsGrid)
 
+		protected.GET("/analytics/stats", middleware.RequirePermission(middleware.PermAnalyticsView), analyticsHandler.GetAnalyticsStats)
+
+		protected.GET("/analytics/stats-grid", middleware.RequirePermission(middleware.PermAnalyticsView), analyticsHandler.GetAnalyticsStatsGrid)
 		protected.GET("/payments", middleware.RequirePermission(middleware.PermPaymentsWrite), paymentHandler.GetPayments)
 		protected.GET("/payments/stats", middleware.RequirePermission(middleware.PermPaymentsWrite), paymentHandler.GetPaymentsStats)
 		protected.GET("/payments/stats-grid", middleware.RequirePermission(middleware.PermPaymentsWrite), paymentHandler.GetPaymentsStatsGrid)
@@ -195,15 +195,15 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/conversations/:conversation_id/insights-panel", handlers.GetConversationInsightsPanel)
 		protected.POST("/conversations/:conversation_id/insights/refresh", handlers.RefreshConversationInsights)
 
-		protected.GET("/subscription", middleware.RequireOwner(), subscriptionHandler.GetSubscriptionPage)
-		protected.GET("/subscription/plans", middleware.RequireOwner(), subscriptionHandler.GetPlansPage)
-		protected.GET("/subscription/checkout", middleware.RequireOwner(), subscriptionHandler.GetCheckoutPage)
+		protected.GET("/subscription", middleware.RequirePermission(middleware.PermSubscriptionView), subscriptionHandler.GetSubscriptionPage)
+		protected.GET("/subscription/plans", middleware.RequirePermission(middleware.PermSubscriptionView), subscriptionHandler.GetPlansPage)
+		protected.GET("/subscription/checkout", middleware.RequirePermission(middleware.PermSubscriptionView), subscriptionHandler.GetCheckoutPage)
 		protected.POST("/subscription/checkout", middleware.RequireOwner(), subscriptionHandler.CreateCheckout)
 		protected.POST("/subscription/change", middleware.RequireOwner(), subscriptionHandler.ChangePlan)
 		protected.POST("/subscription/cancel", middleware.RequireOwner(), subscriptionHandler.CancelSubscription)
 		protected.GET("/subscription/portal", middleware.RequireOwner(), subscriptionHandler.BillingPortal)
-		protected.GET("/subscription/badge", middleware.RequireOwner(), subscriptionHandler.GetPlanBadge)
-		protected.GET("/subscription/badge-sidebar", middleware.RequireOwner(), subscriptionHandler.GetPlanBadgeSidebar)
+		protected.GET("/subscription/badge", middleware.RequirePermission(middleware.PermSubscriptionView), subscriptionHandler.GetPlanBadge)
+		protected.GET("/subscription/badge-sidebar", middleware.RequirePermission(middleware.PermSubscriptionView), subscriptionHandler.GetPlanBadgeSidebar)
 
 		protected.GET("/reports", middleware.RequirePermission(middleware.PermReportsView), reportHandler.GetReportsPage)
 		protected.GET("/reports/revenue", middleware.RequirePermission(middleware.PermReportsView), reportHandler.GetRevenueReport)

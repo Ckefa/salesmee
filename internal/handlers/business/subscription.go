@@ -51,6 +51,7 @@ type SubscriptionPageData struct {
 	PaymentProvider string
 	AuthType        string
 	Role            string
+	IsSilverPlan    bool
 	ContentTemplate string
 }
 
@@ -76,6 +77,7 @@ type CheckoutPageData struct {
 	PendingBookingCount int
 	AuthType            string
 	Role                string
+	IsSilverPlan        bool
 	ContentTemplate     string
 }
 
@@ -93,6 +95,7 @@ type PlansPageData struct {
 	PendingBookingCount int
 	AuthType            string
 	Role                string
+	IsSilverPlan        bool
 	ContentTemplate     string
 }
 
@@ -184,6 +187,7 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 		Usage:        usage,
 		AuthType:     c.GetString("auth_type"),
 		Role:         c.GetString("role"),
+		IsSilverPlan: subscription.IsSilverPlan(businessID),
 	}
 
 	if business.Subscription != nil {
@@ -271,12 +275,13 @@ func (h *SubscriptionHandler) GetPlansPage(c *gin.Context) {
 	}
 
 	data := PlansPageData{
-		ActivePage: "subscription",
-		Business:   business,
-		Plans:      plans,
-		Current:    current,
-		AuthType:   c.GetString("auth_type"),
-		Role:       c.GetString("role"),
+		ActivePage:   "subscription",
+		Business:     business,
+		Plans:        plans,
+		Current:      current,
+		AuthType:     c.GetString("auth_type"),
+		Role:         c.GetString("role"),
+		IsSilverPlan: subscription.IsSilverPlan(businessID),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -304,7 +309,7 @@ func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 
 	var plan models.SubscriptionPlan
 	if err := h.db.Where("code = ? AND is_active = ?", planCode, true).First(&plan).Error; err != nil {
-		c.Redirect(http.StatusFound, "/business/subscription/plans")
+		c.Redirect(http.StatusFound, "/business/subscription#plans")
 		return
 	}
 
@@ -351,6 +356,7 @@ func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 		PolarEnabled:      polarEnabledBool,
 		AuthType:          c.GetString("auth_type"),
 		Role:              c.GetString("role"),
+		IsSilverPlan:      subscription.IsSilverPlan(businessID),
 	}
 
 	c.HTML(http.StatusOK, "checkout.html", data)
@@ -623,7 +629,7 @@ func (h *SubscriptionHandler) GetPlanBadge(c *gin.Context) {
 
 	if status == "canceled" || status == "past_due" {
 		c.String(http.StatusOK, fmt.Sprintf(
-			`<a href="/business/subscription/plans" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors shadow-sm">
+			`<a href="/business/subscription#plans" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors shadow-sm">
 				<i class="fas fa-exclamation-triangle text-[10px]"></i> %s - %s
 			</a>`, planName, status))
 		return

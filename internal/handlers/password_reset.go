@@ -150,8 +150,9 @@ func ShowResetPassword(c *gin.Context) {
 func SubmitResetPassword(c *gin.Context) {
 	token := c.PostForm("token")
 	password := c.PostForm("password")
+	confirmPassword := c.PostForm("confirm_password")
 
-	if token == "" || password == "" {
+	if token == "" || password == "" || confirmPassword == "" {
 		c.HTML(http.StatusOK, "reset_password.html", middleware.TemplateData(c, gin.H{
 			"Title": "Reset Password - SalesMee",
 			"Error": "All fields are required",
@@ -164,6 +165,15 @@ func SubmitResetPassword(c *gin.Context) {
 		c.HTML(http.StatusOK, "reset_password.html", middleware.TemplateData(c, gin.H{
 			"Title": "Reset Password - SalesMee",
 			"Error": "Password must be at least 6 characters",
+			"Token": token,
+		}))
+		return
+	}
+
+	if password != confirmPassword {
+		c.HTML(http.StatusOK, "reset_password.html", middleware.TemplateData(c, gin.H{
+			"Title": "Reset Password - SalesMee",
+			"Error": "Passwords do not match",
 			"Token": token,
 		}))
 		return

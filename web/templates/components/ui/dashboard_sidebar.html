@@ -55,6 +55,7 @@
       class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-chart-bar w-4"></i>
       Analytics
+      {{if .IsSilverPlan}}<i class="fas fa-lock text-[10px] text-[var(--color-warning)] ml-auto"></i>{{end}}
     </a>
     <a hx-get="/business/reports" hx-target="#main-content" hx-push-url="true"
       class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
@@ -98,11 +99,6 @@
       <i class="fas fa-bell w-4"></i>
       Notifications
     </a>
-    {{if $isOwner}}
-    <a hx-get="/business/hours" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-      <i class="fas fa-clock w-4"></i>
-      Hours
-    </a>
     <a hx-get="/business/share" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-share-alt w-4"></i>
       Share
@@ -112,6 +108,11 @@
       <span class="flex-1">Subscription</span>
       <span hx-get="/business/subscription/badge-sidebar" hx-trigger="load" hx-target="this" hx-swap="innerHTML" hx-push-url="false"
         class="text-[10px] font-semibold"></span>
+    </a>
+    {{if $isOwner}}
+    <a hx-get="/business/hours" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+      <i class="fas fa-clock w-4"></i>
+      Hours
     </a>
     <a hx-get="/business/locations" hx-target="#main-content" hx-push-url="true" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl dash-nav text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] transition-colors">
       <i class="fas fa-map-marker-alt w-4"></i>

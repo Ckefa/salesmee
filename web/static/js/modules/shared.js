@@ -409,6 +409,96 @@
     });
   }
 
+  function showUpgradeModal(options) {
+    return new Promise(function(resolve) {
+      var id = 'upgrade-modal-' + (++modalCounter);
+      var overlay = document.createElement('div');
+      overlay.id = id;
+      overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center';
+      overlay.style.background = 'rgba(0,0,0,0.5)';
+
+      var title = options.title || 'Upgrade Required';
+      var message = options.message || 'Your current plan does not support this action.';
+      var upgradeUrl = options.upgradeUrl || '/business/subscription#plans';
+      var graceAllowed = options.graceAllowed || false;
+      var resource = options.resource || '';
+
+      var upgradeBtn = '<a href="' + upgradeUrl + '" class="inline-flex items-center px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium transition shadow-sm hover:opacity-90"><i class="fas fa-arrow-up mr-1.5 text-xs"></i> Upgrade Plan</a>';
+      var graceBtn = graceAllowed ? '<button class="grace-continue px-4 py-2 rounded-lg border border-[var(--color-warning)] text-[var(--color-warning)] hover:bg-[var(--color-warning-light)] text-sm font-medium transition">Continue Once</button>' : '';
+      var closeBtn = '<button class="modal-cancel px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-sm font-medium transition">Close</button>';
+
+      overlay.innerHTML =
+        '<div class="bg-[var(--color-surface)] rounded-xl shadow-2xl p-5 mx-4 w-full max-w-sm border border-[var(--color-border)] animate-fade-in-down">' +
+          '<div class="flex items-center gap-3 mb-3">' +
+            '<div class="w-10 h-10 rounded-full bg-[var(--color-warning-light)] flex items-center justify-center shrink-0">' +
+              '<i class="fas fa-crown text-[var(--color-warning)]"></i>' +
+            '</div>' +
+            '<h3 class="text-base font-semibold text-[var(--color-text)]">' + escapeHtml(title) + '</h3>' +
+          '</div>' +
+          '<p class="text-sm text-[var(--color-text-secondary)] mb-5 leading-relaxed">' + message + '</p>' +
+          '<div class="flex gap-2 justify-end flex-wrap">' +
+            closeBtn +
+            graceBtn +
+            upgradeBtn +
+          '</div>' +
+        '</div>';
+
+      overlay.querySelector('.modal-cancel').addEventListener('click', function() {
+        overlay.remove();
+        resolve(false);
+      });
+      var graceBtnEl = overlay.querySelector('.grace-continue');
+      if (graceBtnEl) {
+        graceBtnEl.addEventListener('click', function() {
+          overlay.remove();
+          resolve('grace');
+        });
+      }
+      var upgradeBtnEl = overlay.querySelector('a[href]');
+      if (upgradeBtnEl) {
+        upgradeBtnEl.addEventListener('click', function() {
+          overlay.remove();
+          resolve('upgrade');
+        });
+      }
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          overlay.remove();
+          resolve(false);
+        }
+      });
+
+      document.body.appendChild(overlay);
+    });
+  }
+
+  window.handlePlanResponse = function(data, retryWithGrace) {
+    if (data.limit_reached) {
+      showUpgradeModal({
+        title: 'Plan Limit Reached',
+        message: data.error || 'You have reached the limit for your plan.',
+        upgradeUrl: data.upgrade_url || '/business/subscription#plans',
+        graceAllowed: data.grace_allowed,
+      }).then(function(action) {
+        if (action === 'grace' && retryWithGrace) {
+          retryWithGrace();
+        }
+      });
+      return true;
+    }
+    if (data.requires_upgrade) {
+      showUpgradeModal({
+        title: 'Upgrade Required',
+        message: data.error || 'This feature requires an upgraded plan.',
+        upgradeUrl: data.upgrade_url || '/business/subscription#plans',
+        graceAllowed: false,
+      });
+      return true;
+    }
+    return false;
+  };
+
+  window.showUpgradeModal = showUpgradeModal;
   window.showConfirmModal = showConfirmModal;
   window.showPromptModal = showPromptModal;
   window.showPaymentModal = showPaymentModal;
@@ -417,4 +507,13 @@
   window.getCookie = getCookie;
   window.toggleHeaderMenu = toggleHeaderMenu;
   window.playNotificationSound = playNotificationSound;
+
+  document.body.addEventListener('show-upgrade-modal', function(e) {
+    showUpgradeModal({
+      title: 'Upgrade Required',
+      message: e.detail.message || 'Media sharing requires an upgraded plan.',
+      upgradeUrl: e.detail.upgradeUrl || '/business/subscription#plans',
+      graceAllowed: false,
+    });
+  });
 })();

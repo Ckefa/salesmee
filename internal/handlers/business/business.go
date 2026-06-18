@@ -16,6 +16,7 @@ import (
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/assist"
+	"salesmee/internal/services/subscription"
 	"salesmee/internal/services/onboarding"
 	"salesmee/internal/ws"
 	"time"
@@ -78,6 +79,7 @@ type DashboardData struct {
 	AuthType            string
 	Role                string
 	AssistEnabled       bool
+	IsSilverPlan        bool
 	ContentTemplate     string
 }
 
@@ -382,6 +384,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	data.AuthType = c.GetString("auth_type")
 	data.Role = c.GetString("role")
 	data.AssistEnabled = assist.IsEnabled()
+	data.IsSilverPlan = subscription.IsSilverPlan(businessID)
 	if c.GetHeader("HX-Request") == "true" {
 		c.HTML(http.StatusOK, "dashboard_content", data)
 	} else {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"log"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	clienth "salesmee/internal/handlers/client"
 	"salesmee/internal/models"
 	"salesmee/internal/services/media"
+	"salesmee/internal/services/subscription"
 	prog "salesmee/internal/services/progress"
 	"salesmee/internal/ws"
 
@@ -452,13 +454,47 @@ func CreateMessage(c *gin.Context) {
 	}
 
 	// Handle media upload
-	for _, field := range []string{"media_image", "media_document", "media_audio"} {
-		mediaURL, mediaType, err := media.SaveMediaFile(c, field)
-		if err == nil {
-			message.MediaURL = mediaURL
-			message.MediaType = mediaType
-			break
+	hasMediaFeature := subscription.HasFeature(businessID, "media_sharing")
+	hasUploadedFile := false
+	if hasMediaFeature {
+		for _, field := range []string{"media_image", "media_document", "media_audio"} {
+			mediaURL, mediaType, err := media.SaveMediaFile(c, field)
+			if err == nil {
+				message.MediaURL = mediaURL
+				message.MediaType = mediaType
+				hasUploadedFile = true
+				break
+			}
 		}
+	} else {
+		for _, field := range []string{"media_image", "media_document", "media_audio"} {
+			_, err := c.FormFile(field)
+			if err == nil {
+				hasUploadedFile = true
+				break
+			}
+		}
+	}
+
+	if !hasMediaFeature && hasUploadedFile {
+		msg := "Media sharing is not available on your " + subscription.PlanDisplayName(businessID) + " plan. Upgrade to Diamond to send images, files and audio."
+		if c.GetHeader("HX-Request") == "true" {
+			triggerData, _ := json.Marshal(map[string]interface{}{
+				"show-upgrade-modal": map[string]interface{}{
+					"message":    msg,
+					"upgradeUrl": "/business/subscription#plans",
+				},
+			})
+			c.Header("HX-Trigger", string(triggerData))
+			c.Status(http.StatusNoContent)
+			return
+		}
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":            msg,
+			"requires_upgrade": true,
+			"upgrade_url":      "/business/subscription#plans",
+		})
+		return
 	}
 
 	if content == "" && message.MediaURL == "" {

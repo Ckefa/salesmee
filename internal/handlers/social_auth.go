@@ -256,6 +256,8 @@ func CompleteRegisterGoogle(c *gin.Context) {
 		return
 	}
 
+	assignSilverPlan(user.ID)
+
 	RegStore.Delete(tok)
 
 	token, err := services.GenerateToken(user.ID, user.Email)

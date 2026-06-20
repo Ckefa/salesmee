@@ -58,13 +58,13 @@ func SaveMediaFile(c *gin.Context, formField string) (string, string, error) {
 		}
 		dst.Close()
 
-		webpName := fmt.Sprintf("%s_%d.webp", mediaType, ts)
-		webpPath := filepath.Join(uploadDir, webpName)
-		if err := images.Process(tmpPath, webpPath, images.DefaultConfig); err != nil {
+		jpgName := fmt.Sprintf("%s_%d.jpg", mediaType, ts)
+		jpgPath := filepath.Join(uploadDir, jpgName)
+		if err := images.Process(tmpPath, jpgPath, images.DefaultConfig); err != nil {
 			return "", "", err
 		}
 
-		mediaURL := filepath.Join("uploads", "media", webpName)
+		mediaURL := filepath.Join("uploads", "media", jpgName)
 		return mediaURL, mediaType, nil
 	}
 

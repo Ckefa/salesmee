@@ -344,7 +344,12 @@ window.addEventListener('beforeunload', function() {
 });
 
 document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible') markAsRead();
+  if (document.visibilityState === 'visible') {
+    var container = document.getElementById('messages-container');
+    if (!container) return;
+    var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    if (isNearBottom && typeof markAsRead === 'function') markAsRead();
+  }
 });
 
 // ========== Older Message Pagination (IntersectionObserver) ==========

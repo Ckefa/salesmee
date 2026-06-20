@@ -43,17 +43,6 @@
   var currencySymbol = '{{currencySymbol .Business.Currency}}';
 </script>
 <script>
-function scrollToBottom() {
-  var c = document.getElementById('messages-container');
-  if (c) c.scrollTop = c.scrollHeight;
-}
-function scrollToBottomBtn() {
-  scrollToBottom();
-  if (window.clearUnreadBelow) window.clearUnreadBelow();
-  if (typeof markAsRead === 'function') markAsRead();
-}
-</script>
-<script>
 async function clientSubmitOrderPayment(orderId, maxAmount, paymentMethods) {
   const result = await showPaymentModal(maxAmount, currencySymbol, paymentMethods);
   if (!result) return;

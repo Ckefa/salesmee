@@ -137,6 +137,11 @@ function updateSidebarCard(frame) {
 }
 
 function markAsRead() {
+  var container = document.getElementById('messages-container');
+  if (!container) return;
+  var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+  if (!isNearBottom) return;
+
   fetch(`/client/businesses/${businessId}/read`, { method: 'PUT', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
     .then(function() {
       var badge = document.querySelector('.business-item[data-business-id="' + businessId + '"] .wa-unread-badge');
@@ -146,12 +151,12 @@ function markAsRead() {
 }
 
 scrollToBottom();
-if (businessId) markAsRead();
 startWsClient();
 
 window.scrollToBottomBtn = function() {
-  clearUnreadBelow();
   scrollToBottom();
+  if (window.clearUnreadBelow) window.clearUnreadBelow();
+  if (typeof markAsRead === 'function') markAsRead();
 };
 
 function reloadClientChatFromServer() {

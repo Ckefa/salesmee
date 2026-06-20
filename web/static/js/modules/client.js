@@ -257,6 +257,7 @@ function loadBusiness(businessId) {
       }
       htmx.process(contentArea);
       scrollToBottom();
+      if (typeof markAsRead === 'function') markAsRead();
       initOlderObserver();
       initScrollToBottom();
     })

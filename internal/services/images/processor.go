@@ -2,13 +2,10 @@ package images
 
 import (
 	"fmt"
-	"image"
-	"image/color"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 )
 
@@ -49,17 +46,6 @@ func Process(inputPath, outputPath string, cfg Config) error {
 
 	ext := strings.ToLower(filepath.Ext(outputPath))
 	switch ext {
-	case ".webp":
-		rgba := toRGBA(resized)
-		f, err := os.Create(outputPath)
-		if err != nil {
-			return fmt.Errorf("images: create %s: %w", outputPath, err)
-		}
-		defer f.Close()
-
-		if err := webp.Encode(f, rgba, &webp.Options{Quality: cfg.Quality}); err != nil {
-			return fmt.Errorf("images: encode webp %s: %w", outputPath, err)
-		}
 	case ".jpg", ".jpeg":
 		if err := imaging.Save(resized, outputPath, imaging.JPEGQuality(int(cfg.Quality))); err != nil {
 			return fmt.Errorf("images: save jpeg %s: %w", outputPath, err)
@@ -77,31 +63,10 @@ func Process(inputPath, outputPath string, cfg Config) error {
 	return nil
 }
 
-func ProcessAsWebP(inputPath, outputWebPPath string, cfg Config) error {
-	return Process(inputPath, outputWebPPath, cfg)
-}
-
 func RemoveIfExists(path string) {
 	if path != "" {
 		os.Remove(path)
 	}
-}
-
-func toRGBA(src image.Image) *image.RGBA {
-	bounds := src.Bounds()
-	rgba := image.NewRGBA(bounds)
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := src.At(x, y).RGBA()
-			rgba.SetRGBA(x, y, color.RGBA{
-				R: uint8(r >> 8),
-				G: uint8(g >> 8),
-				B: uint8(b >> 8),
-				A: uint8(a >> 8),
-			})
-		}
-	}
-	return rgba
 }
 
 func IsImageType(mediaType string) bool {

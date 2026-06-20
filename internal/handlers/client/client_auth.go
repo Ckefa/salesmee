@@ -215,6 +215,7 @@ func ClientDashboard(c *gin.Context) {
 	c.HTML(http.StatusOK, "client.html", gin.H{
 		"Title":         "Client Dashboard - SalesMee",
 		"Email":         email,
+		"ClientID":      clientID,
 		"Businesses":    businesses,
 		"AssistEnabled": assist.IsEnabled(),
 	})

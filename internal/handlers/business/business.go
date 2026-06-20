@@ -455,14 +455,14 @@ func saveBusinessLogo(businessID uint, c *gin.Context) string {
 	}
 	dst.Close()
 
-	webpName := fmt.Sprintf("business_%d_%d.webp", businessID, time.Now().Unix())
-	webpPath := filepath.Join(uploadDir, webpName)
-	if err := images.Process(tmpPath, webpPath, images.LogoConfig); err != nil {
+	jpgName := fmt.Sprintf("business_%d_%d.jpg", businessID, time.Now().Unix())
+	jpgPath := filepath.Join(uploadDir, jpgName)
+	if err := images.Process(tmpPath, jpgPath, images.LogoConfig); err != nil {
 		os.Remove(tmpPath)
 		return ""
 	}
 
-	return filepath.Join("uploads", "logos", webpName)
+	return filepath.Join("uploads", "logos", jpgName)
 }
 
 func (h *BusinessHandler) UploadBusinessLogo(c *gin.Context) {
@@ -509,15 +509,15 @@ func (h *BusinessHandler) UploadBusinessLogo(c *gin.Context) {
 	}
 	dst.Close()
 
-	webpName := fmt.Sprintf("business_%d_%d.webp", businessID, time.Now().Unix())
-	webpPath := filepath.Join(uploadDir, webpName)
-	if err := images.Process(tmpPath, webpPath, images.LogoConfig); err != nil {
+	jpgName := fmt.Sprintf("business_%d_%d.jpg", businessID, time.Now().Unix())
+	jpgPath := filepath.Join(uploadDir, jpgName)
+	if err := images.Process(tmpPath, jpgPath, images.LogoConfig); err != nil {
 		os.Remove(tmpPath)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image"})
 		return
 	}
 
-	logoPath := filepath.Join("uploads", "logos", webpName)
+	logoPath := filepath.Join("uploads", "logos", jpgName)
 	if err := h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Update("logo", logoPath).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update business logo"})
 		return

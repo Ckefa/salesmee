@@ -70,6 +70,10 @@ func Connect() {
 	sqlDB.SetConnMaxLifetime(time.Duration(config.C.DBMaxLifetime) * time.Minute)
 	sqlDB.SetConnMaxIdleTime(time.Duration(config.C.DBMaxIdleTime) * time.Minute)
 
+	if err := sqlDB.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+
 	log.Printf("Database connected successfully (pool: %d/%d, lifetime: %dm, idle: %dm)",
 		config.C.DBMaxOpenConns, config.C.DBMaxIdleConns,
 		config.C.DBMaxLifetime, config.C.DBMaxIdleTime)

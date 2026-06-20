@@ -186,18 +186,22 @@ class WsClient {
     if (this._indicator) return;
     var dot = document.createElement('div');
     dot.id = 'wsIndicator';
-    dot.style.cssText = 'position:fixed;bottom:12px;right:12px;width:10px;height:10px;border-radius:50%;z-index:9999;border:2px solid var(--color-surface,#fff);box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:background .3s;cursor:pointer';
+    dot.className = 'ws-indicator';
     dot.title = 'WebSocket: disconnected';
     dot.addEventListener('click', function() {
       var s = ['disconnected','connecting','connected','reconnecting'];
       var labels = ['Disconnected','Connecting...','Connected','Reconnecting...'];
-      var states = ['#f43f5e','#f59e0b','#10b981','#f59e0b'];
       var idx = s.indexOf(dot.getAttribute('data-ws-state'));
       if (idx >= 0 && typeof showNotification !== 'undefined') {
         showNotification('WebSocket: ' + labels[idx], idx === 2 ? 'success' : 'warning');
       }
     });
-    document.body.appendChild(dot);
+    var container = document.querySelector('.wa-input-inner');
+    if (container) {
+      container.insertBefore(dot, container.querySelector('.wa-text-input'));
+    } else {
+      document.body.appendChild(dot);
+    }
     this._indicator = dot;
   }
 

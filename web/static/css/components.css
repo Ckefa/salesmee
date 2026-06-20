@@ -1461,6 +1461,33 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: relative;
+}
+
+.ws-indicator {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 9999;
+  border: 2px solid var(--color-surface, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: background 0.3s;
+  cursor: pointer;
+}
+
+.wa-input-inner .ws-indicator {
+  position: static;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  z-index: auto;
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  bottom: auto;
+  right: auto;
 }
 
 .wa-input-icon-btn {

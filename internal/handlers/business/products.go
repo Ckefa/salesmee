@@ -297,15 +297,15 @@ func (h *ProductHandler) UploadProductImage(c *gin.Context) {
 	}
 	dst.Close()
 
-	jpgName := fmt.Sprintf("product_%d_%d.jpg", productID, time.Now().Unix())
-	jpgPath := filepath.Join(uploadDir, jpgName)
-	if err := images.Process(tmpPath, jpgPath, images.DefaultConfig); err != nil {
+	webpName := fmt.Sprintf("product_%d_%d.webp", productID, time.Now().Unix())
+	webpPath := filepath.Join(uploadDir, webpName)
+	if err := images.Process(tmpPath, webpPath, images.DefaultConfig); err != nil {
 		os.Remove(tmpPath)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image"})
 		return
 	}
 
-	imageURL := fmt.Sprintf("/static/uploads/products/%s", jpgName)
+	imageURL := fmt.Sprintf("/static/uploads/products/%s", webpName)
 
 	var count int64
 	h.dbc(c).Model(&models.ProductImage{}).Where("product_id = ?", productID).Count(&count)

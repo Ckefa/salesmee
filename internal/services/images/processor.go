@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/deepteams/webp"
 	"github.com/disintegration/imaging"
 )
 
@@ -46,6 +47,18 @@ func Process(inputPath, outputPath string, cfg Config) error {
 
 	ext := strings.ToLower(filepath.Ext(outputPath))
 	switch ext {
+	case ".webp":
+		f, err := os.Create(outputPath)
+		if err != nil {
+			return fmt.Errorf("images: create %s: %w", outputPath, err)
+		}
+		defer f.Close()
+		if err := webp.Encode(f, resized, &webp.EncoderOptions{
+			Quality: cfg.Quality,
+			Method:  4,
+		}); err != nil {
+			return fmt.Errorf("images: encode webp %s: %w", outputPath, err)
+		}
 	case ".jpg", ".jpeg":
 		if err := imaging.Save(resized, outputPath, imaging.JPEGQuality(int(cfg.Quality))); err != nil {
 			return fmt.Errorf("images: save jpeg %s: %w", outputPath, err)

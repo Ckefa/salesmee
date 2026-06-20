@@ -3,6 +3,7 @@ module salesmee
 go 1.26.2
 
 require (
+	github.com/deepteams/webp v1.2.5
 	github.com/disintegration/imaging v1.6.2
 	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-gonic/gin v1.12.0

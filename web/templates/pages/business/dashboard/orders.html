@@ -3,7 +3,7 @@
 {{template "dashboard_bottom" .}}
 
 {{define "dashboard/orders_content"}}
-  <div id="orders-page" class="py-6">
+  <div id="orders-page" class="py-6 relative loading-overlay">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Page Header -->
       <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -19,7 +19,13 @@
       </div>
 
       <div id="orders-content">
-        {{template "orders_stats_grid" .}}
+        <div id="orders-stats-container" class="relative" hx-ext="morph">
+          <div id="orders-stats-grid"
+               hx-get="/business/orders/stats-grid?range={{$.Range}}"
+               hx-trigger="load once" hx-swap="morph" hx-indicator="#orders-stats-container">
+            {{template "skeleton_orders_stats" .}}
+          </div>
+        </div>
 
         <!-- Search & Filter -->
         <div class="flex flex-col gap-3 mb-4">
@@ -248,8 +254,8 @@
             {{$next := add .Page 1}}
             {{$range := $.Range}}
             <a href="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}"
-hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-page"
-               hx-swap="outerHTML"
+ hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-page"
+               hx-swap="outerHTML" hx-indicator="#orders-page"
                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                      {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
                {{if eq .Page 1.0}}onclick="return false" {{end}}>
@@ -257,7 +263,7 @@ hx-get="?page={{$prev}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders
              </a>
              <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
                hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#orders-page"
-              hx-swap="outerHTML"
+               hx-swap="outerHTML" hx-indicator="#orders-page"
               class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                     {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
               {{if ge .Page .TotalPages}}onclick="return false" {{end}}>

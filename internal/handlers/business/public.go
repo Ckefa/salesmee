@@ -24,7 +24,7 @@ func GetPublicProfile(c *gin.Context) {
 	slug := c.Param("slug")
 
 	var business models.Business
-	if err := db.DB.Where("slug = ? AND is_public = ?", slug, true).Preload("Clients").First(&business).Error; err != nil {
+	if err := dbc(c).Where("slug = ? AND is_public = ?", slug, true).Preload("Clients").First(&business).Error; err != nil {
 		c.HTML(http.StatusNotFound, "public_profile.html", middleware.TemplateData(c, gin.H{
 			"Title": "Business Not Found - SalesMee",
 			"Error": "Business not found or not available",
@@ -33,21 +33,21 @@ func GetPublicProfile(c *gin.Context) {
 	}
 
 	var products []models.Product
-	db.DB.Where("business_id = ? AND is_active = ?", business.ID, true).Find(&products)
+	dbc(c).Where("business_id = ? AND is_active = ?", business.ID, true).Find(&products)
 
 	var svcList []models.Service
-	db.DB.Where("business_id = ? AND is_active = ?", business.ID, true).Find(&svcList)
+	dbc(c).Where("business_id = ? AND is_active = ?", business.ID, true).Find(&svcList)
 
 	// Determine if business is accepting clients (has any recent activity)
 	var totalClients int64
-	db.DB.Model(&models.Client{}).Where("business_id = ?", business.ID).Count(&totalClients)
+	dbc(c).Model(&models.Client{}).Where("business_id = ?", business.ID).Count(&totalClients)
 
 	// Load reviews with client name
 	var reviews []struct {
 		models.Review
 		ClientName string
 	}
-	db.DB.Raw(`
+	dbc(c).Raw(`
 		SELECT r.*, c.name as client_name
 		FROM reviews r
 		JOIN clients c ON c.id = r.client_id
@@ -58,8 +58,8 @@ func GetPublicProfile(c *gin.Context) {
 
 	var avgRating float64
 	var reviewCount int64
-	db.DB.Model(&models.Review{}).Where("business_id = ?", business.ID).Select("COALESCE(AVG(rating), 0)").Scan(&avgRating)
-	db.DB.Model(&models.Review{}).Where("business_id = ?", business.ID).Count(&reviewCount)
+	dbc(c).Model(&models.Review{}).Where("business_id = ?", business.ID).Select("COALESCE(AVG(rating), 0)").Scan(&avgRating)
+	dbc(c).Model(&models.Review{}).Where("business_id = ?", business.ID).Count(&reviewCount)
 
 	var hoursObj interface{}
 	if business.BusinessHours != "" && business.BusinessHours != "{}" {
@@ -115,7 +115,7 @@ func ShowConnect(c *gin.Context) {
 	slug := c.Param("slug")
 
 	var business models.Business
-	if err := db.DB.Where("slug = ?", slug).First(&business).Error; err != nil {
+	if err := dbc(c).Where("slug = ?", slug).First(&business).Error; err != nil {
 		c.HTML(http.StatusNotFound, "public_profile.html", middleware.TemplateData(c, gin.H{
 			"Title": "Business Not Found - SalesMee",
 			"Error": "Business not found",
@@ -131,25 +131,25 @@ func ShowConnect(c *gin.Context) {
 			clientID := claims.UserID
 
 			now := time.Now()
-			db.DB.Model(&models.Client{}).Where("id = ?", clientID).Updates(map[string]interface{}{
+			dbc(c).Model(&models.Client{}).Where("id = ?", clientID).Updates(map[string]interface{}{
 				"is_online":    true,
 				"last_seen_at": &now,
 			})
 
 			var conversation models.Conversation
-			err = db.DB.Where("client_id = ? AND business_id = ?", clientID, business.ID).
+			err = dbc(c).Where("client_id = ? AND business_id = ?", clientID, business.ID).
 				First(&conversation).Error
 			if err != nil {
 				conversation = models.Conversation{
 					ClientID:   clientID,
 					BusinessID: business.ID,
 				}
-				db.DB.Create(&conversation)
+				dbc(c).Create(&conversation)
 
 				// Broadcast real-time update to both sides
 				if wsHub != nil {
 					var cl models.Client
-					db.DB.First(&cl, clientID)
+					dbc(c).First(&cl, clientID)
 					bizCard := RenderBizSidebarCard(cl, conversation.ID, "", time.Now(), 0)
 					clientCard := RenderClientSidebarCard(business, conversation.ID, "", time.Now(), 0)
 					ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(business.ID)), strconv.Itoa(int(clientID)))
@@ -173,7 +173,7 @@ func SendConnectOTP(c *gin.Context) {
 	slug := c.Param("slug")
 
 	var business models.Business
-	if err := db.DB.Where("slug = ?", slug).First(&business).Error; err != nil {
+	if err := dbc(c).Where("slug = ?", slug).First(&business).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -189,7 +189,7 @@ func SendConnectOTP(c *gin.Context) {
 	}
 
 	var client models.Client
-	err := db.DB.Where("email = ? AND business_id = ?", email, business.ID).First(&client).Error
+	err := dbc(c).Where("email = ? AND business_id = ?", email, business.ID).First(&client).Error
 	if err != nil {
 		check := subscription.CheckResourceLimit(business.ID, "client")
 		if !check.Allowed && !check.GraceAllowed {
@@ -208,7 +208,7 @@ func SendConnectOTP(c *gin.Context) {
 			Name:       email,
 			Status:     models.StatusNew,
 		}
-		if err := db.DB.Create(&client).Error; err != nil {
+		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_connect.html", middleware.TemplateData(c, gin.H{
 				"Title":    "Connect - SalesMee",
 				"Business": business,
@@ -239,7 +239,7 @@ func VerifyConnectOTP(c *gin.Context) {
 	slug := c.Param("slug")
 
 	var business models.Business
-	if err := db.DB.Where("slug = ?", slug).First(&business).Error; err != nil {
+	if err := dbc(c).Where("slug = ?", slug).First(&business).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -270,10 +270,10 @@ func VerifyConnectOTP(c *gin.Context) {
 
 	clientAuth.IsVerified = true
 	clientAuth.OTPCode = ""
-	db.DB.Save(&clientAuth)
+	dbc(c).Save(&clientAuth)
 
 	now := time.Now()
-	db.DB.Model(&models.Client{}).Where("id = ?", clientAuth.ClientID).Updates(map[string]interface{}{
+	dbc(c).Model(&models.Client{}).Where("id = ?", clientAuth.ClientID).Updates(map[string]interface{}{
 		"is_online":    true,
 		"last_seen_at": &now,
 	})

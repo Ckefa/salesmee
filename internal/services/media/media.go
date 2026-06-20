@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"salesmee/internal/services/images"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,7 +42,33 @@ func SaveMediaFile(c *gin.Context, formField string) (string, string, error) {
 		return "", "", err
 	}
 
-	filename := fmt.Sprintf("%s_%d%s", mediaType, time.Now().UnixNano(), ext)
+	ts := time.Now().UnixNano()
+
+	if mediaType == "image" {
+		tmpName := fmt.Sprintf("%s_%d_tmp%s", mediaType, ts, ext)
+		tmpPath := filepath.Join(uploadDir, tmpName)
+		dst, err := os.Create(tmpPath)
+		if err != nil {
+			return "", "", err
+		}
+		if _, err := io.Copy(dst, file); err != nil {
+			dst.Close()
+			os.Remove(tmpPath)
+			return "", "", err
+		}
+		dst.Close()
+
+		webpName := fmt.Sprintf("%s_%d.webp", mediaType, ts)
+		webpPath := filepath.Join(uploadDir, webpName)
+		if err := images.Process(tmpPath, webpPath, images.DefaultConfig); err != nil {
+			return "", "", err
+		}
+
+		mediaURL := filepath.Join("uploads", "media", webpName)
+		return mediaURL, mediaType, nil
+	}
+
+	filename := fmt.Sprintf("%s_%d%s", mediaType, ts, ext)
 	dst, err := os.Create(filepath.Join(uploadDir, filename))
 	if err != nil {
 		return "", "", err

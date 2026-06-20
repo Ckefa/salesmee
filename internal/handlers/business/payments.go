@@ -8,6 +8,7 @@ import (
 	"time"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/ws"
 
@@ -20,13 +21,13 @@ func (h *PaymentHandler) UpdatePaymentInstructions(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
 
 	instructions := c.PostForm("payment_instructions")
-	if err := h.db.Model(&business).Update("payment_instructions", instructions).Error; err != nil {
+	if err := h.dbc(c).Model(&business).Update("payment_instructions", instructions).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update payment instructions"})
 		return
 	}
@@ -50,7 +51,7 @@ func (h *PaymentHandler) ClientSubmitOrderPayment(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -90,7 +91,7 @@ func (h *PaymentHandler) ClientSubmitOrderPayment(c *gin.Context) {
 		Notes:     request.Notes,
 	}
 
-	if err := h.db.Create(&payment).Error; err != nil {
+	if err := h.dbc(c).Create(&payment).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to record payment"})
 		return
 	}
@@ -118,7 +119,7 @@ func (h *PaymentHandler) ClientSubmitOrderPayment(c *gin.Context) {
 	// Notify business about client payment claim
 	go func() {
 		var client models.Client
-		if h.db.First(&client, clientID).Error == nil {
+		if h.dbc(c).First(&client, clientID).Error == nil {
 			notifier.CreateInAppNotif(h.db, order.BusinessID, &clientID,
 				"Pending Payment Approval",
 				fmt.Sprintf("%s submitted a payment of %.2f for Order %s", client.Name, request.Amount, order.OrderNumber),
@@ -151,7 +152,7 @@ func (h *PaymentHandler) ClientSubmitBookingPayment(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -191,7 +192,7 @@ func (h *PaymentHandler) ClientSubmitBookingPayment(c *gin.Context) {
 		Notes:     request.Notes,
 	}
 
-	if err := h.db.Create(&payment).Error; err != nil {
+	if err := h.dbc(c).Create(&payment).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to record payment"})
 		return
 	}
@@ -219,7 +220,7 @@ func (h *PaymentHandler) ClientSubmitBookingPayment(c *gin.Context) {
 	// Notify business about client payment claim
 	go func() {
 		var client models.Client
-		if h.db.First(&client, clientID).Error == nil {
+		if h.dbc(c).First(&client, clientID).Error == nil {
 			notifier.CreateInAppNotif(h.db, booking.BusinessID, &clientID,
 				"Pending Payment Approval",
 				fmt.Sprintf("%s submitted a payment of %.2f for Booking %s", client.Name, request.Amount, booking.BookingNumber),
@@ -251,13 +252,13 @@ func (h *PaymentHandler) ConfirmOrderPayment(c *gin.Context) {
 	paymentID, _ := strconv.ParseUint(paymentIDStr, 10, 32)
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
 
 	var payment models.Payment
-	if err := h.db.Where("id = ? AND order_id = ?", paymentID, orderID).First(&payment).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND order_id = ?", paymentID, orderID).First(&payment).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		return
 	}
@@ -271,14 +272,14 @@ func (h *PaymentHandler) ConfirmOrderPayment(c *gin.Context) {
 	payment.Status = models.PaymentCompleted
 	payment.UpdatedAt = now
 
-	if err := h.db.Save(&payment).Error; err != nil {
+	if err := h.dbc(c).Save(&payment).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm payment"})
 		return
 	}
 
 	order.PaidAmount += payment.Amount
 	order.UpdatedAt = now
-	h.db.Save(&order)
+	h.dbc(c).Save(&order)
 
 	if h.hub != nil {
 		pending := pendingOrderPayments(h.db, order.ID)
@@ -325,13 +326,13 @@ func (h *PaymentHandler) RejectOrderPayment(c *gin.Context) {
 	paymentID, _ := strconv.ParseUint(paymentIDStr, 10, 32)
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
 
 	var payment models.Payment
-	if err := h.db.Where("id = ? AND order_id = ?", paymentID, orderID).First(&payment).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND order_id = ?", paymentID, orderID).First(&payment).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		return
 	}
@@ -343,7 +344,7 @@ func (h *PaymentHandler) RejectOrderPayment(c *gin.Context) {
 
 	payment.Status = models.PaymentFailed
 	payment.UpdatedAt = time.Now()
-	h.db.Save(&payment)
+	h.dbc(c).Save(&payment)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -367,13 +368,13 @@ func (h *PaymentHandler) ConfirmBookingPayment(c *gin.Context) {
 	paymentID, _ := strconv.ParseUint(paymentIDStr, 10, 32)
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
 
 	var payment models.Payment
-	if err := h.db.Where("id = ? AND booking_id = ?", paymentID, bookingID).First(&payment).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND booking_id = ?", paymentID, bookingID).First(&payment).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		return
 	}
@@ -386,11 +387,11 @@ func (h *PaymentHandler) ConfirmBookingPayment(c *gin.Context) {
 	now := time.Now()
 	payment.Status = models.PaymentCompleted
 	payment.UpdatedAt = now
-	h.db.Save(&payment)
+	h.dbc(c).Save(&payment)
 
 	booking.PaidAmount += payment.Amount
 	booking.UpdatedAt = now
-	h.db.Save(&booking)
+	h.dbc(c).Save(&booking)
 
 	if h.hub != nil {
 		pending := pendingBookingPayments(h.db, booking.ID)
@@ -437,13 +438,13 @@ func (h *PaymentHandler) RejectBookingPayment(c *gin.Context) {
 	paymentID, _ := strconv.ParseUint(paymentIDStr, 10, 32)
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
 
 	var payment models.Payment
-	if err := h.db.Where("id = ? AND booking_id = ?", paymentID, bookingID).First(&payment).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND booking_id = ?", paymentID, bookingID).First(&payment).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
 		return
 	}
@@ -455,7 +456,7 @@ func (h *PaymentHandler) RejectBookingPayment(c *gin.Context) {
 
 	payment.Status = models.PaymentFailed
 	payment.UpdatedAt = time.Now()
-	h.db.Save(&payment)
+	h.dbc(c).Save(&payment)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -470,7 +471,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	locID := c.Query("location_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "payments.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
@@ -482,8 +483,8 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	pageSize := pageSize()
 
 	// Get all orders and bookings for this business to find their payments
-	orderQuery := h.db.Model(&models.Order{}).Where("business_id = ?", businessID)
-	bookingQuery := h.db.Model(&models.Booking{}).Where("business_id = ?", businessID)
+	orderQuery := h.dbc(c).Model(&models.Order{}).Where("business_id = ?", businessID)
+	bookingQuery := h.dbc(c).Model(&models.Booking{}).Where("business_id = ?", businessID)
 	if locID != "" {
 		orderQuery = orderQuery.Where("location_id = ?", locID)
 		bookingQuery = bookingQuery.Where("location_id = ?", locID)
@@ -498,7 +499,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	// Count total payments
 	var totalCount int64
 	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
-		countQuery := h.db.Model(&models.Payment{})
+		countQuery := h.dbc(c).Model(&models.Payment{})
 		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
 			countQuery = countQuery.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
 		} else if len(orderIDs) > 0 {
@@ -512,7 +513,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	// Fetch paginated payments
 	var payments []models.Payment
 	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
-		query := h.db.Preload("Client")
+		query := h.dbc(c).Preload("Client")
 		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
 			query = query.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
 		} else if len(orderIDs) > 0 {
@@ -537,7 +538,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	orderMap := make(map[uint]models.Order)
 	if len(orderIDs) > 0 {
 		var orders []models.Order
-		h.db.Where("id IN ?", orderIDs).Find(&orders)
+		h.dbc(c).Where("id IN ?", orderIDs).Find(&orders)
 		for _, o := range orders {
 			orderMap[o.ID] = o
 		}
@@ -546,7 +547,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	bookingMap := make(map[uint]models.Booking)
 	if len(bookingIDs) > 0 {
 		var bookings []models.Booking
-		h.db.Where("id IN ?", bookingIDs).Find(&bookings)
+		h.dbc(c).Where("id IN ?", bookingIDs).Find(&bookings)
 		for _, b := range bookings {
 			bookingMap[b.ID] = b
 		}
@@ -581,8 +582,8 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 	}
 
 	// Revenue from paid amounts on orders/bookings
-	paidRevOrderQuery := h.db.Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID)
-	paidRevBookingQuery := h.db.Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID)
+	paidRevOrderQuery := h.dbc(c).Model(&models.Order{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID)
+	paidRevBookingQuery := h.dbc(c).Model(&models.Booking{}).Select("COALESCE(SUM(paid_amount), 0)").Where("business_id = ?", businessID)
 	if locID != "" {
 		paidRevOrderQuery = paidRevOrderQuery.Where("location_id = ?", locID)
 		paidRevBookingQuery = paidRevBookingQuery.Where("location_id = ?", locID)
@@ -599,11 +600,11 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 
 	// Load payment methods
 	var paymentMethods []models.PaymentMethod
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
 
 	// Load locations
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
@@ -651,6 +652,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 		"AuthType":          c.GetString("auth_type"),
 		"Role":              c.GetString("role"),
 		"QueryLocationID":   locID,
+		"AssistEnabled":     assist.IsEnabled(),
 	})
 }
 
@@ -659,7 +661,7 @@ func (h *PaymentHandler) GetPaymentsStats(c *gin.Context) {
 	locID := c.Query("location_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -679,14 +681,14 @@ func (h *PaymentHandler) GetPaymentsStats(c *gin.Context) {
 	timeArgs = append(timeArgs, locArgs...)
 
 	var orderIDs []uint
-	h.db.Model(&models.Order{}).Where(timeClause, timeArgs...).Pluck("id", &orderIDs)
+	h.dbc(c).Model(&models.Order{}).Where(timeClause, timeArgs...).Pluck("id", &orderIDs)
 
 	var bookingIDs []uint
-	h.db.Model(&models.Booking{}).Where(timeClause, timeArgs...).Pluck("id", &bookingIDs)
+	h.dbc(c).Model(&models.Booking{}).Where(timeClause, timeArgs...).Pluck("id", &bookingIDs)
 
 	var payments []models.Payment
 	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
-		query := h.db.Preload("Client")
+		query := h.dbc(c).Preload("Client")
 		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
 			query = query.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
 		} else if len(orderIDs) > 0 {
@@ -710,7 +712,7 @@ func (h *PaymentHandler) GetPaymentsStats(c *gin.Context) {
 	orderMap := make(map[uint]models.Order)
 	if len(orderIDs) > 0 {
 		var orders []models.Order
-		h.db.Where("id IN ?", orderIDs).Find(&orders)
+		h.dbc(c).Where("id IN ?", orderIDs).Find(&orders)
 		for _, o := range orders {
 			orderMap[o.ID] = o
 		}
@@ -719,7 +721,7 @@ func (h *PaymentHandler) GetPaymentsStats(c *gin.Context) {
 	bookingMap := make(map[uint]models.Booking)
 	if len(bookingIDs) > 0 {
 		var bookings []models.Booking
-		h.db.Where("id IN ?", bookingIDs).Find(&bookings)
+		h.dbc(c).Where("id IN ?", bookingIDs).Find(&bookings)
 		for _, b := range bookings {
 			bookingMap[b.ID] = b
 		}
@@ -754,11 +756,11 @@ func (h *PaymentHandler) GetPaymentsStats(c *gin.Context) {
 	}
 
 	var paidOrdersRevenue, paidBookingsRevenue float64
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidOrdersRevenue)
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidBookingsRevenue)
+	h.dbc(c).Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidOrdersRevenue)
+	h.dbc(c).Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidBookingsRevenue)
 
 	var paymentMethods []models.PaymentMethod
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&paymentMethods)
 
 	c.HTML(http.StatusOK, "dashboard/payments_content", gin.H{
 		"Business":         business,
@@ -785,13 +787,13 @@ func (h *PaymentHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	orderID, _ := strconv.ParseUint(orderIDStr, 10, 32)
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
 
 	var pendingPayments []models.Payment
-	h.db.Where("order_id = ? AND status = ?", orderID, "pending").Find(&pendingPayments)
+	h.dbc(c).Where("order_id = ? AND status = ?", orderID, "pending").Find(&pendingPayments)
 
 	if len(pendingPayments) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No pending payments to confirm"})
@@ -803,13 +805,13 @@ func (h *PaymentHandler) ConfirmAllOrderPayments(c *gin.Context) {
 	for _, payment := range pendingPayments {
 		payment.Status = models.PaymentCompleted
 		payment.UpdatedAt = now
-		h.db.Save(&payment)
+		h.dbc(c).Save(&payment)
 		totalConfirmed += payment.Amount
 	}
 
 	order.PaidAmount += totalConfirmed
 	order.UpdatedAt = now
-	h.db.Save(&order)
+	h.dbc(c).Save(&order)
 
 	if h.hub != nil {
 		pending := pendingOrderPayments(h.db, order.ID)
@@ -852,13 +854,13 @@ func (h *PaymentHandler) ConfirmAllBookingPayments(c *gin.Context) {
 	bookingID, _ := strconv.ParseUint(bookingIDStr, 10, 32)
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
 
 	var pendingPayments []models.Payment
-	h.db.Where("booking_id = ? AND status = ?", bookingID, "pending").Find(&pendingPayments)
+	h.dbc(c).Where("booking_id = ? AND status = ?", bookingID, "pending").Find(&pendingPayments)
 
 	if len(pendingPayments) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No pending payments to confirm"})
@@ -870,13 +872,13 @@ func (h *PaymentHandler) ConfirmAllBookingPayments(c *gin.Context) {
 	for _, payment := range pendingPayments {
 		payment.Status = models.PaymentCompleted
 		payment.UpdatedAt = now
-		h.db.Save(&payment)
+		h.dbc(c).Save(&payment)
 		totalConfirmed += payment.Amount
 	}
 
 	booking.PaidAmount += totalConfirmed
 	booking.UpdatedAt = now
-	h.db.Save(&booking)
+	h.dbc(c).Save(&booking)
 
 	if h.hub != nil {
 		pending := pendingBookingPayments(h.db, booking.ID)
@@ -919,16 +921,16 @@ func (h *PaymentHandler) GetOrderPayments(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
 
 	var payments []models.Payment
-	h.db.Where("order_id = ?", orderID).Order("created_at DESC").Find(&payments)
+	h.dbc(c).Where("order_id = ?", orderID).Order("created_at DESC").Find(&payments)
 
 	var pendingAmt float64
-	h.db.Model(&models.Payment{}).Where("order_id = ? AND status = ?", orderID, "pending").
+	h.dbc(c).Model(&models.Payment{}).Where("order_id = ? AND status = ?", orderID, "pending").
 		Select("COALESCE(SUM(amount), 0)").Scan(&pendingAmt)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -953,16 +955,16 @@ func (h *PaymentHandler) GetBookingPayments(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
 
 	var payments []models.Payment
-	h.db.Where("booking_id = ?", bookingID).Order("created_at DESC").Find(&payments)
+	h.dbc(c).Where("booking_id = ?", bookingID).Order("created_at DESC").Find(&payments)
 
 	var pendingAmt float64
-	h.db.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", bookingID, "pending").
+	h.dbc(c).Model(&models.Payment{}).Where("booking_id = ? AND status = ?", bookingID, "pending").
 		Select("COALESCE(SUM(amount), 0)").Scan(&pendingAmt)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1012,7 +1014,7 @@ func (h *PaymentHandler) GetPaymentMethods(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var methods []models.PaymentMethod
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&methods)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, id ASC").Find(&methods)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -1049,7 +1051,7 @@ func (h *PaymentHandler) CreatePaymentMethod(c *gin.Context) {
 		SortOrder:  req.SortOrder,
 	}
 
-	if err := h.db.Create(&method).Error; err != nil {
+	if err := h.dbc(c).Create(&method).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create payment method"})
 		return
 	}
@@ -1067,7 +1069,7 @@ func (h *PaymentHandler) UpdatePaymentMethod(c *gin.Context) {
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 
 	var method models.PaymentMethod
-	if err := h.db.Where("id = ? AND business_id = ?", id, businessID).First(&method).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", id, businessID).First(&method).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Payment method not found"})
 		return
 	}
@@ -1101,7 +1103,7 @@ func (h *PaymentHandler) UpdatePaymentMethod(c *gin.Context) {
 		method.SortOrder = *req.SortOrder
 	}
 
-	if err := h.db.Save(&method).Error; err != nil {
+	if err := h.dbc(c).Save(&method).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update payment method"})
 		return
 	}
@@ -1119,12 +1121,12 @@ func (h *PaymentHandler) DeletePaymentMethod(c *gin.Context) {
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 
 	var method models.PaymentMethod
-	if err := h.db.Where("id = ? AND business_id = ?", id, businessID).First(&method).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", id, businessID).First(&method).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Payment method not found"})
 		return
 	}
 
-	if err := h.db.Delete(&method).Error; err != nil {
+	if err := h.dbc(c).Delete(&method).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete payment method"})
 		return
 	}
@@ -1136,7 +1138,7 @@ func (h *PaymentHandler) GetPaymentsStatsGrid(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -1146,14 +1148,14 @@ func (h *PaymentHandler) GetPaymentsStatsGrid(c *gin.Context) {
 	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?"
 
 	var orderIDs []uint
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &orderIDs)
+	h.dbc(c).Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &orderIDs)
 
 	var bookingIDs []uint
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &bookingIDs)
+	h.dbc(c).Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Pluck("id", &bookingIDs)
 
 	var payments []models.Payment
 	if len(orderIDs) > 0 || len(bookingIDs) > 0 {
-		query := h.db.Preload("Client")
+		query := h.dbc(c).Preload("Client")
 		if len(orderIDs) > 0 && len(bookingIDs) > 0 {
 			query = query.Where("order_id IN ? OR booking_id IN ?", orderIDs, bookingIDs)
 		} else if len(orderIDs) > 0 {
@@ -1177,8 +1179,8 @@ func (h *PaymentHandler) GetPaymentsStatsGrid(c *gin.Context) {
 	}
 
 	var paidOrdersRevenue, paidBookingsRevenue float64
-	h.db.Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidOrdersRevenue)
-	h.db.Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidBookingsRevenue)
+	h.dbc(c).Model(&models.Order{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidOrdersRevenue)
+	h.dbc(c).Model(&models.Booking{}).Where(timeClause, businessID, startTime, endTime).Select("COALESCE(SUM(paid_amount), 0)").Scan(&paidBookingsRevenue)
 
 	c.HTML(http.StatusOK, "payments_stats_grid", gin.H{
 		"Business":         business,

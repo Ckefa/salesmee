@@ -4,13 +4,22 @@
   "private": true,
   "scripts": {
     "css:build": "NODE_ENV=production postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css",
-    "css:watch": "postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css --watch"
+    "css:watch": "postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css --watch",
+    "js:build": "node scripts/build-js.js",
+    "js:watch": "node scripts/build-js.js --watch",
+    "build": "npm run css:build && npm run js:build"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.18",
     "cssnano": "^8.0.2",
+    "esbuild": "^0.28.1",
     "postcss": "^8.4.35",
     "postcss-cli": "^11.0.1",
     "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.6.0",
+    "alpinejs": "^3.14.8",
+    "htmx.org": "^1.9.10"
   }
 }

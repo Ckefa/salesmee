@@ -40,7 +40,7 @@ func newOrderTest(t *testing.T) *orderTestFixture {
 	client := testutil.CreateClient(d, biz.ID, nil)
 	product := testutil.CreateProduct(d, biz.ID, nil)
 	return &orderTestFixture{
-		handler: &OrderHandler{db: d, hub: nil},
+		handler: &OrderHandler{dbProvider{db: d, hub: nil}},
 		db:      d,
 		biz:     biz,
 		client:  client,

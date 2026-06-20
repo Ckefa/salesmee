@@ -2,7 +2,7 @@
 <aside class="wa-sidebar" id="bizSidebar">
   <div class="wa-sidebar-header">
     {{if .Business.Logo}}
-    <img src="/static/{{.Business.Logo}}" class="wa-sidebar-avatar">
+    <img src="/static/{{.Business.Logo}}" class="wa-sidebar-avatar" loading="lazy" width="32" height="32">
     {{else}}
     <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
     {{end}}

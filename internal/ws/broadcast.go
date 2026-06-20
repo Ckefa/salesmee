@@ -266,6 +266,22 @@ func BroadcastUnreadCount(hub *Hub, conversationID string, count int32, roomID, 
 	hub.Broadcast(roomPrefix+":"+roomID, frame, nil)
 }
 
+func BroadcastOnboardingUpdate(hub *Hub, bizID string, step, totalSteps int, completed bool) {
+	data, _ := json.Marshal(map[string]interface{}{
+		"step":        step,
+		"total_steps": totalSteps,
+		"completed":   completed,
+	})
+	frame := &chatpb.WsFrame{
+		EventType:      chatpb.WsEventType_ONBOARDING_UPDATE,
+		ConversationId: bizID,
+		SenderId:       string(data),
+		SenderType:     "system",
+		Timestamp:      time.Now().UnixMilli(),
+	}
+	hub.Broadcast("biz:"+bizID, frame, nil)
+}
+
 func BroadcastPendingCount(hub *Hub, bizID string, orderCount, bookingCount, notifCount int) {
 	data, _ := json.Marshal(map[string]int{
 		"order_count":   orderCount,

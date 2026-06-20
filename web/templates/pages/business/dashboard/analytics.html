@@ -32,34 +32,38 @@
   <!-- Date Range Filter Pills -->
   <div class="flex flex-wrap gap-2 mb-6" id="analytics-filter-pills">
     <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_month"
-      hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
+      hx-target="#analytics-stats-grid" hx-swap="morph" hx-indicator="#analytics-stats-container"
       class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white">This
       Month</button>
     <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_month"
-      hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
+      hx-target="#analytics-stats-grid" hx-swap="morph" hx-indicator="#analytics-stats-container"
       class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last
       Month</button>
     <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_3_months"
-      hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
+      hx-target="#analytics-stats-grid" hx-swap="morph" hx-indicator="#analytics-stats-container"
       class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last
       3M</button>
     <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_6_months"
-      hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
+      hx-target="#analytics-stats-grid" hx-swap="morph" hx-indicator="#analytics-stats-container"
       class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last
       6M</button>
     <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=this_year"
-      hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
+      hx-target="#analytics-stats-grid" hx-swap="morph" hx-indicator="#analytics-stats-container"
       class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Year
       to Date</button>
     <button onclick="setActivePill(this)" hx-get="/business/analytics/stats-grid?range=last_year"
-      hx-target="#analytics-stats-grid" hx-swap="outerHTML" hx-indicator="#analytics-stats-container"
+      hx-target="#analytics-stats-grid" hx-swap="morph" hx-indicator="#analytics-stats-container"
       class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last
       Year</button>
   </div>
 
   <div id="analytics-content" class="space-y-6 sm:space-y-8">
-    <div id="analytics-stats-container" class="relative">
-      {{template "analytics_stats_grid" .}}
+    <div id="analytics-stats-container" class="relative" hx-ext="morph">
+      <div id="analytics-stats-grid"
+           hx-get="/business/analytics/stats-grid?range=this_month"
+           hx-trigger="load once" hx-swap="morph" hx-indicator="#analytics-stats-container">
+        {{template "skeleton_analytics_stats" .}}
+      </div>
     </div>
 
     <!-- Charts Row -->
@@ -263,7 +267,7 @@
         <i class="fas fa-dollar-sign text-[var(--color-success)]"></i>
       </div>
     </div>
-    <div class="mt-3 flex items-center gap-4 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
+    <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
       <span>Orders: {{currencySymbol .Business.Currency}}{{printf "%.2f" .OrdersRevenue}}</span>
       <span>Bookings: {{currencySymbol .Business.Currency}}{{printf "%.2f" .BookingsRevenue}}</span>
     </div>
@@ -279,7 +283,7 @@
         <i class="fas fa-shopping-cart text-[var(--color-primary)]"></i>
       </div>
     </div>
-    <div class="mt-3 flex items-center gap-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
+    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
       <span class="text-[var(--color-warning)]">{{.PendingOrders}} pending</span>
       <span class="text-[var(--color-success)]">{{.FulfilledOrders}} completed</span>
     </div>
@@ -295,7 +299,7 @@
         <i class="fas fa-calendar-check text-[var(--color-secondary)]"></i>
       </div>
     </div>
-    <div class="mt-3 flex items-center gap-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
+    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
       <span class="text-[var(--color-warning)]">{{.PendingBookings}} pending</span>
       <span class="text-[var(--color-success)]">{{.CompletedBookings}} completed</span>
     </div>

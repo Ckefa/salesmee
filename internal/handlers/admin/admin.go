@@ -16,7 +16,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
+
+func dbc(c *gin.Context) *gorm.DB {
+	return db.DB.WithContext(c.Request.Context())
+}
 
 func pageSize() int {
 	if n := config.C.TablePageSize; n > 0 {
@@ -44,7 +49,7 @@ func Login(c *gin.Context) {
 	}
 
 	var admin models.Admin
-	if err := db.DB.Where("email = ?", email).First(&admin).Error; err != nil {
+	if err := dbc(c).Where("email = ?", email).First(&admin).Error; err != nil {
 		c.HTML(http.StatusOK, "admin_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Admin Login - SalesMee",
 			"Error": "Invalid credentials",
@@ -85,7 +90,7 @@ func AdminMiddleware() gin.HandlerFunc {
 			claims, err := services.ValidateToken(cookie)
 			if err == nil && claims.Subject == "admin" {
 				var admin models.Admin
-				if db.DB.First(&admin, claims.UserID).Error == nil {
+				if dbc(c).First(&admin, claims.UserID).Error == nil {
 					c.Set("admin_id", admin.ID)
 					c.Set("admin_email", admin.Email)
 					c.Set("admin_name", admin.Name)
@@ -107,27 +112,27 @@ func ShowDashboard(c *gin.Context) {
 	var totalClients, totalOrders, totalBookings int64
 	var totalRevenue float64
 
-	db.DB.Model(&models.Business{}).Count(&totalBiz)
-	db.DB.Model(&models.Business{}).Where("is_public = ?", true).Count(&activeBiz)
-	db.DB.Model(&models.Business{}).Where("is_public = ?", false).Count(&suspendedBiz)
-	db.DB.Model(&models.Client{}).Count(&totalClients)
-	db.DB.Model(&models.Order{}).Count(&totalOrders)
-	db.DB.Model(&models.Booking{}).Count(&totalBookings)
-	db.DB.Model(&models.Payment{}).Where("status = ?", "completed").
+	dbc(c).Model(&models.Business{}).Count(&totalBiz)
+	dbc(c).Model(&models.Business{}).Where("is_public = ?", true).Count(&activeBiz)
+	dbc(c).Model(&models.Business{}).Where("is_public = ?", false).Count(&suspendedBiz)
+	dbc(c).Model(&models.Client{}).Count(&totalClients)
+	dbc(c).Model(&models.Order{}).Count(&totalOrders)
+	dbc(c).Model(&models.Booking{}).Count(&totalBookings)
+	dbc(c).Model(&models.Payment{}).Where("status = ?", "completed").
 		Select("COALESCE(SUM(amount), 0)").Scan(&totalRevenue)
 
 	var recentBiz []models.Business
-	db.DB.Order("created_at desc").Limit(5).Find(&recentBiz)
+	dbc(c).Order("created_at desc").Limit(5).Find(&recentBiz)
 
 	var recentLogs []models.AuditLog
-	db.DB.Preload("Admin").Order("created_at desc").Limit(5).Find(&recentLogs)
+	dbc(c).Preload("Admin").Order("created_at desc").Limit(5).Find(&recentLogs)
 
 	var planDist []struct {
 		Name  string
 		Code  string
 		Count int64
 	}
-	db.DB.Table("businesses").
+	dbc(c).Table("businesses").
 		Select("COALESCE(sp.name, 'No Plan') as name, COALESCE(sp.code, 'none') as code, COUNT(*) as count").
 		Joins("LEFT JOIN business_subscriptions bs ON bs.business_id = businesses.id").
 		Joins("LEFT JOIN subscription_plans sp ON sp.id = bs.plan_id").
@@ -172,7 +177,7 @@ func ListBusinesses(c *gin.Context) {
 	planF := c.Query("plan")
 
 	var total int64
-	countQ := db.DB.Model(&models.Business{})
+	countQ := dbc(c).Model(&models.Business{})
 	if search != "" {
 		like := "%" + search + "%"
 		countQ = countQ.Where("name ILIKE ? OR email ILIKE ? OR slug ILIKE ?", like, like, like)
@@ -188,7 +193,7 @@ func ListBusinesses(c *gin.Context) {
 	countQ.Count(&total)
 
 	var businesses []models.Business
-	findQ := db.DB.Model(&models.Business{}).Preload("Subscription.Plan")
+	findQ := dbc(c).Model(&models.Business{}).Preload("Subscription.Plan")
 	if search != "" {
 		like := "%" + search + "%"
 		findQ = findQ.Where("name ILIKE ? OR email ILIKE ? OR slug ILIKE ?", like, like, like)
@@ -216,7 +221,7 @@ func ListBusinesses(c *gin.Context) {
 			Count      int64
 		}
 		var ccs []cc
-		db.DB.Model(&models.Client{}).
+		dbc(c).Model(&models.Client{}).
 			Select("business_id, COUNT(*) as count").
 			Where("business_id IN ?", ids).
 			Group("business_id").Scan(&ccs)
@@ -224,7 +229,7 @@ func ListBusinesses(c *gin.Context) {
 			clientCounts[v.BusinessID] = v.Count
 		}
 		var ocs []cc
-		db.DB.Table("orders").
+		dbc(c).Table("orders").
 			Select("clients.business_id, COUNT(*) as count").
 			Joins("JOIN clients ON clients.id = orders.client_id").
 			Where("clients.business_id IN ?", ids).
@@ -233,7 +238,7 @@ func ListBusinesses(c *gin.Context) {
 			orderCounts[v.BusinessID] = v.Count
 		}
 		var bcs []cc
-		db.DB.Table("bookings").
+		dbc(c).Table("bookings").
 			Select("clients.business_id, COUNT(*) as count").
 			Joins("JOIN clients ON clients.id = bookings.client_id").
 			Where("clients.business_id IN ?", ids).
@@ -264,20 +269,20 @@ func ListBusinesses(c *gin.Context) {
 func GetBusinessDetail(c *gin.Context) {
 	id := c.Param("id")
 	var biz models.Business
-	if err := db.DB.Preload("Subscription.Plan").First(&biz, id).Error; err != nil {
+	if err := dbc(c).Preload("Subscription.Plan").First(&biz, id).Error; err != nil {
 		c.String(http.StatusNotFound, "Business not found")
 		return
 	}
 	var clientCount, orderCount, bookingCount, productCount, serviceCount, teamCount, locationCount int64
-	db.DB.Model(&models.Client{}).Where("business_id = ?", biz.ID).Count(&clientCount)
-	db.DB.Table("orders").Joins("JOIN clients ON clients.id = orders.client_id").
+	dbc(c).Model(&models.Client{}).Where("business_id = ?", biz.ID).Count(&clientCount)
+	dbc(c).Table("orders").Joins("JOIN clients ON clients.id = orders.client_id").
 		Where("clients.business_id = ?", biz.ID).Count(&orderCount)
-	db.DB.Table("bookings").Joins("JOIN clients ON clients.id = bookings.client_id").
+	dbc(c).Table("bookings").Joins("JOIN clients ON clients.id = bookings.client_id").
 		Where("clients.business_id = ?", biz.ID).Count(&bookingCount)
-	db.DB.Model(&models.Product{}).Where("business_id = ?", biz.ID).Count(&productCount)
-	db.DB.Model(&models.Service{}).Where("business_id = ?", biz.ID).Count(&serviceCount)
-	db.DB.Model(&models.TeamMember{}).Where("business_id = ?", biz.ID).Count(&teamCount)
-	db.DB.Model(&models.Location{}).Where("business_id = ?", biz.ID).Count(&locationCount)
+	dbc(c).Model(&models.Product{}).Where("business_id = ?", biz.ID).Count(&productCount)
+	dbc(c).Model(&models.Service{}).Where("business_id = ?", biz.ID).Count(&serviceCount)
+	dbc(c).Model(&models.TeamMember{}).Where("business_id = ?", biz.ID).Count(&teamCount)
+	dbc(c).Model(&models.Location{}).Where("business_id = ?", biz.ID).Count(&locationCount)
 
 	c.HTML(http.StatusOK, "admin_business_detail.html", middleware.TemplateData(c, gin.H{
 		"Business":      biz,
@@ -314,23 +319,23 @@ type RecentBookingRow struct {
 func ShowBusinessDetail(c *gin.Context) {
 	id := c.Param("id")
 	var biz models.Business
-	if err := db.DB.Preload("Subscription.Plan").Preload("Locations").Preload("TeamMembers").First(&biz, id).Error; err != nil {
+	if err := dbc(c).Preload("Subscription.Plan").Preload("Locations").Preload("TeamMembers").First(&biz, id).Error; err != nil {
 		c.String(http.StatusNotFound, "Business not found")
 		return
 	}
 
 	var clientCount, orderCount, bookingCount, productCount, serviceCount, reviewCount int64
-	db.DB.Model(&models.Client{}).Where("business_id = ?", biz.ID).Count(&clientCount)
-	db.DB.Table("orders").Joins("JOIN clients ON clients.id = orders.client_id").
+	dbc(c).Model(&models.Client{}).Where("business_id = ?", biz.ID).Count(&clientCount)
+	dbc(c).Table("orders").Joins("JOIN clients ON clients.id = orders.client_id").
 		Where("clients.business_id = ?", biz.ID).Count(&orderCount)
-	db.DB.Table("bookings").Joins("JOIN clients ON clients.id = bookings.client_id").
+	dbc(c).Table("bookings").Joins("JOIN clients ON clients.id = bookings.client_id").
 		Where("clients.business_id = ?", biz.ID).Count(&bookingCount)
-	db.DB.Model(&models.Product{}).Where("business_id = ?", biz.ID).Count(&productCount)
-	db.DB.Model(&models.Service{}).Where("business_id = ?", biz.ID).Count(&serviceCount)
-	db.DB.Model(&models.Review{}).Where("business_id = ?", biz.ID).Count(&reviewCount)
+	dbc(c).Model(&models.Product{}).Where("business_id = ?", biz.ID).Count(&productCount)
+	dbc(c).Model(&models.Service{}).Where("business_id = ?", biz.ID).Count(&serviceCount)
+	dbc(c).Model(&models.Review{}).Where("business_id = ?", biz.ID).Count(&reviewCount)
 
 	var recentOrders []RecentOrderRow
-	db.DB.Table("orders").
+	dbc(c).Table("orders").
 		Select("orders.id, orders.order_number, orders.status, orders.total_amount, orders.paid_amount, orders.created_at, clients.name as client_name").
 		Joins("JOIN clients ON clients.id = orders.client_id").
 		Where("clients.business_id = ?", biz.ID).
@@ -339,7 +344,7 @@ func ShowBusinessDetail(c *gin.Context) {
 		Scan(&recentOrders)
 
 	var recentBookings []RecentBookingRow
-	db.DB.Table("bookings").
+	dbc(c).Table("bookings").
 		Select("bookings.id, bookings.booking_number, bookings.status, bookings.scheduled_date, bookings.total_amount, clients.name as client_name, services.name as service_name").
 		Joins("JOIN clients ON clients.id = bookings.client_id").
 		Joins("LEFT JOIN booking_items ON booking_items.booking_id = bookings.id").
@@ -386,10 +391,10 @@ func ShowBusinessDetail(c *gin.Context) {
 
 func SuspendBusiness(c *gin.Context) {
 	id := c.Param("id")
-	db.DB.Model(&models.Business{}).Where("id = ?", id).Update("is_public", false)
+	dbc(c).Model(&models.Business{}).Where("id = ?", id).Update("is_public", false)
 	adminID := c.GetUint("admin_id")
 	ip := c.ClientIP()
-	db.DB.Create(&models.AuditLog{
+	dbc(c).Create(&models.AuditLog{
 		AdminID:    adminID,
 		Action:     "suspend",
 		Resource:   "business",
@@ -401,10 +406,10 @@ func SuspendBusiness(c *gin.Context) {
 
 func ActivateBusiness(c *gin.Context) {
 	id := c.Param("id")
-	db.DB.Model(&models.Business{}).Where("id = ?", id).Update("is_public", true)
+	dbc(c).Model(&models.Business{}).Where("id = ?", id).Update("is_public", true)
 	adminID := c.GetUint("admin_id")
 	ip := c.ClientIP()
-	db.DB.Create(&models.AuditLog{
+	dbc(c).Create(&models.AuditLog{
 		AdminID:    adminID,
 		Action:     "activate",
 		Resource:   "business",
@@ -416,9 +421,9 @@ func ActivateBusiness(c *gin.Context) {
 
 func DeleteBusiness(c *gin.Context) {
 	id := c.Param("id")
-	db.DB.Model(&models.Business{}).Where("id = ?", id).Update("is_public", false)
+	dbc(c).Model(&models.Business{}).Where("id = ?", id).Update("is_public", false)
 	adminID, ip := adminCtx(c)
-	db.DB.Create(&models.AuditLog{
+	dbc(c).Create(&models.AuditLog{
 		AdminID:    adminID,
 		Action:     "delete",
 		Resource:   "business",
@@ -439,7 +444,7 @@ func ListClients(c *gin.Context) {
 	statusF := c.Query("status")
 
 	var total int64
-	countQ := db.DB.Model(&models.Client{}).
+	countQ := dbc(c).Model(&models.Client{}).
 		Joins("LEFT JOIN businesses ON businesses.id = clients.business_id")
 	if search != "" {
 		like := "%" + search + "%"
@@ -457,7 +462,7 @@ func ListClients(c *gin.Context) {
 		BusinessName string `gorm:"column:business_name"`
 	}
 	var clients []ClientRow
-	findQ := db.DB.Table("clients").
+	findQ := dbc(c).Table("clients").
 		Select("clients.*, businesses.name as business_name").
 		Joins("LEFT JOIN businesses ON businesses.id = clients.business_id")
 	if search != "" {
@@ -487,10 +492,10 @@ func ListClients(c *gin.Context) {
 
 func DeleteClient(c *gin.Context) {
 	id := c.Param("id")
-	db.DB.Delete(&models.Client{}, id)
+	dbc(c).Delete(&models.Client{}, id)
 	adminID := c.GetUint("admin_id")
 	ip := c.ClientIP()
-	db.DB.Create(&models.AuditLog{
+	dbc(c).Create(&models.AuditLog{
 		AdminID:    adminID,
 		Action:     "delete",
 		Resource:   "client",
@@ -510,7 +515,7 @@ func ListSubscriptions(c *gin.Context) {
 	statusF := c.Query("status")
 
 	var total int64
-	countSubQ := db.DB.Model(&models.BusinessSubscription{})
+	countSubQ := dbc(c).Model(&models.BusinessSubscription{})
 	if planF != "" {
 		countSubQ = countSubQ.Where("plan_id = (SELECT id FROM subscription_plans WHERE code = ?)", planF)
 	}
@@ -519,7 +524,7 @@ func ListSubscriptions(c *gin.Context) {
 	}
 	countSubQ.Count(&total)
 
-	findSubQ := db.DB.Model(&models.BusinessSubscription{}).Preload("Business").Preload("Plan")
+	findSubQ := dbc(c).Model(&models.BusinessSubscription{}).Preload("Business").Preload("Plan")
 	if planF != "" {
 		findSubQ = findSubQ.Where("plan_id = (SELECT id FROM subscription_plans WHERE code = ?)", planF)
 	}
@@ -556,7 +561,7 @@ func ShowAuditLog(c *gin.Context) {
 	resourceF := c.Query("resource")
 
 	var total int64
-	countAuditQ := db.DB.Model(&models.AuditLog{})
+	countAuditQ := dbc(c).Model(&models.AuditLog{})
 	if actionF != "" {
 		countAuditQ = countAuditQ.Where("action = ?", actionF)
 	}
@@ -565,7 +570,7 @@ func ShowAuditLog(c *gin.Context) {
 	}
 	countAuditQ.Count(&total)
 
-	findAuditQ := db.DB.Model(&models.AuditLog{}).Preload("Admin")
+	findAuditQ := dbc(c).Model(&models.AuditLog{}).Preload("Admin")
 	if actionF != "" {
 		findAuditQ = findAuditQ.Where("action = ?", actionF)
 	}
@@ -591,7 +596,7 @@ func ShowAuditLog(c *gin.Context) {
 
 func SeedAdmin() {
 	var count int64
-	db.DB.Model(&models.Admin{}).Count(&count)
+		db.DB.Model(&models.Admin{}).Count(&count)
 	if count > 0 {
 		return
 	}
@@ -604,7 +609,7 @@ func SeedAdmin() {
 
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	db.DB.Create(&models.Admin{
+		db.DB.Create(&models.Admin{
 		Email:    email,
 		Password: string(hashed),
 		Name:     "Super Admin",

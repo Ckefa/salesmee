@@ -1,6 +1,4 @@
 {{define "dashboard_scripts"}}
-<script src="/static/js/modules/assist.js?v=1"></script>
-<script src="/static/js/core/app.js?v=1"></script>
 {{template "business_profile_script" .}}
 <script>
   var orderProductsList = [];
@@ -10,12 +8,12 @@
     var container = document.getElementById('orderProductResults');
     var countEl = document.getElementById('orderProductCount');
     var selectedId = document.getElementById('orderProduct').value;
-    var filtered = filter ? orderProductsList.filter(function(p) { return p.name.toLowerCase().includes(filter.toLowerCase()); }) : orderProductsList;
+    var filtered = filter ? orderProductsList.filter(function(p) { return (p.name || '').toLowerCase().includes(filter.toLowerCase()) || (p.sku || '').toLowerCase().includes(filter.toLowerCase()); }) : orderProductsList;
     var selectedNameEl = document.getElementById('orderProductSelectedName');
     var selectedName = selectedNameEl ? selectedNameEl.textContent : '';
     container.innerHTML = filtered.length ? filtered.map(function(p) {
       var isSelected = String(p.id) === selectedId;
-      return '<div data-id="' + p.id + '" data-name="' + p.name.replace(/'/g, '&#39;') + '" onclick="selectOrderProduct(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + p.name + '</div>';
+      return '<div data-id="' + p.id + '" data-name="' + (p.name || '').replace(/'/g, '&#39;') + '" onclick="selectOrderProduct(this)" class="px-3 py-2.5 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + '<span class="flex-1 truncate">' + (p.name || '') + '</span>' + (p.price ? '<span class="text-xs font-semibold text-[var(--color-text-muted)]">$' + Number(p.price).toFixed(2) + '</span>' : '') + '</div>';
     }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No products found</div>';
     countEl.textContent = filtered.length + ' of ' + orderProductsList.length + ' products';
   }
@@ -32,10 +30,11 @@
     var container = document.getElementById('bookingServiceResults');
     var countEl = document.getElementById('bookingServiceCount');
     var selectedId = document.getElementById('bookingService').value;
-    var filtered = filter ? bookingServicesList.filter(function(s) { return s.name.toLowerCase().includes(filter.toLowerCase()); }) : bookingServicesList;
+    var filtered = filter ? bookingServicesList.filter(function(s) { return (s.name || '').toLowerCase().includes(filter.toLowerCase()); }) : bookingServicesList;
     container.innerHTML = filtered.length ? filtered.map(function(s) {
       var isSelected = String(s.id) === selectedId;
-      return '<div data-id="' + s.id + '" data-name="' + s.name.replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + s.name + '</div>';
+      var priceStr = s.min_price ? '$' + Number(s.min_price).toFixed(2) + (s.max_price && s.max_price !== s.min_price ? ' - $' + Number(s.max_price).toFixed(2) : '') : '';
+      return '<div data-id="' + s.id + '" data-name="' + (s.name || '').replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2.5 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + '<span class="flex-1 truncate">' + (s.name || '') + '</span>' + (priceStr ? '<span class="text-xs font-semibold text-[var(--color-text-muted)]">' + priceStr + '</span>' : '') + '</div>';
     }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No services found</div>';
     countEl.textContent = filtered.length + ' of ' + bookingServicesList.length + ' services';
   }
@@ -50,18 +49,9 @@
 
   async function loadProductsForOrder() {
     try {
-      var response = await fetch('/business/products');
-      var data = await response.text();
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(data, 'text/html');
-      var productCards = doc.querySelectorAll('[data-product-id]');
-      orderProductsList = [];
-      productCards.forEach(function(card) {
-        orderProductsList.push({
-          id: card.dataset.productId,
-          name: card.querySelector('h3')?.textContent || 'Unknown Product'
-        });
-      });
+      var response = await fetch('/business/products/quick-list');
+      var products = await response.json();
+      orderProductsList = products || [];
       document.getElementById('orderProduct').value = '';
       document.getElementById('orderProductSelected').classList.add('hidden');
       document.getElementById('orderProductSearch').value = '';
@@ -71,18 +61,9 @@
 
   async function loadServicesForBooking() {
     try {
-      var response = await fetch('/business/services');
-      var data = await response.text();
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(data, 'text/html');
-      var serviceCards = doc.querySelectorAll('[data-service-id]');
-      bookingServicesList = [];
-      serviceCards.forEach(function(card) {
-        bookingServicesList.push({
-          id: card.dataset.serviceId,
-          name: card.querySelector('h3')?.textContent || 'Unknown Service'
-        });
-      });
+      var response = await fetch('/business/services/quick-list');
+      var services = await response.json();
+      bookingServicesList = services || [];
       document.getElementById('bookingService').value = '';
       document.getElementById('bookingServiceSelected').classList.add('hidden');
       document.getElementById('bookingServiceSearch').value = '';

@@ -309,7 +309,8 @@ type jsonFrame struct {
 	UnreadCount       *jsonUnreadCount       `json:"unread_count,omitempty"`
 	Presence          *jsonPresence          `json:"presence,omitempty"`
 	DeliveredReceipt  *jsonDeliveredReceipt  `json:"delivered_receipt,omitempty"`
-	PendingCount      *jsonPendingCount      `json:"pending_count,omitempty"`
+	PendingCount       *jsonPendingCount       `json:"pending_count,omitempty"`
+	OnboardingUpdate   *jsonOnboardingUpdate   `json:"onboarding_update,omitempty"`
 	ConversationUpdate *jsonConversationUpdate `json:"conversation_update,omitempty"`
 }
 
@@ -383,6 +384,12 @@ type jsonPendingCount struct {
 	NotifCount   int `json:"notif_count"`
 }
 
+type jsonOnboardingUpdate struct {
+	Step       int  `json:"step"`
+	TotalSteps int  `json:"total_steps"`
+	Completed  bool `json:"completed"`
+}
+
 type jsonConversationUpdate struct {
 	ConversationID string `json:"conversation_id,omitempty"`
 	BizCardHTML    string `json:"biz_card_html,omitempty"`
@@ -404,6 +411,14 @@ func jsonFromProto(frame *chatpb.WsFrame) *jsonFrame {
 		var pc jsonPendingCount
 		if err := json.Unmarshal([]byte(frame.GetSenderId()), &pc); err == nil {
 			jf.PendingCount = &pc
+		}
+		return jf
+	}
+
+	if frame.GetEventType() == chatpb.WsEventType_ONBOARDING_UPDATE {
+		var ou jsonOnboardingUpdate
+		if err := json.Unmarshal([]byte(frame.GetSenderId()), &ou); err == nil {
+			jf.OnboardingUpdate = &ou
 		}
 		return jf
 	}

@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
-	"path/filepath"
+	"salesmee/internal/services/assist"
+	"salesmee/internal/services/images"
 	"strconv"
 	"strings"
 	"time"
@@ -25,7 +28,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -45,10 +48,10 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	var totalCount int64
-	h.db.Model(&models.Product{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+	h.dbc(c).Model(&models.Product{}).Where(baseWhere, baseArgs...).Count(&totalCount)
 
 	var products []models.Product
-	h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+	h.dbc(c).Preload("Images", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order ASC")
 	}).Where(baseWhere, baseArgs...).
 		Order("created_at DESC").
@@ -61,7 +64,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
@@ -84,19 +87,20 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "products.html", gin.H{
-		"Business":   currentBusiness,
-		"Products":   products,
-		"Page":       float64(page),
-		"TotalPages": float64(totalPages),
-		"TotalCount": totalCount,
-		"ActivePage": "products",
-		"Countries":  data.Countries,
-		"Currencies": data.Currencies,
-		"Onboarding": onboardingData(h.db, businessID),
-		"Locations":  locations,
-		"AuthType":   c.GetString("auth_type"),
-		"Role":       c.GetString("role"),
+		"Business":      currentBusiness,
+		"Products":      products,
+		"Page":          float64(page),
+		"TotalPages":    float64(totalPages),
+		"TotalCount":    totalCount,
+		"ActivePage":    "products",
+		"Countries":     data.Countries,
+		"Currencies":    data.Currencies,
+		"Onboarding":    onboardingData(h.db, businessID),
+		"Locations":     locations,
+		"AuthType":      c.GetString("auth_type"),
+		"Role":          c.GetString("role"),
 		"QueryLocationID": locID,
+		"AssistEnabled": assist.IsEnabled(),
 	})
 }
 
@@ -133,7 +137,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		IsActive:    true,
 	}
 
-	if err := h.db.Create(&product).Error; err != nil {
+	if err := h.dbc(c).Create(&product).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create product"})
 		return
 	}
@@ -155,7 +159,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+	if err := h.dbc(c).Preload("Images", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order ASC")
 	}).Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
@@ -179,7 +183,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+	if err := h.dbc(c).Preload("Images", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order ASC")
 	}).Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
@@ -191,7 +195,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Save(&product).Error; err != nil {
+	if err := h.dbc(c).Save(&product).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product"})
 		return
 	}
@@ -213,13 +217,13 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
 
 	var images []models.ProductImage
-	h.db.Where("product_id = ?", productID).Find(&images)
+	h.dbc(c).Where("product_id = ?", productID).Find(&images)
 
 	for _, img := range images {
 		relPath := strings.TrimPrefix(img.ImageURL, "/")
@@ -228,8 +232,8 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 			// Log but continue
 		}
 	}
-	h.db.Where("product_id = ?", productID).Delete(&models.ProductImage{})
-	h.db.Delete(&product)
+	h.dbc(c).Where("product_id = ?", productID).Delete(&models.ProductImage{})
+	h.dbc(c).Delete(&product)
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
@@ -248,7 +252,7 @@ func (h *ProductHandler) UploadProductImage(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
@@ -277,33 +281,44 @@ func (h *ProductHandler) UploadProductImage(c *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("product_%d_%d%s", productID, time.Now().Unix(), ext)
-	dst, err := os.Create(filepath.Join(uploadDir, filename))
+	tmpName := fmt.Sprintf("product_%d_%d_tmp%s", productID, time.Now().Unix(), ext)
+	tmpPath := filepath.Join(uploadDir, tmpName)
+	dst, err := os.Create(tmpPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file"})
 		return
 	}
-	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
+		dst.Close()
+		os.Remove(tmpPath)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
 	}
+	dst.Close()
 
-	imageURL := fmt.Sprintf("/static/uploads/products/%s", filename)
+	webpName := fmt.Sprintf("product_%d_%d.webp", productID, time.Now().Unix())
+	webpPath := filepath.Join(uploadDir, webpName)
+	if err := images.Process(tmpPath, webpPath, images.DefaultConfig); err != nil {
+		os.Remove(tmpPath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image"})
+		return
+	}
+
+	imageURL := fmt.Sprintf("/static/uploads/products/%s", webpName)
 
 	var count int64
-	h.db.Model(&models.ProductImage{}).Where("product_id = ?", productID).Count(&count)
+	h.dbc(c).Model(&models.ProductImage{}).Where("product_id = ?", productID).Count(&count)
 
 	productImage := models.ProductImage{
 		ProductID: uint(productID),
 		ImageURL:  imageURL,
 		SortOrder: int(count),
 	}
-	h.db.Create(&productImage)
+	h.dbc(c).Create(&productImage)
 
 	if product.ImageURL == "" {
-		h.db.Model(&product).Update("ImageURL", imageURL)
+		h.dbc(c).Model(&product).Update("ImageURL", imageURL)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "image_url": imageURL, "image_id": productImage.ID})
@@ -323,13 +338,13 @@ func (h *ProductHandler) GetProductImages(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
 
 	var images []models.ProductImage
-	h.db.Where("product_id = ?", productID).Order("sort_order ASC").Find(&images)
+	h.dbc(c).Where("product_id = ?", productID).Order("sort_order ASC").Find(&images)
 
 	if len(images) == 0 && product.ImageURL != "" {
 		images = append(images, models.ProductImage{
@@ -363,25 +378,31 @@ func (h *ProductHandler) DeleteProductImage(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", productID, businessID).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
 
 	var image models.ProductImage
-	if err := h.db.Where("id = ? AND product_id = ?", imageID, productID).First(&image).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND product_id = ?", imageID, productID).First(&image).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
 		return
 	}
 
-	h.db.Delete(&image)
+	relPath := strings.TrimPrefix(image.ImageURL, "/")
+	filePath := filepath.Join("web", relPath)
+	if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+		log.Printf("Failed to remove product image file %s: %v", filePath, err)
+	}
+
+	h.dbc(c).Delete(&image)
 
 	if product.ImageURL == image.ImageURL {
 		var firstImage models.ProductImage
-		if err := h.db.Where("product_id = ?", productID).Order("sort_order ASC").First(&firstImage).Error; err == nil {
-			h.db.Model(&product).Update("ImageURL", firstImage.ImageURL)
+		if err := h.dbc(c).Where("product_id = ?", productID).Order("sort_order ASC").First(&firstImage).Error; err == nil {
+			h.dbc(c).Model(&product).Update("ImageURL", firstImage.ImageURL)
 		} else {
-			h.db.Model(&product).Update("ImageURL", "")
+			h.dbc(c).Model(&product).Update("ImageURL", "")
 		}
 	}
 
@@ -397,7 +418,7 @@ func (h *ProductHandler) GetBusinessProducts(c *gin.Context) {
 	}
 
 	var products []models.Product
-	if err := h.db.Where("business_id = ? AND is_active = ?", businessID, true).Find(&products).Error; err != nil {
+	if err := h.dbc(c).Where("business_id = ? AND is_active = ?", businessID, true).Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
 		return
 	}
@@ -419,18 +440,18 @@ func (h *ProductHandler) ShowClientProductsPage(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "client.html", gin.H{"error": "Business not found"})
 		return
 	}
 
 	var products []models.Product
-	h.db.Preload("Images", func(db *gorm.DB) *gorm.DB {
+	h.dbc(c).Preload("Images", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order ASC")
 	}).Where("business_id = ? AND is_active = ?", businessID, true).Order("created_at DESC").Find(&products)
 
 	var client models.Client
-	h.db.First(&client, clientID)
+	h.dbc(c).First(&client, clientID)
 
 	c.HTML(http.StatusOK, "client_products.html", gin.H{
 		"Business": business,
@@ -453,13 +474,13 @@ func (h *ProductHandler) GetClientProductImages(c *gin.Context) {
 	}
 
 	var product models.Product
-	if err := h.db.Where("id = ? AND is_active = ?", productID, true).First(&product).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND is_active = ?", productID, true).First(&product).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
 
 	var images []models.ProductImage
-	h.db.Where("product_id = ?", productID).Order("sort_order ASC").Find(&images)
+	h.dbc(c).Where("product_id = ?", productID).Order("sort_order ASC").Find(&images)
 
 	if len(images) == 0 && product.ImageURL != "" {
 		images = append(images, models.ProductImage{
@@ -471,4 +492,41 @@ func (h *ProductHandler) GetClientProductImages(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "images": images})
+}
+
+type quickProduct struct {
+	ID       uint    `json:"id"`
+	Name     string  `json:"name"`
+	Price    float64 `json:"price"`
+	ImageURL string  `json:"image_url"`
+	Stock    int     `json:"stock"`
+	SKU      string  `json:"sku"`
+}
+
+func (h *ProductHandler) GetProductsQuickList(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	var products []models.Product
+	if err := h.dbc(c).Where("business_id = ? AND is_active = ?", businessID, true).Order("name ASC").Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
+		return
+	}
+
+	list := make([]quickProduct, 0, len(products))
+	for _, p := range products {
+		list = append(list, quickProduct{
+			ID:       p.ID,
+			Name:     p.Name,
+			Price:    p.Price,
+			ImageURL: p.ImageURL,
+			Stock:    p.Stock,
+			SKU:      p.SKU,
+		})
+	}
+
+	c.JSON(http.StatusOK, list)
 }

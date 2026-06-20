@@ -4,8 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"salesmee/internal/services/assist"
 )
 
 func ShowGuide(c *gin.Context) {
-	c.HTML(http.StatusOK, "guide.html", nil)
+	c.HTML(http.StatusOK, "guide.html", gin.H{
+		"AssistEnabled": assist.IsEnabled(),
+	})
 }

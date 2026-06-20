@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +35,7 @@ type specialHourEntry struct {
 func (h *HoursHandler) GetBusinessHours(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -68,6 +69,7 @@ func (h *HoursHandler) GetBusinessHours(c *gin.Context) {
 		"SpecialHours":        specialObj,
 		"AuthType":            c.GetString("auth_type"),
 		"Role":                c.GetString("role"),
+		"AssistEnabled":       assist.IsEnabled(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -108,7 +110,7 @@ func (h *HoursHandler) UpdateBusinessHours(c *gin.Context) {
 		updates["business_hours"] = req.HoursJSON
 	}
 
-	if err := h.db.Model(&models.Business{}).Where("id = ?", businessID).Updates(updates).Error; err != nil {
+	if err := h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hours"})
 		return
 	}
@@ -136,7 +138,7 @@ func (h *HoursHandler) UpdateSpecialHours(c *gin.Context) {
 		}
 	}
 
-	if err := h.db.Model(&models.Business{}).Where("id = ?", businessID).Update("special_hours", req.SpecialJSON).Error; err != nil {
+	if err := h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Update("special_hours", req.SpecialJSON).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update special hours"})
 		return
 	}
@@ -156,7 +158,7 @@ func (h *HoursHandler) ToggleAcceptingBookings(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Model(&models.Business{}).Where("id = ?", businessID).Update("is_accepting_bookings", req.Accepting).Error; err != nil {
+	if err := h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Update("is_accepting_bookings", req.Accepting).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update"})
 		return
 	}

@@ -17,10 +17,7 @@
 
     <!-- Main Chat Area -->
     <main class="wa-chat-area" id="chat-area">
-      <div id="skeleton-area" class="hidden">
-        {{template "skeleton_chat" .}}
-      </div>
-      <div id="content-area">
+      <div id="content-area" class="content-fade-in">
         {{template "empty_state" dict "Title" "SalesMee" "Description" "Send and receive messages, orders, and payments with your customers."}}
       </div>
     </main>
@@ -231,17 +228,7 @@
 
   <script>var BUSINESS_ID = '{{.Business.ID}}';
 var AUTH_TOKEN = '{{.AuthToken}}';</script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-  <script src="/static/js/modules/ws.js?v=2"></script>
-  <script src="/static/js/modules/assist.js?v=1"></script>
-  <script src="/static/js/modules/business.js?v=2"></script>
-  <script src="/static/js/modules/wizard_common.js?v=1"></script>
-  <script src="/static/js/modules/product_picker.js?v=1"></script>
-  <script src="/static/js/modules/service_picker.js?v=1"></script>
-  <script src="/static/js/modules/onboarding.js?v=1"></script>
-  <script src="/static/js/modules/chat_common.js?v=1"></script>
-  <script src="/static/js/modules/business_chat.js?v=3"></script>
-  <script src="/static/js/core/app.js?v=1"></script>
+  <script src="/static/js/bundles/business-bundle.js?v=1"></script>
 
   <script>
     function waBackToChatList() {
@@ -347,7 +334,7 @@ var AUTH_TOKEN = '{{.AuthToken}}';</script>
 
     document.addEventListener('DOMContentLoaded', function() {
       updateTimeAgo();
-      setInterval(updateTimeAgo, 30000);
+      setInterval(updateTimeAgo, 60000);
     });
 
     function updateTimeAgo() {

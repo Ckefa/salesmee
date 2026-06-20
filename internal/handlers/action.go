@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"salesmee/internal/db"
 	"salesmee/internal/models"
 	prog "salesmee/internal/services/progress"
 
@@ -22,7 +21,7 @@ func CreateAction(c *gin.Context) {
 
 	// Verify message belongs to user's conversation
 	var message models.Message
-	if err := db.DB.Joins("JOIN conversations ON messages.conversation_id = conversations.id").
+	if err := dbc(c).Joins("JOIN conversations ON messages.conversation_id = conversations.id").
 		Where("messages.id = ? AND conversations.business_id = ?", messageID, userID).
 		First(&message).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
@@ -70,7 +69,7 @@ func CreateAction(c *gin.Context) {
 		IsCompleted: false,
 	}
 
-	if err := db.DB.Create(&action).Error; err != nil {
+	if err := dbc(c).Create(&action).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create action"})
 		return
 	}
@@ -88,7 +87,7 @@ func UpdateConversationStatus(c *gin.Context) {
 
 	// Verify conversation belongs to user
 	var conversation models.Conversation
-	if err := db.DB.Where("id = ? AND business_id = ?", conversationID, userID).
+	if err := dbc(c).Where("id = ? AND business_id = ?", conversationID, userID).
 		First(&conversation).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
 		return
@@ -99,7 +98,7 @@ func UpdateConversationStatus(c *gin.Context) {
 
 	// Get or create conversation progress
 	var progress models.ConversationProgress
-	if err := db.DB.Where("conversation_id = ?", conversationID).First(&progress).Error; err != nil {
+	if err := dbc(c).Where("conversation_id = ?", conversationID).First(&progress).Error; err != nil {
 		// Create new progress record
 		progress = models.ConversationProgress{
 			ConversationID: uint(conversationID),
@@ -113,7 +112,7 @@ func UpdateConversationStatus(c *gin.Context) {
 				},
 			},
 		}
-		db.DB.Create(&progress)
+		dbc(c).Create(&progress)
 	} else {
 		// Update existing progress
 		transition := models.StageTransition{
@@ -145,7 +144,7 @@ func UpdateConversationStatus(c *gin.Context) {
 			progress.ActualClose = &now
 		}
 
-		db.DB.Save(&progress)
+		dbc(c).Save(&progress)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"progress": progress})
@@ -155,7 +154,7 @@ func GetActions(c *gin.Context) {
 	userID := c.GetUint("business_id")
 
 	var actions []models.Action
-	if err := db.DB.Joins("JOIN messages ON actions.message_id = messages.id").
+	if err := dbc(c).Joins("JOIN messages ON actions.message_id = messages.id").
 		Joins("JOIN conversations ON messages.conversation_id = conversations.id").
 		Where("conversations.business_id = ?", userID).
 		Order("actions.created_at DESC").
@@ -177,7 +176,7 @@ func UpdateActionStatus(c *gin.Context) {
 
 	// Verify action belongs to user
 	var action models.Action
-	if err := db.DB.Joins("JOIN messages ON actions.message_id = messages.id").
+	if err := dbc(c).Joins("JOIN messages ON actions.message_id = messages.id").
 		Joins("JOIN conversations ON messages.conversation_id = conversations.id").
 		Where("actions.id = ? AND conversations.business_id = ?", actionID, userID).
 		First(&action).Error; err != nil {
@@ -188,7 +187,7 @@ func UpdateActionStatus(c *gin.Context) {
 	isCompleted := c.PostForm("is_completed") == "true"
 	action.IsCompleted = isCompleted
 
-	if err := db.DB.Save(&action).Error; err != nil {
+	if err := dbc(c).Save(&action).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update action"})
 		return
 	}

@@ -5,7 +5,12 @@
       <div class="product-card rounded-xl card overflow-hidden" data-product-id="{{.ID}}">
         <div class="relative group">
           {{if .ImageURL}}
-          <img id="clientProductImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-36 sm:h-48 object-cover">
+          <div class="img-skeleton w-full h-36 sm:h-48">
+            <img id="clientProductImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-36 sm:h-48 object-cover" loading="lazy">
+            <div class="img-fallback img-fallback-hidden absolute inset-0 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
+              <i class="fas fa-box text-[var(--color-text-muted)] text-2xl sm:text-3xl"></i>
+            </div>
+          </div>
           {{else}}
           <div id="clientProductImg-{{.ID}}" class="w-full h-36 sm:h-48 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
             <i class="fas fa-box text-[var(--color-text-muted)] text-2xl sm:text-3xl"></i>
@@ -164,7 +169,7 @@
       const thumb = document.createElement('div');
       thumb.className = 'flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-200 ' +
         (i === idx ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]' : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]');
-      thumb.innerHTML = '<img src="' + img.image_url + '" alt="" class="w-full h-full object-cover">';
+      thumb.innerHTML = '<img src="' + img.image_url + '" alt="" class="w-full h-full object-cover" loading="lazy">;
       thumb.onclick = function () { clientGalleryGoTo(i); };
       container.appendChild(thumb);
     });

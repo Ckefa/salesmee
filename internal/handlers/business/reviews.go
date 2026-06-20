@@ -4,6 +4,7 @@ import (
 	"math"
 	"net/http"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,13 +29,13 @@ func (h *ReviewHandler) GetReviews(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
 
 	var reviews []models.Review
-	h.db.Where("business_id = ?", businessID).
+	h.dbc(c).Where("business_id = ?", businessID).
 		Preload("Client").
 		Order("created_at DESC").
 		Find(&reviews)
@@ -75,6 +76,7 @@ func (h *ReviewHandler) GetReviews(c *gin.Context) {
 		"Onboarding":     onboardingData(h.db, businessID),
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
+		"AssistEnabled":  assist.IsEnabled(),
 	})
 }
 
@@ -87,7 +89,7 @@ func (h *ReviewHandler) ReplyToReview(c *gin.Context) {
 
 	reviewID := c.Param("id")
 	var review models.Review
-	if err := h.db.Where("id = ? AND business_id = ?", reviewID, businessID).First(&review).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", reviewID, businessID).First(&review).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
 		return
 	}
@@ -103,7 +105,7 @@ func (h *ReviewHandler) ReplyToReview(c *gin.Context) {
 	review.ReplyAt = &now
 	review.UpdatedAt = now
 
-	if err := h.db.Save(&review).Error; err != nil {
+	if err := h.dbc(c).Save(&review).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save reply"})
 		return
 	}

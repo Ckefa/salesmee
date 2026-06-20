@@ -1,167 +1,126 @@
-# Production Hardening Plan
+# Loading UX Improvement Plan (Complete)
 
-> Status: Planned · Priority labels are relative within severity tiers.
+## Goal
 
-## HIGH Priority
+Eliminate all blank flashes, jarring content swaps, and loading feedback gaps across every business sub-page and chat container. Every async content load should show an instant visual placeholder and transition smoothly to real content.
 
-### H1. Stored XSS in Product & Service Pickers
+## Principles
 
-**Files:**
-- `web/static/js/modules/product_picker.js` — `pickerRenderProducts()` builds innerHTML from product name, SKU, description, image URL (lines 284–329)
-- `web/static/js/modules/service_picker.js` — `renderServicePicker()` builds innerHTML from service name, description, price, category (lines 250–274), and category filter buttons (line 217)
-- Both fetch JSON from `/business/conversations/:id/products` and `/business/conversations/:id/services`
-
-**Vector:** A business creates a product with a malicious name/description containing `<script>`. When a client opens the picker, the JS renders it via innerHTML without sanitization. Stored XSS — the payload lives in the DB and executes on every load.
-
-**Fix:**
-1. Sanitize all user-supplied fields (`name`, `description`, `sku`, `category`) before inserting into innerHTML — use `textContent` for text nodes, or `encodeURIComponent`/custom sanitizer for attribute values.
-2. Apply the same sanitization to the service picker's category filter buttons (line 217) where `cat` is injected directly into the button's onclick handler.
-3. Add Content-Security-Policy header to prevent inline script execution as defense-in-depth.
-
----
-
-### H2. Nil Pointer Dereferences in Client Auth
-
-**File:** `internal/handlers/client/client_auth.go`
-
-**Issue A — `getOrCreateConversation` (lines 236–239):**
-```go
-var client models.Client
-if err := db.DB.Where("id = ?", clientID).First(&client).Error; err != nil {
-    log.Print("Client not found by id ", clientID)
-}
-```
-The `err` is logged but never returned. The function returns `&client` which is a zero-value struct (ID=0). Callers (`GetClientMessages`, `CreateClientMessage`, `ClientDashboard`) then use `client.ID` in queries — orders with `client_id = 0` return zero results.
-
-**Fix:** Return an error when the client is not found instead of silently swallowing.
-
-**Issue B — `ClientUpdateOrder` (lines 726–738):**
-In multi-item JSON update, stock is restored for old items before verifying new items are valid. If a product lookup fails (`db.DB.First(&product, item.ProductID)` errors), the old stock has already been incremented but no new stock is decremented, leaving inventory inconsistent.
-
-**Fix:** Use a DB transaction — roll back if any item validation fails.
-
----
-
-### H3. Admin Login Not Rate-Limited
-
-**Files:**
-- `internal/middleware/ratelimit.go` — `rateLimitedPaths` and `rateLimitedPrefixes` define what gets rate-limited (line 93–104)
-- `internal/routes/admin_routes.go` — `POST /admin/login` (line 12) is unprotected
-
-The admin login endpoint is not in any rate-limited path list. Attackers can brute-force credentials via the admin login form with no throttling.
-
-**Fix:** Add `/admin/login` to `rateLimitedPaths` in `ratelimit.go`. Consider adding a dedicated admin-only rate limiter with lower thresholds (e.g., 3 req/s, burst 5) vs the auth limiter (5 req/s, burst 10).
-
----
-
-## MEDIUM Priority
-
-### M1. Hardcoded Production Email & Domain
-
-**File:** `web/templates/pages/legal/*.html`, `web/templates/pages/business/business_login.html`, `web/templates/pages/error_500.html`, `web/templates/partials/landing/`, `internal/handlers/dev.go`
-
-11 occurrences of `support@salesmee.com` hardcoded across error pages, legal pages (privacy, terms, cookies, refund), checkout, and landing page. Should be configurable.
-
-Additional items:
-- `business_login.html:117` — Demo credentials `demo@salesmee.com / password` shown unconditionally (not gated behind dev env)
-- `landing_head.html:11` — `og:url` hardcoded to `https://salesmee.com`
-- `dev.go:80–95` — Email preview templates hardcode `https://app.salesmee.com`
-
-**Fix:**
-1. Add `SupportEmail` to config and inject into template data.
-2. Gate demo credentials in login template behind `{{if eq .Env "dev"}}`.
-3. Read `AppDomain` config for meta tags and email templates.
-4. Move email template URLs to config values.
-
----
-
-### M2. Hardcoded Demo Credentials in Login Template
-
-**File:** `web/templates/pages/business/business_login.html:117`
-
-```html
-<div><span class="font-medium">Demo:</span> demo@salesmee.com / password</div>
-```
-
-Shown unconditionally on the business login page. Exposes valid-looking credentials and an email pattern. Should be gated behind dev/staging environment.
-
-**Fix:** Gate behind `{{if .IsDev}}` condition using config-driven template variable.
-
----
-
-### M3. Client Token Cookie Missing Secure Flag
-
-**File:** `internal/handlers/client/client_auth.go:135`
-
-```go
-c.SetCookie("client_token", token, 86400, "/", "", false, false)
-```
-
-Unlike the social auth handler which sets `secure := config.C.AppEnv != "dev"`, the OTP-based auth path hardcodes `false` for `secure`. In production, the token cookie can be sent over unencrypted HTTP connections.
-
-**Fix:** Use `config.C.AppEnv != "dev"` for the secure flag, matching the pattern in `social_auth.go`.
-
----
-
-### M4. In-Memory Registration Store (No Expiry)
-
-**File:** `internal/handlers/register.go`
-
-The `RegStore` in-memory store holds uncompleted OAuth registration data with no TTL. Data accumulates until the app restarts.
-
-**Fix:** Add a TTL (e.g., 15 minutes) with a background cleanup goroutine, or switch to a cookie/token-encoded store.
-
----
-
-### M5. WebSocket Rate Limiting
-
-**File:** `internal/ws/hub.go`
-
-WebSocket connections can send unlimited messages through the system without rate limiting. No per-connection or per-IP throttling exists for WS message delivery.
-
-**Fix:** Add per-connection rate limiting (e.g., token bucket per WS session) with appropriate thresholds for chat vs broadcast messages.
-
----
-
-### M6. Audit Log Stored Action Mismatch
-
-**File:** `internal/handlers/admin/admin.go:297,325,394`
-
-`DeleteBusiness` stores `action: "delete", resource: "business"`; `DeleteClient` stores `action: "delete", resource: "client"`. The audit filter previously offered `delete_business`/`delete_client` as separate action values (matched action, not resource+action combo). **This was already partially fixed** by mapping both to `"delete"` in the handler, but the dropdown options still show "Delete Business" / "Delete Client" as action-level filters when they're really filter combinations of action+resource.
-
-**Fix (cleanup):** Replace the two delete action dropdown entries with a single "Delete" option. Or keep the split labels but filter on both `action` AND `resource` columns.
-
----
-
-## LOW Priority
-
-### L1. Hardcoded Page Size in Admin Templates
-
-Pagination buttons in all 4 admin templates hardcode `page=1` in HTMX URLs. If a user navigates to page 5 and then applies a filter, the request goes to `page=1`, resetting pagination. This is a minor UX annoyance.
-
-**Fix:** Include `page` in the filter form and carry it through.
-
----
-
-### L2. No CSRF Token on Admin Login Form
-
-**File:** `web/templates/pages/admin/admin_login.html`
-
-The admin login form `<form method="POST">` has no CSRF hidden input or `hx-post`. It can be targeted by CSRF attacks from other origins.
-
-**Fix:** Add CSRF middleware to `POST /admin/login` route (may require adjusting `CSRFMiddleware()` to not skip GET + specific paths), or add a custom CSRF token to the login form.
-
----
-
-### L3. Admin Logout Missing POST Method
-
-**File:** `internal/routes/admin_routes.go:18`
-
-```go
-adminGroup.GET("/logout", admin.AdminLogout)
-```
-
-Uses GET for logout. This is susceptible to CSRF-based logout (an attacker can trigger logout via `<img src="/admin/logout">`).
-
-**Fix:** Change to POST and use a form.
-
+- **Skeleton-first**: Every HTMX-loaded region renders a skeleton as initial content, replaced on `hx-trigger="load"` or user action
+- **Zero blank flashes**: No `hx-indicator` without visible skeleton content (the indicator IS the skeleton)
+- **Morph on stats**: Use `hx-swap="morph"` + idiomorph for stat grids to preserve layout, avoid card flicker
+- **Chat skeleton**: Show shimmer message bubbles while conversation loads, not a blank area
+
+## Completed
+
+### Phase 1 — Skeleton Templates (9 new in `skeletons.html`)
+
+| Template | Purpose |
+|----------|---------|
+| `skeleton_stats_4` | 4 stat cards (Payments, Analytics) |
+| `skeleton_stats_6` | 6 stat cards (Bookings) |
+| `skeleton_orders_table` | 6 table rows with shimmer |
+| `skeleton_bookings_table` | 6 table rows with shimmer |
+| `skeleton_revenue_report` | 3 summary cards + chart bar shimmers |
+| `skeleton_sales_report` | 5 rows with product icon placeholders |
+| `skeleton_clients_report` | 2 stat cards + chart bar |
+| `skeleton_tax_report` | 12 month-row shimmers |
+| `skeleton_chat_messages` | Header bar + 4 message bubbles (2 in, 2 out) |
+| `skeleton_table` | Existing: 5 rows (reused by orders/bookings stats pages) |
+| `skeleton_stats` | Existing: 8 cards (reused by stats page) |
+
+### Phase 2 — Reports Page
+
+- [x] Static placeholder replaced with `{{template "skeleton_revenue_report" .}}` + `hx-trigger="load once"`
+- [x] `hx-indicator="#reportContent"` added to all 4 tab buttons
+- [x] Hidden `<div id="skeleton-*-report">` elements embedded for JS access
+- [x] `loadRange()`, `applyCustomRange()`, `switchReportTab()` all call `showSkeletonReport(tab)` before `htmx.ajax()`
+- [x] `skeletonReportContent()` function maps tab name to skeleton element ID
+
+### Phase 3 — Orders Page
+
+- [x] Eager `{{template "orders_stats_grid" .}}` replaced with skeleton + `hx-trigger="load once"`
+- [x] `hx-ext="morph"` wrapped on `#orders-stats-container`
+- [x] `hx-swap="morph"` on stats grid for smooth transitions
+- [x] `loading-overlay` class on `#orders-page` (spinner + blur overlay on pagination/period-swap)
+- [x] `hx-indicator="#orders-page"` on pagination prev/next links
+
+### Phase 4 — Bookings Page
+
+- [x] Same as Orders: skeleton stats + `hx-trigger="load"` + morph + `loading-overlay` + `hx-indicator`
+
+### Phase 5 — Payments Page
+
+- [x] Eager `{{template "payments_stats_grid" .}}` replaced with `{{template "skeleton_stats_4" .}}` + `hx-trigger="load"`
+- [x] `hx-indicator="#payments-stats-container"` on all 6 pill buttons
+- [x] `hx-swap="outerHTML"` → `hx-swap="morph"` for smooth stat transitions
+- [x] `hx-ext="morph"` on stats container
+
+### Phase 6 — Analytics Page
+
+- [x] `{{template "analytics_stats_grid" .}}` replaced with `{{template "skeleton_stats_4" .}}` + `hx-trigger="load"`
+- [x] `hx-swap="outerHTML"` → `hx-swap="morph"` on all 6 pill buttons
+- [x] `hx-ext="morph"` on stats container (already had `hx-indicator`)
+
+### Phase 7 — Chat Container Loading
+
+- [x] Existing `#skeleton-area` with `{{template "skeleton_chat" .}}` wired into `loadClient()` JS
+- [x] `loadClient()` now: hides `#content-area` → shows `#skeleton-area` → fetches → hides skeleton → fills `#content-area` → adds `content-fade-in` class
+- [x] `content-fade-in` animation: 0.25s ease-out, opacity + translateY(4px→0)
+
+### Phase 8 — Auto-Select (Not Done)
+
+Deferred. Virtual scroll + sidebar sorting should stabilize first. Can revisit.
+
+### Phase 9 — CSS Fixes & Polish
+
+- [x] **Fixed missing `@keyframes shimmer`** — was referenced by `.skeleton::after` animation but never defined. Skeletons now actually shimmer.
+- [x] Added `content-fade-in` keyframe for skeleton→content transitions
+- [x] Added `loading-overlay` class: spinner + blur overlay on `htmx-request`
+- [x] Added `@keyframes spin` for overlay spinner
+- [x] Added `stat-loading` dim effect class for stat containers
+
+## Key Decisions
+
+- **Kept period filter as full-page swap** for Orders/Bookings — the table data depends on the filtered range, so a targeted stats-only swap would leave stale table rows. The `loading-overlay` class provides visual feedback during the swap instead.
+- **Chat used existing `skeleton_chat` template** — the inline skeleton chat markup from the plan was unnecessary since `empty_state.html` already defined `{{define "skeleton_chat"}}` and `business.html` already had `#skeleton-area` wired. Only `loadClient()` JS needed updating.
+- **No backend changes needed** — all existing handlers work as-is. `GetOrdersStatsGrid`, `GetBookingsStatsGrid`, `GetPaymentsStatsGrid`, and `GetAnalyticsStatsGrid` endpoints already existed and accept the `range` query param.
+
+## Files Modified
+
+| File | Changes |
+|------|---------|
+| `web/templates/components/ui/skeletons.html` | Added 9 new skeleton templates |
+| `web/templates/pages/business/dashboard/reports.html` | Skeleton + indicator + hidden skeleton divs + JS updates |
+| `web/templates/pages/business/dashboard/orders.html` | Skeleton stats + morph + loading-overlay + indicator |
+| `web/templates/pages/business/dashboard/bookings.html` | Same as orders |
+| `web/templates/pages/business/dashboard/payments.html` | Skeleton stats + morph + indicator |
+| `web/templates/pages/business/dashboard/analytics.html` | Skeleton stats + morph swap |
+| `web/templates/pages/business/business.html` | `content-fade-in` class on content-area |
+| `web/static/js/modules/business.js` | Skeletons in loadClient(), content-fade-in, autoSelectFirstChat() |
+| `web/static/js/modules/client.js` | `loadBusiness()` uses fetch() + skeleton skeleton-area |
+| `web/static/js/modules/client_chat.js` | Client sidebar virtual scrolling |
+| `web/templates/pages/client/client.html` | Skeleton-area moved outside chat-area, switchToChats/openClientProducts/openClientServices use fetch() + skeleton |
+| `web/templates/pages/client/client_discover.html` | Discover skeleton cards on search |
+| `web/templates/pages/client/client_discover_content.html` | Discover skeleton cards on search |
+| `web/templates/components/ui/skeletons.html` | Added skeleton_discover_cards |
+| `web/static/css/components.css` | Added shimmer keyframes, content-fade-in, loading-overlay, spin, img-skeleton, img-fade-in |
+| `web/static/js/core/app.js` | `initLazyImages()` + `initSkeletonTimeouts()` — lazy image loading, skeleton timeout/retry, `showSkeletonError()`, `retrySkeleton()` |
+| `web/templates/pages/business/dashboard/products.html` | Img wrapped in img-skeleton for blur-up, pagination overlay |
+| `web/templates/pages/business/dashboard/services.html` | Img wrapped in img-skeleton for blur-up, pagination overlay |
+| `web/templates/pages/client/client_products.html` | Img wrapped in img-skeleton for blur-up |
+| `web/templates/pages/client/client_services.html` | Img wrapped in img-skeleton for blur-up |
+| `web/static/js/modules/business.js` | `loadClient()` skeleton timeout + error state on catch |
+| `web/static/js/modules/client.js` | `loadBusiness()` skeleton timeout + error state on catch |
+| `web/templates/pages/client/client.html` | `switchToChats`/`openClientProducts`/`openClientServices` — timeout + error state |
+| `web/templates/components/ui/skeletons.html` | Added `skeleton_discover_cards`, `skeleton_error` |
+
+## Sprint 6 — Remaining Loading UX (Completed)
+
+- **Auto-select first conversation**: `autoSelectFirstChat()` in business.js selects the first client with unread messages (or first client) on page load. Runs 400ms after DOMContentLoaded.
+- **Client chat skeleton**: `loadBusiness()` uses fetch() instead of htmx.ajax(), shows skeleton-area before request, hides on response. `switchToChats()`, `openClientProducts()`, `openClientServices()` also wired with skeleton.
+- **Discover search skeleton**: Both standalone discover page and discover content partial show 5 skeleton cards during search fetch.
+- **Blur-up image placeholders**: Product/service images (business + client grids) wrapped in `.img-skeleton` container. `img-fade-in` class on images transitions opacity 0→1 on load. `img-fallback` shown on error. Handled by `initLazyImages()` in app.js with HTMX `afterSwap` re-init.
+- **Pagination loading indicator**: Products and Services pages show a spinner overlay when pagination links are clicked.
+- **HTMX skeleton timeout + error state**: `initSkeletonTimeouts()` in app.js: 20s timeout on HTMX skeleton requests, replaces skeleton with error icon + "Failed to load" + Retry button on timeout/error. `showSkeletonError()` and `retrySkeleton()` global functions. Fetch-based chat loading (loadClient, loadBusiness, switchToChats, openClientProducts/Services) also have 20s timeout + error state on catch.
+- `go vet ./...` and `go build ./...` pass.

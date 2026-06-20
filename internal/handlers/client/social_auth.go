@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"salesmee/internal/config"
-	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -111,7 +110,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	}
 
 	var client models.Client
-	if err := db.DB.Where("google_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&client).Error; err != nil {
+	if err := dbc(c).Where("google_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&client).Error; err != nil {
 		client = models.Client{
 			Name:      user.Name,
 			Email:     user.Email,
@@ -119,7 +118,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 			AvatarURL: user.AvatarURL,
 			Status:    models.StatusNew,
 		}
-		if err := db.DB.Create(&client).Error; err != nil {
+		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account.",
@@ -132,7 +131,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 			if user.AvatarURL != "" {
 				client.AvatarURL = user.AvatarURL
 			}
-			if err := db.DB.Save(&client).Error; err != nil {
+			if err := dbc(c).Save(&client).Error; err != nil {
 				c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 					"Title": "Client Login - SalesMee",
 					"Error": "Failed to link Google account.",
@@ -143,7 +142,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	}
 
 	now := time.Now()
-	if err := db.DB.Model(&models.Client{}).Where("id = ?", client.ID).Updates(map[string]interface{}{
+	if err := dbc(c).Model(&models.Client{}).Where("id = ?", client.ID).Updates(map[string]interface{}{
 		"is_online":    true,
 		"last_seen_at": &now,
 	}).Error; err != nil {
@@ -213,7 +212,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	}
 
 	var client models.Client
-	if err := db.DB.Where("facebook_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&client).Error; err != nil {
+	if err := dbc(c).Where("facebook_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&client).Error; err != nil {
 		client = models.Client{
 			Name:       user.Name,
 			Email:      user.Email,
@@ -221,7 +220,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 			AvatarURL:  user.AvatarURL,
 			Status:     models.StatusNew,
 		}
-		if err := db.DB.Create(&client).Error; err != nil {
+		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account.",
@@ -234,7 +233,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 			if user.AvatarURL != "" {
 				client.AvatarURL = user.AvatarURL
 			}
-			if err := db.DB.Save(&client).Error; err != nil {
+			if err := dbc(c).Save(&client).Error; err != nil {
 				c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 					"Title": "Client Login - SalesMee",
 					"Error": "Failed to link Facebook account.",
@@ -245,7 +244,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	}
 
 	now := time.Now()
-	if err := db.DB.Model(&models.Client{}).Where("id = ?", client.ID).Updates(map[string]interface{}{
+	if err := dbc(c).Model(&models.Client{}).Where("id = ?", client.ID).Updates(map[string]interface{}{
 		"is_online":    true,
 		"last_seen_at": &now,
 	}).Error; err != nil {

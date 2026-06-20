@@ -8,22 +8,22 @@ class WsClient {
     this.reconnectTimer = null;
     this.pingTimer = null;
     this.isConnected = false;
-    this.fallbackPolling = false;
-    this.fallbackTimer = null;
-    this.fallbackInterval = 10000;
 
     this.handlers = {};
+    this._indicator = null;
+    this._ensureIndicator();
+    this._updateIndicator('disconnected');
   }
 
   connect(url) {
     this.url = url;
-    this.fallbackPolling = false;
+    this._updateIndicator('connecting');
 
     try {
       this.ws = new WebSocket(url);
     } catch (e) {
-      console.warn('WS connection failed, using polling fallback:', e);
-      this.startFallback();
+      console.warn('WS connection failed:', e);
+      this._updateIndicator('disconnected');
       return;
     }
 
@@ -31,7 +31,7 @@ class WsClient {
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.reconnectDelay = 1000;
-      this.stopFallback();
+      this._updateIndicator('connected');
       this.startPing();
     };
 
@@ -47,6 +47,7 @@ class WsClient {
     this.ws.onclose = () => {
       this.isConnected = false;
       this.stopPing();
+      this._updateIndicator('reconnecting');
       this.scheduleReconnect();
     };
 
@@ -58,13 +59,13 @@ class WsClient {
   disconnect() {
     this.stopReconnect();
     this.stopPing();
-    this.stopFallback();
     if (this.ws) {
       this.ws.onclose = null;
       this.ws.close();
       this.ws = null;
     }
     this.isConnected = false;
+    this._updateIndicator('disconnected');
   }
 
   send(data) {
@@ -169,6 +170,7 @@ class WsClient {
       this.reconnectTimer = null;
       this.reconnectAttempts++;
       this.reconnectDelay *= 2;
+      this._updateIndicator('connecting');
       if (this.url) this.connect(this.url);
     }.bind(this), delay);
   }
@@ -180,15 +182,32 @@ class WsClient {
     }
   }
 
-  startFallback() {
-    this.fallbackPolling = true;
+  _ensureIndicator() {
+    if (this._indicator) return;
+    var dot = document.createElement('div');
+    dot.id = 'wsIndicator';
+    dot.style.cssText = 'position:fixed;bottom:12px;right:12px;width:10px;height:10px;border-radius:50%;z-index:9999;border:2px solid var(--color-surface,#fff);box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:background .3s;cursor:pointer';
+    dot.title = 'WebSocket: disconnected';
+    dot.addEventListener('click', function() {
+      var s = ['disconnected','connecting','connected','reconnecting'];
+      var labels = ['Disconnected','Connecting...','Connected','Reconnecting...'];
+      var states = ['#f43f5e','#f59e0b','#10b981','#f59e0b'];
+      var idx = s.indexOf(dot.getAttribute('data-ws-state'));
+      if (idx >= 0 && typeof showNotification !== 'undefined') {
+        showNotification('WebSocket: ' + labels[idx], idx === 2 ? 'success' : 'warning');
+      }
+    });
+    document.body.appendChild(dot);
+    this._indicator = dot;
   }
 
-  stopFallback() {
-    this.fallbackPolling = false;
-    if (this.fallbackTimer) {
-      clearInterval(this.fallbackTimer);
-      this.fallbackTimer = null;
-    }
+  _updateIndicator(state) {
+    this._ensureIndicator();
+    var dot = this._indicator;
+    dot.setAttribute('data-ws-state', state);
+    var colors = { connected: '#10b981', connecting: '#f59e0b', reconnecting: '#f59e0b', disconnected: '#f43f5e' };
+    var labels = { connected: 'Connected', connecting: 'Connecting...', reconnecting: 'Reconnecting...', disconnected: 'Disconnected' };
+    dot.style.background = colors[state] || '#94a3b8';
+    dot.title = 'WebSocket: ' + (labels[state] || state);
   }
 }

@@ -42,7 +42,7 @@ func ClientAssistChat(c *gin.Context) {
 	}
 
 	var businessCount int64
-	db.DB.Model(&models.Conversation{}).Where("client_id = ?", clientID).Count(&businessCount)
+	dbc(c).Model(&models.Conversation{}).Where("client_id = ?", clientID).Count(&businessCount)
 
 	systemPrompt := assist.BuildClientSystemPrompt(int(businessCount))
 

@@ -28,13 +28,28 @@
   </div>
 
   <!-- Results -->
-  <div class="flex-1 overflow-y-auto p-3 sm:p-4" id="discover-results">
-    {{range .Businesses}}
+  <div class="flex-1 overflow-y-auto p-3 sm:p-4">
+    <div id="discover-skeleton" class="hidden space-y-2 sm:space-y-3">
+      {{range $i := seq 1 5}}
+      <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between gap-2 sm:gap-3">
+        <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+          <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl skeleton"></div>
+          <div class="flex-1 space-y-2">
+            <div class="skeleton skeleton-text w-32 h-4"></div>
+            <div class="skeleton skeleton-text w-20 h-3"></div>
+          </div>
+        </div>
+        <div class="skeleton rounded-lg h-8 w-20"></div>
+      </div>
+      {{end}}
+    </div>
+    <div id="discover-results">
+      {{range .Businesses}}
     <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between hover:shadow-md transition-shadow mb-2 sm:mb-3 gap-2 sm:gap-3">
       <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
         <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
           {{if .Logo}}
-          <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-full h-full object-cover">
+          <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-full h-full object-cover" loading="lazy" width="56" height="56">
           {{else}}
           <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>
           {{end}}
@@ -66,11 +81,16 @@
   document.getElementById('discoverSearchInput')?.addEventListener('input', function() {
     clearTimeout(discoverSearchTimeout);
     discoverSearchTimeout = setTimeout(() => {
-      const q = this.value.trim();
+      var q = this.value.trim();
+      var skeleton = document.getElementById('discover-skeleton');
+      var container = document.getElementById('discover-results');
+      if (skeleton) skeleton.classList.remove('hidden');
+      if (container) container.classList.add('hidden');
       fetch('/client/discover/search?q=' + encodeURIComponent(q))
-        .then(r => r.json())
-        .then(businesses => {
-          const container = document.getElementById('discover-results');
+        .then(function(r) { return r.json(); })
+        .then(function(businesses) {
+          if (skeleton) skeleton.classList.add('hidden');
+          if (container) container.classList.remove('hidden');
           if (businesses.length === 0) {
           container.innerHTML = `
             <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
@@ -84,7 +104,7 @@
           <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between hover:shadow-md transition-shadow mb-2 sm:mb-3 gap-2 sm:gap-3">
             <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
               <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
-                ${b.logo ? '<img src="/static/' + b.logo + '" alt="' + b.name + '" class="w-full h-full object-cover">' : '<i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>'}
+                ${b.logo ? '<img src="/static/' + b.logo + '" alt="' + b.name + '" class="w-full h-full object-cover" loading="lazy">' : '<i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>'}
               </div>
               <div class="min-w-0">
                 <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">${b.name}</h3>

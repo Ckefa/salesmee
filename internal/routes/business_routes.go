@@ -1,11 +1,14 @@
 package routes
 
 import (
+	"time"
+
 	"salesmee/internal/db"
 	"salesmee/internal/handlers"
 	"salesmee/internal/handlers/business"
 	"salesmee/internal/handlers/client"
 	"salesmee/internal/middleware"
+	"salesmee/internal/services/cache"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,9 +30,10 @@ var assistHandler *business.AssistHandler
 var notificationHandler *business.NotificationHandler
 
 func SetupBusinessRoutes(r *gin.Engine) {
-	deps := &business.HandlerDeps{DB: db.DB, Hub: wsHub}
+	fcache := cache.NewFragmentCache(15 * time.Second)
+	deps := &business.HandlerDeps{DB: db.DB, Hub: wsHub, FCache: fcache}
 
-	bizHandler = business.NewBusinessHandler(db.DB, wsHub)
+	bizHandler = business.NewBusinessHandler(deps)
 	productHandler = business.NewProductHandler(deps)
 	serviceHandler = business.NewServiceHandler(deps)
 	orderHandler = business.NewOrderHandler(deps)
@@ -81,6 +85,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.GET("/dashboard/stats", bizHandler.GetDashboardStats)
 
 		protected.GET("/products", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.GetProducts)
+		protected.GET("/products/quick-list", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.GetProductsQuickList)
 		protected.GET("/products/:id", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.GetProduct)
 		protected.POST("/products", middleware.RequirePermission(middleware.PermProductsWrite), middleware.CheckResourceLimit("product", "products"), productHandler.CreateProduct)
 		protected.PUT("/products/:id", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.UpdateProduct)
@@ -90,6 +95,7 @@ func SetupBusinessRoutes(r *gin.Engine) {
 		protected.DELETE("/products/:id/images/:image_id", middleware.RequirePermission(middleware.PermProductsWrite), productHandler.DeleteProductImage)
 
 		protected.GET("/services", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.GetServices)
+		protected.GET("/services/quick-list", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.GetServicesQuickList)
 		protected.GET("/services/:id", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.GetService)
 		protected.POST("/services", middleware.RequirePermission(middleware.PermServicesWrite), middleware.CheckResourceLimit("service", "services"), serviceHandler.CreateService)
 		protected.PUT("/services/:id", middleware.RequirePermission(middleware.PermServicesWrite), serviceHandler.UpdateService)

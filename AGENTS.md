@@ -163,6 +163,52 @@ Shown as a centered modal overlay only on `/business` page when business has `on
 - Uses `.Onboarding`, `.Business`, `.Clients` (first client for step 5 button)
 - Requires `.Business.ID`, `.Business.Slug` accessible in template context
 
+## WhatsApp-Style Sidebar Sorting
+
+Both business client list and client business list use a 4-priority client-side sort (`sortClientList()` / `sortBusinessList()`) re-triggered after any WS event that changes card state:
+
+| Priority | Criterion | Source |
+|----------|-----------|--------|
+| 1 | **Pinned** (starred) | `localStorage['pinned_clients']` or `pinned_businesses` |
+| 2 | **Online** (`data-online="true"`) | `data-online` attribute (set by presence WS type 5) |
+| 3 | **Unread count** (higher first) | `data-unread` attribute (set by unread WS type 8) |
+| 4 | **Last message time** (most recent first) | `data-last-message-at` attribute (RFC3339) |
+
+### Sort data attributes on cards
+
+**Business sidebar** (`.wa-chat-item`): `data-client-id`, `data-conversation-id`, `data-client-name`, `data-last-message-at`, `data-unread`, `data-online`, plus `onclick="togglePinClient(...)"` star button.
+
+**Client sidebar** (`.business-item`): `data-business-id`, `data-conversation-id`, `data-business-name`, `data-business-type`, `data-last-message-at`, `data-unread`, `data-online`, plus `onclick="togglePinBusiness(...)"` star button.
+
+### Sort triggers (deferred 200ms)
+
+| Event | WS Type | Sidebar |
+|-------|---------|---------|
+| New message (preview/time update) | 1 | Both (`deferredSort()` / `deferredClientSort()`) |
+| Presence update (online dot) | 5 | Both |
+| Unread count update | 8 | Both |
+| Conversation added/removed | 13 | Both |
+| Pin toggle | User click | Both |
+| Page load | — | Both (`sortClientList()` / `sortBusinessList()`) |
+
+### Functions
+
+| Function | File | Purpose |
+|----------|------|---------|
+| `togglePinClient(id)` | `business.js` | Toggle pin in localStorage + re-sort |
+| `sortClientList()` | `business.js` | Priority sort for business sidebar |
+| `deferredSort()` | `business.js` | Debounced (200ms) wrapper for `sortClientList` |
+| `sortBusinessList()` | `client_chat.js` | Priority sort for client sidebar |
+| `deferredClientSort()` | `client_chat.js` | Debounced (200ms) wrapper for `sortBusinessList` |
+| `togglePinBusiness(id)` | `client.html` (inline) | Toggle pin in localStorage + re-sort |
+
+### localStorage keys
+
+| Key | Sidebar | Values |
+|-----|---------|--------|
+| `pinned_clients` | Business (client list) | `[clientID, ...]` |
+| `pinned_businesses` | Client (business list) | `[businessID, ...]` |
+
 ## Per-Client Unread Badge (/business page)
 
 `GetBizHome` handler in `business.go`:
@@ -1056,3 +1102,87 @@ cmd/
 | `POST /user-deletion` | `SubmitUserDeletion` | `handlers/legal.go` |
 | `GET /sitemap.xml` | `ServeSitemap` | `seo.go` |
 | `GET /robots.txt` | `ServeRobots` | `seo.go` |
+
+## WebSocket Protocol (Protobuf)
+
+Event types defined in `internal/chatpb/chatpb.pb.go`:
+
+| Type | Name | Direction | Purpose |
+|------|------|-----------|---------|
+| 1 | `NEW_MESSAGE` | Both | New chat message |
+| 2 | `READ_RECEIPT` | Both | Message read ack |
+| 3 | `TYPING_START` | Both | User started typing |
+| 4 | `TYPING_STOP` | Both | User stopped typing |
+| 5 | `PRESENCE_UPDATE` | Both | Online/offline (client ↔ biz via heartbeat) |
+| 6 | `ORDER_UPDATE` | Biz → Client | Order status change |
+| 7 | `BOOKING_UPDATE` | Biz → Client | Booking status change |
+| 8 | `UNREAD_COUNT` | Both | Per-conversation unread badge update |
+| 9 | `PING` | Server → Client | Keepalive |
+| 10 | `PONG` | Client → Server | Keepalive response |
+| 11 | `DELIVERED_ACK` | Client → Server | Client received message |
+| 12 | `DELIVERED_RECEIPT` | Server → Sender | Server confirms delivery to recipient |
+| 13 | `CONVERSATION_UPDATE` | Both | Sidebar card insert/update/remove (see `BroadcastConversationUpdate`) |
+| 14 | `PENDING_COUNT` | Biz → Navbar | Order/booking pending count badges |
+
+### jsonConversationUpdate (`internal/ws/client.go:364`)
+
+Used for WS type 13 frames — sent to both `biz:<id>` and `client:<id>` rooms when a conversation is created or a card needs updating:
+
+```go
+type jsonConversationUpdate struct {
+    ConversationID string `json:"conversation_id"`
+    BizCardHTML    string `json:"biz_card_html"`
+    ClientCardHTML string `json:"client_card_html"`
+    ClientID       string `json:"client_id"`       // set from frame.SenderId
+    Removed        bool   `json:"removed"`          // auto-detected when both HTML empty
+}
+```
+
+`Removed=true` when both `BizCardHTML` and `ClientCardHTML` are empty — JS handlers delete the card instead of inserting/updating.
+
+### Broadcast functions (`internal/ws/broadcast.go`)
+
+| Function | Rooms | SenderId | Usage |
+|----------|-------|----------|-------|
+| `BroadcastConversationUpdate(hub, convID, bizHTML, clientHTML, bizID, clientID)` | `biz:<bizID>`, `client:<clientID>` | `clientID` | New/updated card for all 6+ creation paths |
+| `BroadcastConversationRemovedToBiz(hub, convID, bizID, clientID)` | `biz:<bizID>` only | `clientID` | Business deletes client → card removed from biz sidebar only |
+| `BroadcastConversationRemovedToClient(hub, convID, bizID, clientID)` | `client:<clientID>` only | `bizID` | Client disconnects → card removed from client sidebar only |
+| `BroadcastPresenceUpdate(hub, clientID, isOnline, lastSeen, bizID)` | `biz:<bizID>` | — | Client online/offline, sets `data-online` attribute |
+| `BroadcastBusinessPresenceUpdate(hub, bizID, isOnline, clientIDs)` | `client:<clientID>` per client | `bizID` | Business online/offline, sets `data-online` attribute |
+| `BroadcastUnreadCount(hub, convID, count, roomID, roomPrefix)` | configurable | — | Updates `data-unread` + badge element |
+
+### 6+2 conversation update paths
+
+Every path that creates or destroys a conversation calls one of the broadcast functions:
+
+**Creation (type 13 with card HTML):**
+1. `CreateMessage` — first message in a conversation triggers card render + broadcast
+2. `ConnectToBusiness` — client discovers + connects
+3. `CreateClient` — business adds client manually
+4. `ShowConnect` — public OTP connect
+5. `getOrCreateConversation` — client auth auto-creates (used by `GetClientMessages`, `CreateClientMessage`, `ClientDashboard`)
+6. `CreateOrder` / `CreateBooking` — creating an order/booking for a client creates conversation if needed
+
+**Removal (type 13 with `removed: true`):**
+1. `DeleteClient` — business deletes → `BroadcastConversationRemovedToBiz`
+2. `DisconnectFromBusiness` — client disconnects → `BroadcastConversationRemovedToClient`
+
+### JS globals & HTMX swap
+
+`business_chat.js` and `chat_common.js` use `window.*` globals (not bare `clientId`/`conversationId`) because `loadClient()` was changed from `htmx.ajax()` to `fetch() + innerHTML + htmx.process()` to avoid HTMX 1.9.10's `insertBefore on null` bug:
+
+```javascript
+// business.js — loadClient()
+window.clientId = clientId;
+window.conversationId = el.getAttribute('data-conversation-id');
+window.businessId = window.BUSINESS_ID;
+window.sender = 'business';
+```
+
+HTMX View Transitions disabled via `<meta name="htmx-config" content='{"useViewTransition": false}'>` in `dashboard_head.html` and `base.html`.
+
+### Script loading order (business.html)
+
+`shared.js` → `ws.js` → `business.js` → `chat_common.js` → `business_chat.js`
+
+Inline `<script>` blocks in `business_chat.html` are NOT executed when loaded via `fetch() + innerHTML` — all cross-file references use `window.*` globals.

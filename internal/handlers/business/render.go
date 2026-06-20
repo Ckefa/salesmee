@@ -537,7 +537,7 @@ func RenderClientSidebarCard(business models.Business, conversationID uint, last
 	}
 	avatar := `<div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>`
 	if business.Logo != "" {
-		avatar = fmt.Sprintf(`<img src="/static/%s" alt="%s" class="wa-chat-avatar">`, html.EscapeString(business.Logo), html.EscapeString(business.Name))
+		avatar = fmt.Sprintf(`<img src="/static/%s" alt="%s" class="wa-chat-avatar" loading="lazy">`, html.EscapeString(business.Logo), html.EscapeString(business.Name))
 	}
 	return fmt.Sprintf(
 		`<div class="wa-chat-item business-item" data-business-id="%d" data-conversation-id="%d" data-business-name="%s" data-business-type="%s">

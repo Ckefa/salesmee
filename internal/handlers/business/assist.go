@@ -40,17 +40,17 @@ func (h *AssistHandler) AssistChat(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
 
 	var productCount, serviceCount int64
-	h.db.Model(&models.Product{}).Where("business_id = ?", businessID).Count(&productCount)
-	h.db.Model(&models.Service{}).Where("business_id = ?", businessID).Count(&serviceCount)
+	h.dbc(c).Model(&models.Product{}).Where("business_id = ?", businessID).Count(&productCount)
+	h.dbc(c).Model(&models.Service{}).Where("business_id = ?", businessID).Count(&serviceCount)
 
 	var conversationCount int64
-	h.db.Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&conversationCount)
+	h.dbc(c).Model(&models.Conversation{}).Where("business_id = ?", businessID).Count(&conversationCount)
 
 	systemPrompt := assist.BuildSystemPrompt(
 		business.Name,

@@ -1,8 +1,10 @@
 package business
 
 import (
+	"salesmee/internal/services/cache"
 	"salesmee/internal/ws"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -12,133 +14,130 @@ func SetWSHub(hub *ws.Hub) {
 	wsHub = hub
 }
 
+type dbProvider struct {
+	db     *gorm.DB
+	hub    *ws.Hub
+	fcache *cache.FragmentCache
+}
+
+func (p *dbProvider) dbc(c *gin.Context) *gorm.DB {
+	return p.db.WithContext(c.Request.Context())
+}
+
 type HandlerDeps struct {
-	DB  *gorm.DB
-	Hub *ws.Hub
+	DB     *gorm.DB
+	Hub    *ws.Hub
+	FCache *cache.FragmentCache
 }
 
 type ProductHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type ServiceHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type OrderHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type BookingHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type PaymentHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type AnalyticsHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type ReportHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type HoursHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type LocationHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type TeamHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type ReviewHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type SubscriptionHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type AssistHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 type NotificationHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
 func NewProductHandler(deps *HandlerDeps) *ProductHandler {
-	return &ProductHandler{db: deps.DB, hub: deps.Hub}
+	return &ProductHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewServiceHandler(deps *HandlerDeps) *ServiceHandler {
-	return &ServiceHandler{db: deps.DB, hub: deps.Hub}
+	return &ServiceHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewOrderHandler(deps *HandlerDeps) *OrderHandler {
-	return &OrderHandler{db: deps.DB, hub: deps.Hub}
+	return &OrderHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewBookingHandler(deps *HandlerDeps) *BookingHandler {
-	return &BookingHandler{db: deps.DB, hub: deps.Hub}
+	return &BookingHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewPaymentHandler(deps *HandlerDeps) *PaymentHandler {
-	return &PaymentHandler{db: deps.DB, hub: deps.Hub}
+	return &PaymentHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewAnalyticsHandler(deps *HandlerDeps) *AnalyticsHandler {
-	return &AnalyticsHandler{db: deps.DB, hub: deps.Hub}
+	return &AnalyticsHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewReportHandler(deps *HandlerDeps) *ReportHandler {
-	return &ReportHandler{db: deps.DB, hub: deps.Hub}
+	return &ReportHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewHoursHandler(deps *HandlerDeps) *HoursHandler {
-	return &HoursHandler{db: deps.DB, hub: deps.Hub}
+	return &HoursHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewLocationHandler(deps *HandlerDeps) *LocationHandler {
-	return &LocationHandler{db: deps.DB, hub: deps.Hub}
+	return &LocationHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewTeamHandler(deps *HandlerDeps) *TeamHandler {
-	return &TeamHandler{db: deps.DB, hub: deps.Hub}
+	return &TeamHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewReviewHandler(deps *HandlerDeps) *ReviewHandler {
-	return &ReviewHandler{db: deps.DB, hub: deps.Hub}
+	return &ReviewHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewSubscriptionHandler(deps *HandlerDeps) *SubscriptionHandler {
-	return &SubscriptionHandler{db: deps.DB, hub: deps.Hub}
+	return &SubscriptionHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewAssistHandler(deps *HandlerDeps) *AssistHandler {
-	return &AssistHandler{db: deps.DB, hub: deps.Hub}
+	return &AssistHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }
 
 func NewNotificationHandler(deps *HandlerDeps) *NotificationHandler {
-	return &NotificationHandler{db: deps.DB, hub: deps.Hub}
+	return &NotificationHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
 }

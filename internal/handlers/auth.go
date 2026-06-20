@@ -104,7 +104,7 @@ func RegisterStep1(c *gin.Context) {
 	}
 
 	var existing models.Business
-	if db.DB.Where("email = ?", email).First(&existing).Error == nil {
+	if dbc(c).Where("email = ?", email).First(&existing).Error == nil {
 		c.HTML(http.StatusOK, "register_step1.html", middleware.TemplateData(c, gin.H{
 			"Title": "Register - SalesMee",
 			"Error": "Email already exists",
@@ -287,7 +287,7 @@ func RegisterStep3(c *gin.Context) {
 		IsPublic:     true,
 	}
 
-	if err := db.DB.Create(&user).Error; err != nil {
+	if err := dbc(c).Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
 		c.HTML(http.StatusOK, "register_step3.html", middleware.TemplateData(c, gin.H{
 			"Title":        "Register - SalesMee",
@@ -309,7 +309,7 @@ func RegisterStep3(c *gin.Context) {
 	b := make([]byte, 32)
 	rand.Read(b)
 	verificationToken := hex.EncodeToString(b)
-	db.DB.Model(&user).Update("verification_token", verificationToken)
+	dbc(c).Model(&user).Update("verification_token", verificationToken)
 
 	verifyLink := services.GetBaseURL(c) + "/business/verify?token=" + verificationToken
 	services.SendVerificationEmail(user.Email, verifyLink)
@@ -351,7 +351,7 @@ func Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	var user models.Business
-	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := dbc(c).Where("email = ?", email).First(&user).Error; err != nil {
 		c.HTML(http.StatusUnauthorized, "business_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Login - SalesMee",
 			"Error": "Invalid email or password",

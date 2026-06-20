@@ -7,7 +7,8 @@
 
   <div id="insights-drawer"></div>
 
-  <div class="wa-messages-area" id="messages-container">
+  <div class="wa-messages-area" id="messages-container" data-has-more="{{.HasMore}}" data-older-cursor="{{.OlderCursor}}">
+    {{if .HasMore}}<div id="load-older-sentinel"></div>{{end}}
     {{range .Messages}}
     {{if eq .MsgType "order"}}
     {{template "order_card" .}}
@@ -47,9 +48,6 @@
   var conversationId = '{{.Customer.ConversationID}}';
   var currencySymbol = '{{currencySymbol .Business.Currency}}';
 </script>
-
-<script src="/static/js/modules/chat_common.js?v=1"></script>
-<script src="/static/js/modules/business_chat.js?v=3"></script>
 
 <script>
 function scrollToBottom() {

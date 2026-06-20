@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"salesmee/internal/config"
+	"salesmee/internal/services/assist"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,9 @@ func TemplateData(c *gin.Context, data gin.H) gin.H {
 	}
 	if _, exists := data["AppDomain"]; !exists {
 		data["AppDomain"] = config.C.AppDomain
+	}
+	if _, exists := data["AssistEnabled"]; !exists {
+		data["AssistEnabled"] = assist.IsEnabled()
 	}
 	return data
 }

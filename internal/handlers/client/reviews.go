@@ -57,7 +57,7 @@ func SubmitReview(c *gin.Context) {
 
 	// Verify client owns this business relationship
 	var conv models.Conversation
-	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conv).Error; err != nil {
+	if err := dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conv).Error; err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Client not associated with this business"})
 		return
 	}
@@ -65,7 +65,7 @@ func SubmitReview(c *gin.Context) {
 	// Validate order/booking is completed and belongs to client
 	if orderID > 0 {
 		var order models.Order
-		if err := db.DB.Where("id = ? AND client_id = ? AND business_id = ?", orderID, clientID, businessID).First(&order).Error; err != nil {
+		if err := dbc(c).Where("id = ? AND client_id = ? AND business_id = ?", orderID, clientID, businessID).First(&order).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 			return
 		}
@@ -75,14 +75,14 @@ func SubmitReview(c *gin.Context) {
 		}
 		// Check existing review
 		var count int64
-		db.DB.Model(&models.Review{}).Where("order_id = ?", orderID).Count(&count)
+		dbc(c).Model(&models.Review{}).Where("order_id = ?", orderID).Count(&count)
 		if count > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Order already reviewed"})
 			return
 		}
 	} else if bookingID > 0 {
 		var booking models.Booking
-		if err := db.DB.Where("id = ? AND client_id = ? AND business_id = ?", bookingID, clientID, businessID).First(&booking).Error; err != nil {
+		if err := dbc(c).Where("id = ? AND client_id = ? AND business_id = ?", bookingID, clientID, businessID).First(&booking).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 			return
 		}
@@ -91,7 +91,7 @@ func SubmitReview(c *gin.Context) {
 			return
 		}
 		var count int64
-		db.DB.Model(&models.Review{}).Where("booking_id = ?", bookingID).Count(&count)
+		dbc(c).Model(&models.Review{}).Where("booking_id = ?", bookingID).Count(&count)
 		if count > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Booking already reviewed"})
 			return
@@ -111,7 +111,7 @@ func SubmitReview(c *gin.Context) {
 		UpdatedAt:  now,
 	}
 
-	if err := db.DB.Create(&review).Error; err != nil {
+	if err := dbc(c).Create(&review).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to submit review"})
 		return
 	}
@@ -121,7 +121,7 @@ func SubmitReview(c *gin.Context) {
 	if wsHub != nil {
 		if orderID > 0 {
 			var order models.Order
-			if db.DB.First(&order, orderID).Error == nil {
+			if dbc(c).First(&order, orderID).Error == nil {
 				bizCardHTML := renderBizOrderCard(db.DB, order)
 				ws.BroadcastOrderUpdateFull(
 					wsHub,
@@ -140,7 +140,7 @@ func SubmitReview(c *gin.Context) {
 			}
 		} else if bookingID > 0 {
 			var booking models.Booking
-			if db.DB.First(&booking, bookingID).Error == nil {
+			if dbc(c).First(&booking, bookingID).Error == nil {
 				bizCardHTML := renderBizBookingCard(db.DB, booking)
 				ws.BroadcastBookingUpdateFull(
 					wsHub,

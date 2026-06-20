@@ -22,10 +22,10 @@
 
   <div class="wa-chat-list" id="business-list">
     {{range .Businesses}}
-    <div class="wa-chat-item business-item" data-business-id="{{.ID}}" data-conversation-id="{{.ConversationID}}" data-business-name="{{.Name}}" data-business-type="{{.BusinessType}}" oncontextmenu="showBizCtxMenu(event, {{.ID}}, '{{.Name}}')">
+    <div class="wa-chat-item business-item" data-business-id="{{.ID}}" data-conversation-id="{{.ConversationID}}" data-business-name="{{.Name}}" data-business-type="{{.BusinessType}}" data-last-message-at="{{.LastMessageAt}}" data-unread="{{.UnreadCount}}" oncontextmenu="showBizCtxMenu(event, {{.ID}}, '{{.Name}}')">
       <div class="wa-chat-avatar-wrapper">
         {{if .Logo}}
-        <img src="/static/{{.Logo}}" alt="{{.Name}}" class="wa-chat-avatar">
+        <img src="/static/{{.Logo}}" alt="{{.Name}}" class="wa-chat-avatar" loading="lazy">
         {{else}}
         <div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
         {{end}}

@@ -39,7 +39,7 @@ func newBookingTest(t *testing.T) *bookingTestFixture {
 		`{{define "login.html"}}ok{{end}}{{define "error.html"}}ok{{end}}{{define "receipt_booking.html"}}ok{{end}}`,
 	))
 	return &bookingTestFixture{
-		handler: &BookingHandler{db: testDB, hub: nil},
+		handler: &BookingHandler{dbProvider{db: testDB, hub: nil}},
 		db:      testDB,
 		biz:     biz,
 		tmpl:    tmpl,

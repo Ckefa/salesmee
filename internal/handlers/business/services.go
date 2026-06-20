@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ func (h *ServiceHandler) GetBusinessServices(c *gin.Context) {
 	}
 
 	var services []models.Service
-	if err := h.db.Where("business_id = ? AND is_active = ?", businessID, true).Find(&services).Error; err != nil {
+	if err := h.dbc(c).Where("business_id = ? AND is_active = ?", businessID, true).Find(&services).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch services"})
 		return
 	}
@@ -34,7 +35,7 @@ func (h *ServiceHandler) GetServices(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -54,10 +55,10 @@ func (h *ServiceHandler) GetServices(c *gin.Context) {
 	}
 
 	var totalCount int64
-	h.db.Model(&models.Service{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+	h.dbc(c).Model(&models.Service{}).Where(baseWhere, baseArgs...).Count(&totalCount)
 
 	var services []models.Service
-	h.db.Where(baseWhere, baseArgs...).
+	h.dbc(c).Where(baseWhere, baseArgs...).
 		Order("created_at DESC").
 		Limit(pageSize).Offset((page - 1) * pageSize).
 		Find(&services)
@@ -68,7 +69,7 @@ func (h *ServiceHandler) GetServices(c *gin.Context) {
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
@@ -104,6 +105,7 @@ func (h *ServiceHandler) GetServices(c *gin.Context) {
 		"AuthType":         c.GetString("auth_type"),
 		"Role":             c.GetString("role"),
 		"QueryLocationID":  locID,
+		"AssistEnabled":    assist.IsEnabled(),
 	})
 }
 
@@ -143,7 +145,7 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 	}
 	service.IsActive = true
 
-	if err := h.db.Create(&service).Error; err != nil {
+	if err := h.dbc(c).Create(&service).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create service"})
 		return
 	}
@@ -165,7 +167,7 @@ func (h *ServiceHandler) GetService(c *gin.Context) {
 	}
 
 	var service models.Service
-	if err := h.db.Where("id = ? AND business_id = ?", serviceID, businessID).First(&service).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", serviceID, businessID).First(&service).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
 		return
 	}
@@ -187,7 +189,7 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 	}
 
 	var service models.Service
-	if err := h.db.Where("id = ? AND business_id = ?", serviceID, businessID).First(&service).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", serviceID, businessID).First(&service).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
 		return
 	}
@@ -197,7 +199,7 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Save(&service).Error; err != nil {
+	if err := h.dbc(c).Save(&service).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update service"})
 		return
 	}
@@ -218,7 +220,7 @@ func (h *ServiceHandler) DeleteService(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Where("id = ? AND business_id = ?", serviceID, businessID).Delete(&models.Service{}).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", serviceID, businessID).Delete(&models.Service{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete service"})
 		return
 	}
@@ -240,20 +242,57 @@ func (h *ServiceHandler) ShowClientServicesPage(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "client.html", gin.H{"error": "Business not found"})
 		return
 	}
 
 	var services []models.Service
-	h.db.Where("business_id = ? AND is_active = ?", businessID, true).Order("created_at DESC").Find(&services)
+	h.dbc(c).Where("business_id = ? AND is_active = ?", businessID, true).Order("created_at DESC").Find(&services)
 
 	var client models.Client
-	h.db.First(&client, clientID)
+	h.dbc(c).First(&client, clientID)
 
 	c.HTML(http.StatusOK, "client_services.html", gin.H{
 		"Business": business,
 		"Client":   client,
 		"Services": services,
 	})
+}
+
+type quickService struct {
+	ID       uint    `json:"id"`
+	Name     string  `json:"name"`
+	MinPrice float64 `json:"min_price"`
+	MaxPrice float64 `json:"max_price"`
+	Duration int     `json:"duration"`
+	ImageURL string  `json:"image_url"`
+}
+
+func (h *ServiceHandler) GetServicesQuickList(c *gin.Context) {
+	businessID := c.GetUint("business_id")
+	if businessID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
+	var services []models.Service
+	if err := h.dbc(c).Where("business_id = ? AND is_active = ?", businessID, true).Order("name ASC").Find(&services).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch services"})
+		return
+	}
+
+	list := make([]quickService, 0, len(services))
+	for _, s := range services {
+		list = append(list, quickService{
+			ID:       s.ID,
+			Name:     s.Name,
+			MinPrice: s.MinPrice,
+			MaxPrice: s.MaxPrice,
+			Duration: s.Duration,
+			ImageURL: s.ImageURL,
+		})
+	}
+
+	c.JSON(http.StatusOK, list)
 }

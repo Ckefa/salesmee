@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"salesmee/internal/db"
 	"salesmee/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -49,7 +48,7 @@ func CreateActionWithProgress(c *gin.Context) {
 
 	// Verify message belongs to user
 	var message models.Message
-	if err := db.DB.Where("id = ? AND conversation_id IN (SELECT id FROM conversations WHERE client_id IN (SELECT id FROM clients WHERE business_id = ?))",
+	if err := dbc(c).Where("id = ? AND conversation_id IN (SELECT id FROM conversations WHERE client_id IN (SELECT id FROM clients WHERE business_id = ?))",
 		messageID, userID).First(&message); err != nil {
 		c.String(http.StatusNotFound, "Message not found")
 		return
@@ -79,27 +78,27 @@ func CreateActionWithProgress(c *gin.Context) {
 		}
 	}
 
-	if err := db.DB.Create(&action).Error; err != nil {
+	if err := dbc(c).Create(&action).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create action")
 		return
 	}
 
 	// Get conversation and current progress
 	var conversation models.Conversation
-	if err := db.DB.Where("id = ?", message.ConversationID).First(&conversation); err != nil {
+	if err := dbc(c).Where("id = ?", message.ConversationID).First(&conversation); err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
 	var progress models.ConversationProgress
-	if err := db.DB.Where("conversation_id = ?", conversation.ID).First(&progress); err != nil {
+	if err := dbc(c).Where("conversation_id = ?", conversation.ID).First(&progress); err != nil {
 		// Create default progress if not exists
 		progress = models.ConversationProgress{
 			ConversationID: conversation.ID,
 			CurrentStage:   models.StageInitial,
 			ProgressScore:  10,
 		}
-		db.DB.Create(&progress)
+		dbc(c).Create(&progress)
 	}
 
 	// Auto-advance conversation stage
@@ -120,7 +119,7 @@ func CreateActionWithProgress(c *gin.Context) {
 		progress.ProgressScore = newScore
 		progress.UpdatedAt = time.Now()
 
-		db.DB.Save(&progress)
+		dbc(c).Save(&progress)
 	}
 
 	// Return updated actions panel

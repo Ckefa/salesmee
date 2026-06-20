@@ -1,5 +1,8 @@
 // chat_common.js — Shared chat functions for business and client
 
+var MAX_DOM_MESSAGES = 200;
+var detachedMessages = {};
+
 if (window.typingTimeout) clearTimeout(window.typingTimeout);
 var typingTimeout = null;
 
@@ -21,7 +24,85 @@ function validateHtmxRequest(evt) {
   }
 }
 
+// ========== Optimistic Message Send ==========
+
+function renderOwnMessage(content, tempId, mediaInfo) {
+  var timeStr = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  var mediaHtml = '';
+  if (mediaInfo && mediaInfo.url) {
+    if (mediaInfo.type === 'image') {
+      mediaHtml = '<img src="' + mediaInfo.url + '" alt="Image" class="wa-media-image" style="max-width:200px;max-height:200px;object-fit:cover;border-radius:8px;opacity:0.7;">';
+    } else {
+      mediaHtml = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><span class="wa-media-doc-link">' + escapeHtml(mediaInfo.name) + '</span><span class="text-xs text-[var(--color-text-muted)] ml-2">uploading...</span></div>';
+    }
+  }
+  var bodyHtml = mediaHtml + (content ? '<span class="msg-txt">' + escapeHtml(content) + '</span>' : '');
+  return '<div class="msg out message-item optimistic" data-message-id="temp-' + tempId + '">'
+    + '<div class="msg-bbl">'
+    + '<svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet">'
+    + '<path fill="var(--color-bg)" d="M9,3L0,14V1H7C8.5,1,9.5,2,9,3z"></path>'
+    + '<path fill="currentColor" d="M9,2L0,13V0H7C8.5,0,9.5,1,9,2z"></path></svg>'
+    + bodyHtml
+    + '<span class="msg-meta"><span class="msg-time">' + timeStr + '</span>'
+    + '<span class="msg-tick inline-flex items-center ml-0.5 align-middle" data-read-state="sent" style="width:12px;height:11px;">'
+    + '<svg viewBox="0 0 12 12" width="12" height="11" fill="none" stroke="#8696a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M2 6L5 9L11 3"/></svg></span></span></div></div>';
+}
+
+function optimisticSend(evt) {
+  var form = evt.detail.elt;
+  if (!form || form.id !== 'message-form') return;
+  var input = form.querySelector('#messageInput');
+  var content = input ? input.value.trim() : '';
+  var mediaInfo = null;
+  var fileInputs = form.querySelectorAll('input[type="file"]');
+  for (var i = 0; i < fileInputs.length; i++) {
+    if (fileInputs[i].files && fileInputs[i].files.length > 0) {
+      var file = fileInputs[i].files[0];
+      var type = fileInputs[i].name.replace('media_', '');
+      var url = type === 'image' ? URL.createObjectURL(file) : null;
+      mediaInfo = { type: type, name: file.name, url: url };
+      break;
+    }
+  }
+  window._optTempId = (window._optTempId || 0) + 1;
+  var tempId = window._optTempId;
+  var container = document.getElementById('messages-container');
+  if (!container) return;
+  container.insertAdjacentHTML('beforeend', renderOwnMessage(content, tempId, mediaInfo));
+  requestAnimationFrame(function() { container.scrollTop = container.scrollHeight; });
+}
+
+function confirmSend(evt) {
+  var xhr = evt.detail.xhr;
+  var tempId = window._optTempId;
+  if (!tempId) return;
+  var tempEl = document.querySelector('[data-message-id="temp-' + tempId + '"]');
+  if (!tempEl) return;
+  if (xhr.status >= 200 && xhr.status < 300) {
+    var html = xhr.responseText;
+    if (html && html.trim().length > 0) {
+      tempEl.outerHTML = html;
+    } else {
+      tempEl.remove();
+    }
+  } else {
+    tempEl.classList.add('opacity-50');
+    var txt = tempEl.querySelector('.msg-txt');
+    if (txt) txt.innerHTML += ' <span class="text-[var(--color-error)] text-xs">Failed</span>';
+  }
+}
+
+function validateAndOptimisticSend(evt) {
+  validateHtmxRequest(evt);
+  if (!evt.defaultPrevented) {
+    optimisticSend(evt);
+  }
+}
+
 var unreadBelow = 0;
+var MAX_DOM_MESSAGES = 200;
+var detachedMessages = {};
 window.clearUnreadBelow = function() {
   if (unreadBelow > 0 && typeof markAsRead === 'function') markAsRead();
   unreadBelow = 0;
@@ -265,6 +346,142 @@ window.addEventListener('beforeunload', function() {
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') markAsRead();
 });
+
+// ========== Older Message Pagination (IntersectionObserver) ==========
+
+var olderObserver = null;
+
+function initOlderObserver() {
+  if (olderObserver) {
+    olderObserver.disconnect();
+    olderObserver = null;
+  }
+  var sentinel = document.getElementById('load-older-sentinel');
+  if (!sentinel) return;
+  olderObserver = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+      loadOlderMessages();
+    }
+  }, { rootMargin: '200px 0px 0px 0px' });
+  olderObserver.observe(sentinel);
+}
+
+function buildMessagesUrl() {
+  var container = document.getElementById('messages-container');
+  if (!container) return '';
+  var cursor = container.getAttribute('data-older-cursor');
+  if (!cursor) return '';
+  var isBusiness = typeof window.clientId !== 'undefined' && window.clientId;
+  if (isBusiness) {
+    return 'clients/' + window.clientId + '/messages?before=' + encodeURIComponent(cursor) + '&limit=50';
+  }
+  if (window.businessId) {
+    return '/client/businesses/' + window.businessId + '/messages?before=' + encodeURIComponent(cursor) + '&limit=50';
+  }
+  return '';
+}
+
+function recycleMessages(container) {
+  var cid = window.conversationId;
+  if (!cid) return;
+  var messages = container.querySelectorAll('[data-message-id]');
+  if (messages.length <= MAX_DOM_MESSAGES) return;
+
+  var excess = messages.length - MAX_DOM_MESSAGES;
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < excess; i++) {
+    var el = messages[i];
+    if (el.id === 'load-older-sentinel') { excess++; continue; }
+    frag.appendChild(el);
+  }
+  if (frag.children.length > 0) {
+    detachedMessages[cid] = frag;
+  }
+}
+
+function loadOlderMessages() {
+  if (window._loadingOlder) return;
+  var container = document.getElementById('messages-container');
+  if (!container) return;
+  if (container.getAttribute('data-has-more') !== 'true') return;
+
+  if (olderObserver) {
+    olderObserver.disconnect();
+    olderObserver = null;
+  }
+
+  window._loadingOlder = true;
+  var url = buildMessagesUrl();
+  if (!url) { window._loadingOlder = false; return; }
+
+  fetch(url)
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      var nextContainer = doc.getElementById('messages-container');
+      if (!nextContainer) { window._loadingOlder = false; return; }
+
+      container.setAttribute('data-has-more', nextContainer.getAttribute('data-has-more') || 'false');
+      container.setAttribute('data-older-cursor', nextContainer.getAttribute('data-older-cursor') || '');
+
+      // Extract message items from response
+      var items = nextContainer.querySelectorAll('[data-message-id]');
+      var firstChild = container.firstChild;
+
+      items.forEach(function(el) {
+        container.insertBefore(el.cloneNode(true), firstChild);
+      });
+
+      if (typeof htmx !== 'undefined') {
+        htmx.process(container);
+      }
+
+      recycleMessages(container);
+
+      window._loadingOlder = false;
+      initOlderObserver();
+    })
+    .catch(function() {
+      window._loadingOlder = false;
+      initOlderObserver();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  initOlderObserver();
+});
+
+// Re-init observer after HTMX swaps the chat area (client-side navigation)
+document.addEventListener('htmx:afterSwap', function(e) {
+  if (e.detail.target && e.detail.target.id === 'chat-area') {
+    initOlderObserver();
+  }
+});
+
+// ========== Scroll-to-Bottom Button ==========
+
+window.scrollToBottomBtn = function() {
+  var c = document.getElementById('messages-container');
+  if (c) c.scrollTop = c.scrollHeight;
+  if (window.clearUnreadBelow) window.clearUnreadBelow();
+  if (typeof markAsRead === 'function') markAsRead();
+};
+
+function initScrollToBottom() {
+  var container = document.getElementById('messages-container');
+  var btn = document.getElementById('scrollToBottom');
+  if (!container || !btn) return;
+  if (container.getAttribute('data-scroll-init')) return;
+  container.setAttribute('data-scroll-init', 'true');
+  var toggle = function() {
+    var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    btn.classList.toggle('visible', !isNearBottom);
+    if (isNearBottom && window.clearUnreadBelow) window.clearUnreadBelow();
+  };
+  container.addEventListener('scroll', toggle);
+  setTimeout(toggle, 100);
+}
 
 // ========== Quick Replies & Input Handling ==========
 

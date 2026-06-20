@@ -52,7 +52,12 @@
         <div class="product-card rounded-xl card overflow-hidden" data-product-id="{{.ID}}">
           <div class="relative group cursor-pointer" onclick="document.getElementById('fileInput-{{.ID}}').click()">
             {{if .ImageURL}}
-            <img id="productImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
+            <div class="img-skeleton w-full h-48">
+              <img id="productImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover" loading="lazy">
+              <div class="img-fallback img-fallback-hidden absolute inset-0 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
+                <i class="fas fa-box text-[var(--color-primary)] text-4xl"></i>
+              </div>
+            </div>
             {{else}}
             <div id="productImg-{{.ID}}"
               class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
@@ -423,7 +428,7 @@
           const thumb = document.createElement('div');
           thumb.className = 'flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-200 ' +
             (i === idx ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary-light)]' : 'border-[var(--color-border)] hover:border-[var(--color-text-muted)]');
-          thumb.innerHTML = '<img src="' + img.image_url + '" alt="" class="w-full h-full object-cover">';
+          thumb.innerHTML = '<img src="' + img.image_url + '" alt="" class="w-full h-full object-cover" loading="lazy">';
           thumb.onclick = function () {galleryGoTo(i);};
           container.appendChild(thumb);
         });
@@ -617,6 +622,23 @@
       if (locId) {
         document.getElementById('locationFilter').value = '/business/products?location_id=' + locId;
       }
+
+      // Pagination loading indicator
+      document.querySelectorAll('#products-page .flex.justify-between a[href*="page="]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          if (this.getAttribute('onclick') === 'return false') return;
+          var overlay = document.getElementById('pagination-overlay');
+          if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'pagination-overlay';
+            overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm';
+            overlay.innerHTML = '<div class="w-10 h-10 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>';
+            document.body.appendChild(overlay);
+          } else {
+            overlay.classList.remove('hidden');
+          }
+        });
+      });
     </script>
 </div>
   {{end}}

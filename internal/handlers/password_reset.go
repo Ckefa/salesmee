@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -80,7 +79,7 @@ func SendForgotPassword(c *gin.Context) {
 	passwordResetCooldownsMu.Unlock()
 
 	var business models.Business
-	if err := db.DB.Where("email = ?", email).First(&business).Error; err != nil {
+	if err := dbc(c).Where("email = ?", email).First(&business).Error; err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success":  true,
 			"message":  "If that email is registered, you'll receive a password reset link shortly.",
@@ -100,7 +99,7 @@ func SendForgotPassword(c *gin.Context) {
 		ExpiresAt:  time.Now().Add(1 * time.Hour),
 	}
 
-	if err := db.DB.Create(&reset).Error; err != nil {
+	if err := dbc(c).Create(&reset).Error; err != nil {
 		passwordResetCooldownsMu.Lock()
 		delete(passwordResetCooldowns, email)
 		passwordResetCooldownsMu.Unlock()
@@ -133,7 +132,7 @@ func ShowResetPassword(c *gin.Context) {
 	}
 
 	var reset models.PasswordResetToken
-	if err := db.DB.Where("token = ? AND used = ? AND expires_at > ?", token, false, time.Now()).First(&reset).Error; err != nil {
+	if err := dbc(c).Where("token = ? AND used = ? AND expires_at > ?", token, false, time.Now()).First(&reset).Error; err != nil {
 		c.HTML(http.StatusOK, "reset_password.html", middleware.TemplateData(c, gin.H{
 			"Title": "Reset Password - SalesMee",
 			"Error": "Invalid or expired reset link.",
@@ -180,7 +179,7 @@ func SubmitResetPassword(c *gin.Context) {
 	}
 
 	var reset models.PasswordResetToken
-	if err := db.DB.Where("token = ? AND used = ? AND expires_at > ?", token, false, time.Now()).First(&reset).Error; err != nil {
+	if err := dbc(c).Where("token = ? AND used = ? AND expires_at > ?", token, false, time.Now()).First(&reset).Error; err != nil {
 		c.HTML(http.StatusOK, "reset_password.html", middleware.TemplateData(c, gin.H{
 			"Title": "Reset Password - SalesMee",
 			"Error": "Invalid or expired reset link.",
@@ -190,7 +189,7 @@ func SubmitResetPassword(c *gin.Context) {
 
 	hashed := services.Hash(password)
 
-	tx := db.DB.Begin()
+	tx := dbc(c).Begin()
 	tx.Model(&models.Business{}).Where("id = ?", reset.BusinessID).Update("password", hashed)
 	tx.Model(&reset).Update("used", true)
 	tx.Commit()

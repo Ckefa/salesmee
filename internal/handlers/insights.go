@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/services/progress"
 
@@ -20,7 +19,7 @@ func GetConversationInsightsBadge(c *gin.Context) {
 
 	progress.CalculateConversationInsights(uint(conversationID))
 	var insight models.CustomerInsight
-	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
+	dbc(c).Where("conversation_id = ?", conversationID).First(&insight)
 
 	c.HTML(http.StatusOK, "insights_badge", gin.H{
 		"Insight": insight,
@@ -36,11 +35,11 @@ func GetConversationInsightsPanel(c *gin.Context) {
 
 	progress.CalculateConversationInsights(uint(conversationID))
 	var insight models.CustomerInsight
-	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
+	dbc(c).Where("conversation_id = ?", conversationID).First(&insight)
 
 	businessID := c.GetUint("business_id")
 	var business models.Business
-	db.DB.First(&business, businessID)
+	dbc(c).First(&business, businessID)
 
 	c.HTML(http.StatusOK, "insights_panel", gin.H{
 		"Insight":  insight,
@@ -58,7 +57,7 @@ func RefreshConversationInsights(c *gin.Context) {
 	progress.CalculateConversationInsights(uint(conversationID))
 
 	var insight models.CustomerInsight
-	db.DB.Where("conversation_id = ?", conversationID).First(&insight)
+	dbc(c).Where("conversation_id = ?", conversationID).First(&insight)
 
 	c.HTML(http.StatusOK, "insights_badge", gin.H{
 		"Insight": insight,

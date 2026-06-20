@@ -53,7 +53,12 @@
         <div class="service-card bg-[var(--color-surface)] rounded-xl card overflow-hidden" data-service-id="{{.ID}}">
           <div class="relative">
             {{if .ImageURL}}
-            <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover">
+            <div class="img-skeleton w-full h-48">
+              <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover" loading="lazy">
+              <div class="img-fallback img-fallback-hidden absolute inset-0 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
+                <i class="fas fa-concierge-bell text-[var(--color-primary)] text-4xl"></i>
+              </div>
+            </div>
             {{else}}
             <div
               class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
@@ -487,6 +492,23 @@
     if (locId) {
       document.getElementById('locationFilter').value = '/business/services?location_id=' + locId;
     }
+
+    // Pagination loading indicator
+    document.querySelectorAll('.flex.justify-between a[href*="page="]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (this.getAttribute('onclick') === 'return false') return;
+        var overlay = document.getElementById('pagination-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'pagination-overlay';
+          overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm';
+          overlay.innerHTML = '<div class="w-10 h-10 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>';
+          document.body.appendChild(overlay);
+        } else {
+          overlay.classList.remove('hidden');
+        }
+      });
+    });
   </script>
 </div>
 {{end}}

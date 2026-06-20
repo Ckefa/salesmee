@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"html"
-	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"time"
@@ -22,7 +21,7 @@ func DevPage(c *gin.Context) {
 	// Get clients for display
 	var clients []models.Client
 	if exists {
-		db.DB.Where("business_id = ?", businessID).Find(&clients)
+		dbc(c).Where("business_id = ?", businessID).Find(&clients)
 	}
 
 	c.HTML(http.StatusOK, "test.html", gin.H{
@@ -42,7 +41,7 @@ func Ping(c *gin.Context) {
 func ListItems(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	var clients []models.Client
-	db.DB.Where("business_id = ?", userID).Find(&clients)
+	dbc(c).Where("business_id = ?", userID).Find(&clients)
 	c.HTML(http.StatusOK, "items.html", gin.H{
 		"Items": clients,
 		"Count": len(clients),
@@ -57,14 +56,14 @@ func CreateItem(c *gin.Context) {
 		Name:   name,
 		Status: models.StatusNew,
 	}
-	db.DB.Create(&client)
+	dbc(c).Create(&client)
 	ListItems(c)
 }
 
 func DeleteItem(c *gin.Context) {
 	userID := c.GetUint("business_id")
 	id := c.Param("id")
-	db.DB.Where("id = ? AND business_id = ?", id, userID).Delete(&models.Client{})
+	dbc(c).Where("id = ? AND business_id = ?", id, userID).Delete(&models.Client{})
 	ListItems(c)
 }
 

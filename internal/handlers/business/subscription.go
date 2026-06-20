@@ -10,6 +10,7 @@ import (
 	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/payment"
 	"salesmee/internal/services/subscription"
 
@@ -53,6 +54,7 @@ type SubscriptionPageData struct {
 	Role            string
 	IsSilverPlan    bool
 	ContentTemplate string
+	AssistEnabled   bool
 }
 
 type CheckoutPageData struct {
@@ -79,6 +81,7 @@ type CheckoutPageData struct {
 	Role                string
 	IsSilverPlan        bool
 	ContentTemplate     string
+	AssistEnabled       bool
 }
 
 type PlansPageData struct {
@@ -97,6 +100,7 @@ type PlansPageData struct {
 	Role                string
 	IsSilverPlan        bool
 	ContentTemplate     string
+	AssistEnabled       bool
 }
 
 type UpcomingInvoiceInfo struct {
@@ -115,7 +119,7 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "subscription.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
@@ -130,7 +134,7 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 		}
 		if checkoutPlanCode != "" {
 			var plan models.SubscriptionPlan
-			if err := h.db.Where("code = ? AND is_active = ?", checkoutPlanCode, true).First(&plan).Error; err == nil {
+			if err := h.dbc(c).Where("code = ? AND is_active = ?", checkoutPlanCode, true).First(&plan).Error; err == nil {
 				now := time.Now()
 				periodEnd := now.AddDate(0, 1, 0)
 				if checkoutInterval == "year" {
@@ -148,10 +152,10 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 				}
 
 				var existing models.BusinessSubscription
-				if err := h.db.Where("business_id = ?", businessID).First(&existing).Error; err != nil {
-					h.db.Create(&sub)
+				if err := h.dbc(c).Where("business_id = ?", businessID).First(&existing).Error; err != nil {
+					h.dbc(c).Create(&sub)
 				} else {
-					h.db.Model(&existing).Updates(map[string]interface{}{
+					h.dbc(c).Model(&existing).Updates(map[string]interface{}{
 						"plan_id":                plan.ID,
 						"status":                 "active",
 						"stripe_subscription_id": subscriptionID,
@@ -161,7 +165,7 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 					})
 				}
 
-				h.db.Model(&models.Business{}).Where("id = ?", businessID).Update("subscription_plan_id", plan.ID)
+				h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Update("subscription_plan_id", plan.ID)
 
 				c.Redirect(http.StatusFound, "/business/subscription")
 				return
@@ -170,7 +174,7 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 	}
 
 	var plans []models.SubscriptionPlan
-	h.db.Where("is_active = ?", true).Order("sort_order asc").Find(&plans)
+	h.dbc(c).Where("is_active = ?", true).Order("sort_order asc").Find(&plans)
 
 	usage := map[string]*subscription.LimitCheck{
 		"clients":       subscription.CheckResourceLimit(businessID, "client"),
@@ -180,14 +184,15 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 	}
 
 	data := SubscriptionPageData{
-		ActivePage:   "subscription",
-		Business:     business,
-		Subscription: business.Subscription,
-		Plans:        plans,
-		Usage:        usage,
-		AuthType:     c.GetString("auth_type"),
-		Role:         c.GetString("role"),
-		IsSilverPlan: subscription.IsSilverPlan(businessID),
+		ActivePage:     "subscription",
+		Business:       business,
+		Subscription:   business.Subscription,
+		Plans:          plans,
+		Usage:          usage,
+		AuthType:       c.GetString("auth_type"),
+		Role:           c.GetString("role"),
+		IsSilverPlan:   subscription.IsSilverPlan(businessID),
+		AssistEnabled:  assist.IsEnabled(),
 	}
 
 	if business.Subscription != nil {
@@ -258,30 +263,31 @@ func (h *SubscriptionHandler) GetPlansPage(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "subscription_plans.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
 
 	var plans []models.SubscriptionPlan
-	h.db.Where("is_active = ?", true).Order("sort_order asc").Find(&plans)
+	h.dbc(c).Where("is_active = ?", true).Order("sort_order asc").Find(&plans)
 
 	var current *models.SubscriptionPlan
 	if business.SubscriptionPlanID != nil {
 		var plan models.SubscriptionPlan
-		if err := h.db.First(&plan, *business.SubscriptionPlanID).Error; err == nil {
+		if err := h.dbc(c).First(&plan, *business.SubscriptionPlanID).Error; err == nil {
 			current = &plan
 		}
 	}
 
 	data := PlansPageData{
-		ActivePage:   "subscription",
-		Business:     business,
-		Plans:        plans,
-		Current:      current,
-		AuthType:     c.GetString("auth_type"),
-		Role:         c.GetString("role"),
-		IsSilverPlan: subscription.IsSilverPlan(businessID),
+		ActivePage:     "subscription",
+		Business:       business,
+		Plans:          plans,
+		Current:        current,
+		AuthType:       c.GetString("auth_type"),
+		Role:           c.GetString("role"),
+		IsSilverPlan:   subscription.IsSilverPlan(businessID),
+		AssistEnabled:  assist.IsEnabled(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -299,7 +305,7 @@ func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.Redirect(http.StatusFound, "/business/login")
 		return
 	}
@@ -308,7 +314,7 @@ func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 	billingInterval := c.DefaultQuery("interval", "month")
 
 	var plan models.SubscriptionPlan
-	if err := h.db.Where("code = ? AND is_active = ?", planCode, true).First(&plan).Error; err != nil {
+	if err := h.dbc(c).Where("code = ? AND is_active = ?", planCode, true).First(&plan).Error; err != nil {
 		c.Redirect(http.StatusFound, "/business/subscription#plans")
 		return
 	}
@@ -357,6 +363,7 @@ func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 		AuthType:          c.GetString("auth_type"),
 		Role:              c.GetString("role"),
 		IsSilverPlan:      subscription.IsSilverPlan(businessID),
+		AssistEnabled:     assist.IsEnabled(),
 	}
 
 	c.HTML(http.StatusOK, "checkout.html", data)
@@ -375,13 +382,13 @@ func (h *SubscriptionHandler) CreateCheckout(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
 
 	var plan models.SubscriptionPlan
-	if err := h.db.Where("code = ? AND is_active = ?", planCode, true).First(&plan).Error; err != nil {
+	if err := h.dbc(c).Where("code = ? AND is_active = ?", planCode, true).First(&plan).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Plan not found"})
 		return
 	}
@@ -470,13 +477,13 @@ func (h *SubscriptionHandler) ChangePlan(c *gin.Context) {
 	planCode := c.PostForm("plan_code")
 
 	var business models.Business
-	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
 
 	var target models.SubscriptionPlan
-	if err := h.db.Where("code = ? AND is_active = ?", planCode, true).First(&target).Error; err != nil {
+	if err := h.dbc(c).Where("code = ? AND is_active = ?", planCode, true).First(&target).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Plan not found"})
 		return
 	}
@@ -511,7 +518,7 @@ func (h *SubscriptionHandler) CancelSubscription(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -551,12 +558,12 @@ func (h *SubscriptionHandler) CancelSubscription(c *gin.Context) {
 	}
 
 	var silver models.SubscriptionPlan
-	if err := h.db.Where("code = ?", "silver").First(&silver).Error; err == nil {
-		h.db.Model(&business).Update("subscription_plan_id", silver.ID)
+	if err := h.dbc(c).Where("code = ?", "silver").First(&silver).Error; err == nil {
+		h.dbc(c).Model(&business).Update("subscription_plan_id", silver.ID)
 	}
 
 	now := time.Now()
-	h.db.Model(&models.BusinessSubscription{}).
+	h.dbc(c).Model(&models.BusinessSubscription{}).
 		Where("business_id = ?", businessID).
 		Updates(map[string]interface{}{
 			"canceled_at": &now,
@@ -570,7 +577,7 @@ func (h *SubscriptionHandler) BillingPortal(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.Preload("Subscription").First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).Preload("Subscription").First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -615,7 +622,7 @@ func (h *SubscriptionHandler) GetPlanBadge(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
 		c.String(http.StatusOK, "")
 		return
 	}
@@ -649,7 +656,7 @@ func (h *SubscriptionHandler) GetPlanBadgeSidebar(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).Preload("Subscription.Plan").First(&business, businessID).Error; err != nil {
 		c.String(http.StatusOK, "")
 		return
 	}

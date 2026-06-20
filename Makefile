@@ -19,6 +19,7 @@ run: build
 # Development with hot reload
 dev:
 	npm run css:build
+	node scripts/build-js.js
 	air
 
 # Clean build artifacts

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
@@ -17,12 +18,17 @@ import (
 	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 var wsHub *ws.Hub
 
 func SetWSHub(hub *ws.Hub) {
 	wsHub = hub
+}
+
+func dbc(c *gin.Context) *gorm.DB {
+	return db.DB.WithContext(c.Request.Context())
 }
 
 type MessageObj struct {
@@ -54,11 +60,11 @@ func DeleteMessage(c *gin.Context) {
 		// Booking card — set HiddenFromChat
 		bookingID := messageID - 20000
 		var booking models.Booking
-		if err := db.DB.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+		if err := dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 			return
 		}
-		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		dbc(c).Model(&booking).Update("hidden_from_chat", true)
 		if wsHub != nil {
 			ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(booking.ClientID)))
 		}
@@ -68,11 +74,11 @@ func DeleteMessage(c *gin.Context) {
 		// Order card — set HiddenFromChat
 		orderID := messageID - 10000
 		var order models.Order
-		if err := db.DB.Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+		if err := dbc(c).Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 			return
 		}
-		db.DB.Model(&order).Update("hidden_from_chat", true)
+		dbc(c).Model(&order).Update("hidden_from_chat", true)
 		if wsHub != nil {
 			ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(businessID)), strconv.Itoa(int(order.ClientID)))
 		}
@@ -81,7 +87,7 @@ func DeleteMessage(c *gin.Context) {
 	default:
 		// Regular message — hard delete, verify ownership via conversation
 		var msg models.Message
-		if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+		if err := dbc(c).Preload("Conversation").First(&msg, messageID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 			return
 		}
@@ -89,7 +95,7 @@ func DeleteMessage(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Unauthorized"})
 			return
 		}
-		db.DB.Delete(&msg)
+		dbc(c).Delete(&msg)
 		c.JSON(http.StatusOK, gin.H{"success": true, "type": "message", "id": messageID})
 	}
 }
@@ -99,7 +105,7 @@ func GetMessages(c *gin.Context) {
 	clientID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 
 	var business models.Business
-	db.DB.First(&business, businessID)
+	dbc(c).First(&business, businessID)
 	if err != nil {
 		log.Println("GetMessages: =>> Invalid customer ID")
 		c.String(http.StatusBadRequest, "Invalid customer ID")
@@ -108,7 +114,7 @@ func GetMessages(c *gin.Context) {
 
 	// Get conversation (implicitly verifies client+business relationship)
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+	if err := dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
 		log.Println("GetMessages: =>> Conversation not found", clientID, businessID)
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
@@ -116,7 +122,7 @@ func GetMessages(c *gin.Context) {
 
 	// Load client
 	var client models.Client
-	if err := db.DB.First(&client, clientID).Error; err != nil {
+	if err := dbc(c).First(&client, clientID).Error; err != nil {
 		c.String(http.StatusNotFound, "Customer not found")
 		return
 	}
@@ -126,24 +132,53 @@ func GetMessages(c *gin.Context) {
 
 	// Load conversation progress
 	var progress models.ConversationProgress
-	if err := db.DB.Where("conversation_id = ?", conversation.ID).First(&progress).Error; err != nil {
+	if err := dbc(c).Where("conversation_id = ?", conversation.ID).First(&progress).Error; err != nil {
 		// Create default progress if not exists
 		progress = models.ConversationProgress{
 			ConversationID: conversation.ID,
 			CurrentStage:   models.StageInitial,
 			ProgressScore:  10,
 		}
-		if err := db.DB.Create(&progress).Error; err != nil {
+		if err := dbc(c).Create(&progress).Error; err != nil {
 			log.Println("GetMessages: =>> Failed to Crete conversation progress", clientID, businessID)
 			c.String(http.StatusInternalServerError, "Failed to create conversation progress")
 			return
 		}
 	}
 
+	// Pagination params
+	before := c.Query("before")
+	limit := 50
+	if l := c.Query("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 200 {
+			limit = parsed
+		}
+	}
+
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
 	var messages []models.Message
-	db.DB.Where("conversation_id = ?", conversation.ID).Order("created_at ASC").Find(&messages)
+	msgQuery := dbc(c).Where("conversation_id = ?", conversation.ID).Order("created_at DESC")
+	if before != "" {
+		if beforeTime, err := time.Parse(time.RFC3339, before); err == nil {
+			msgQuery = msgQuery.Where("created_at < ?", beforeTime)
+		}
+	}
+	msgQuery.Limit(limit + 1).Find(&messages)
+
+	hasMore := len(messages) > limit
+	if hasMore {
+		messages = messages[:limit]
+	}
+	// Reverse to ASC for rendering
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
+	var olderCursor string
+	if hasMore && len(messages) > 0 {
+		olderCursor = messages[0].CreatedAt.Format(time.RFC3339Nano)
+	}
 
 	for _, msg := range messages {
 		isSelf := msg.Sender == "business"
@@ -169,10 +204,10 @@ func GetMessages(c *gin.Context) {
 
 	// Fetch orders
 	var orders []models.Order
-	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
+	dbc(c).Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
 	for _, order := range orders {
 		var orderItems []models.OrderItem
-		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
+		dbc(c).Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
 
 		var productNames []string
 		var firstProductName string
@@ -233,21 +268,21 @@ func GetMessages(c *gin.Context) {
 
 		// Get payment methods from business
 		var orderPaymentMethods []models.PaymentMethod
-		db.DB.Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
+		dbc(c).Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
 
 		var orderPendingAmt float64
-		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, models.OrderPending).
+		dbc(c).Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, models.OrderPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
 
 		var orderPayments []models.Payment
-		db.DB.Where("order_id = ?", order.ID).Order("created_at desc").Find(&orderPayments)
+		dbc(c).Where("order_id = ?", order.ID).Order("created_at desc").Find(&orderPayments)
 
 		var orderReview struct {
 			Rating int
 			Title  string
 		}
 		var orderHasReview bool
-		db.DB.Model(&models.Review{}).Where("order_id = ?", order.ID).Select("rating, title").Scan(&orderReview)
+		dbc(c).Model(&models.Review{}).Where("order_id = ?", order.ID).Select("rating, title").Scan(&orderReview)
 		if orderReview.Rating > 0 {
 			orderHasReview = true
 		}
@@ -297,17 +332,17 @@ func GetMessages(c *gin.Context) {
 
 	// Fetch bookings
 	var bookings []models.Booking
-	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
+	dbc(c).Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
 	for _, booking := range bookings {
 		var serviceName string
 		var serviceNames []string
 		var bookingItems []models.BookingItem
-		db.DB.Where("booking_id = ?", booking.ID).Find(&bookingItems)
+		dbc(c).Where("booking_id = ?", booking.ID).Find(&bookingItems)
 
 		var firstServiceID uint
 		for _, item := range bookingItems {
 			var service models.Service
-			if err := db.DB.First(&service, item.ServiceID).Error; err == nil {
+			if err := dbc(c).First(&service, item.ServiceID).Error; err == nil {
 				serviceName = service.Name
 				serviceNames = append(serviceNames, service.Name)
 				if firstServiceID == 0 {
@@ -323,14 +358,14 @@ func GetMessages(c *gin.Context) {
 
 		// Get payment methods from business
 		var bookingPaymentMethods []models.PaymentMethod
-		db.DB.Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
+		dbc(c).Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
 
 		var bookingPendingAmt float64
-		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, models.OrderPending).
+		dbc(c).Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, models.OrderPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
 		var bookingPayments []models.Payment
-		db.DB.Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&bookingPayments)
+		dbc(c).Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&bookingPayments)
 
 		var bookingActionRequired string
 		if booking.Status == models.OrderPending && booking.Sender == "client" {
@@ -346,7 +381,7 @@ func GetMessages(c *gin.Context) {
 			Title  string
 		}
 		var bookingHasReview bool
-		db.DB.Model(&models.Review{}).Where("booking_id = ?", booking.ID).Select("rating, title").Scan(&bookingReview)
+		dbc(c).Model(&models.Review{}).Where("booking_id = ?", booking.ID).Select("rating, title").Scan(&bookingReview)
 		if bookingReview.Rating > 0 {
 			bookingHasReview = true
 		}
@@ -392,16 +427,12 @@ func GetMessages(c *gin.Context) {
 	}
 
 	// Sort messageObjs by CreatedAt
-	for i := 0; i < len(messageObjs); i++ {
-		for j := i + 1; j < len(messageObjs); j++ {
-			if messageObjs[i].CreatedAt.After(messageObjs[j].CreatedAt) {
-				messageObjs[i], messageObjs[j] = messageObjs[j], messageObjs[i]
-			}
-		}
-	}
+	sort.Slice(messageObjs, func(i, j int) bool {
+		return messageObjs[i].CreatedAt.Before(messageObjs[j].CreatedAt)
+	})
 
 	var insight models.CustomerInsight
-	if err := db.DB.Where("conversation_id = ?", conversation.ID).First(&insight).Error; err != nil {
+	if err := dbc(c).Where("conversation_id = ?", conversation.ID).First(&insight).Error; err != nil {
 		insight = models.CustomerInsight{
 			ConversationID: conversation.ID,
 			Tier:           "bronze",
@@ -414,11 +445,13 @@ func GetMessages(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "business_chat.html", gin.H{
-		"Customer": client,
-		"Messages": messageObjs,
-		"Progress": progress,
-		"Business": business,
-		"Insight":  insight,
+		"Customer":   client,
+		"Messages":   messageObjs,
+		"Progress":   progress,
+		"Business":   business,
+		"Insight":    insight,
+		"HasMore":    hasMore,
+		"OlderCursor": olderCursor,
 	})
 }
 
@@ -432,14 +465,14 @@ func CreateMessage(c *gin.Context) {
 
 	// Get conversation (implicitly verifies client+business relationship)
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+	if err := dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
 
 	// Load client
 	var client models.Client
-	if err := db.DB.First(&client, clientID).Error; err != nil {
+	if err := dbc(c).First(&client, clientID).Error; err != nil {
 		c.String(http.StatusNotFound, "Customer not found")
 		return
 	}
@@ -502,7 +535,7 @@ func CreateMessage(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Create(&message).Error; err != nil {
+	if err := dbc(c).Create(&message).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create message")
 		return
 	}
@@ -527,17 +560,17 @@ func CreateMessage(c *gin.Context) {
 		)
 
 		var clientUnread int64
-		db.DB.Model(&models.Message{}).
+		dbc(c).Model(&models.Message{}).
 			Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conversation.ID, false).
 			Count(&clientUnread)
 
 		var bizUnread int64
-		db.DB.Model(&models.Message{}).
+		dbc(c).Model(&models.Message{}).
 			Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conversation.ID, false).
 			Count(&bizUnread)
 
 		var business models.Business
-		db.DB.First(&business, businessID)
+		dbc(c).First(&business, businessID)
 
 		bizCard := businessh.RenderBizSidebarCard(client, conversation.ID, message.Content, message.CreatedAt, int(bizUnread))
 		clientCard := clienth.RenderClientSidebarCard(business, conversation.ID, message.Content, message.CreatedAt, int(clientUnread))
@@ -569,13 +602,13 @@ func UpdateMessage(c *gin.Context) {
 	}
 
 	var message models.Message
-	if err := db.DB.First(&message, messageID).Error; err != nil {
+	if err := dbc(c).First(&message, messageID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		return
 	}
 
 	message.Content = request.Content
-	if err := db.DB.Save(&message).Error; err != nil {
+	if err := dbc(c).Save(&message).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update message"})
 		return
 	}
@@ -593,20 +626,20 @@ func MarkConversationAsRead(c *gin.Context) {
 
 	// Get conversation for broadcast
 	var conversation models.Conversation
-	if err := db.DB.Where("business_id = ? AND client_id = ?", businessID, clientID).First(&conversation).Error; err != nil {
+	if err := dbc(c).Where("business_id = ? AND client_id = ?", businessID, clientID).First(&conversation).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
 		return
 	}
 
 	// Update conversation's last read time
 	now := time.Now()
-	if err := db.DB.Model(&conversation).Update("last_read_by_business_at", &now).Error; err != nil {
+	if err := dbc(c).Model(&conversation).Update("last_read_by_business_at", &now).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark conversation as read"})
 		return
 	}
 
 	// Also mark all unread messages as read by business
-	if err := db.DB.Model(&models.Message{}).
+	if err := dbc(c).Model(&models.Message{}).
 		Where("conversation_id IN (SELECT id FROM conversations WHERE business_id = ? AND client_id = ?) AND sender = 'client' AND read_by_business = ?", businessID, clientID, false).
 		Updates(map[string]interface{}{
 			"read_by_business": true,
@@ -649,7 +682,7 @@ func MarkMessageAsRead(c *gin.Context) {
 	}
 
 	var msg models.Message
-	if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+	if err := dbc(c).Preload("Conversation").First(&msg, messageID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 		return
 	}
@@ -660,7 +693,7 @@ func MarkMessageAsRead(c *gin.Context) {
 	}
 
 	now := time.Now()
-	db.DB.Model(&msg).Updates(map[string]interface{}{
+	dbc(c).Model(&msg).Updates(map[string]interface{}{
 		"read_by_business": true,
 		"read_at":          &now,
 	})
@@ -689,14 +722,14 @@ func ClearChat(c *gin.Context) {
 	}
 
 	now := time.Now()
-	if err := db.DB.Model(&models.Message{}).
+	if err := dbc(c).Model(&models.Message{}).
 		Where("conversation_id IN (SELECT id FROM conversations WHERE business_id = ? AND client_id = ?)", businessID, clientID).
 		Delete(&models.Message{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear chat"})
 		return
 	}
 
-	db.DB.Model(&models.Conversation{}).
+	dbc(c).Model(&models.Conversation{}).
 		Where("business_id = ? AND client_id = ?", businessID, clientID).
 		Updates(map[string]interface{}{
 			"last_read_by_business_at": &now,
@@ -715,19 +748,19 @@ func MarkClientConversationAsRead(c *gin.Context) {
 
 	// Get conversation for broadcast
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+	if err := dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
 		return
 	}
 
 	now := time.Now()
-	if err := db.DB.Model(&conversation).Update("last_read_by_client_at", &now).Error; err != nil {
+	if err := dbc(c).Model(&conversation).Update("last_read_by_client_at", &now).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark conversation as read"})
 		return
 	}
 
 	// Also mark all unread business-sent messages as read by client
-	if err := db.DB.Model(&models.Message{}).
+	if err := dbc(c).Model(&models.Message{}).
 		Where("conversation_id IN (SELECT id FROM conversations WHERE client_id = ? AND business_id = ?) AND sender = 'business' AND read_by_client = ?", clientID, businessID, false).
 		Updates(map[string]interface{}{
 			"read_by_client":    true,

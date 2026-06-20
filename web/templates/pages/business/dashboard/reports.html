@@ -18,6 +18,7 @@
       hx-get="/business/reports/revenue?range=this_month"
       hx-target="#reportContent"
       hx-swap="innerHTML"
+      hx-indicator="#reportContent"
       id="tab-revenue">
       <i class="fas fa-chart-line mr-1.5"></i>Revenue
     </button>
@@ -26,6 +27,7 @@
       hx-get="/business/reports/sales?range=this_month"
       hx-target="#reportContent"
       hx-swap="innerHTML"
+      hx-indicator="#reportContent"
       id="tab-sales">
       <i class="fas fa-box mr-1.5"></i>Sales by Product
     </button>
@@ -34,6 +36,7 @@
       hx-get="/business/reports/clients?range=this_month"
       hx-target="#reportContent"
       hx-swap="innerHTML"
+      hx-indicator="#reportContent"
       id="tab-clients">
       <i class="fas fa-users mr-1.5"></i>Clients
     </button>
@@ -42,6 +45,7 @@
       hx-get="/business/reports/tax?range=this_year"
       hx-target="#reportContent"
       hx-swap="innerHTML"
+      hx-indicator="#reportContent"
       id="tab-tax">
       <i class="fas fa-file-invoice-dollar mr-1.5"></i>Tax Summary
     </button>
@@ -72,17 +76,29 @@
   </div>
 
   <!-- Report Content -->
-  <div id="reportContent">
-    <div class="text-center py-16 text-[var(--color-text-muted)]">
-      <i class="fas fa-chart-pie text-4xl mb-3"></i>
-      <p>Select a report tab to get started</p>
-    </div>
+  <div id="reportContent" class="relative"
+       hx-get="/business/reports/revenue?range=this_month"
+       hx-trigger="load once" hx-swap="innerHTML" hx-indicator="#reportContent">
+    {{template "skeleton_revenue_report" .}}
   </div>
 
 </div>
 
+<!-- Hidden skeleton templates for JS swaps -->
+<div id="skeleton-revenue-report" class="hidden">{{template "skeleton_revenue_report" .}}</div>
+<div id="skeleton-sales-report" class="hidden">{{template "skeleton_sales_report" .}}</div>
+<div id="skeleton-clients-report" class="hidden">{{template "skeleton_clients_report" .}}</div>
+<div id="skeleton-tax-report" class="hidden">{{template "skeleton_tax_report" .}}</div>
+
 <script>
   var currentReportTab = 'revenue';
+  var skeletonMap = {revenue: 'skeleton-revenue-report', sales: 'skeleton-sales-report', clients: 'skeleton-clients-report', tax: 'skeleton-tax-report'};
+
+  function showSkeletonReport(tab) {
+    var id = skeletonMap[tab] || 'skeleton-revenue-report';
+    var el = document.getElementById(id);
+    if (el) document.getElementById('reportContent').innerHTML = el.innerHTML;
+  }
 
   function switchReportTab(el, tab) {
     currentReportTab = tab;
@@ -94,6 +110,7 @@
     var customStart = document.getElementById('customStart').value;
     var customEnd = document.getElementById('customEnd').value;
     if (customStart && customEnd) {
+      showSkeletonReport(tab);
       htmx.ajax('GET', '/business/reports/' + tab + '?start=' + customStart + '&end=' + customEnd + '&page=1', {target: '#reportContent', swap: 'innerHTML'});
     }
   }
@@ -104,6 +121,7 @@
       p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]';
     });
     el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white';
+    showSkeletonReport(currentReportTab);
     htmx.ajax('GET', '/business/reports/' + currentReportTab + '?range=' + range + '&page=1', {target: '#reportContent', swap: 'innerHTML'});
     document.getElementById('customStart').value = '';
     document.getElementById('customEnd').value = '';
@@ -113,6 +131,7 @@
     var start = document.getElementById('customStart').value;
     var end = document.getElementById('customEnd').value;
     if (!start || !end) { showNotification('Please select both start and end dates', 'error'); return; }
+    showSkeletonReport(currentReportTab);
     htmx.ajax('GET', '/business/reports/' + currentReportTab + '?start=' + start + '&end=' + end + '&page=1', {target: '#reportContent', swap: 'innerHTML'});
     var pills = document.querySelectorAll('#rangePills button');
     pills.forEach(function(p) { p.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]'; });
@@ -121,10 +140,12 @@
   function loadTabWithRange(el, tab, range) {
     currentReportTab = tab;
     setActiveRangePill(el.parentElement ? el : el);
+    showSkeletonReport(tab);
     htmx.ajax('GET', '/business/reports/' + tab + '?range=' + range, {target: '#reportContent', swap: 'innerHTML'});
   }
 
   function loadReportPage(tab, page) {
+    showSkeletonReport(tab);
     var customStart = document.getElementById('customStart').value;
     var customEnd = document.getElementById('customEnd').value;
     if (customStart && customEnd) {

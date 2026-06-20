@@ -6,6 +6,7 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/services/progress"
 	"salesmee/internal/services/subscription"
@@ -47,7 +48,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	// Get or create client
 	var client models.Client
 	if request.ClientID > 0 {
-		if err := h.db.First(&client, request.ClientID).Error; err != nil {
+		if err := h.dbc(c).First(&client, request.ClientID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
 			return
 		}
@@ -73,7 +74,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 			Email:      request.CustomerEmail,
 			Phone:      request.CustomerPhone,
 		}
-		if err := h.db.Create(&client).Error; err != nil {
+		if err := h.dbc(c).Create(&client).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
 			return
 		}
@@ -81,7 +82,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 
 	// Create order in a transaction with row-level locking to prevent overselling
 	var order models.Order
-	err := h.db.Transaction(func(tx *gorm.DB) error {
+	err := h.dbc(c).Transaction(func(tx *gorm.DB) error {
 		var product models.Product
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			Where("id = ? AND business_id = ?", request.ProductID, businessID).
@@ -189,17 +190,17 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 				strconv.Itoa(int(client.ID)),
 			)
 			var clientUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
 				Count(&clientUnread)
 			var bizUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
 				Count(&bizUnread)
 			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
 
 			var biz models.Business
-			h.db.First(&biz, businessID)
+			h.dbc(c).First(&biz, businessID)
 			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, order.Notes, order.CreatedAt, int(bizUnread))
 			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, order.Notes, order.CreatedAt, int(clientUnread))
 			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
@@ -227,7 +228,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -253,7 +254,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	h.dbc(c).Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
@@ -274,15 +275,15 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 
 	// Total revenue for full date range
 	var totalRevenue float64
-	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+	h.dbc(c).Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	// Total count for pagination
 	var totalCount int64
-	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+	h.dbc(c).Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalCount)
 
 	// Paginated orders
 	var orders []models.Order
-	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
+	h.dbc(c).Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
 		Where(baseWhere, baseArgs...).
 		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'confirmed' THEN 2 WHEN status = 'draft' THEN 3 WHEN status IN ('fulfilled','completed') THEN 4 WHEN status = 'cancelled' THEN 5 ELSE 6 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
@@ -294,7 +295,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
@@ -341,6 +342,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 		"Range":                r,
 		"Countries":            data.Countries,
 		"Currencies":           data.Currencies,
+		"AssistEnabled":        assist.IsEnabled(),
 		"Onboarding":           onboardingData(h.db, businessID),
 		"Locations":            locations,
 		"AuthType":             c.GetString("auth_type"),
@@ -357,7 +359,7 @@ func (h *OrderHandler) GetOrdersStats(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -383,7 +385,7 @@ func (h *OrderHandler) GetOrdersStats(c *gin.Context) {
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	h.dbc(c).Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
@@ -404,15 +406,15 @@ func (h *OrderHandler) GetOrdersStats(c *gin.Context) {
 
 	// Total revenue for full date range
 	var totalRevenue float64
-	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+	h.dbc(c).Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	// Total count for pagination
 	var totalCount int64
-	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+	h.dbc(c).Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalCount)
 
 	// Paginated orders
 	var orders []models.Order
-	h.db.Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
+	h.dbc(c).Preload("Client").Preload("OrderItems").Preload("OrderItems.Product").
 		Where(baseWhere, baseArgs...).
 		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'confirmed' THEN 2 WHEN status = 'draft' THEN 3 WHEN status IN ('fulfilled','completed') THEN 4 WHEN status = 'cancelled' THEN 5 ELSE 6 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
@@ -424,7 +426,7 @@ func (h *OrderHandler) GetOrdersStats(c *gin.Context) {
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	c.HTML(http.StatusOK, "dashboard/orders_content", gin.H{
 		"Business":             currentBusiness,
@@ -456,7 +458,7 @@ func (h *OrderHandler) GetOrdersStatsGrid(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -471,7 +473,7 @@ func (h *OrderHandler) GetOrdersStatsGrid(c *gin.Context) {
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	h.dbc(c).Model(&models.Order{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var draftCount, pendingCount, clientConfirmedCount, confirmedCount, fulfilledCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
@@ -491,10 +493,10 @@ func (h *OrderHandler) GetOrdersStatsGrid(c *gin.Context) {
 	}
 
 	var totalOrders int64
-	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalOrders)
+	h.dbc(c).Model(&models.Order{}).Where(baseWhere, baseArgs...).Count(&totalOrders)
 
 	var totalRevenue float64
-	h.db.Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+	h.dbc(c).Model(&models.Order{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	c.HTML(http.StatusOK, "orders_stats_grid", gin.H{
 		"Business":             currentBusiness,
@@ -527,13 +529,13 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", id, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", id, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
 
 	order.Status = request.Status
-	if err := h.db.Save(&order).Error; err != nil {
+	if err := h.dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
 		return
 	}
@@ -541,7 +543,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	sendOrderNotif(h.db, h.hub, order, request.Status)
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -612,7 +614,7 @@ func (h *OrderHandler) ClientCreateOrder(c *gin.Context) {
 
 	// Get client by primary key
 	var client models.Client
-	if err := h.db.First(&client, clientID).Error; err != nil {
+	if err := h.dbc(c).First(&client, clientID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
 		return
 	}
@@ -624,7 +626,7 @@ func (h *OrderHandler) ClientCreateOrder(c *gin.Context) {
 
 	for _, item := range itemList {
 		var product models.Product
-		if err := h.db.First(&product, item.ProductID).Error; err != nil {
+		if err := h.dbc(c).First(&product, item.ProductID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Product %d not found", item.ProductID)})
 			return
 		}
@@ -655,7 +657,7 @@ func (h *OrderHandler) ClientCreateOrder(c *gin.Context) {
 		CreatedAt:   now,
 	}
 
-	if err := h.db.Create(&order).Error; err != nil {
+	if err := h.dbc(c).Create(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
 		return
 	}
@@ -663,13 +665,13 @@ func (h *OrderHandler) ClientCreateOrder(c *gin.Context) {
 	for i := range orderItems {
 		orderItems[i].OrderID = order.ID
 	}
-	if err := h.db.Create(&orderItems).Error; err != nil {
+	if err := h.dbc(c).Create(&orderItems).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order items"})
 		return
 	}
 
 	// Deduct stock in a transaction with row-level locking
-	if err := h.db.Transaction(func(tx *gorm.DB) error {
+	if err := h.dbc(c).Transaction(func(tx *gorm.DB) error {
 		for _, item := range itemList {
 			var product models.Product
 			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -714,17 +716,17 @@ func (h *OrderHandler) ClientCreateOrder(c *gin.Context) {
 				strconv.Itoa(int(client.ID)),
 			)
 			var bizUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
 				Count(&bizUnread)
 			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
 
 			var clientUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
 				Count(&clientUnread)
 			var biz models.Business
-			h.db.First(&biz, request.BusinessID)
+			h.dbc(c).First(&biz, request.BusinessID)
 			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", order.CreatedAt, int(bizUnread))
 			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, "", order.CreatedAt, int(clientUnread))
 			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
@@ -755,7 +757,7 @@ func (h *OrderHandler) UpdateOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("OrderItems").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("OrderItems").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -779,7 +781,7 @@ func (h *OrderHandler) UpdateOrder(c *gin.Context) {
 		return
 	}
 
-	err = h.db.Transaction(func(tx *gorm.DB) error {
+	err = h.dbc(c).Transaction(func(tx *gorm.DB) error {
 		// Restore stock from old items
 		for _, oldItem := range order.OrderItems {
 			var product models.Product
@@ -880,13 +882,13 @@ func (h *OrderHandler) GetConversationProducts(c *gin.Context) {
 	}
 
 	var conv models.Conversation
-	if err := h.db.First(&conv, convID).Error; err != nil {
+	if err := h.dbc(c).First(&conv, convID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
 		return
 	}
 
 	var products []models.Product
-	if err := h.db.Where("business_id = ? AND is_active = ?", conv.BusinessID, true).
+	if err := h.dbc(c).Where("business_id = ? AND is_active = ?", conv.BusinessID, true).
 		Order("name ASC").Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
 		return
@@ -906,13 +908,13 @@ func (h *OrderHandler) GetConversationServices(c *gin.Context) {
 	}
 
 	var conv models.Conversation
-	if err := h.db.First(&conv, convID).Error; err != nil {
+	if err := h.dbc(c).First(&conv, convID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Conversation not found"})
 		return
 	}
 
 	var services []models.Service
-	if err := h.db.Where("business_id = ? AND is_active = ?", conv.BusinessID, true).
+	if err := h.dbc(c).Where("business_id = ? AND is_active = ?", conv.BusinessID, true).
 		Order("name ASC").Find(&services).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch services"})
 		return
@@ -955,7 +957,7 @@ func (h *OrderHandler) CreateOrderDraft(c *gin.Context) {
 
 	// Get conversation to find client
 	var conversation models.Conversation
-	if err := h.db.First(&conversation, convID).Error; err != nil {
+	if err := h.dbc(c).First(&conversation, convID).Error; err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
@@ -971,7 +973,7 @@ func (h *OrderHandler) CreateOrderDraft(c *gin.Context) {
 	var firstProductName string
 	var productNames []string
 
-	err = h.db.Transaction(func(tx *gorm.DB) error {
+	err = h.dbc(c).Transaction(func(tx *gorm.DB) error {
 		var totalAmount float64
 		productNames = nil
 		firstProductName = ""
@@ -1079,7 +1081,7 @@ func (h *OrderHandler) CreateOrderDraft(c *gin.Context) {
 			strconv.Itoa(int(conversation.ClientID)),
 		)
 		var clientUnread int64
-		h.db.Model(&models.Message{}).
+		h.dbc(c).Model(&models.Message{}).
 			Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conversation.ID, false).
 			Count(&clientUnread)
 		ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conversation.ID)), int32(clientUnread), strconv.Itoa(int(conversation.ClientID)), "client")
@@ -1113,7 +1115,7 @@ func (h *OrderHandler) SendOrderToClient(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -1127,7 +1129,7 @@ func (h *OrderHandler) SendOrderToClient(c *gin.Context) {
 	order.Draft = false
 	now := time.Now()
 	order.UpdatedAt = now
-	if err := h.db.Save(&order).Error; err != nil {
+	if err := h.dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send order"})
 		return
 	}
@@ -1135,7 +1137,7 @@ func (h *OrderHandler) SendOrderToClient(c *gin.Context) {
 	sendOrderNotif(h.db, h.hub, order, models.OrderPending)
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -1169,7 +1171,7 @@ func (h *OrderHandler) ConfirmOrderBusiness(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -1184,7 +1186,7 @@ func (h *OrderHandler) ConfirmOrderBusiness(c *gin.Context) {
 	order.ConfirmedByBusinessAt = &now
 	order.Status = models.OrderConfirmed
 	order.UpdatedAt = now
-	if err := h.db.Save(&order).Error; err != nil {
+	if err := h.dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm order"})
 		return
 	}
@@ -1192,7 +1194,7 @@ func (h *OrderHandler) ConfirmOrderBusiness(c *gin.Context) {
 	sendOrderNotif(h.db, h.hub, order, models.OrderConfirmed)
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -1221,7 +1223,7 @@ func (h *OrderHandler) RejectOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -1233,7 +1235,7 @@ func (h *OrderHandler) RejectOrder(c *gin.Context) {
 
 	order.Status = models.OrderCancelled
 	order.UpdatedAt = time.Now()
-	if err := h.db.Save(&order).Error; err != nil {
+	if err := h.dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reject order"})
 		return
 	}
@@ -1241,7 +1243,7 @@ func (h *OrderHandler) RejectOrder(c *gin.Context) {
 	sendOrderNotif(h.db, h.hub, order, models.OrderCancelled)
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -1272,7 +1274,7 @@ func (h *OrderHandler) FulfillOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -1285,7 +1287,7 @@ func (h *OrderHandler) FulfillOrder(c *gin.Context) {
 	now := time.Now()
 	order.Status = models.OrderFulfilled
 	order.UpdatedAt = now
-	if err := h.db.Save(&order).Error; err != nil {
+	if err := h.dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fulfill order"})
 		return
 	}
@@ -1293,7 +1295,7 @@ func (h *OrderHandler) FulfillOrder(c *gin.Context) {
 	sendOrderNotif(h.db, h.hub, order, models.OrderCompleted)
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -1326,7 +1328,7 @@ func (h *OrderHandler) GetOrderReceipt(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := h.db.Preload("Client").Preload("OrderItems.Product").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Preload("OrderItems.Product").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Order not found"})
 		return
 	}
@@ -1354,7 +1356,7 @@ func (h *OrderHandler) MarkOrderAsPaid(c *gin.Context) {
 	orderID, _ := strconv.ParseUint(orderIDStr, 10, 32)
 
 	var order models.Order
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", orderID, businessID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -1366,13 +1368,13 @@ func (h *OrderHandler) MarkOrderAsPaid(c *gin.Context) {
 
 	order.PaidAmount = order.TotalAmount
 	order.UpdatedAt = time.Now()
-	if err := h.db.Save(&order).Error; err != nil {
+	if err := h.dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark order as paid"})
 		return
 	}
 
 	// Create a completed payment record
-	if err := h.db.Create(&models.Payment{
+	if err := h.dbc(c).Create(&models.Payment{
 		OrderID:   &order.ID,
 		ClientID:  order.ClientID,
 		Amount:    order.TotalAmount,
@@ -1388,7 +1390,7 @@ func (h *OrderHandler) MarkOrderAsPaid(c *gin.Context) {
 	sendOrderNotif(h.db, h.hub, order, "paid")
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", order.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 

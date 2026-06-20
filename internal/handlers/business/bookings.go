@@ -6,6 +6,7 @@ import (
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/services/progress"
 	"salesmee/internal/services/subscription"
@@ -39,14 +40,14 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 	}
 	// Get service details
 	var service models.Service
-	if err := h.db.First(&service, request.ServiceID).Error; err != nil {
+	if err := h.dbc(c).First(&service, request.ServiceID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
 		return
 	}
 
 	// Get client by primary key
 	var client models.Client
-	if err := h.db.First(&client, clientID).Error; err != nil {
+	if err := h.dbc(c).First(&client, clientID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
 		return
 	}
@@ -71,7 +72,7 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 		Notes:         request.Notes,
 	}
 
-	if err := h.db.Create(&booking).Error; err != nil {
+	if err := h.dbc(c).Create(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking!"})
 		return
 	}
@@ -85,7 +86,7 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 		TotalPrice: service.MaxPrice,
 	}
 
-	if err := h.db.Create(&bookingItem).Error; err != nil {
+	if err := h.dbc(c).Create(&bookingItem).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking item"})
 		return
 	}
@@ -109,7 +110,7 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 				strconv.Itoa(int(client.ID)),
 			)
 			var bizUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
 				Count(&bizUnread)
 			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(bizUnread), strconv.Itoa(int(request.BusinessID)), "biz")
@@ -118,7 +119,7 @@ func (h *BookingHandler) ClientCreateBooking(c *gin.Context) {
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
 
 			var biz models.Business
-			h.db.First(&biz, request.BusinessID)
+			h.dbc(c).First(&biz, request.BusinessID)
 			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", booking.CreatedAt, int(bizUnread))
 			clientCardSidebar := RenderClientSidebarCard(biz, conv.ID, "", booking.CreatedAt, 0)
 			ws.BroadcastConversationUpdate(h.hub, strconv.Itoa(int(conv.ID)), bizCardSidebar, clientCardSidebar, strconv.Itoa(int(request.BusinessID)), strconv.Itoa(int(client.ID)))
@@ -138,7 +139,7 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -164,7 +165,7 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	h.dbc(c).Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
@@ -181,15 +182,15 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 
 	// Total revenue for full date range
 	var totalRevenue float64
-	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+	h.dbc(c).Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	// Total count for pagination
 	var totalCount int64
-	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+	h.dbc(c).Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalCount)
 
 	// Paginated bookings
 	var bookings []models.Booking
-	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
+	h.dbc(c).Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
 		Where(baseWhere, baseArgs...).
 		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
@@ -201,7 +202,7 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
@@ -244,6 +245,7 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 		"Range":          r,
 		"Countries":      data.Countries,
 		"Currencies":     data.Currencies,
+		"AssistEnabled":  assist.IsEnabled(),
 		"Onboarding":     onboardingData(h.db, businessID),
 		"Locations":      locations,
 		"AuthType":       c.GetString("auth_type"),
@@ -260,7 +262,7 @@ func (h *BookingHandler) GetBookingsStats(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -285,7 +287,7 @@ func (h *BookingHandler) GetBookingsStats(c *gin.Context) {
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	h.dbc(c).Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
@@ -301,13 +303,13 @@ func (h *BookingHandler) GetBookingsStats(c *gin.Context) {
 	}
 
 	var totalRevenue float64
-	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+	h.dbc(c).Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	var totalCount int64
-	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalCount)
+	h.dbc(c).Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalCount)
 
 	var bookings []models.Booking
-	h.db.Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
+	h.dbc(c).Preload("Client").Preload("BookingItems").Preload("BookingItems.Service").
 		Where(baseWhere, baseArgs...).
 		Order(`CASE WHEN status = 'pending' THEN 0 WHEN status = 'client_confirmed' THEN 1 WHEN status = 'completed' THEN 2 WHEN status = 'cancelled' THEN 3 ELSE 4 END, created_at DESC`).
 		Limit(pageSize).Offset((page - 1) * pageSize).
@@ -319,7 +321,7 @@ func (h *BookingHandler) GetBookingsStats(c *gin.Context) {
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	c.HTML(http.StatusOK, "dashboard/bookings_content", gin.H{
 		"Business":       currentBusiness,
@@ -349,7 +351,7 @@ func (h *BookingHandler) GetBookingsStatsGrid(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -364,7 +366,7 @@ func (h *BookingHandler) GetBookingsStatsGrid(c *gin.Context) {
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
+	h.dbc(c).Model(&models.Booking{}).Select("status, COUNT(*) as count").Where(baseWhere, baseArgs...).Group("status").Scan(&statusCounts)
 	var pendingCount, confirmedCount, completedCount, cancelledCount int64
 	for _, sc := range statusCounts {
 		switch sc.Status {
@@ -380,10 +382,10 @@ func (h *BookingHandler) GetBookingsStatsGrid(c *gin.Context) {
 	}
 
 	var totalBookings int64
-	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalBookings)
+	h.dbc(c).Model(&models.Booking{}).Where(baseWhere, baseArgs...).Count(&totalBookings)
 
 	var totalRevenue float64
-	h.db.Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
+	h.dbc(c).Model(&models.Booking{}).Where(baseWhere, baseArgs...).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalRevenue)
 
 	c.HTML(http.StatusOK, "bookings_stats_grid", gin.H{
 		"Business":       currentBusiness,
@@ -410,7 +412,7 @@ func (h *BookingHandler) GetBooking(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -474,7 +476,7 @@ func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", id, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", id, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -509,7 +511,7 @@ func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
 	}
 
 	booking.Status = newStatus
-	if err := h.db.Save(&booking).Error; err != nil {
+	if err := h.dbc(c).Save(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update booking status"})
 		return
 	}
@@ -517,7 +519,7 @@ func (h *BookingHandler) UpdateBookingStatus(c *gin.Context) {
 	sendBookingNotif(h.db, h.hub, booking, newStatus)
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -544,7 +546,7 @@ func (h *BookingHandler) MarkBookingAsPaid(c *gin.Context) {
 	bookingID, _ := strconv.ParseUint(bookingIDStr, 10, 32)
 
 	var booking models.Booking
-	if err := h.db.Preload("Client").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -556,9 +558,9 @@ func (h *BookingHandler) MarkBookingAsPaid(c *gin.Context) {
 
 	booking.PaidAmount = booking.TotalAmount
 	booking.UpdatedAt = time.Now()
-	h.db.Save(&booking)
+	h.dbc(c).Save(&booking)
 
-	h.db.Create(&models.Payment{
+	h.dbc(c).Create(&models.Payment{
 		BookingID: &booking.ID,
 		ClientID:  booking.ClientID,
 		Amount:    booking.TotalAmount,
@@ -571,7 +573,7 @@ func (h *BookingHandler) MarkBookingAsPaid(c *gin.Context) {
 	sendBookingNotif(h.db, h.hub, booking, "paid")
 
 	var conv models.Conversation
-	if err := h.db.Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
+	if err := h.dbc(c).Where("client_id = ? AND business_id = ?", booking.ClientID, businessID).First(&conv).Error; err == nil {
 		progress.AutoCalculateProgress(conv.ID)
 	}
 
@@ -602,7 +604,7 @@ func (h *BookingHandler) GetBookingReceipt(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Preload("Client").Preload("BookingItems.Service").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Preload("Client").Preload("BookingItems.Service").Preload("Payments").Preload("Business").Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Booking not found"})
 		return
 	}
@@ -632,7 +634,7 @@ func (h *BookingHandler) UpdateBooking(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := h.db.Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", bookingID, businessID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -659,18 +661,18 @@ func (h *BookingHandler) UpdateBooking(c *gin.Context) {
 
 	if request.ServiceID > 0 {
 		var service models.Service
-		if err := h.db.First(&service, request.ServiceID).Error; err == nil {
+		if err := h.dbc(c).First(&service, request.ServiceID).Error; err == nil {
 			if len(booking.BookingItems) > 0 {
 				booking.BookingItems[0].ServiceID = request.ServiceID
 				booking.BookingItems[0].UnitPrice = service.MaxPrice
 				booking.BookingItems[0].TotalPrice = service.MaxPrice
-				h.db.Save(&booking.BookingItems[0])
+				h.dbc(c).Save(&booking.BookingItems[0])
 			}
 			booking.TotalAmount = service.MaxPrice
 		}
 	}
 
-	if err := h.db.Save(&booking).Error; err != nil {
+	if err := h.dbc(c).Save(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update booking"})
 		return
 	}
@@ -706,7 +708,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 
 	// Get service details
 	var service models.Service
-	if err := h.db.Where("id = ? AND business_id = ?", request.ServiceID, businessID).First(&service).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", request.ServiceID, businessID).First(&service).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
 		return
 	}
@@ -714,7 +716,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	// Get or create client
 	var client models.Client
 	if request.ClientID > 0 {
-		if err := h.db.First(&client, request.ClientID).Error; err != nil {
+		if err := h.dbc(c).First(&client, request.ClientID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find client"})
 			return
 		}
@@ -740,7 +742,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 			Email:      request.CustomerEmail,
 			Phone:      request.CustomerPhone,
 		}
-		if err := h.db.Create(&client).Error; err != nil {
+		if err := h.dbc(c).Create(&client).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
 			return
 		}
@@ -776,7 +778,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 		booking.PaidAmount = booking.TotalAmount
 	}
 
-	if err := h.db.Create(&booking).Error; err != nil {
+	if err := h.dbc(c).Create(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking"})
 		return
 	}
@@ -789,7 +791,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 		TotalPrice: service.MaxPrice,
 	}
 
-	if err := h.db.Create(&bookingItem).Error; err != nil {
+	if err := h.dbc(c).Create(&bookingItem).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking item"})
 		return
 	}
@@ -803,7 +805,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 			Status:    models.BookingCompleted,
 			Reference: "Walk-in counter payment",
 		}
-		h.db.Create(&payment)
+		h.dbc(c).Create(&payment)
 	}
 
 	// Send notification for new booking
@@ -829,7 +831,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 				strconv.Itoa(int(client.ID)),
 			)
 			var clientUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'business' AND read_by_client = ?", conv.ID, false).
 				Count(&clientUnread)
 			ws.BroadcastUnreadCount(h.hub, strconv.Itoa(int(conv.ID)), int32(clientUnread), strconv.Itoa(int(client.ID)), "client")
@@ -838,9 +840,9 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 			ws.BroadcastBookingUpdateFull(h.hub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
 
 			var biz models.Business
-			h.db.First(&biz, businessID)
+			h.dbc(c).First(&biz, businessID)
 			var bizUnread int64
-			h.db.Model(&models.Message{}).
+			h.dbc(c).Model(&models.Message{}).
 				Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conv.ID, false).
 				Count(&bizUnread)
 			bizCardSidebar := RenderBizSidebarCard(client, conv.ID, "", booking.CreatedAt, int(bizUnread))

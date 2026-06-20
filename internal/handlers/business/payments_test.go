@@ -62,9 +62,9 @@ func newPaymentTest(t *testing.T) *paymentTestFixture {
 	))
 
 	return &paymentTestFixture{
-		handler:        &PaymentHandler{db: d, hub: nil},
-		orderHandler:   &OrderHandler{db: d, hub: nil},
-		bookingHandler: &BookingHandler{db: d, hub: nil},
+		handler:        &PaymentHandler{dbProvider{db: d, hub: nil}},
+		orderHandler:   &OrderHandler{dbProvider{db: d, hub: nil}},
+		bookingHandler: &BookingHandler{dbProvider{db: d, hub: nil}},
 		db:             d,
 		biz:            biz,
 		client:         client,

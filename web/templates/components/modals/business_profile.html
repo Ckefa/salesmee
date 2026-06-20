@@ -30,7 +30,7 @@
             <div id="profileLogoPreview"
               class="w-20 h-20 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center overflow-hidden">
               {{if .Business.Logo}}
-              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-full h-full object-cover">
+              <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-full h-full object-cover" loading="lazy">
               {{else}}
               <i class="fas fa-store text-[var(--color-primary)] text-2xl"></i>
               {{end}}

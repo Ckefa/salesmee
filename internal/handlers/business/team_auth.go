@@ -15,7 +15,7 @@ func (h *TeamHandler) ShowTeamLogin(c *gin.Context) {
 	if token != "" {
 		if claims, err := services.ValidateToken(token); err == nil && claims != nil {
 			var member models.TeamMember
-			if h.db.First(&member, claims.UserID).Error == nil && member.IsActive {
+			if h.dbc(c).First(&member, claims.UserID).Error == nil && member.IsActive {
 				c.Redirect(http.StatusFound, "/business/dashboard")
 				return
 			}
@@ -40,7 +40,7 @@ func (h *TeamHandler) TeamLogin(c *gin.Context) {
 	}
 
 	var member models.TeamMember
-	if err := h.db.Where("email = ? AND is_active = ?", req.Email, true).First(&member).Error; err != nil {
+	if err := h.dbc(c).Where("email = ? AND is_active = ?", req.Email, true).First(&member).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
@@ -56,7 +56,7 @@ func (h *TeamHandler) TeamLogin(c *gin.Context) {
 	}
 
 	now := time.Now()
-	h.db.Model(&member).Update("last_login_at", &now)
+	h.dbc(c).Model(&member).Update("last_login_at", &now)
 
 	token, err := services.GenerateToken(member.ID, member.Email)
 	if err != nil {

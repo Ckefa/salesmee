@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -18,12 +19,17 @@ import (
 	"salesmee/internal/ws"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 var wsHub *ws.Hub
 
 func SetWSHub(hub *ws.Hub) {
 	wsHub = hub
+}
+
+func dbc(c *gin.Context) *gorm.DB {
+	return db.DB.WithContext(c.Request.Context())
 }
 
 func ShowClientLogin(c *gin.Context) {
@@ -54,7 +60,7 @@ func SendClientOTP(c *gin.Context) {
 
 	// Try to find existing client by email (any business)
 	var client models.Client
-	err := db.DB.Where("email = ?", email).First(&client).Error
+	err := dbc(c).Where("email = ?", email).First(&client).Error
 	if err != nil {
 		// Client not found — create standalone (no business association)
 		client = models.Client{
@@ -62,7 +68,7 @@ func SendClientOTP(c *gin.Context) {
 			Name:   email,
 			Status: models.StatusNew,
 		}
-		if err := db.DB.Create(&client).Error; err != nil {
+		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Login - SalesMee",
 				"Error": "Failed to create account",
@@ -112,11 +118,11 @@ func VerifyClientOTP(c *gin.Context) {
 	// Mark as verified
 	clientAuth.IsVerified = true
 	clientAuth.OTPCode = "" // Clear OTP after verification
-	db.DB.Save(&clientAuth)
+	dbc(c).Save(&clientAuth)
 
 	// Update client online status
 	now := time.Now()
-	db.DB.Model(&models.Client{}).Where("id = ?", clientAuth.ClientID).Updates(map[string]interface{}{
+	dbc(c).Model(&models.Client{}).Where("id = ?", clientAuth.ClientID).Updates(map[string]interface{}{
 		"is_online":    true,
 		"last_seen_at": &now,
 	})
@@ -182,7 +188,7 @@ func ClientDashboard(c *gin.Context) {
 		GROUP BY businesses.id, conversations.id
 		ORDER BY unread_count DESC, last_message_at DESC
 	`
-	if err := db.DB.Raw(query, clientID).Scan(&businesses).Error; err != nil {
+	if err := dbc(c).Raw(query, clientID).Scan(&businesses).Error; err != nil {
 		log.Printf("[ClientDashboard] ERROR running businesses query: %v", err)
 		c.HTML(http.StatusInternalServerError, "client.html", gin.H{
 			"Title":         "Client Dashboard - SalesMee",
@@ -198,10 +204,10 @@ func ClientDashboard(c *gin.Context) {
 
 	// Debug: check conversations table directly
 	var convCount int64
-	db.DB.Model(&models.Conversation{}).Where("client_id = ?", clientID).Count(&convCount)
+	dbc(c).Model(&models.Conversation{}).Where("client_id = ?", clientID).Count(&convCount)
 	log.Printf("[ClientDashboard] total conversations for clientID=%d: %d", clientID, convCount)
 	var allConvs []models.Conversation
-	db.DB.Where("client_id = ?", clientID).Find(&allConvs)
+	dbc(c).Where("client_id = ?", clientID).Find(&allConvs)
 	for _, c := range allConvs {
 		log.Printf("[ClientDashboard] conversation DB row: ID=%d, ClientID=%d, BusinessID=%d", c.ID, c.ClientID, c.BusinessID)
 	}
@@ -283,11 +289,39 @@ func GetClientMessages(c *gin.Context) {
 		return
 	}
 
+	// Pagination params
+	before := c.Query("before")
+	limit := 50
+	if l := c.Query("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 200 {
+			limit = parsed
+		}
+	}
+
 	// Get messages for this conversation
 	var messages []models.Message
-	if err := db.DB.Where("conversation_id = ?", conversation.ID).Order("created_at ASC").Find(&messages).Error; err != nil {
+	msgQuery := dbc(c).Where("conversation_id = ?", conversation.ID).Order("created_at DESC")
+	if before != "" {
+		if beforeTime, err := time.Parse(time.RFC3339, before); err == nil {
+			msgQuery = msgQuery.Where("created_at < ?", beforeTime)
+		}
+	}
+	if err := msgQuery.Limit(limit + 1).Find(&messages).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to load messages")
 		return
+	}
+	hasMore := len(messages) > limit
+	if hasMore {
+		messages = messages[:limit]
+	}
+	// Reverse to ASC for rendering
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
+	var olderCursor string
+	if hasMore && len(messages) > 0 {
+		olderCursor = messages[0].CreatedAt.Format(time.RFC3339Nano)
 	}
 
 	// Get business info (need currency for order/booking data)
@@ -298,7 +332,7 @@ func GetClientMessages(c *gin.Context) {
 		Logo         string `json:"logo"`
 		Currency     string `json:"currency"`
 	}
-	db.DB.Raw("SELECT id, name, business_type, logo, currency FROM businesses WHERE id = ?", businessID).First(&business)
+	dbc(c).Raw("SELECT id, name, business_type, logo, currency FROM businesses WHERE id = ?", businessID).First(&business)
 
 	// Convert messages to MessageObj
 	var messageObjs []MessageObj
@@ -326,10 +360,10 @@ func GetClientMessages(c *gin.Context) {
 
 	// Fetch orders
 	var orders []models.Order
-	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
+	dbc(c).Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&orders)
 	for _, order := range orders {
 		var orderItems []models.OrderItem
-		db.DB.Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
+		dbc(c).Where("order_id = ?", order.ID).Preload("Product").Find(&orderItems)
 
 		var productNames []string
 		var firstProductName string
@@ -390,17 +424,17 @@ func GetClientMessages(c *gin.Context) {
 		}
 
 		var orderPaymentMethods []models.PaymentMethod
-		db.DB.Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
+		dbc(c).Where("business_id = ? AND is_active = ?", order.BusinessID, true).Order("sort_order ASC, id ASC").Find(&orderPaymentMethods)
 
 		var orderPendingAmt float64
-		db.DB.Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, models.PaymentPending).
+		dbc(c).Model(&models.Payment{}).Where("order_id = ? AND status = ?", order.ID, models.PaymentPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&orderPendingAmt)
 
 		var orderPayments []models.Payment
-		db.DB.Where("order_id = ?", order.ID).Order("created_at desc").Find(&orderPayments)
+		dbc(c).Where("order_id = ?", order.ID).Order("created_at desc").Find(&orderPayments)
 
 		var orderHasReview int64
-		db.DB.Model(&models.Review{}).Where("order_id = ?", order.ID).Count(&orderHasReview)
+		dbc(c).Model(&models.Review{}).Where("order_id = ?", order.ID).Count(&orderHasReview)
 
 		orderData := map[string]interface{}{
 			"id":                   order.ID,
@@ -447,16 +481,16 @@ func GetClientMessages(c *gin.Context) {
 
 	// Fetch bookings
 	var bookings []models.Booking
-	db.DB.Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
+	dbc(c).Where("client_id = ? AND business_id = ? AND hidden_from_chat = ?", client.ID, businessID, false).Order("created_at ASC").Find(&bookings)
 	for _, booking := range bookings {
 		var bookingItems []models.BookingItem
-		db.DB.Where("booking_id = ?", booking.ID).Find(&bookingItems)
+		dbc(c).Where("booking_id = ?", booking.ID).Find(&bookingItems)
 
 		var serviceNames []string
 		var firstServiceID uint
 		for _, item := range bookingItems {
 			var service models.Service
-			db.DB.First(&service, item.ServiceID)
+			dbc(c).First(&service, item.ServiceID)
 			serviceNames = append(serviceNames, service.Name)
 			if firstServiceID == 0 {
 				firstServiceID = item.ServiceID
@@ -469,14 +503,14 @@ func GetClientMessages(c *gin.Context) {
 		}
 
 		var bookingPaymentMethods []models.PaymentMethod
-		db.DB.Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
+		dbc(c).Where("business_id = ? AND is_active = ?", booking.BusinessID, true).Order("sort_order ASC, id ASC").Find(&bookingPaymentMethods)
 
 		var bookingPendingAmt float64
-		db.DB.Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, models.PaymentPending).
+		dbc(c).Model(&models.Payment{}).Where("booking_id = ? AND status = ?", booking.ID, models.PaymentPending).
 			Select("COALESCE(SUM(amount), 0)").Scan(&bookingPendingAmt)
 
 		var bookingPayments []models.Payment
-		db.DB.Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&bookingPayments)
+		dbc(c).Where("booking_id = ?", booking.ID).Order("created_at desc").Find(&bookingPayments)
 
 		var bookingActionRequired string
 		if booking.Status == models.BookingPending && booking.Sender == "business" {
@@ -488,7 +522,7 @@ func GetClientMessages(c *gin.Context) {
 		}
 
 		var bookingHasReview int64
-		db.DB.Model(&models.Review{}).Where("booking_id = ?", booking.ID).Count(&bookingHasReview)
+		dbc(c).Model(&models.Review{}).Where("booking_id = ?", booking.ID).Count(&bookingHasReview)
 
 		bookingData := map[string]interface{}{
 			"id":                   booking.ID,
@@ -532,13 +566,9 @@ func GetClientMessages(c *gin.Context) {
 	}
 
 	// Sort all messageObjs by CreatedAt
-	for i := 0; i < len(messageObjs); i++ {
-		for j := i + 1; j < len(messageObjs); j++ {
-			if messageObjs[i].CreatedAt.After(messageObjs[j].CreatedAt) {
-				messageObjs[i], messageObjs[j] = messageObjs[j], messageObjs[i]
-			}
-		}
-	}
+	sort.Slice(messageObjs, func(i, j int) bool {
+		return messageObjs[i].CreatedAt.Before(messageObjs[j].CreatedAt)
+	})
 
 	c.HTML(http.StatusOK, "client_chat.html", gin.H{
 		"Business":       business,
@@ -546,6 +576,8 @@ func GetClientMessages(c *gin.Context) {
 		"ConversationID": conversation.ID,
 		"Messages":       messages,
 		"MessageObjs":    messageObjs,
+		"HasMore":        hasMore,
+		"OlderCursor":    olderCursor,
 	})
 }
 
@@ -598,7 +630,7 @@ func CreateClientMessage(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Create(&message).Error; err != nil {
+	if err := dbc(c).Create(&message).Error; err != nil {
 		log.Printf("Error creating message: %v", err)
 		c.String(http.StatusInternalServerError, "Failed to create message")
 		return
@@ -626,7 +658,7 @@ func CreateClientMessage(c *gin.Context) {
 		)
 
 		var bizUnread int64
-		db.DB.Model(&models.Message{}).
+		dbc(c).Model(&models.Message{}).
 			Where("conversation_id = ? AND sender = 'client' AND read_by_business = ?", conversation.ID, false).
 			Count(&bizUnread)
 		ws.BroadcastUnreadCount(wsHub, strconv.Itoa(int(conversation.ID)), int32(bizUnread), strconv.FormatUint(uint64(businessID), 10), "biz")
@@ -688,12 +720,12 @@ func ClientLogout(c *gin.Context) {
 		claims, err := services.ValidateToken(token)
 		if err == nil && claims.Subject == "client" {
 			// Update client offline status
-			db.DB.Model(&models.Client{}).Where("id = ?", claims.UserID).Update("is_online", false)
+			dbc(c).Model(&models.Client{}).Where("id = ?", claims.UserID).Update("is_online", false)
 
 			// Broadcast offline presence via WebSocket
 			if wsHub != nil {
 				var conversations []models.Conversation
-				db.DB.Where("client_id = ?", claims.UserID).Find(&conversations)
+				dbc(c).Where("client_id = ?", claims.UserID).Find(&conversations)
 				clientID := strconv.Itoa(int(claims.UserID))
 				now := time.Now().UnixMilli()
 				for _, conv := range conversations {
@@ -715,7 +747,7 @@ func ClientUpdateOrder(c *gin.Context) {
 	orderID := c.Param("id")
 
 	var order models.Order
-	if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -732,7 +764,7 @@ func ClientUpdateOrder(c *gin.Context) {
 
 	if c.GetHeader("Content-Type") == "application/json" {
 		if err := c.ShouldBindJSON(&jsonRequest); err == nil && len(jsonRequest.Items) > 0 {
-			tx := db.DB.Begin()
+			tx := dbc(c).Begin()
 
 			var oldItems []models.OrderItem
 			tx.Where("order_id = ?", order.ID).Find(&oldItems)
@@ -808,17 +840,17 @@ func ClientUpdateOrder(c *gin.Context) {
 	if quantityStr != "" {
 		if quantity, err := strconv.Atoi(quantityStr); err == nil && quantity > 0 {
 			var orderItem models.OrderItem
-			if err := db.DB.Where("order_id = ?", order.ID).First(&orderItem).Error; err == nil {
+			if err := dbc(c).Where("order_id = ?", order.ID).First(&orderItem).Error; err == nil {
 				order.TotalAmount = float64(quantity) * orderItem.UnitPrice
 				orderItem.Quantity = quantity
 				orderItem.TotalPrice = order.TotalAmount
-				db.DB.Save(&orderItem)
+				dbc(c).Save(&orderItem)
 			}
 			order.Quantity = quantity
 		}
 	}
 
-	db.DB.Save(&order)
+	dbc(c).Save(&order)
 	c.JSON(http.StatusOK, gin.H{"success": true, "order": order})
 }
 
@@ -834,7 +866,7 @@ func ClientConfirmOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -867,23 +899,23 @@ func ClientConfirmOrder(c *gin.Context) {
 		var totalAmount float64
 		for _, reqItem := range request.Items {
 			var orderItem models.OrderItem
-			if err := db.DB.Where("order_id = ? AND product_id = ?", order.ID, reqItem.ProductID).First(&orderItem).Error; err != nil {
+			if err := dbc(c).Where("order_id = ? AND product_id = ?", order.ID, reqItem.ProductID).First(&orderItem).Error; err != nil {
 				continue
 			}
 			oldQty := orderItem.Quantity
 			orderItem.Quantity = reqItem.Quantity
 			orderItem.TotalPrice = float64(reqItem.Quantity) * orderItem.UnitPrice
 			totalAmount += orderItem.TotalPrice
-			db.DB.Save(&orderItem)
+			dbc(c).Save(&orderItem)
 
 			// Adjust stock for quantity change
 			diff := oldQty - reqItem.Quantity
 			if diff != 0 {
 				var product models.Product
-				db.DB.First(&product, reqItem.ProductID)
+				dbc(c).First(&product, reqItem.ProductID)
 				product.Stock += diff
-				db.DB.Save(&product)
-				db.DB.Create(&models.InventoryLog{
+				dbc(c).Save(&product)
+				dbc(c).Create(&models.InventoryLog{
 					ProductID: product.ID,
 					Type: func() string {
 						if diff > 0 { return "in" } else { return "out" }
@@ -906,7 +938,7 @@ func ClientConfirmOrder(c *gin.Context) {
 	order.Status = models.OrderClientConfirmed
 	order.UpdatedAt = now
 
-	if err := db.DB.Save(&order).Error; err != nil {
+	if err := dbc(c).Save(&order).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm order"})
 		return
 	}
@@ -936,7 +968,7 @@ func ClientCancelOrder(c *gin.Context) {
 	}
 
 	var order models.Order
-	if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
@@ -953,16 +985,16 @@ func ClientCancelOrder(c *gin.Context) {
 
 	order.Status = models.OrderCancelled
 	order.UpdatedAt = time.Now()
-	db.DB.Save(&order)
+	dbc(c).Save(&order)
 
 	if wsHub != nil {
 		bizCardHTML := renderBizOrderCard(db.DB, order)
 		clientCardHTML := renderClientOrderCard(db.DB, order)
 		ws.BroadcastOrderUpdateFull(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 		var oCount, bCount, nCount int64
-		db.DB.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", order.BusinessID).Count(&oCount)
-		db.DB.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", order.BusinessID).Count(&bCount)
-		db.DB.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", order.BusinessID).Count(&nCount)
+		dbc(c).Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", order.BusinessID).Count(&oCount)
+		dbc(c).Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", order.BusinessID).Count(&bCount)
+		dbc(c).Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", order.BusinessID).Count(&nCount)
 		ws.BroadcastPendingCount(wsHub, strconv.Itoa(int(order.BusinessID)), int(oCount), int(bCount), int(nCount))
 	}
 
@@ -979,7 +1011,7 @@ func ClientUpdateBooking(c *gin.Context) {
 	bookingID := c.Param("id")
 
 	var booking models.Booking
-	if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -1001,19 +1033,19 @@ func ClientUpdateBooking(c *gin.Context) {
 			}
 			if req.ServiceID > 0 {
 				var bookingItems []models.BookingItem
-				db.DB.Where("booking_id = ?", booking.ID).Find(&bookingItems)
+				dbc(c).Where("booking_id = ?", booking.ID).Find(&bookingItems)
 				if len(bookingItems) > 0 {
 					var service models.Service
-					if err := db.DB.First(&service, req.ServiceID).Error; err == nil {
+					if err := dbc(c).First(&service, req.ServiceID).Error; err == nil {
 						bookingItems[0].ServiceID = req.ServiceID
 						bookingItems[0].UnitPrice = service.MaxPrice
 						bookingItems[0].TotalPrice = service.MaxPrice
-						db.DB.Save(&bookingItems[0])
+						dbc(c).Save(&bookingItems[0])
 						booking.TotalAmount = service.MaxPrice
 					}
 				}
 			}
-			db.DB.Save(&booking)
+			dbc(c).Save(&booking)
 			c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 			return
 		}
@@ -1032,7 +1064,7 @@ func ClientUpdateBooking(c *gin.Context) {
 		}
 	}
 
-	db.DB.Save(&booking)
+	dbc(c).Save(&booking)
 	c.JSON(http.StatusOK, gin.H{"success": true, "booking": booking})
 }
 
@@ -1048,7 +1080,7 @@ func ClientCancelBooking(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -1065,16 +1097,16 @@ func ClientCancelBooking(c *gin.Context) {
 
 	booking.Status = models.BookingCancelled
 	booking.UpdatedAt = time.Now()
-	db.DB.Save(&booking)
+	dbc(c).Save(&booking)
 
 	if wsHub != nil {
 		bizCardHTML := renderBizBookingCard(db.DB, booking)
 		clientCardHTML := renderClientBookingCard(db.DB, booking)
 		ws.BroadcastBookingUpdateFull(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, 0, false, 0, bizCardHTML, clientCardHTML, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 		var oCount, bCount, nCount int64
-		db.DB.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", booking.BusinessID).Count(&oCount)
-		db.DB.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", booking.BusinessID).Count(&bCount)
-		db.DB.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", booking.BusinessID).Count(&nCount)
+		dbc(c).Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", booking.BusinessID).Count(&oCount)
+		dbc(c).Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", booking.BusinessID).Count(&bCount)
+		dbc(c).Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", booking.BusinessID).Count(&nCount)
 		ws.BroadcastPendingCount(wsHub, strconv.Itoa(int(booking.BusinessID)), int(oCount), int(bCount), int(nCount))
 	}
 
@@ -1097,7 +1129,7 @@ func ClientConfirmBooking(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 		return
 	}
@@ -1114,7 +1146,7 @@ func ClientConfirmBooking(c *gin.Context) {
 
 	booking.Status = models.BookingClientConfirmed
 	booking.UpdatedAt = time.Now()
-	db.DB.Save(&booking)
+	dbc(c).Save(&booking)
 
 	if wsHub != nil {
 		bizCardHTML := renderBizBookingCard(db.DB, booking)
@@ -1142,11 +1174,11 @@ func DeleteClientMessage(c *gin.Context) {
 	case messageID >= 20000:
 		bookingID := messageID - 20000
 		var booking models.Booking
-		if err := db.DB.Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
+		if err := dbc(c).Where("id = ? AND client_id = ?", bookingID, clientID).First(&booking).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
 			return
 		}
-		db.DB.Model(&booking).Update("hidden_from_chat", true)
+		dbc(c).Model(&booking).Update("hidden_from_chat", true)
 		if wsHub != nil {
 			ws.BroadcastBookingUpdate(wsHub, strconv.Itoa(int(booking.ID)), booking.Status, booking.PaidAmount, booking.TotalAmount, strconv.Itoa(int(booking.BusinessID)), strconv.Itoa(int(booking.ClientID)))
 		}
@@ -1155,11 +1187,11 @@ func DeleteClientMessage(c *gin.Context) {
 	case messageID >= 10000:
 		orderID := messageID - 10000
 		var order models.Order
-		if err := db.DB.Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
+		if err := dbc(c).Where("id = ? AND client_id = ?", orderID, clientID).First(&order).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 			return
 		}
-		db.DB.Model(&order).Update("hidden_from_chat", true)
+		dbc(c).Model(&order).Update("hidden_from_chat", true)
 		if wsHub != nil {
 			ws.BroadcastOrderUpdate(wsHub, strconv.Itoa(int(order.ID)), order.Status, order.PaidAmount, order.TotalAmount, strconv.Itoa(int(order.BusinessID)), strconv.Itoa(int(order.ClientID)))
 		}
@@ -1167,7 +1199,7 @@ func DeleteClientMessage(c *gin.Context) {
 
 	default:
 		var msg models.Message
-		if err := db.DB.Preload("Conversation").First(&msg, messageID).Error; err != nil {
+		if err := dbc(c).Preload("Conversation").First(&msg, messageID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
 			return
 		}
@@ -1175,7 +1207,7 @@ func DeleteClientMessage(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Unauthorized"})
 			return
 		}
-		db.DB.Delete(&msg)
+		dbc(c).Delete(&msg)
 		c.JSON(http.StatusOK, gin.H{"success": true, "type": "message", "id": messageID})
 	}
 }

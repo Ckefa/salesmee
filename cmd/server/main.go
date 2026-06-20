@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,10 +22,40 @@ import (
 	"salesmee/internal/ws"
 	"time"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
+
+// staticCacheMiddleware sets Cache-Control headers on static files.
+// Versioned assets (JS, CSS, fonts, images) get immutable long-term caching.
+// Uploads get shorter TTL. Service worker gets no-cache.
+func staticCacheMiddleware() gin.HandlerFunc {
+	immutableExts := map[string]bool{
+		".js": true, ".css": true, ".woff2": true, ".woff": true,
+		".ttf": true, ".png": true, ".jpg": true, ".jpeg": true,
+		".svg": true, ".ico": true, ".webp": true, ".gif": true,
+	}
+	return func(c *gin.Context) {
+		if !strings.HasPrefix(c.Request.URL.Path, "/static/") {
+			c.Next()
+			return
+		}
+		if c.Request.URL.Path == "/static/service-worker.js" {
+			c.Header("Cache-Control", "no-cache")
+			c.Next()
+			return
+		}
+		ext := filepath.Ext(c.Request.URL.Path)
+		if immutableExts[ext] {
+			c.Header("Cache-Control", "public, max-age=31536000, immutable")
+		} else {
+			c.Header("Cache-Control", "public, max-age=86400")
+		}
+		c.Next()
+	}
+}
 
 func main() {
 	godotenv.Load()
@@ -137,6 +168,8 @@ func main() {
 	r.Use(middleware.SecurityHeadersMiddleware())
 	// Rate limiting (before CSRF so blocked requests don't need tokens)
 	r.Use(middleware.RateLimitGlobal())
+	// Compression (gzip)
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	// Apply CSRF protection globally
 	r.Use(middleware.CSRFMiddleware())
 	// Collect template files
@@ -237,12 +270,17 @@ func main() {
 	business.SetTemplate(tmpl)
 	client.SetTemplate(tmpl)
 
-	// Get Static Path
-	r.Static("/static", "./web/static")
+	// Static files with Cache-Control headers
+	r.GET("/static/*filepath", staticCacheMiddleware(), func(c *gin.Context) {
+		filepath := c.Param("filepath")
+		c.File("./web/static/" + filepath)
+	})
 	r.GET("/favicon.ico", func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
 		c.File("./web/static/images/salesmee.ico")
 	})
 	r.GET("/service-worker.js", func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache")
 		c.File("./web/static/service-worker.js")
 	})
 	r.GET("/.well-known/apple-developer-merchantid-domain-association", func(c *gin.Context) {
@@ -261,8 +299,17 @@ func main() {
 	// Start background notification scheduler
 	notifier.StartNotificationScheduler(db.DB)
 
+	srv := &http.Server{
+		Addr:         ":" + config.C.AppPort,
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 	log.Println("🚀 Running on :" + config.C.AppPort)
-	r.Run(":" + config.C.AppPort)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Server error: %v", err)
+	}
 }
 
 func seedSubscriptionPlans(d *gorm.DB) {

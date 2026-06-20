@@ -4,6 +4,7 @@ import (
 	"net/http"
 	dataPkg "salesmee/internal/data"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/subscription"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -37,13 +38,13 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 		planName := subscription.PlanDisplayName(businessID)
 		isSilver := subscription.IsSilverPlan(businessID)
 		var pCount, sCount int64
-		h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&pCount)
-		h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&sCount)
+		h.dbc(c).Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&pCount)
+		h.dbc(c).Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&sCount)
 
 		var pendingOrders int64
 		var pendingBookings int64
-		h.db.Model(&models.Order{}).Where("business_id = ? AND status IN ?", businessID, []string{"pending", "client_confirmed", "confirmed"}).Count(&pendingOrders)
-		h.db.Model(&models.Booking{}).Where("business_id = ? AND status IN ?", businessID, []string{"pending", "client_confirmed"}).Count(&pendingBookings)
+		h.dbc(c).Model(&models.Order{}).Where("business_id = ? AND status IN ?", businessID, []string{"pending", "client_confirmed", "confirmed"}).Count(&pendingOrders)
+		h.dbc(c).Model(&models.Booking{}).Where("business_id = ? AND status IN ?", businessID, []string{"pending", "client_confirmed"}).Count(&pendingBookings)
 
 		if c.GetHeader("HX-Request") == "true" {
 			c.HTML(http.StatusOK, "components/upgrade_prompt", gin.H{
@@ -65,12 +66,13 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 			"PendingOrderCount":   int(pendingOrders),
 			"PendingBookingCount": int(pendingBookings),
 			"Onboarding":          onboardingData(h.db, businessID),
-			"UpgradeRequired":     true,
+			"AssistEnabled":      assist.IsEnabled(),
+			"UpgradeRequired":    true,
 		})
 		return
 	}
 
-	data := h.computeAnalyticsData(businessID, "this_month")
+	data := h.computeAnalyticsData(c, businessID, "this_month")
 
 	// HX-Request: Return only content partial
 	if htmxRequest := c.GetHeader("HX-Request"); htmxRequest != "" {
@@ -126,6 +128,7 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 		"Onboarding":        onboardingData(h.db, businessID),
 		"AuthType":          c.GetString("auth_type"),
 		"Role":              c.GetString("role"),
+		"AssistEnabled":     assist.IsEnabled(),
 	})
 }
 
@@ -140,7 +143,7 @@ type analyticsData struct {
 	ReviewCount int
 }
 
-func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string) analyticsData {
+func (h *AnalyticsHandler) computeAnalyticsData(c *gin.Context, businessID uint, rangeKey string) analyticsData {
 	startTime, endTime, _ := timeRangeBounds(rangeKey)
 
 	var d analyticsData
@@ -150,7 +153,7 @@ func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Order{}).
+	h.dbc(c).Model(&models.Order{}).
 		Select("status, COUNT(*) as count").
 		Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).
 		Group("status").
@@ -174,7 +177,7 @@ func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string
 		Status string
 		Count  int64
 	}
-	h.db.Model(&models.Booking{}).
+	h.dbc(c).Model(&models.Booking{}).
 		Select("status, COUNT(*) as count").
 		Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).
 		Group("status").
@@ -194,12 +197,12 @@ func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string
 	}
 
 	// Revenue sums
-	h.db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, startTime, endTime).Scan(&d.OrdersRevenue)
-	h.db.Raw("SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, startTime, endTime).Scan(&d.BookingsRevenue)
+	h.dbc(c).Raw("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, startTime, endTime).Scan(&d.OrdersRevenue)
+	h.dbc(c).Raw("SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, startTime, endTime).Scan(&d.BookingsRevenue)
 	d.TotalRevenue = d.OrdersRevenue + d.BookingsRevenue
 
 	// Top products
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT p.name, SUM(oi.total_price) as revenue, SUM(oi.quantity) as count
 		FROM order_items oi
 		JOIN products p ON p.id = oi.product_id
@@ -212,7 +215,7 @@ func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string
 
 	// Active clients
 	var tmp int64
-	h.db.Model(&models.Conversation{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Count(&tmp)
+	h.dbc(c).Model(&models.Conversation{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Count(&tmp)
 	d.ActiveClients = int(tmp)
 
 	// Review stats (1 query instead of 2)
@@ -220,7 +223,7 @@ func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string
 		AvgRating   float64
 		ReviewCount int64
 	}
-	h.db.Model(&models.Review{}).
+	h.dbc(c).Model(&models.Review{}).
 		Where("business_id = ?", businessID).
 		Select("COALESCE(AVG(rating), 0) as avg_rating, COUNT(*) as review_count").
 		Scan(&rs)
@@ -233,7 +236,7 @@ func (h *AnalyticsHandler) computeAnalyticsData(businessID uint, rangeKey string
 		Revenue float64
 	}
 	var monthly []monthRow
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT TO_CHAR(date_trunc('month', created_at), 'YYYY-MM') as month,
 		       SUM(total_amount) as revenue
 		FROM (
@@ -265,7 +268,7 @@ func (h *AnalyticsHandler) GetAnalyticsStats(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -281,7 +284,7 @@ func (h *AnalyticsHandler) GetAnalyticsStats(c *gin.Context) {
 	}
 
 	r := c.DefaultQuery("range", "this_month")
-	data := h.computeAnalyticsData(businessID, r)
+	data := h.computeAnalyticsData(c, businessID, r)
 
 	c.HTML(http.StatusOK, "dashboard/analytics_content", gin.H{
 		"Business":          currentBusiness,
@@ -315,7 +318,7 @@ func (h *AnalyticsHandler) GetAnalyticsStatsGrid(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -331,7 +334,7 @@ func (h *AnalyticsHandler) GetAnalyticsStatsGrid(c *gin.Context) {
 	}
 
 	r := c.DefaultQuery("range", "this_month")
-	data := h.computeAnalyticsData(businessID, r)
+	data := h.computeAnalyticsData(c, businessID, r)
 
 	c.HTML(http.StatusOK, "analytics_stats_grid", gin.H{
 		"Business":          currentBusiness,

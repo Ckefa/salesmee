@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -26,24 +27,25 @@ func (h *TeamHandler) GetTeam(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
 
 	var members []models.TeamMember
-	h.db.Where("business_id = ?", businessID).Preload("Locations").Order("created_at DESC").Find(&members)
+	h.dbc(c).Where("business_id = ?", businessID).Preload("Locations").Order("created_at DESC").Find(&members)
 
 	var locations []models.Location
-	h.db.Where("business_id = ? AND is_active = ?", businessID, true).Order("name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ? AND is_active = ?", businessID, true).Order("name ASC").Find(&locations)
 
 	data := gin.H{
-		"Business":   business,
-		"Members":    members,
-		"Locations":  locations,
-		"ActivePage": "team",
-		"AuthType":   c.GetString("auth_type"),
-		"Role":       c.GetString("role"),
+		"Business":      business,
+		"Members":       members,
+		"Locations":     locations,
+		"ActivePage":    "team",
+		"AuthType":      c.GetString("auth_type"),
+		"Role":          c.GetString("role"),
+		"AssistEnabled": assist.IsEnabled(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -78,7 +80,7 @@ func (h *TeamHandler) InviteTeamMember(c *gin.Context) {
 	}
 
 	var existing models.TeamMember
-	if h.db.Where("business_id = ? AND email = ?", businessID, req.Email).First(&existing).Error == nil {
+	if h.dbc(c).Where("business_id = ? AND email = ?", businessID, req.Email).First(&existing).Error == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "A team member with this email already exists"})
 		return
 	}
@@ -107,15 +109,15 @@ func (h *TeamHandler) InviteTeamMember(c *gin.Context) {
 		IsActive:    true,
 	}
 
-	if err := h.db.Create(&member).Error; err != nil {
+	if err := h.dbc(c).Create(&member).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create team member"})
 		return
 	}
 
 	if len(req.Locations) > 0 {
 		var locs []models.Location
-		h.db.Where("id IN ? AND business_id = ?", req.Locations, businessID).Find(&locs)
-		h.db.Model(&member).Association("Locations").Append(locs)
+		h.dbc(c).Where("id IN ? AND business_id = ?", req.Locations, businessID).Find(&locs)
+		h.dbc(c).Model(&member).Association("Locations").Append(locs)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "invite_token": token})
@@ -126,7 +128,7 @@ func (h *TeamHandler) UpdateTeamMember(c *gin.Context) {
 	memberID := c.Param("id")
 
 	var member models.TeamMember
-	if err := h.db.Where("id = ? AND business_id = ?", memberID, businessID).First(&member).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", memberID, businessID).First(&member).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Team member not found"})
 		return
 	}
@@ -162,7 +164,7 @@ func (h *TeamHandler) UpdateTeamMember(c *gin.Context) {
 	}
 
 	if len(updates) > 0 {
-		if err := h.db.Model(&member).Updates(updates).Error; err != nil {
+		if err := h.dbc(c).Model(&member).Updates(updates).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update team member"})
 			return
 		}
@@ -170,8 +172,8 @@ func (h *TeamHandler) UpdateTeamMember(c *gin.Context) {
 
 	if req.Locations != nil {
 		var locs []models.Location
-		h.db.Where("id IN ? AND business_id = ?", req.Locations, businessID).Find(&locs)
-		h.db.Model(&member).Association("Locations").Replace(locs)
+		h.dbc(c).Where("id IN ? AND business_id = ?", req.Locations, businessID).Find(&locs)
+		h.dbc(c).Model(&member).Association("Locations").Replace(locs)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
@@ -182,12 +184,12 @@ func (h *TeamHandler) DeleteTeamMember(c *gin.Context) {
 	memberID := c.Param("id")
 
 	var member models.TeamMember
-	if err := h.db.Where("id = ? AND business_id = ?", memberID, businessID).First(&member).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", memberID, businessID).First(&member).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Team member not found"})
 		return
 	}
 
-	if err := h.db.Delete(&member).Error; err != nil {
+	if err := h.dbc(c).Delete(&member).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete team member"})
 		return
 	}
@@ -203,13 +205,13 @@ func (h *TeamHandler) ShowAcceptInvite(c *gin.Context) {
 	}
 
 	var member models.TeamMember
-	if err := h.db.Where("invite_token = ?", token).First(&member).Error; err != nil {
+	if err := h.dbc(c).Where("invite_token = ?", token).First(&member).Error; err != nil {
 		c.HTML(http.StatusBadRequest, "team_accept.html", gin.H{"Error": "Invalid or expired invite token"})
 		return
 	}
 
 	var business models.Business
-	h.db.First(&business, member.BusinessID)
+	h.dbc(c).First(&business, member.BusinessID)
 
 	c.HTML(http.StatusOK, "team_accept.html", gin.H{
 		"Token":    token,
@@ -244,7 +246,7 @@ func (h *TeamHandler) AcceptInvite(c *gin.Context) {
 	}
 
 	var member models.TeamMember
-	if err := h.db.Where("invite_token = ?", req.Token).First(&member).Error; err != nil {
+	if err := h.dbc(c).Where("invite_token = ?", req.Token).First(&member).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired invite token"})
 		return
 	}
@@ -255,7 +257,7 @@ func (h *TeamHandler) AcceptInvite(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Model(&member).Updates(map[string]interface{}{
+	if err := h.dbc(c).Model(&member).Updates(map[string]interface{}{
 		"password":     string(hashed),
 		"invite_token": nil,
 	}).Error; err != nil {

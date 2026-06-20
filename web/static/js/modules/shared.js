@@ -2,6 +2,7 @@
   'use strict';
 
   var toastCounter = 0;
+  var MAX_VISIBLE_TOASTS = 5;
 
   window.escapeHtml = function escapeHtml(str) {
     if (str == null) return '';
@@ -86,6 +87,32 @@
       '<div class="toast-progress" style="width:100%"></div>';
 
     playNotificationSound();
+
+    // Pooling: dedup by message content
+    var existing = container.querySelectorAll('.toast-message');
+    for (var i = 0; i < existing.length; i++) {
+      if (existing[i].textContent === message) {
+        // Refresh its timer instead of duplicating
+        var parent = existing[i].closest('.toast');
+        if (parent) {
+          if (parent.classList.contains('toast-removing')) {
+            parent.classList.remove('toast-removing');
+          }
+          clearTimeout(parent._toastTimer);
+          parent._toastTimer = setTimeout(function() { removeToast(parent.id); }, 3200);
+          var prog = parent.querySelector('.toast-progress');
+          if (prog) { prog.style.transition = 'none'; prog.style.width = '100%'; requestAnimationFrame(function() { prog.style.transition = 'width 3s linear'; prog.style.width = '0%'; }); }
+          return;
+        }
+      }
+    }
+
+    // Evict oldest if over limit
+    while (container.children.length >= MAX_VISIBLE_TOASTS) {
+      var oldest = container.children[0];
+      if (oldest && oldest.id) removeToast(oldest.id);
+    }
+
     container.appendChild(toast);
     requestAnimationFrame(function() {
       var progress = toast.querySelector('.toast-progress');
@@ -95,7 +122,7 @@
       }
     });
 
-    setTimeout(function() {
+    toast._toastTimer = setTimeout(function() {
       removeToast(id);
     }, 3200);
   }

@@ -1,5 +1,5 @@
 const CACHE = 'salesmee-v1';
-const STATIC_CACHE = 'salesmee-static-v1';
+const STATIC_CACHE = 'salesmee-static-v2';
 const OFFLINE_URL = '/static/pwa/offline.html';
 
 const PRECACHE_URLS = [
@@ -9,11 +9,27 @@ const PRECACHE_URLS = [
   '/static/images/apple-touch-icon.png',
   '/static/images/salesmee.ico',
   '/static/images/salesmeebrand.png',
+  '/static/images/chatbg.svg?v=1',
+  '/static/css/dist/styles.css?v=1',
+  '/static/fontawesome/css/all.min.css?v=1',
+  '/static/fontawesome/webfonts/fa-solid-900.woff2',
+  '/static/fontawesome/webfonts/fa-regular-400.woff2',
+  '/static/fontawesome/webfonts/fa-brands-400.woff2',
+  '/static/fonts/inter.css?v=1',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7W0Q5n-wU.woff2',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2pL7W0Q5n-wU.woff2',
+  '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2ZL7W0Q5n-wU.woff2',
+  '/static/js/bundles/business-bundle.js?v=1',
+  '/static/js/bundles/client-bundle.js?v=1',
 ];
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open(CACHE).then(function(cache) {
+    caches.open(STATIC_CACHE).then(function(cache) {
       return cache.addAll(PRECACHE_URLS);
     }).then(function() {
       return self.skipWaiting();

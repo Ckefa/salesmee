@@ -26,17 +26,17 @@
 
     <!-- Date Range Filter Pills -->
     <div class="flex flex-wrap gap-2 mb-6" id="stats-filter-pills">
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="morph" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-primary)] text-white">This Month</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="morph" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Month</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_3_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_3_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="morph" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 3M</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_6_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_6_months{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="morph" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last 6M</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=this_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="morph" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Year to Date</button>
-      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="outerHTML" hx-indicator="#stats-container"
+      <button onclick="setActivePill(this)" hx-get="/business/dashboard/stats?range=last_year{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}" hx-target="#stats-grid" hx-swap="morph" hx-indicator="#stats-container"
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]">Last Year</button>
       <select id="dashboardLocationFilter" onchange="onLocationFilterChange(this)" class="input text-xs ml-auto">
         <option value="">All Locations</option>
@@ -46,8 +46,12 @@
       </select>
     </div>
 
-    <div id="stats-container" class="relative">
-      {{template "dashboard_stats" .}}
+    <div id="stats-container" class="relative" hx-ext="morph">
+      <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+           hx-get="/business/dashboard/stats?range=this_month{{if .QueryLocationID}}&amp;location_id={{.QueryLocationID}}{{end}}"
+           hx-trigger="load" hx-swap="morph" hx-indicator="#stats-container">
+        {{template "skeleton_dashboard_stats" .}}
+      </div>
     </div>
 
     {{if not .IsSilverPlan}}

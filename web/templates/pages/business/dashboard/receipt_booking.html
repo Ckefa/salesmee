@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Receipt {{.Booking.BookingNumber}} - {{.Business.Name}}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css">
+  {{template "pwa_head" .}}
+  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -78,7 +79,7 @@
       <!-- Header -->
       <div class="header">
         {{if .Business.Logo}}
-        <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" style="height:48px;margin-bottom:8px;">
+        <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" style="height:48px;margin-bottom:8px;" loading="lazy" width="160" height="48">
         {{end}}
         <h1>{{.Business.Name}}</h1>
         <p>{{.Business.Email}}</p>

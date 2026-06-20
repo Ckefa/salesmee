@@ -22,12 +22,19 @@ func StartNotificationScheduler(db *gorm.DB) {
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
+		page := 0
 		log.Println("[NOTIFIER] Background scheduler started (every 60s)")
 		for range ticker.C {
 			CheckBookingReminders(db)
 			CheckPaymentDueReminders(db)
-			CheckAbandonedCarts(db)
-			CheckReEngagement(db)
+
+			// Stagger heavy checks across ticks: abandoned carts on even, re-engagement on odd
+			if page%2 == 0 {
+				CheckAbandonedCarts(db)
+			} else {
+				CheckReEngagement(db)
+			}
+			page++
 		}
 	}()
 }
@@ -173,10 +180,15 @@ func CheckPaymentDueReminders(db *gorm.DB) {
 }
 
 func CheckAbandonedCarts(db *gorm.DB) {
-	var businesses []models.Business
-	db.Find(&businesses)
+	limit := 100
+	var total int64
+	db.Model(&models.Business{}).Count(&total)
 
-	for _, biz := range businesses {
+	for offset := 0; offset < int(total); offset += limit {
+		var businesses []models.Business
+		db.Select("id,slug").Offset(offset).Limit(limit).Find(&businesses)
+
+		for _, biz := range businesses {
 		prefs, err := GetOrCreatePrefs(db, biz.ID)
 		if err != nil || !prefs.AbandonedCart {
 			continue
@@ -213,15 +225,21 @@ func CheckAbandonedCarts(db *gorm.DB) {
 				fmt.Sprintf("Order %s is still pending — remind client", o.OrderNumber),
 				"fa-shopping-cart",
 				"/business/orders")
+			}
 		}
 	}
 }
 
 func CheckReEngagement(db *gorm.DB) {
-	var businesses []models.Business
-	db.Find(&businesses)
+	limit := 100
+	var total int64
+	db.Model(&models.Business{}).Count(&total)
 
-	for _, biz := range businesses {
+	for offset := 0; offset < int(total); offset += limit {
+		var businesses []models.Business
+		db.Select("id,slug").Offset(offset).Limit(limit).Find(&businesses)
+
+		for _, biz := range businesses {
 		prefs, err := GetOrCreatePrefs(db, biz.ID)
 		if err != nil || !prefs.ReEngagement {
 			continue
@@ -264,6 +282,8 @@ func CheckReEngagement(db *gorm.DB) {
 				fmt.Sprintf("%s hasn't visited in %d days", c.Name, inactiveDays),
 				"fa-user-clock",
 				fmt.Sprintf("/business"))
+			}
 		}
 	}
 }
+

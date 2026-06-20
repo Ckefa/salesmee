@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/services/progress"
 
@@ -23,14 +22,14 @@ func QuickBooking(c *gin.Context) {
 
 	// Verify client belongs to user
 	var client models.Client
-	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
 		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
+	if err := dbc(c).Where("client_id = ?", clientID).First(&conversation); err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
@@ -50,7 +49,7 @@ func QuickBooking(c *gin.Context) {
 		CreatedAt:   time.Now(),
 	}
 
-	if err := db.DB.Create(&action).Error; err != nil {
+	if err := dbc(c).Create(&action).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create booking")
 		return
 	}
@@ -62,14 +61,14 @@ func QuickBooking(c *gin.Context) {
 		Sender:         "business",
 	}
 
-	if err := db.DB.Create(&message).Error; err != nil {
+	if err := dbc(c).Create(&message).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create booking message")
 		return
 	}
 
 	// Update action with message ID
 	action.MessageID = message.ID
-	db.DB.Save(&action)
+	dbc(c).Save(&action)
 
 	progress.AutoCalculateProgress(conversation.ID)
 
@@ -91,14 +90,14 @@ func QuickOrder(c *gin.Context) {
 
 	// Verify client belongs to user
 	var client models.Client
-	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
 		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
+	if err := dbc(c).Where("client_id = ?", clientID).First(&conversation); err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
@@ -117,7 +116,7 @@ func QuickOrder(c *gin.Context) {
 		CreatedAt:   time.Now(),
 	}
 
-	if err := db.DB.Create(&action).Error; err != nil {
+	if err := dbc(c).Create(&action).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create order")
 		return
 	}
@@ -129,14 +128,14 @@ func QuickOrder(c *gin.Context) {
 		Sender:         "business",
 	}
 
-	if err := db.DB.Create(&message).Error; err != nil {
+	if err := dbc(c).Create(&message).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create order message")
 		return
 	}
 
 	// Update action with message ID
 	action.MessageID = message.ID
-	db.DB.Save(&action)
+	dbc(c).Save(&action)
 
 	progress.AutoCalculateProgress(conversation.ID)
 
@@ -158,14 +157,14 @@ func RequestPayment(c *gin.Context) {
 
 	// Verify client belongs to user
 	var client models.Client
-	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
 		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
+	if err := dbc(c).Where("client_id = ?", clientID).First(&conversation); err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
@@ -184,7 +183,7 @@ func RequestPayment(c *gin.Context) {
 		CreatedAt:   time.Now(),
 	}
 
-	if err := db.DB.Create(&action).Error; err != nil {
+	if err := dbc(c).Create(&action).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create payment request")
 		return
 	}
@@ -196,14 +195,14 @@ func RequestPayment(c *gin.Context) {
 		Sender:         "business",
 	}
 
-	if err := db.DB.Create(&message).Error; err != nil {
+	if err := dbc(c).Create(&message).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create payment message")
 		return
 	}
 
 	// Update action with message ID
 	action.MessageID = message.ID
-	db.DB.Save(&action)
+	dbc(c).Save(&action)
 
 	progress.AutoCalculateProgress(conversation.ID)
 
@@ -225,14 +224,14 @@ func SetGoal(c *gin.Context) {
 
 	// Verify client belongs to user
 	var client models.Client
-	if err := db.DB.Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
+	if err := dbc(c).Where("id = ? AND business_id = ?", clientID, userID).First(&client).Error; err != nil {
 		c.String(http.StatusNotFound, "Client not found")
 		return
 	}
 
 	// Get conversation
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ?", clientID).First(&conversation); err != nil {
+	if err := dbc(c).Where("client_id = ?", clientID).First(&conversation); err != nil {
 		c.String(http.StatusNotFound, "Conversation not found")
 		return
 	}
@@ -261,7 +260,7 @@ func SetGoal(c *gin.Context) {
 		}
 	}
 
-	if err := db.DB.Create(&action).Error; err != nil {
+	if err := dbc(c).Create(&action).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create goal")
 		return
 	}
@@ -273,14 +272,14 @@ func SetGoal(c *gin.Context) {
 		Sender:         "business",
 	}
 
-	if err := db.DB.Create(&message).Error; err != nil {
+	if err := dbc(c).Create(&message).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Failed to create goal message")
 		return
 	}
 
 	// Update action with message ID
 	action.MessageID = message.ID
-	db.DB.Save(&action)
+	dbc(c).Save(&action)
 
 	progress.AutoCalculateProgress(conversation.ID)
 

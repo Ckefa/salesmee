@@ -5,7 +5,7 @@
   </button>
   <div class="wa-chat-header-avatar">
     {{if .Business.Logo}}
-    <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="wa-chat-avatar">
+    <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="wa-chat-avatar" loading="lazy" width="40" height="40">
     {{else}}
     <div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
     {{end}}

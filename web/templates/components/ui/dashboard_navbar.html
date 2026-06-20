@@ -31,7 +31,7 @@
           </a>
           <button onclick="showBusinessProfile()" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
             {{if .Business.Logo}}
-            <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+            <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover" loading="lazy" width="32" height="32">
             {{else}}
             <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
               <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
@@ -64,6 +64,13 @@
               <i class="fas fa-store w-5 text-center"></i>
               <span>Business Profile</span>
             </button>
+            {{if .AssistEnabled}}
+            <button onclick="toggleAssist()"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
+              <i class="fas fa-wand-magic-sparkles w-5 text-center text-[var(--color-primary)]"></i>
+              <span>salesmee Assist</span>
+            </button>
+            {{end}}
             <div class="border-t border-[var(--color-border-light)] my-1"></div>
             <a href="/business/logout"
               class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">

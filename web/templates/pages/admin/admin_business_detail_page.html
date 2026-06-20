@@ -14,7 +14,7 @@
     <div class="flex items-start gap-4">
       <div class="shrink-0">
         {{if .Business.Logo}}
-        <img src="{{.Business.Logo}}" class="w-16 h-16 rounded-xl object-cover bg-slate-700" alt="">
+        <img src="{{.Business.Logo}}" class="w-16 h-16 rounded-xl object-cover bg-slate-700" alt="" loading="lazy" width="64" height="64">
         {{else}}
         <div class="w-16 h-16 rounded-xl bg-slate-700 flex items-center justify-center text-slate-400 text-2xl">
           <i class="fas fa-store"></i>

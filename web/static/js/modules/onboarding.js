@@ -1,10 +1,11 @@
 ;(function() {
   'use strict';
 
-  var pollInterval = null;
   var isChecking = false;
 
   function showStepCompleteAndAdvance() {
+    window._onboardingJustAdvanced = true;
+    setTimeout(function() { window._onboardingJustAdvanced = false; }, 500);
     var container = document.getElementById('onboardingStepContainer');
     var steps = container.querySelectorAll('.onboarding-step');
     steps.forEach(function(s) { s.classList.add('hidden'); });
@@ -169,35 +170,15 @@
     // Panel stays open during navigation — page reload will refresh state
   };
 
-  function pollOnboarding() {
-    var panel = document.getElementById('onboardingPanel');
-    if (!panel || panel.style.display === 'none') {
-      if (pollInterval) clearInterval(pollInterval);
-      return;
-    }
-    fetch('/business/onboarding/status?' + Date.now(), {
-      headers: { 'Accept': 'application/json' }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.completed) {
-        showStepCompleteAndAdvance();
-        if (pollInterval) clearInterval(pollInterval);
-      } else if (data.step && data.step !== undefined) {
-        var currentStepEl = document.querySelector('.onboarding-step:not(.hidden)');
-        if (currentStepEl && currentStepEl.id !== 'onboardingStep' + data.step) {
-          htmx.ajax('GET', window.location.href, {target: 'body', swap: 'innerHTML'});
-        }
-      }
-    })
-    .catch(function() {});
-  }
-
-  // Start polling on page load
+  // Listen for onboarding step advances via WebSocket
   document.addEventListener('DOMContentLoaded', function() {
-    var panel = document.getElementById('onboardingPanel');
-    if (panel) {
-      pollInterval = setInterval(pollOnboarding, 5000);
+    if (window.wsClient) {
+      window.wsClient.on(15, function(frame) {
+        var ou = frame.onboarding_update;
+        if (!ou) return;
+        if (window._onboardingJustAdvanced) return;
+        showStepCompleteAndAdvance();
+      });
     }
   });
 

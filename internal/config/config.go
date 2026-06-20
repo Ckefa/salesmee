@@ -17,12 +17,16 @@ type Config struct {
 	FBLogin  bool
 
 	// DB
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBPath     string
+	DBHost          string
+	DBPort          string
+	DBUser          string
+	DBPassword      string
+	DBName          string
+	DBPath          string
+	DBMaxOpenConns  int
+	DBMaxIdleConns  int
+	DBMaxLifetime   int // minutes
+	DBMaxIdleTime   int // minutes
 
 	// JWT
 	JWTSecret   string
@@ -96,12 +100,16 @@ func Load() {
 		FBLogin:  os.Getenv("FB_LOGIN") == "TRUE",
 
 		// DB
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", ""),
-		DBPath:     getEnv("DB_PATH", ""),
+		DBHost:          getEnv("DB_HOST", "localhost"),
+		DBPort:          getEnv("DB_PORT", "5432"),
+		DBUser:          getEnv("DB_USER", "postgres"),
+		DBPassword:      getEnv("DB_PASSWORD", ""),
+		DBName:          getEnv("DB_NAME", ""),
+		DBPath:          getEnv("DB_PATH", ""),
+		DBMaxOpenConns:  getEnvInt("DB_MAX_OPEN_CONNS", 25),
+		DBMaxIdleConns:  getEnvInt("DB_MAX_IDLE_CONNS", 10),
+		DBMaxLifetime:   getEnvInt("DB_CONN_MAX_LIFETIME", 30),
+		DBMaxIdleTime:   getEnvInt("DB_CONN_MAX_IDLE_TIME", 5),
 
 		// JWT / CSRF
 		JWTSecret:  requireEnv("JWT_SECRET"),

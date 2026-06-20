@@ -5,6 +5,7 @@ class SalesMeeApp {
         this.initAlpine();
         this.setupEventListeners();
         this.initClientFeatures();
+        this.initSkeletonTimeouts();
         this.initPWA();
     }
 
@@ -120,7 +121,60 @@ class SalesMeeApp {
     }
 
     initClientFeatures() {
-        this.initRealTimeUpdates();
+        this.initLazyImages();
+        document.addEventListener('htmx:afterSwap', function(event) {
+            this.initLazyImages(event.detail.target);
+        }.bind(this));
+    }
+
+    initSkeletonTimeouts() {
+        this._skeletonTimers = {};
+        document.addEventListener('htmx:beforeRequest', function(event) {
+            var target = event.detail.target;
+            if (!target || target.getAttribute('data-skip-skeleton-error')) return;
+            var hasSkeleton = target.querySelector('.skeleton, [class*="skeleton-"]');
+            if (!hasSkeleton && !target.querySelector('[class*="skeleton"]')) return;
+            var tid = setTimeout(function() {
+                showSkeletonError(target);
+            }, 20000);
+            this._skeletonTimers[target.id || '_anon_' + Date.now()] = tid;
+        }.bind(this));
+        document.addEventListener('htmx:afterRequest', function(event) {
+            var target = event.detail.target;
+            if (!target) return;
+            var key = target.id || '';
+            if (this._skeletonTimers[key]) {
+                clearTimeout(this._skeletonTimers[key]);
+                delete this._skeletonTimers[key];
+            }
+        }.bind(this));
+        document.addEventListener('htmx:responseError', function(event) {
+            var target = event.detail.target;
+            if (target && target.querySelector('.skeleton, [class*="skeleton-"]')) {
+                showSkeletonError(target);
+            }
+        }.bind(this));
+    }
+
+    initLazyImages(ctx) {
+        var root = ctx || document;
+        root.querySelectorAll('img[loading="lazy"]').forEach(function(img) {
+            if (img.classList.contains('img-fade-in')) return;
+            img.classList.add('img-fade-in');
+            if (img.complete && img.naturalWidth > 0) {
+                img.classList.add('loaded');
+            } else {
+                img.addEventListener('load', function() { this.classList.add('loaded'); });
+                img.addEventListener('error', function() {
+                    this.classList.add('loaded');
+                    var fb = this.parentElement ? this.parentElement.querySelector('.img-fallback') : null;
+                    if (fb) fb.classList.remove('img-fallback-hidden');
+                    if (this.parentElement && this.parentElement.classList.contains('img-skeleton')) {
+                        this.style.display = 'none';
+                    }
+                });
+            }
+        });
     }
 
     handleHtmxResponse(event) {
@@ -274,26 +328,6 @@ class SalesMeeApp {
         }
     }
 
-    initRealTimeUpdates() {
-        setInterval(function() {
-            this.checkForNewMessages();
-        }.bind(this), 5000);
-    }
-
-    checkForNewMessages() {
-        var currentPath = window.location.pathname;
-        if (currentPath.includes('/client/businesses/') && currentPath.includes('/messages')) {
-            var businessId = currentPath.split('/')[3];
-            this.fetchNewMessages(businessId);
-        }
-    }
-
-    fetchNewMessages(businessId) {
-        fetch('/client/businesses/' + businessId + '/messages')
-            .then(function(response) { return response.json(); })
-            .then(function(data) {})
-            .catch(function() {});
-    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -337,5 +371,36 @@ function updateMobileHintText() {
         el.textContent = 'Open the Chrome menu (⋮) and select "Install app" or "Add to Home Screen".';
     } else {
         el.textContent = 'Use your browser\'s menu to add SalesMee to your home screen.';
+    }
+}
+
+function showSkeletonError(target) {
+    if (!target) return;
+    target.innerHTML =
+        '<div class="flex flex-col items-center justify-center py-12 text-center" style="min-height:200px">' +
+        '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
+        '<i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div>' +
+        '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
+        '<p class="text-xs text-[var(--color-text-muted)] mb-4">Something went wrong. Please try again.</p>' +
+        '<button onclick="retrySkeleton(this)" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
+        '<i class="fas fa-refresh mr-1"></i> Retry</button></div>';
+}
+
+function retrySkeleton(btn) {
+    var target = btn.closest('[hx-get], [hx-trigger]');
+    if (!target) {
+        // Try finding parent that has hx-get attribute
+        target = btn.parentElement;
+        while (target && !target.getAttribute('hx-get')) {
+            target = target.parentElement;
+        }
+    }
+    if (target && target.getAttribute('hx-get')) {
+        target.innerHTML = ''; // clear error
+        target.setAttribute('hx-trigger', 'load');
+        htmx.process(target);
+        htmx.trigger(target, 'load');
+    } else {
+        showNotification('Unable to retry. Please refresh the page.', 'error');
     }
 }

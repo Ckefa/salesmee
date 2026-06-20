@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 	"strconv"
 	"strings"
 	"time"
@@ -41,7 +42,7 @@ func (h *ReportHandler) GetReportsPage(c *gin.Context) {
 	}
 
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -60,12 +61,13 @@ func (h *ReportHandler) GetReportsPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "reports.html", gin.H{
-		"Business":   currentBusiness,
-		"ActivePage": "reports",
-		"ActiveTab":  "revenue",
-		"Onboarding": onboardingData(h.db, businessID),
-		"AuthType":   c.GetString("auth_type"),
-		"Role":       c.GetString("role"),
+		"Business":      currentBusiness,
+		"ActivePage":    "reports",
+		"ActiveTab":     "revenue",
+		"Onboarding":    onboardingData(h.db, businessID),
+		"AuthType":      c.GetString("auth_type"),
+		"Role":          c.GetString("role"),
+		"AssistEnabled": assist.IsEnabled(),
 	})
 }
 
@@ -85,7 +87,7 @@ func (h *ReportHandler) GetRevenueReport(c *gin.Context) {
 	pageSize := pageSize()
 
 	var allDaily []DailyRevenue
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT
 		  d.date,
 		  COALESCE(o.amount, 0) as orders_revenue,
@@ -178,7 +180,7 @@ func (h *ReportHandler) GetSalesReport(c *gin.Context) {
 		Revenue  float64
 	}
 	var products []productSales
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT p.name, SUM(oi.quantity) as quantity, SUM(oi.total_price) as revenue
 		FROM order_items oi
 		JOIN products p ON p.id = oi.product_id
@@ -195,7 +197,7 @@ func (h *ReportHandler) GetSalesReport(c *gin.Context) {
 		Revenue  float64
 	}
 	var services []serviceSales
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT s.name, SUM(bi.quantity) as quantity, SUM(bi.total_price) as revenue
 		FROM booking_items bi
 		JOIN services s ON s.id = bi.service_id
@@ -281,7 +283,7 @@ func (h *ReportHandler) GetClientReport(c *gin.Context) {
 		Date  string `json:"date"`
 		Count int64  `json:"count"`
 	}
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT DATE(created_at) as date, COUNT(*) as count
 		FROM clients
 		WHERE business_id = ? AND created_at BETWEEN ? AND ?
@@ -290,7 +292,7 @@ func (h *ReportHandler) GetClientReport(c *gin.Context) {
 	`, businessID, start, end).Scan(&newClients)
 
 	var totalClients int64
-	h.db.Model(&models.Client{}).Where("business_id = ?", businessID).Count(&totalClients)
+	h.dbc(c).Model(&models.Client{}).Where("business_id = ?", businessID).Count(&totalClients)
 
 	var newTotal int64
 	for _, c := range newClients {
@@ -298,7 +300,7 @@ func (h *ReportHandler) GetClientReport(c *gin.Context) {
 	}
 
 	var recentClients []models.Client
-	h.db.Where("business_id = ?", businessID).Order("created_at DESC").Limit(20).Find(&recentClients)
+	h.dbc(c).Where("business_id = ?", businessID).Order("created_at DESC").Limit(20).Find(&recentClients)
 
 	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":        "clients",
@@ -326,7 +328,7 @@ func (h *ReportHandler) GetTaxReport(c *gin.Context) {
 		Revenue float64
 	}
 	var monthly []monthRev
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT TO_CHAR(date_trunc('month', created_at), 'YYYY-MM') as month,
 		       SUM(total_amount) as revenue
 		FROM (
@@ -348,8 +350,8 @@ func (h *ReportHandler) GetTaxReport(c *gin.Context) {
 	}
 
 	var totalOrders, totalBookings int64
-	h.db.Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, start, end).Count(&totalOrders)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, start, end).Count(&totalBookings)
+	h.dbc(c).Model(&models.Order{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('confirmed', 'fulfilled')", businessID, start, end).Count(&totalOrders)
+	h.dbc(c).Model(&models.Booking{}).Where("business_id = ? AND created_at BETWEEN ? AND ? AND status IN ('client_confirmed', 'completed')", businessID, start, end).Count(&totalBookings)
 
 	c.HTML(http.StatusOK, "dashboard/reports_content", gin.H{
 		"ActiveTab":      "tax",
@@ -371,7 +373,7 @@ func (h *ReportHandler) ExportOrdersCSV(c *gin.Context) {
 	}
 
 	var orders []models.Order
-	h.db.Where("business_id = ?", businessID).Preload("Client").Preload("OrderItems.Product").Order("created_at DESC").Find(&orders)
+	h.dbc(c).Where("business_id = ?", businessID).Preload("Client").Preload("OrderItems.Product").Order("created_at DESC").Find(&orders)
 
 	c.Header("Content-Type", "text/csv")
 	c.Header("Content-Disposition", "attachment; filename=orders.csv")
@@ -401,7 +403,7 @@ func (h *ReportHandler) ExportBookingsCSV(c *gin.Context) {
 	}
 
 	var bookings []models.Booking
-	h.db.Where("business_id = ?", businessID).Preload("Client").Preload("BookingItems.Service").Order("created_at DESC").Find(&bookings)
+	h.dbc(c).Where("business_id = ?", businessID).Preload("Client").Preload("BookingItems.Service").Order("created_at DESC").Find(&bookings)
 
 	c.Header("Content-Type", "text/csv")
 	c.Header("Content-Disposition", "attachment; filename=bookings.csv")
@@ -432,7 +434,7 @@ func (h *ReportHandler) ExportPaymentsCSV(c *gin.Context) {
 	}
 
 	var payments []models.Payment
-	h.db.Where("order_id IN (SELECT id FROM orders WHERE business_id = ?) OR booking_id IN (SELECT id FROM bookings WHERE business_id = ?)", businessID, businessID).
+	h.dbc(c).Where("order_id IN (SELECT id FROM orders WHERE business_id = ?) OR booking_id IN (SELECT id FROM bookings WHERE business_id = ?)", businessID, businessID).
 		Preload("Client").Order("created_at DESC").Find(&payments)
 
 	c.Header("Content-Type", "text/csv")
@@ -463,7 +465,7 @@ func (h *ReportHandler) ExportRevenueCSV(c *gin.Context) {
 	start, end, _ := resolveDateRange(c)
 
 	var daily []DailyRevenue
-	h.db.Raw(`
+	h.dbc(c).Raw(`
 		SELECT
 		  d.date,
 		  COALESCE(o.amount, 0) as orders_revenue,
@@ -516,7 +518,7 @@ func (h *ReportHandler) ExportClientsCSV(c *gin.Context) {
 	}
 
 	var clients []models.Client
-	h.db.Where("business_id = ?", businessID).Order("created_at DESC").Find(&clients)
+	h.dbc(c).Where("business_id = ?", businessID).Order("created_at DESC").Find(&clients)
 
 	c.Header("Content-Type", "text/csv")
 	c.Header("Content-Disposition", "attachment; filename=clients.csv")

@@ -1,7 +1,7 @@
 {{define "client_message_input"}}
 <div class="wa-input-wrapper border-t border-[var(--color-border)]">
   <form id="message-form" hx-post="/client/businesses/{{.Business.ID}}/messages" hx-target="#messages-container"
-    hx-swap="beforeend" hx-on::after-request="this.reset()" hx-encoding="multipart/form-data" hx-on::before-request="validateHtmxRequest(event)">
+    hx-swap="none" hx-on::after-request="confirmSend(event); this.reset(); scrollMessagesToBottom()" hx-encoding="multipart/form-data" hx-on::before-request="validateAndOptimisticSend(event)">
     <div class="wa-input-inner">
       <div class="relative" id="media-tray-container">
         <button type="button" onclick="toggleMediaTray()" class="wa-input-icon-btn" title="Attach">
@@ -23,7 +23,7 @@
         </div>
       </div>
       <input type="text" name="content" id="messageInput" placeholder="Type a message"
-        class="wa-text-input" autocomplete="off">
+        class="wa-text-input" autocomplete="off" oninput="onMessageInput(this)" onkeydown="onMessageKeydown(event)">
       <input type="hidden" name="sender" value="client">
       <button type="submit" class="wa-send-btn" title="Send" id="sendBtn">
         <i class="fas fa-paper-plane"></i>

@@ -65,6 +65,8 @@ function reloadBusinessChatFromServer() {
       var current = document.getElementById('messages-container');
       if (next && current) {
         current.innerHTML = next.innerHTML;
+        initOlderObserver();
+        initScrollToBottom();
       }
     })
     .catch(console.error);
@@ -279,12 +281,12 @@ function registerChatHandlers() {
     var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
     if (isNearBottom) {
       container.scrollTop = container.scrollHeight;
+      markVisibleConversationRead();
     } else {
       unreadBelow += 1;
       updateScrollBottomBadge();
     }
 
-    markVisibleConversationRead();
     playNotificationSound();
   });
 

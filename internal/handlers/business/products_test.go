@@ -35,7 +35,7 @@ func newProductTest(t *testing.T) *productTestFixture {
 		`{{define "login.html"}}ok{{end}}{{define "products.html"}}ok{{end}}{{define "dashboard/products_content"}}ok{{end}}`,
 	))
 	return &productTestFixture{
-		handler: &ProductHandler{db: db, hub: nil},
+		handler: &ProductHandler{dbProvider{db: db, hub: nil}},
 		db:      db,
 		biz:     biz,
 		tmpl:    tmpl,

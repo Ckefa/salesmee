@@ -94,6 +94,60 @@ function hideNewClientModal() {
   document.getElementById('new-client-form').reset();
 }
 
+function buildSkeletonChatContainer(clientId) {
+  var el = document.querySelector('[data-client-id="' + clientId + '"]');
+  var name = el ? el.getAttribute('data-client-name') || 'Loading...' : 'Loading...';
+  var convId = window.conversationId || '';
+  return '<div class="wa-chat-container" id="waChatContainer">' +
+    '<div class="wa-chat-header">' +
+      '<button onclick="waBackToChatList()" class="wa-chat-back" title="Back to chats" id="chatBackBtn">' +
+        '<i class="fas fa-arrow-left"></i>' +
+      '</button>' +
+      '<div class="wa-chat-header-avatar">' +
+        '<div class="avatar avatar-placeholder avatar-sm"><i class="fas fa-user text-white text-xs"></i></div>' +
+      '</div>' +
+      '<div class="wa-chat-header-info">' +
+        '<h2 class="wa-chat-header-name">' + escapeHtml(name) + '</h2>' +
+        '<span class="wa-chat-header-status"><span class="wa-header-online-text">loading...</span></span>' +
+      '</div>' +
+      '<div class="wa-chat-header-actions relative">' +
+        '<div class="skeleton rounded-lg w-8 h-8"></div>' +
+        '<div class="skeleton rounded-lg w-8 h-8 ml-1"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="wa-progress-bar">' +
+      '<div class="border-b border-[var(--color-border)] px-3 sm:px-6 py-1.5">' +
+        '<div class="flex items-center justify-between gap-1.5 text-xs leading-tight">' +
+          '<div class="skeleton rounded h-3 w-32"></div>' +
+          '<div class="skeleton rounded h-3 w-24"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div id="insights-drawer"></div>' +
+    '<div class="wa-messages-area" id="messages-container">' +
+      '<div class="flex-1 p-4 space-y-4">' +
+        '<div class="skeleton skeleton-card"></div>' +
+        '<div class="flex justify-end"><div class="skeleton skeleton-card" style="width:60%"></div></div>' +
+        '<div class="flex"><div class="skeleton skeleton-card" style="width:70%"></div></div>' +
+        '<div class="flex justify-end"><div class="skeleton skeleton-card" style="width:45%"></div></div>' +
+        '<div class="flex"><div class="skeleton skeleton-card" style="width:55%"></div></div>' +
+        '<div class="flex justify-end"><div class="skeleton skeleton-card" style="width:65%"></div></div>' +
+      '</div>' +
+    '</div>' +
+    '<button class="wa-scroll-bottom" id="scrollToBottom" onclick="scrollToBottomBtn()" style="display:none">' +
+      '<svg viewBox="0 0 24 24" height="24" width="24" fill="none"><path d="M11 13.6L6.11253 8.71253C5.72003 8.32003 5.08281 8.32285 4.69381 8.7188C4.30964 9.10983 4.31241 9.73741 4.70003 10.125L11.2669 16.6919C11.6718 17.0968 12.3282 17.0968 12.7331 16.6919L19.3 10.125C19.6876 9.73741 19.6904 9.10983 19.3062 8.7188C18.9172 8.32285 18.28 8.32003 17.8875 8.71253L13 13.6L12 14.625L11 13.6Z" fill="currentColor"/></svg>' +
+      '<span class="scroll-bottom-badge" id="scrollBottomBadge"></span>' +
+    '</button>' +
+    '<div class="wa-input-wrapper">' +
+      '<div class="wa-input-inner">' +
+        '<div class="skeleton rounded-lg w-10 h-10"></div>' +
+        '<div class="skeleton rounded-full h-10 flex-1"></div>' +
+        '<div class="skeleton rounded-lg w-10 h-10"></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 function loadClient(clientId) {
   currentClientId = clientId;
   window.clientId = clientId;
@@ -110,16 +164,79 @@ function loadClient(clientId) {
     window.conversationId = el.getAttribute('data-conversation-id');
   }
 
+  // Build chat container with real header + skeleton messages
+  var contentArea = document.getElementById('content-area');
+  contentArea.innerHTML = buildSkeletonChatContainer(clientId);
+  contentArea.classList.remove('hidden');
+  contentArea.classList.add('content-fade-in');
+
+  var loadTimeout = setTimeout(function() {
+    var mc = document.getElementById('messages-container');
+    if (mc && mc.querySelector('.skeleton')) {
+      mc.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-center flex-1">' +
+        '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
+        '<i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div>' +
+        '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
+        '<p class="text-xs text-[var(--color-text-muted)] mb-4">Timed out. Please try again.</p>' +
+        '<button onclick="loadClient(' + clientId + ')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
+        '<i class="fas fa-refresh mr-1"></i> Retry</button></div>';
+    }
+  }, 20000);
+
   fetch('clients/' + clientId + '/messages')
     .then(function(r) { return r.text(); })
     .then(function(html) {
-      var chatArea = document.getElementById('chat-area');
-      chatArea.innerHTML = html;
-      htmx.process(chatArea);
+      clearTimeout(loadTimeout);
+      // Extract fragments from fetched HTML: messages-container, scroll button, input wrapper
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      var newMessages = doc.getElementById('messages-container');
+      var newScrollBtn = doc.getElementById('scrollToBottom');
+      var newInput = doc.querySelector('.wa-input-wrapper');
+      if (newMessages) {
+        var oldMessages = document.getElementById('messages-container');
+        if (oldMessages) oldMessages.outerHTML = newMessages.outerHTML;
+      }
+      if (newScrollBtn) {
+        var oldBtn = document.getElementById('scrollToBottom');
+        if (oldBtn) oldBtn.outerHTML = newScrollBtn.outerHTML;
+      }
+      if (newInput) {
+        var oldInput = document.querySelector('.wa-input-wrapper');
+        if (oldInput) oldInput.outerHTML = newInput.outerHTML;
+      }
+      // Replace header with fetched version for accurate info
+      var newHeader = doc.querySelector('.wa-chat-header');
+      if (newHeader) {
+        var oldHeader = document.querySelector('.wa-chat-header');
+        if (oldHeader) oldHeader.outerHTML = newHeader.outerHTML;
+      }
+      // Replace progress bar with fetched version
+      var newProgress = doc.querySelector('.wa-progress-bar');
+      if (newProgress) {
+        var oldProgress = document.querySelector('.wa-progress-bar');
+        if (oldProgress) oldProgress.outerHTML = newProgress.outerHTML;
+      }
+      htmx.process(contentArea);
       scrollToBottom();
       markAsRead();
+      initOlderObserver();
+      initScrollToBottom();
     })
-    .catch(console.error);
+    .catch(function() {
+      clearTimeout(loadTimeout);
+      var mc = document.getElementById('messages-container');
+      if (mc) {
+        mc.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-center flex-1">' +
+          '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
+          '<i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div>' +
+          '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
+          '<p class="text-xs text-[var(--color-text-muted)] mb-4">Something went wrong.</p>' +
+          '<button onclick="loadClient(' + clientId + ')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
+          '<i class="fas fa-refresh mr-1"></i> Retry</button></div>';
+      }
+      showNotification('Failed to load conversation', 'error');
+    });
 
   if (window.innerWidth < 1024) {
     layout.classList.add('wa-chat-open');
@@ -172,8 +289,91 @@ function filterClients() {
     var name = el.getAttribute('data-client-name')?.toLowerCase() || '';
     var email = el.getAttribute('data-client-email')?.toLowerCase() || '';
     var preview = el.querySelector('.wa-chat-preview')?.textContent?.toLowerCase() || '';
-    el.style.display = (!q || name.includes(q) || email.includes(q) || preview.includes(q)) ? '' : 'none';
+    var match = !q || name.includes(q) || email.includes(q) || preview.includes(q);
+    el.style.display = match ? '' : 'none';
+    // Reveal hidden items that match the filter
+    if (match && el.hasAttribute('data-sidebar-hidden')) {
+      el.removeAttribute('data-sidebar-hidden');
+    }
   });
+}
+
+// Sidebar virtual scrolling — limit visible cards, load more via IntersectionObserver
+var SIDEBAR_BATCH = 100;
+var sidebarObserver = null;
+
+function initSidebarVirtualScroll() {
+  var list = document.getElementById('client-list');
+  if (!list) return;
+  if (sidebarObserver) { sidebarObserver.disconnect(); sidebarObserver = null; }
+
+  // Remove any existing sentinel
+  var old = document.getElementById('wa-sidebar-sentinel');
+  if (old) old.remove();
+  // Remove existing scroll-limit attributes
+  list.querySelectorAll('.wa-chat-item').forEach(function(el) { el.removeAttribute('data-sidebar-hidden'); });
+
+  var items = list.querySelectorAll('.wa-chat-item');
+  if (items.length <= SIDEBAR_BATCH) return;
+
+  // Hide excess items
+  for (var i = SIDEBAR_BATCH; i < items.length; i++) {
+    items[i].setAttribute('data-sidebar-hidden', 'true');
+  }
+
+  // Create sentinel as last visible item
+  var sentinel = document.createElement('div');
+  sentinel.id = 'wa-sidebar-sentinel';
+  sentinel.style.height = '1px';
+  items[SIDEBAR_BATCH - 1].after(sentinel);
+
+  sidebarObserver = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+      loadMoreSidebarItems(list);
+    }
+  }, { root: list, rootMargin: '200px' });
+  sidebarObserver.observe(sentinel);
+}
+
+function loadMoreSidebarItems(list) {
+  var sentinel = document.getElementById('wa-sidebar-sentinel');
+  if (!sentinel) return;
+  var batch = 0;
+  var sibling = sentinel.nextElementSibling;
+  while (sibling && batch < SIDEBAR_BATCH) {
+    var next = sibling.nextElementSibling;
+    if (sibling.hasAttribute('data-sidebar-hidden')) {
+      sibling.removeAttribute('data-sidebar-hidden');
+      batch++;
+      if (batch >= SIDEBAR_BATCH) {
+        // Move sentinel after this batch
+        sibling.after(sentinel);
+        break;
+      }
+    }
+    sibling = next;
+  }
+  // If no more hidden items, disconnect observer
+  if (!list.querySelector('[data-sidebar-hidden]')) {
+    if (sidebarObserver) { sidebarObserver.disconnect(); sidebarObserver = null; }
+    if (sentinel) sentinel.remove();
+  }
+}
+
+function autoSelectFirstChat() {
+  if (window.clientId) return;
+  var items = document.querySelectorAll('.wa-chat-item:not([data-sidebar-hidden])');
+  if (!items.length) return;
+  var target = null;
+  for (var i = 0; i < items.length; i++) {
+    if (parseInt(items[i].getAttribute('data-unread') || '0') > 0) {
+      target = items[i];
+      break;
+    }
+  }
+  if (!target) target = items[0];
+  var id = target.getAttribute('data-client-id');
+  if (id) loadClient(id);
 }
 
 function registerBusinessPresenceHandlers() {
@@ -267,6 +467,8 @@ window.addEventListener('beforeunload', function() {
 document.addEventListener('DOMContentLoaded', function() {
   startBusinessWS();
   sortClientList();
+  initSidebarVirtualScroll();
+  setTimeout(autoSelectFirstChat, 400);
 
   var form = document.getElementById('new-client-form');
   if (form) {
@@ -430,6 +632,12 @@ function sortClientList() {
   var pins = JSON.parse(localStorage.getItem('pinned_clients') || '[]');
   var list = document.getElementById('client-list');
   if (!list) return;
+  var sentinel = document.getElementById('wa-sidebar-sentinel');
+  if (sentinel) sentinel.remove();
+  // Reveal all hidden items so they participate in sorting
+  list.querySelectorAll('[data-sidebar-hidden]').forEach(function(el) {
+    el.removeAttribute('data-sidebar-hidden');
+  });
   var items = Array.from(list.querySelectorAll('.wa-chat-item'));
   if (items.length < 2) return;
   items.sort(function(a, b) {
@@ -446,7 +654,11 @@ function sortClientList() {
     var bT = b.getAttribute('data-last-message-at') || '';
     return bT.localeCompare(aT);
   });
+  var parent = list.parentNode;
+  var sibling = list.nextSibling;
+  parent.removeChild(list);
   items.forEach(function(el) { list.appendChild(el); });
+  parent.insertBefore(list, sibling);
   items.forEach(function(el) {
     var star = el.querySelector('.pin-btn i');
     if (star) {
@@ -454,6 +666,7 @@ function sortClientList() {
       star.className = pins.indexOf(id) > -1 ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
     }
   });
+  initSidebarVirtualScroll();
 }
 // === End pin & sort ===
 

@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"salesmee/internal/config"
-	"salesmee/internal/db"
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -80,7 +79,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := db.DB.Where("google_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&business).Error; err != nil {
+	if err := dbc(c).Where("google_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&business).Error; err != nil {
 		tok := RegStore.Save(&RegistrationData{
 			Name:      user.Name,
 			Username:  generateSlug(user.Name),
@@ -98,7 +97,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 		if user.AvatarURL != "" {
 			business.AvatarURL = user.AvatarURL
 		}
-		db.DB.Save(&business)
+		dbc(c).Save(&business)
 	}
 
 	token, err := services.GenerateToken(business.ID, business.Email)
@@ -152,7 +151,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := db.DB.Where("facebook_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&business).Error; err != nil {
+	if err := dbc(c).Where("facebook_id = ?", user.ProviderID).Or("email = ?", user.Email).First(&business).Error; err != nil {
 		tok := RegStore.Save(&RegistrationData{
 			Name:       user.Name,
 			Username:   generateSlug(user.Name),
@@ -170,7 +169,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 		if user.AvatarURL != "" {
 			business.AvatarURL = user.AvatarURL
 		}
-		db.DB.Save(&business)
+		dbc(c).Save(&business)
 	}
 
 	token, err := services.GenerateToken(business.ID, business.Email)
@@ -243,7 +242,7 @@ func CompleteRegisterGoogle(c *gin.Context) {
 		IsPublic:       true,
 	}
 
-	if err := db.DB.Create(&user).Error; err != nil {
+	if err := dbc(c).Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
 		c.HTML(http.StatusOK, "register_google.html", middleware.TemplateData(c, gin.H{
 			"Title":     "Complete Registration - SalesMee",

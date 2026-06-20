@@ -49,6 +49,11 @@ function sortBusinessList() {
   var pins = JSON.parse(localStorage.getItem('pinned_businesses') || '[]');
   var list = document.getElementById('business-list');
   if (!list) return;
+  var sentinel = document.getElementById('client-sidebar-sentinel');
+  if (sentinel) sentinel.remove();
+  list.querySelectorAll('[data-sidebar-hidden]').forEach(function(el) {
+    el.removeAttribute('data-sidebar-hidden');
+  });
   var items = Array.from(list.querySelectorAll('.business-item'));
   if (items.length < 2) return;
   items.sort(function(a, b) {
@@ -65,7 +70,11 @@ function sortBusinessList() {
     var bT = b.getAttribute('data-last-message-at') || '';
     return bT.localeCompare(aT);
   });
+  var parent = list.parentNode;
+  var sibling = list.nextSibling;
+  parent.removeChild(list);
   items.forEach(function(el) { list.appendChild(el); });
+  parent.insertBefore(list, sibling);
   items.forEach(function(el) {
     var star = el.querySelector('.pin-btn i');
     if (star) {
@@ -73,6 +82,7 @@ function sortBusinessList() {
       star.className = pins.indexOf(id) > -1 ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
     }
   });
+  initClientSidebarVirtualScroll();
 }
 
 function updateSidebarCard(frame) {
@@ -108,11 +118,19 @@ function updateSidebarCard(frame) {
   if (badge) {
     var count = parseInt(badge.textContent) + 1;
     badge.textContent = count > 99 ? '99+' : count;
+    item.setAttribute('data-unread', count);
   } else {
     var bottom = item.querySelector('.wa-chat-bottom');
     if (bottom) {
       bottom.insertAdjacentHTML('beforeend', '<span class="wa-unread-badge">1</span>');
     }
+    item.setAttribute('data-unread', 1);
+  }
+
+  // Reorder card to top
+  var list = item.parentElement;
+  if (list && list.firstChild !== item) {
+    list.insertBefore(item, list.firstChild);
   }
 
   deferredClientSort();
@@ -128,7 +146,7 @@ function markAsRead() {
 }
 
 scrollToBottom();
-markAsRead();
+if (businessId) markAsRead();
 startWsClient();
 
 window.scrollToBottomBtn = function() {
@@ -147,6 +165,8 @@ function reloadClientChatFromServer() {
       var current = document.getElementById(next && next.id === 'chat-content' ? 'chat-content' : 'messages-container');
       if (next && current) {
         current.innerHTML = next.innerHTML;
+        initOlderObserver();
+        initScrollToBottom();
       }
     })
     .catch(console.error);
@@ -272,12 +292,11 @@ function registerClientChatHandlers() {
     var isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
     if (isNearBottom) {
       container.scrollTop = container.scrollHeight;
+      markVisibleConversationRead();
     } else {
       unreadBelow += 1;
       updateScrollBottomBadge();
     }
-
-    markVisibleConversationRead();
   });
 
   window.wsClient.on(3, function(frame) {
@@ -334,6 +353,11 @@ function registerClientChatHandlers() {
     var el = document.querySelector('.business-item[data-business-id="' + bid + '"]');
     if (el) {
       el.setAttribute('data-online', p.is_online ? 'true' : 'false');
+      var dot = el.querySelector('.wa-online-dot');
+      if (dot) {
+        dot.classList.remove('online', 'offline');
+        dot.classList.add(p.is_online ? 'online' : 'offline');
+      }
       deferredClientSort();
     }
   });
@@ -551,6 +575,63 @@ function clientConfirmBooking(bookingId) {
     })
     .catch(e => { console.error(e); showNotification('Failed to confirm booking', 'error'); });
   });
+}
+
+// ========== Sidebar Virtual Scrolling ==========
+
+var CLIENT_SIDEBAR_BATCH = 100;
+var clientSidebarObserver = null;
+
+function initClientSidebarVirtualScroll() {
+  var list = document.getElementById('business-list');
+  if (!list) return;
+  if (clientSidebarObserver) { clientSidebarObserver.disconnect(); clientSidebarObserver = null; }
+
+  var old = document.getElementById('client-sidebar-sentinel');
+  if (old) old.remove();
+  list.querySelectorAll('.business-item').forEach(function(el) { el.removeAttribute('data-sidebar-hidden'); });
+
+  var items = list.querySelectorAll('.business-item');
+  if (items.length <= CLIENT_SIDEBAR_BATCH) return;
+
+  for (var i = CLIENT_SIDEBAR_BATCH; i < items.length; i++) {
+    items[i].setAttribute('data-sidebar-hidden', 'true');
+  }
+
+  var sentinel = document.createElement('div');
+  sentinel.id = 'client-sidebar-sentinel';
+  sentinel.style.height = '1px';
+  items[CLIENT_SIDEBAR_BATCH - 1].after(sentinel);
+
+  clientSidebarObserver = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+      loadMoreClientSidebarItems(list);
+    }
+  }, { root: list, rootMargin: '200px' });
+  clientSidebarObserver.observe(sentinel);
+}
+
+function loadMoreClientSidebarItems(list) {
+  var sentinel = document.getElementById('client-sidebar-sentinel');
+  if (!sentinel) return;
+  var batch = 0;
+  var sibling = sentinel.nextElementSibling;
+  while (sibling && batch < CLIENT_SIDEBAR_BATCH) {
+    var next = sibling.nextElementSibling;
+    if (sibling.hasAttribute('data-sidebar-hidden')) {
+      sibling.removeAttribute('data-sidebar-hidden');
+      batch++;
+      if (batch >= CLIENT_SIDEBAR_BATCH) {
+        sibling.after(sentinel);
+        break;
+      }
+    }
+    sibling = next;
+  }
+  if (!list.querySelector('[data-sidebar-hidden]')) {
+    if (clientSidebarObserver) { clientSidebarObserver.disconnect(); clientSidebarObserver = null; }
+    if (sentinel) sentinel.remove();
+  }
 }
 
 // ========== Typing Indicator ==========

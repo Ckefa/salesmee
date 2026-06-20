@@ -8,6 +8,7 @@
   "theme_color": "#0d9488",
   "orientation": "portrait-primary",
   "categories": ["business", "communication", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/static/images/icon-192.png",

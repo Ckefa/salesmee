@@ -7,4 +7,5 @@ tmp
 salesmee.db
 node_modules
 web/static/css/dist/
+web/static/js/bundles/
 web/static/uploads

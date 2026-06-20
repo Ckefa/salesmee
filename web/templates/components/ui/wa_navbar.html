@@ -41,7 +41,7 @@
     </a>
     <button onclick="showBusinessProfile()" class="wa-nav-item wa-nav-avatar" title="Business Profile">
       {{if .Business.Logo}}
-      <img src="/static/{{.Business.Logo}}" class="wa-nav-avatar-img">
+      <img src="/static/{{.Business.Logo}}" class="wa-nav-avatar-img" loading="lazy" width="32" height="32">
       {{else}}
       <div class="wa-nav-avatar-placeholder"><i class="fas fa-store"></i></div>
       {{end}}

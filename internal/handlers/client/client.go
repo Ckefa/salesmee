@@ -18,7 +18,7 @@ func ShowDiscover(c *gin.Context) {
 	log.Printf("[ShowDiscover] clientID=%d", clientID)
 
 	var client models.Client
-	db.DB.First(&client, clientID)
+	dbc(c).First(&client, clientID)
 
 	businesses := getDiscoverableBusinesses(clientID)
 
@@ -58,10 +58,10 @@ func SearchBusinesses(c *gin.Context) {
 
 	// Get client's existing business IDs
 	var existingIDs []uint
-	db.DB.Model(&models.Conversation{}).Where("client_id = ?", clientID).Pluck("business_id", &existingIDs)
+	dbc(c).Model(&models.Conversation{}).Where("client_id = ?", clientID).Pluck("business_id", &existingIDs)
 
 	var businesses []models.Business
-	query := db.DB.Where("is_public = ?", true)
+	query := dbc(c).Where("is_public = ?", true)
 	if len(existingIDs) > 0 {
 		query = query.Where("id NOT IN ?", existingIDs)
 	}
@@ -89,7 +89,7 @@ func ConnectToBusiness(c *gin.Context) {
 
 	// Verify business exists
 	var business models.Business
-	if err := db.DB.First(&business, businessID).Error; err != nil {
+	if err := dbc(c).First(&business, businessID).Error; err != nil {
 		log.Printf("[ConnectToBusiness] ERROR: business not found for businessID=%d: %v", businessID, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
@@ -98,7 +98,7 @@ func ConnectToBusiness(c *gin.Context) {
 
 	// Check if conversation already exists
 	var conversation models.Conversation
-	err = db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error
+	err = dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error
 	if err == nil {
 		log.Printf("[ConnectToBusiness] existing conversation found: ID=%d, clientID=%d, businessID=%d", conversation.ID, conversation.ClientID, conversation.BusinessID)
 		c.JSON(http.StatusOK, gin.H{"success": true, "conversation_id": conversation.ID, "already_connected": true})
@@ -111,7 +111,7 @@ func ConnectToBusiness(c *gin.Context) {
 		ClientID:   clientID,
 		BusinessID: uint(businessID),
 	}
-	if err := db.DB.Create(&conversation).Error; err != nil {
+	if err := dbc(c).Create(&conversation).Error; err != nil {
 		log.Printf("[ConnectToBusiness] ERROR: failed to create conversation: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create conversation"})
 		return
@@ -121,9 +121,9 @@ func ConnectToBusiness(c *gin.Context) {
 	// Broadcast conversation update so both sides see the new chat in real-time
 	if wsHub != nil {
 		var biz models.Business
-		db.DB.First(&biz, businessID)
+		dbc(c).First(&biz, businessID)
 		var cl models.Client
-		db.DB.First(&cl, clientID)
+		dbc(c).First(&cl, clientID)
 		bizCard := RenderBizSidebarCard(cl, conversation.ID, "", time.Now(), 0)
 		clientCard := RenderClientSidebarCard(biz, conversation.ID, "", time.Now(), 0)
 		ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(businessID)), strconv.Itoa(int(clientID)))
@@ -151,7 +151,7 @@ func CreateClient(c *gin.Context) {
 		Status:     models.StatusNew,
 	}
 
-	if err := db.DB.Create(&client).Error; err != nil {
+	if err := dbc(c).Create(&client).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create client"})
 		return
 	}
@@ -161,12 +161,12 @@ func CreateClient(c *gin.Context) {
 		ClientID:   client.ID,
 		BusinessID: businessID,
 	}
-	db.DB.Create(&conversation)
+	dbc(c).Create(&conversation)
 
 	// Broadcast conversation update to both sides in real-time
 	if wsHub != nil {
 		var biz models.Business
-		db.DB.First(&biz, businessID)
+		dbc(c).First(&biz, businessID)
 		bizCard := RenderBizSidebarCard(client, conversation.ID, "", time.Now(), 0)
 		clientCard := RenderClientSidebarCard(biz, conversation.ID, "", time.Now(), 0)
 		ws.BroadcastConversationUpdate(wsHub, strconv.Itoa(int(conversation.ID)), bizCard, clientCard, strconv.Itoa(int(businessID)), strconv.Itoa(int(client.ID)))
@@ -206,7 +206,7 @@ func DeleteClient(c *gin.Context) {
 
 	// Get conversation before deleting so we can broadcast removal
 	var conversation models.Conversation
-	db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation)
+	dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation)
 
 	if err := deleteConversationWithDeps(uint(clientID), businessID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disconnect customer"})
@@ -234,13 +234,13 @@ func UpdateClientStatus(c *gin.Context) {
 
 	// Verify client has a conversation with this business
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+	if err := dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 		return
 	}
 
 	var client models.Client
-	if err := db.DB.First(&client, clientID).Error; err != nil {
+	if err := dbc(c).First(&client, clientID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 		return
 	}
@@ -248,7 +248,7 @@ func UpdateClientStatus(c *gin.Context) {
 	newStatus := c.PostForm("status")
 	client.Status = models.ClientStatus(newStatus)
 
-	if err := db.DB.Save(&client).Error; err != nil {
+	if err := dbc(c).Save(&client).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update customer status"})
 		return
 	}
@@ -266,7 +266,7 @@ func GetClientConversationID(c *gin.Context) {
 
 	// Verify client has a conversation with this business
 	var conversation models.Conversation
-	if err := db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
+	if err := dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 		return
 	}
@@ -284,7 +284,7 @@ func DisconnectFromBusiness(c *gin.Context) {
 
 	// Get conversation before deleting so we can broadcast removal
 	var conversation models.Conversation
-	db.DB.Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation)
+	dbc(c).Where("client_id = ? AND business_id = ?", clientID, businessID).First(&conversation)
 
 	if err := deleteConversationWithDeps(clientID, uint(businessID)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disconnect"})

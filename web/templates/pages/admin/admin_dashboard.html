@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{.Title}}</title>
   <meta name="color-scheme" content="light dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css">
+  {{template "pwa_head" .}}
+  <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
+  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/vendor/htmx.min.js?v=1"></script>
   <style>
     .admin-tab.active { background: rgba(20,184,166,0.15); color: #2dd4bf; }
     .admin-tab:not(.active):hover { background: rgba(51,65,85,0.5); }
@@ -120,7 +119,7 @@
             {{range .RecentBusinesses}}
             <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
               <div class="flex items-center gap-3">
-                {{if .Logo}}<img src="{{.Logo}}" class="w-7 h-7 rounded-lg object-cover bg-slate-700">{{else}}<div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 text-xs"><i class="fas fa-store"></i></div>{{end}}
+                {{if .Logo}}<img src="{{.Logo}}" class="w-7 h-7 rounded-lg object-cover bg-slate-700" loading="lazy">{{else}}<div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 text-xs"><i class="fas fa-store"></i></div>{{end}}
                 <div>
                   <p class="text-sm font-medium text-white">{{.Name}}</p>
                   <p class="text-xs text-slate-400">{{.Email}}</p>

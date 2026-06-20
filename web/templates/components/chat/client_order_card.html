@@ -68,7 +68,7 @@
           data-item-product-id="{{.product_id}}" data-item-unit-price="{{printf "%.2f" .unit_price}}">
           <div class="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
             {{if .image_url}}
-            <img src="{{.image_url}}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover flex-shrink-0" alt="">
+            <img src="{{.image_url}}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover flex-shrink-0" alt="" loading="lazy">
             {{else}}
             <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--color-surface-tertiary)] flex items-center justify-center flex-shrink-0 text-[10px] sm:text-xs">📦</div>
             {{end}}

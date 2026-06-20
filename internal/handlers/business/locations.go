@@ -3,6 +3,7 @@ package business
 import (
 	"net/http"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,20 +16,21 @@ func (h *LocationHandler) GetLocations(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "login.html", gin.H{"error": "Business not found"})
 		return
 	}
 
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	data := gin.H{
-		"Business":   business,
-		"Locations":  locations,
-		"ActivePage": "locations",
-		"AuthType":   c.GetString("auth_type"),
-		"Role":       c.GetString("role"),
+		"Business":      business,
+		"Locations":     locations,
+		"ActivePage":    "locations",
+		"AuthType":      c.GetString("auth_type"),
+		"Role":          c.GetString("role"),
+		"AssistEnabled": assist.IsEnabled(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -82,7 +84,7 @@ func (h *LocationHandler) CreateLocation(c *gin.Context) {
 		IsActive:   true,
 	}
 
-	if err := h.db.Create(&loc).Error; err != nil {
+	if err := h.dbc(c).Create(&loc).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create location"})
 		return
 	}
@@ -95,7 +97,7 @@ func (h *LocationHandler) UpdateLocation(c *gin.Context) {
 	locationID := c.Param("id")
 
 	var loc models.Location
-	if err := h.db.Where("id = ? AND business_id = ?", locationID, businessID).First(&loc).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", locationID, businessID).First(&loc).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Location not found"})
 		return
 	}
@@ -134,7 +136,7 @@ func (h *LocationHandler) UpdateLocation(c *gin.Context) {
 		updates["is_active"] = *req.IsActive
 	}
 
-	if err := h.db.Model(&loc).Updates(updates).Error; err != nil {
+	if err := h.dbc(c).Model(&loc).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update location"})
 		return
 	}
@@ -147,12 +149,12 @@ func (h *LocationHandler) DeleteLocation(c *gin.Context) {
 	locationID := c.Param("id")
 
 	var loc models.Location
-	if err := h.db.Where("id = ? AND business_id = ?", locationID, businessID).First(&loc).Error; err != nil {
+	if err := h.dbc(c).Where("id = ? AND business_id = ?", locationID, businessID).First(&loc).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Location not found"})
 		return
 	}
 
-	if err := h.db.Delete(&loc).Error; err != nil {
+	if err := h.dbc(c).Delete(&loc).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete location"})
 		return
 	}

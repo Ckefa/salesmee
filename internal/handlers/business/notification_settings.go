@@ -3,6 +3,7 @@ package business
 import (
 	"net/http"
 	"salesmee/internal/models"
+	"salesmee/internal/services/assist"
 	"salesmee/internal/services/notifier"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func (h *NotificationHandler) GetNotificationSettings(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "notification_settings.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
@@ -27,13 +28,14 @@ func (h *NotificationHandler) GetNotificationSettings(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"Business":      business,
-		"ActivePage":    "notifications",
-		"Title":         "Notification Settings — SalesMee",
-		"Prefs":         prefs,
+		"Business":             business,
+		"ActivePage":           "notifications",
+		"Title":                "Notification Settings — SalesMee",
+		"Prefs":                prefs,
 		"NotificationSettings": prefs,
-		"AuthType":      c.GetString("auth_type"),
-		"Role":          c.GetString("role"),
+		"AuthType":             c.GetString("auth_type"),
+		"Role":                 c.GetString("role"),
+		"AssistEnabled":        assist.IsEnabled(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -92,7 +94,7 @@ func (h *NotificationHandler) UpdateNotificationSettings(c *gin.Context) {
 		prefs.InactiveDays = 30
 	}
 
-	if err := h.db.Where("business_id = ?", businessID).Assign(prefs).FirstOrCreate(&prefs).Error; err != nil {
+	if err := h.dbc(c).Where("business_id = ?", businessID).Assign(prefs).FirstOrCreate(&prefs).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update notification settings"})
 		return
 	}

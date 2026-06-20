@@ -2,7 +2,8 @@
 {{template "client_chat_header" .}}
 
 <div id="chat-content">
-<div class="wa-messages-area" id="messages-container">
+<div class="wa-messages-area" id="messages-container" data-has-more="{{.HasMore}}" data-older-cursor="{{.OlderCursor}}">
+  {{if .HasMore}}<div id="load-older-sentinel"></div>{{end}}
   {{if .MessageObjs}}
   {{range .MessageObjs}}
   {{if eq .MsgType "order"}}
@@ -41,9 +42,6 @@
   var conversationId = {{.ConversationID}};
   var currencySymbol = '{{currencySymbol .Business.Currency}}';
 </script>
-<script src="/static/js/modules/shared.js"></script>
-<script src="/static/js/modules/chat_common.js?v=1"></script>
-<script src="/static/js/modules/client_chat.js?v=3"></script>
 <script>
 function scrollToBottom() {
   var c = document.getElementById('messages-container');

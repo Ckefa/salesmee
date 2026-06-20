@@ -13,9 +13,11 @@ import (
 	"strings"
 	"salesmee/internal/config"
 	"salesmee/internal/data"
+	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 	"salesmee/internal/services/assist"
+	"salesmee/internal/services/images"
 	"salesmee/internal/services/subscription"
 	"salesmee/internal/services/onboarding"
 	"salesmee/internal/ws"
@@ -26,12 +28,15 @@ import (
 )
 
 type BusinessHandler struct {
-	db  *gorm.DB
-	hub *ws.Hub
+	dbProvider
 }
 
-func NewBusinessHandler(db *gorm.DB, hub *ws.Hub) *BusinessHandler {
-	return &BusinessHandler{db: db, hub: hub}
+func NewBusinessHandler(deps *HandlerDeps) *BusinessHandler {
+	return &BusinessHandler{dbProvider{db: deps.DB, hub: deps.Hub, fcache: deps.FCache}}
+}
+
+func dbc(c *gin.Context) *gorm.DB {
+	return db.DB.WithContext(c.Request.Context())
 }
 
 func bizIDStr(c *gin.Context) string {
@@ -87,7 +92,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "business_share.html", gin.H{"error": "Business not found", "AuthType": c.GetString("auth_type"), "Role": c.GetString("role")})
 		return
 	}
@@ -102,10 +107,10 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 
 	// Count total clients and products/services for share analytics
 	var totalClients int64
-	h.db.Model(&models.Client{}).Where("business_id = ?", businessID).Count(&totalClients)
+	h.dbc(c).Model(&models.Client{}).Where("business_id = ?", businessID).Count(&totalClients)
 
 	var totalProducts int64
-	h.db.Model(&models.Product{}).Where("business_id = ?", businessID).Count(&totalProducts)
+	h.dbc(c).Model(&models.Product{}).Where("business_id = ?", businessID).Count(&totalProducts)
 
 	data := gin.H{
 		"Title":          "Share - " + business.Name,
@@ -119,6 +124,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 		"Onboarding":     onboardingData(h.db, businessID),
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
+		"AssistEnabled":  assist.IsEnabled(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -133,7 +139,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "business.html", gin.H{
 			"Title":    "SalesMee",
 			"Error":    "Business not found",
@@ -170,7 +176,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		ORDER BY unread_count DESC, last_message_at DESC
 	`
 
-	if err := h.db.Raw(query, businessID).Scan(&clientsWithUnread).Error; err != nil {
+	if err := h.dbc(c).Raw(query, businessID).Scan(&clientsWithUnread).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "business.html", gin.H{
 			"Title":     "SalesMee",
 			"Error":     "Failed to load clients",
@@ -198,7 +204,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		Count    int
 	}
 	var orderNotCompleted []notCompletedCountResult
-	h.db.Model(&models.Order{}).
+	h.dbc(c).Model(&models.Order{}).
 		Select("client_id, COUNT(*) as count").
 		Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).
 		Group("client_id").
@@ -209,7 +215,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	}
 
 	var bookingNotCompleted []notCompletedCountResult
-	h.db.Model(&models.Booking{}).
+	h.dbc(c).Model(&models.Booking{}).
 		Select("client_id, COUNT(*) as count").
 		Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).
 		Group("client_id").
@@ -225,10 +231,10 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 
 	// Count non-completed orders and bookings (global)
 	var pendingOrderCount int64
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).Count(&pendingOrderCount)
+	h.dbc(c).Model(&models.Order{}).Where("business_id = ? AND status NOT IN ('fulfilled', 'completed', 'cancelled')", businessID).Count(&pendingOrderCount)
 
 	var pendingBookingCount int64
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).Count(&pendingBookingCount)
+	h.dbc(c).Model(&models.Booking{}).Where("business_id = ? AND status NOT IN ('completed', 'cancelled')", businessID).Count(&pendingBookingCount)
 
 	totalPending := int(pendingOrderCount + pendingBookingCount)
 
@@ -240,11 +246,11 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 	}
 
 	var unreadNotifCount int64
-	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadNotifCount)
+	h.dbc(c).Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadNotifCount)
 
 	var bizProductCount, bizServiceCount int64
-	h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizProductCount)
-	h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizServiceCount)
+	h.dbc(c).Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizProductCount)
+	h.dbc(c).Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&bizServiceCount)
 
 	token, _ := c.Cookie("token")
 	if token == "" {
@@ -281,7 +287,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 
 	// Get user from database
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "business_login.html", gin.H{"error": "Business not found"})
 		return
 	}
@@ -289,24 +295,22 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	locID := c.Query("location_id")
 
 	// Helper to build location clause
-	locClause := ""
 	locArgs := []interface{}{}
 	if locID != "" {
-		locClause = " AND location_id = ?"
 		locArgs = append(locArgs, locID)
 	}
 
 	// Get counts (global — these are sidebar badge counts, not filtered by location)
 	var productCount, serviceCount, pendingOrderCount, pendingBookingCount int64
 
-	h.db.Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&productCount)
-	h.db.Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&serviceCount)
-	h.db.Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
-	h.db.Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookingCount)
+	h.dbc(c).Model(&models.Product{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&productCount)
+	h.dbc(c).Model(&models.Service{}).Where("business_id = ? AND is_active = ?", businessID, true).Count(&serviceCount)
+	h.dbc(c).Model(&models.Order{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingOrderCount)
+	h.dbc(c).Model(&models.Booking{}).Where("business_id = ? AND status = ?", businessID, "pending").Count(&pendingBookingCount)
 
 	// Get recent orders with client info
 	var recentOrders []models.Order
-	roQuery := h.db.Preload("Client").Where("business_id = ?", businessID)
+	roQuery := h.dbc(c).Preload("Client").Where("business_id = ?", businessID)
 	if locID != "" {
 		roQuery = roQuery.Where("location_id = ?", locID)
 	}
@@ -314,7 +318,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 
 	// Get recent bookings with client info
 	var recentBookings []models.Booking
-	rbQuery := h.db.Preload("Client").Where("business_id = ?", businessID)
+	rbQuery := h.dbc(c).Preload("Client").Where("business_id = ?", businessID)
 	if locID != "" {
 		rbQuery = rbQuery.Where("location_id = ?", locID)
 	}
@@ -322,38 +326,11 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 
 	// Get low stock products (global — not location-scoped)
 	var lowStockProducts []models.Product
-	h.db.Where("business_id = ? AND stock <= min_stock AND is_active = ?", businessID, true).Find(&lowStockProducts)
-
-	// Compute default "This Month" stats for dashboard_stats template
-	startTime, endTime, _ := timeRangeBounds("this_month")
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?" + locClause
-	timeArgs := []interface{}{businessID, startTime, endTime}
-	timeArgs = append(timeArgs, locArgs...)
-
-	var totalOrders, totalBookings, activeClients int64
-	var completedOrders, completedBookings int64
-	var pendingOrders, pendingBookings int64
-	var confirmedOrders, confirmedBookings int64
-	var cancelledOrders, cancelledBookings int64
-	var ordersRevenue, bookingsRevenue float64
-
-	h.db.Model(&models.Order{}).Where(timeClause, timeArgs...).Count(&totalOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause, timeArgs...).Count(&totalBookings)
-	h.db.Model(&models.Conversation{}).Where(timeClause, businessID, startTime, endTime).Count(&activeClients)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&ordersRevenue)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&bookingsRevenue)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"fulfilled", "completed"})...).Count(&completedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "completed")...).Count(&completedBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"confirmed", "client_confirmed"})...).Count(&confirmedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "client_confirmed")...).Count(&confirmedBookings)
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledBookings)
+	h.dbc(c).Where("business_id = ? AND stock <= min_stock AND is_active = ?", businessID, true).Find(&lowStockProducts)
 
 	// Load locations
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	data := DashboardData{
 		Business:            currentBusiness,
@@ -361,15 +338,6 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 		ServiceCount:        serviceCount,
 		PendingOrderCount:   pendingOrderCount,
 		PendingBookingCount: pendingBookingCount,
-		TotalRevenue:        ordersRevenue + bookingsRevenue,
-		TotalOrders:         totalOrders,
-		TotalBookings:       totalBookings,
-		ActiveClients:       activeClients,
-		CompletedCount:      completedOrders + completedBookings,
-		PendingCount:        pendingOrders + pendingBookings,
-		ConfirmedCount:      confirmedOrders + confirmedBookings,
-		CancelledCount:      cancelledOrders + cancelledBookings,
-		PeriodLabel:         "This Month",
 		RecentOrders:        recentOrders,
 		RecentBookings:      recentBookings,
 		LowStockProducts:    lowStockProducts,
@@ -412,7 +380,7 @@ func (h *BusinessHandler) UpdateBusinessProfile(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -444,36 +412,57 @@ func (h *BusinessHandler) UpdateBusinessProfile(c *gin.Context) {
 		updates["password"] = services.Hash(password)
 	}
 
-	file, header, err := c.Request.FormFile("logo")
-	if err == nil {
-		defer file.Close()
-
-		ext := strings.ToLower(filepath.Ext(header.Filename))
-		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".webp" {
-			if header.Size <= 5*1024*1024 {
-				uploadDir := filepath.Join("web", "static", "uploads", "logos")
-				os.MkdirAll(uploadDir, 0755)
-				filename := fmt.Sprintf("business_%d_%d%s", businessID, time.Now().Unix(), ext)
-				dst, err := os.Create(filepath.Join(uploadDir, filename))
-				if err == nil {
-					defer dst.Close()
-					if _, err := io.Copy(dst, file); err == nil {
-						logoPath := filepath.Join("uploads", "logos", filename)
-						updates["logo"] = logoPath
-					}
-				}
-			}
-		}
+	if lp := saveBusinessLogo(businessID, c); lp != "" {
+		updates["logo"] = lp
 	}
 
 	if len(updates) > 0 {
-		if err := h.db.Model(&business).Updates(updates).Error; err != nil {
+		if err := h.dbc(c).Model(&business).Updates(updates).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 			return
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func saveBusinessLogo(businessID uint, c *gin.Context) string {
+	file, header, err := c.Request.FormFile("logo")
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true}
+	if !allowed[ext] || header.Size > 5*1024*1024 {
+		return ""
+	}
+
+	uploadDir := filepath.Join("web", "static", "uploads", "logos")
+	os.MkdirAll(uploadDir, 0755)
+
+	tmpName := fmt.Sprintf("business_%d_%d_tmp%s", businessID, time.Now().Unix(), ext)
+	tmpPath := filepath.Join(uploadDir, tmpName)
+	dst, err := os.Create(tmpPath)
+	if err != nil {
+		return ""
+	}
+	if _, err := io.Copy(dst, file); err != nil {
+		dst.Close()
+		os.Remove(tmpPath)
+		return ""
+	}
+	dst.Close()
+
+	webpName := fmt.Sprintf("business_%d_%d.webp", businessID, time.Now().Unix())
+	webpPath := filepath.Join(uploadDir, webpName)
+	if err := images.Process(tmpPath, webpPath, images.LogoConfig); err != nil {
+		os.Remove(tmpPath)
+		return ""
+	}
+
+	return filepath.Join("uploads", "logos", webpName)
 }
 
 func (h *BusinessHandler) UploadBusinessLogo(c *gin.Context) {
@@ -487,7 +476,8 @@ func (h *BusinessHandler) UploadBusinessLogo(c *gin.Context) {
 	defer file.Close()
 
 	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" && ext != ".webp" {
+	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true}
+	if !allowed[ext] {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Only image files (jpg, jpeg, png, gif, webp) are allowed"})
 		return
 	}
@@ -503,21 +493,32 @@ func (h *BusinessHandler) UploadBusinessLogo(c *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("business_%d_%d%s", businessID, time.Now().Unix(), ext)
-	dst, err := os.Create(filepath.Join(uploadDir, filename))
+	tmpName := fmt.Sprintf("business_%d_%d_tmp%s", businessID, time.Now().Unix(), ext)
+	tmpPath := filepath.Join(uploadDir, tmpName)
+	dst, err := os.Create(tmpPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file"})
 		return
 	}
-	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
+		dst.Close()
+		os.Remove(tmpPath)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
 	}
+	dst.Close()
 
-	logoPath := filepath.Join("uploads", "logos", filename)
-	if err := h.db.Model(&models.Business{}).Where("id = ?", businessID).Update("logo", logoPath).Error; err != nil {
+	webpName := fmt.Sprintf("business_%d_%d.webp", businessID, time.Now().Unix())
+	webpPath := filepath.Join(uploadDir, webpName)
+	if err := images.Process(tmpPath, webpPath, images.LogoConfig); err != nil {
+		os.Remove(tmpPath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process image"})
+		return
+	}
+
+	logoPath := filepath.Join("uploads", "logos", webpName)
+	if err := h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Update("logo", logoPath).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update business logo"})
 		return
 	}
@@ -533,7 +534,7 @@ func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -560,7 +561,7 @@ func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {
 	counter := 1
 	for {
 		var existing models.Business
-		if h.db.Where("slug = ? AND id != ?", slug, businessID).First(&existing).Error != nil {
+		if h.dbc(c).Where("slug = ? AND id != ?", slug, businessID).First(&existing).Error != nil {
 			break
 		}
 		n, _ := rand.Int(rand.Reader, big.NewInt(9000))
@@ -572,7 +573,7 @@ func (h *BusinessHandler) RegenerateSlug(c *gin.Context) {
 		}
 	}
 
-	h.db.Model(&business).Update("slug", slug)
+	h.dbc(c).Model(&business).Update("slug", slug)
 
 	scheme := "https"
 	if c.Request.TLS == nil {
@@ -593,7 +594,7 @@ func (h *BusinessHandler) InitiateProfileChange(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -642,26 +643,7 @@ func (h *BusinessHandler) InitiateProfileChange(c *gin.Context) {
 		change.Password = services.Hash(password)
 	}
 
-	file, header, err := c.Request.FormFile("logo")
-	var logoPath string
-	if err == nil {
-		defer file.Close()
-		ext := strings.ToLower(filepath.Ext(header.Filename))
-		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".webp" {
-			if header.Size <= 5*1024*1024 {
-				uploadDir := filepath.Join("web", "static", "uploads", "logos")
-				os.MkdirAll(uploadDir, 0755)
-				filename := fmt.Sprintf("business_%d_%d%s", businessID, time.Now().Unix(), ext)
-				dst, err := os.Create(filepath.Join(uploadDir, filename))
-				if err == nil {
-					defer dst.Close()
-					if _, err := io.Copy(dst, file); err == nil {
-						logoPath = filepath.Join("uploads", "logos", filename)
-					}
-				}
-			}
-		}
-	}
+	logoPath := saveBusinessLogo(businessID, c)
 
 	if !needsOTP {
 		updates := map[string]interface{}{
@@ -681,7 +663,7 @@ func (h *BusinessHandler) InitiateProfileChange(c *gin.Context) {
 		if logoPath != "" {
 			updates["logo"] = logoPath
 		}
-		if err := h.db.Model(&business).Updates(updates).Error; err != nil {
+		if err := h.dbc(c).Model(&business).Updates(updates).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 			return
 		}
@@ -762,7 +744,7 @@ func (h *BusinessHandler) ConfirmProfileChange(c *gin.Context) {
 		updates["logo"] = pending.Logo
 	}
 
-	if err := h.db.Model(&models.Business{}).Where("id = ?", businessID).Updates(updates).Error; err != nil {
+	if err := h.dbc(c).Model(&models.Business{}).Where("id = ?", businessID).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 		return
 	}
@@ -793,7 +775,7 @@ func (h *BusinessHandler) ResendProfileOTP(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := h.db.First(&business, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -829,6 +811,84 @@ type DashboardStatsData struct {
 	ActiveClients  int64
 	Locations      []models.Location
 	QueryLocationID string
+}
+
+type periodStats struct {
+	TotalOrders    int64
+	TotalBookings  int64
+	CompletedCount int64
+	PendingCount   int64
+	ConfirmedCount int64
+	CancelledCount int64
+	OrdersRevenue  float64
+	BookingsRevenue float64
+	ActiveClients  int64
+}
+
+type statusCount struct {
+	Status string
+	Count  int64
+}
+
+// queryPeriodStats consolidates 12+ individual dashboard COUNT/SUM queries into 5 grouped queries.
+func queryPeriodStats(db *gorm.DB, businessID uint, startTime, endTime time.Time, locID string, locArgs []interface{}) periodStats {
+	var ps periodStats
+
+	locClause := ""
+	if locID != "" {
+		locClause = " AND location_id = ?"
+	}
+
+	// 1. Order status counts — GROUP BY replaces 6 COUNTs
+	var orderCounts []statusCount
+	orderArgs := []interface{}{businessID, startTime, endTime}
+	orderArgs = append(orderArgs, locArgs...)
+	db.Raw("SELECT status, COUNT(*) AS count FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause+" GROUP BY status", orderArgs...).Scan(&orderCounts)
+	for _, sc := range orderCounts {
+		switch sc.Status {
+		case "pending":
+			ps.PendingCount += sc.Count; ps.TotalOrders += sc.Count
+		case "confirmed", "client_confirmed":
+			ps.ConfirmedCount += sc.Count; ps.TotalOrders += sc.Count
+		case "fulfilled", "completed":
+			ps.CompletedCount += sc.Count; ps.TotalOrders += sc.Count
+		case "cancelled":
+			ps.CancelledCount += sc.Count
+		default:
+			ps.TotalOrders += sc.Count
+		}
+	}
+
+	// 2. Booking status counts — GROUP BY replaces 6 COUNTs
+	var bookingCounts []statusCount
+	bookingArgs := []interface{}{businessID, startTime, endTime}
+	bookingArgs = append(bookingArgs, locArgs...)
+	db.Raw("SELECT status, COUNT(*) AS count FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause+" GROUP BY status", bookingArgs...).Scan(&bookingCounts)
+	for _, sc := range bookingCounts {
+		switch sc.Status {
+		case "pending":
+			ps.PendingCount += sc.Count; ps.TotalBookings += sc.Count
+		case "client_confirmed", "confirmed":
+			ps.ConfirmedCount += sc.Count; ps.TotalBookings += sc.Count
+		case "completed":
+			ps.CompletedCount += sc.Count; ps.TotalBookings += sc.Count
+		case "cancelled":
+			ps.CancelledCount += sc.Count
+		default:
+			ps.TotalBookings += sc.Count
+		}
+	}
+
+	// 3. Order revenue
+	db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, orderArgs...).Scan(&ps.OrdersRevenue)
+
+	// 4. Booking revenue
+	db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, bookingArgs...).Scan(&ps.BookingsRevenue)
+
+	// 5. Active clients (conversations created in period)
+	db.Model(&models.Conversation{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Count(&ps.ActiveClients)
+
+	return ps
 }
 
 func timeRangeBounds(r string) (start, end time.Time, label string) {
@@ -873,69 +933,38 @@ func (h *BusinessHandler) GetDashboardStats(c *gin.Context) {
 	}
 
 	r := c.DefaultQuery("range", "this_month")
-	startTime, endTime, label := timeRangeBounds(r)
 	locID := c.Query("location_id")
 
+	startTime, endTime, label := timeRangeBounds(r)
+
 	var currentBusiness models.Business
-	if err := h.db.First(&currentBusiness, businessID).Error; err != nil {
+	if err := h.dbc(c).First(&currentBusiness, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
 
-	locClause := ""
 	locArgs := []interface{}{}
 	if locID != "" {
-		locClause = " AND location_id = ?"
 		locArgs = append(locArgs, locID)
 	}
 
-	var totalOrders, totalBookings int64
-	var completedOrders, completedBookings int64
-	var pendingOrders, pendingBookings int64
-	var confirmedOrders, confirmedBookings int64
-	var cancelledOrders, cancelledBookings int64
-	var ordersRevenue, bookingsRevenue float64
-	var activeClients int64
-
-	timeClause := "business_id = ? AND created_at BETWEEN ? AND ?" + locClause
-	timeArgs := []interface{}{businessID, startTime, endTime}
-	timeArgs = append(timeArgs, locArgs...)
-
-	h.db.Model(&models.Order{}).Where(timeClause, timeArgs...).Count(&totalOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause, timeArgs...).Count(&totalBookings)
-
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"fulfilled", "completed"})...).Count(&completedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "completed")...).Count(&completedBookings)
-
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "pending")...).Count(&pendingBookings)
-
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status IN ?", append(timeArgs, []string{"confirmed", "client_confirmed"})...).Count(&confirmedOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "client_confirmed")...).Count(&confirmedBookings)
-
-	h.db.Model(&models.Order{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledOrders)
-	h.db.Model(&models.Booking{}).Where(timeClause+" AND status = ?", append(timeArgs, "cancelled")...).Count(&cancelledBookings)
-
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM orders WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&ordersRevenue)
-	h.db.Raw("SELECT COALESCE(SUM(paid_amount), 0) FROM bookings WHERE business_id = ? AND created_at BETWEEN ? AND ?"+locClause, append([]interface{}{businessID, startTime, endTime}, locArgs...)...).Scan(&bookingsRevenue)
-
-	h.db.Model(&models.Conversation{}).Where("business_id = ? AND created_at BETWEEN ? AND ?", businessID, startTime, endTime).Count(&activeClients)
+	stats := queryPeriodStats(h.db, businessID, startTime, endTime, locID, locArgs)
 
 	// Load locations
 	var locations []models.Location
-	h.db.Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
+	h.dbc(c).Where("business_id = ?", businessID).Order("sort_order ASC, name ASC").Find(&locations)
 
 	data := DashboardStatsData{
 		Business:        currentBusiness,
 		PeriodLabel:     label,
-		TotalOrders:     totalOrders,
-		TotalBookings:   totalBookings,
-		CompletedCount:  completedOrders + completedBookings,
-		PendingCount:    pendingOrders + pendingBookings,
-		ConfirmedCount:  confirmedOrders + confirmedBookings,
-		CancelledCount:  cancelledOrders + cancelledBookings,
-		TotalRevenue:    ordersRevenue + bookingsRevenue,
-		ActiveClients:   activeClients,
+		TotalOrders:     stats.TotalOrders,
+		TotalBookings:   stats.TotalBookings,
+		CompletedCount:  stats.CompletedCount,
+		PendingCount:    stats.PendingCount,
+		ConfirmedCount:  stats.ConfirmedCount,
+		CancelledCount:  stats.CancelledCount,
+		TotalRevenue:    stats.OrdersRevenue + stats.BookingsRevenue,
+		ActiveClients:   stats.ActiveClients,
 		Locations:       locations,
 		QueryLocationID: locID,
 	}
@@ -953,10 +982,10 @@ func (h *BusinessHandler) GetNotifications(c *gin.Context) {
 	}
 
 	var notifs []models.InAppNotification
-	h.db.Where("business_id = ?", businessID).Order("created_at DESC").Limit(20).Find(&notifs)
+	h.dbc(c).Where("business_id = ?", businessID).Order("created_at DESC").Limit(20).Find(&notifs)
 
 	var unreadCount int64
-	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadCount)
+	h.dbc(c).Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&unreadCount)
 
 	now := time.Now()
 	enriched := make([]notifWithTime, len(notifs))
@@ -1013,10 +1042,18 @@ func broadcastBizPendingCounts(db *gorm.DB, hub *ws.Hub, businessID uint) {
 func (h *BusinessHandler) GetNotificationCount(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
-	var count int64
-	h.db.Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&count)
+	cacheKey := fmt.Sprintf("notif_count:%d", businessID)
+	if cached, ok := h.fcache.Get(cacheKey); ok {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(cached))
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"count": int(count)})
+	var count int64
+	h.dbc(c).Model(&models.InAppNotification{}).Where("business_id = ? AND is_read = false", businessID).Count(&count)
+
+	resp := fmt.Sprintf(`{"count":%d}`, int(count))
+	h.fcache.Set(cacheKey, resp)
+	c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(resp))
 }
 
 // MarkNotificationRead marks a single notification as read
@@ -1024,11 +1061,12 @@ func (h *BusinessHandler) MarkNotificationRead(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	id := c.Param("id")
 
-	h.db.Model(&models.InAppNotification{}).
+	h.dbc(c).Model(&models.InAppNotification{}).
 		Where("id = ? AND business_id = ?", id, businessID).
 		Update("is_read", true)
 
 	broadcastBizPendingCounts(h.db, h.hub, businessID)
+	h.fcache.Delete(fmt.Sprintf("notif_count:%d", businessID))
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
@@ -1037,11 +1075,12 @@ func (h *BusinessHandler) MarkNotificationRead(c *gin.Context) {
 func (h *BusinessHandler) MarkAllNotificationsRead(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
-	h.db.Model(&models.InAppNotification{}).
+	h.dbc(c).Model(&models.InAppNotification{}).
 		Where("business_id = ? AND is_read = false", businessID).
 		Update("is_read", true)
 
 	broadcastBizPendingCounts(h.db, h.hub, businessID)
+	h.fcache.Delete(fmt.Sprintf("notif_count:%d", businessID))
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
@@ -1051,7 +1090,7 @@ func (h *BusinessHandler) DeleteNotification(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	id := c.Param("id")
 
-	h.db.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.InAppNotification{})
+	h.dbc(c).Where("id = ? AND business_id = ?", id, businessID).Delete(&models.InAppNotification{})
 
 	broadcastBizPendingCounts(h.db, h.hub, businessID)
 

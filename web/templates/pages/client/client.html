@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{.Title}}</title>
   <meta name="color-scheme" content="light dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css">
+  {{template "pwa_head" .}}
+  <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
+  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/vendor/htmx.min.js?v=1"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
 </head>
@@ -71,14 +70,13 @@
     {{template "business_list" .}}
 
     <!-- Main Chat Area -->
-    <main class="wa-chat-area" id="chat-area">
-      <div id="skeleton-area" class="hidden">
-        {{template "skeleton_chat" .}}
-      </div>
-      <div id="content-area">
-        {{template "empty_state" dict "Title" "Select a business to start chatting" "Description" "Choose a conversation from the sidebar to send messages, place orders, and book services."}}
-      </div>
-    </main>
+    <div class="relative flex-1 flex flex-col min-w-0">
+      <main class="wa-chat-area" id="chat-area">
+        <div id="content-area">
+          {{template "empty_state" dict "Title" "Select a business to start chatting" "Description" "Choose a conversation from the sidebar to send messages, place orders, and book services."}}
+        </div>
+      </main>
+    </div>
   </div>
 
   {{template "client_order" .}}
@@ -95,15 +93,8 @@
       });
     });
   </script>
-  <script src="/static/js/modules/shared.js?v=1"></script>
-  <script src="/static/js/modules/ws.js?v=2"></script>
-  <script src="/static/js/modules/client.js?v=1"></script>
-  <script src="/static/js/modules/wizard_common.js?v=1"></script>
-  <script src="/static/js/modules/product_picker.js?v=1"></script>
-  <script src="/static/js/modules/service_picker.js?v=1"></script>
-  <script src="/static/js/core/app.js?v=1"></script>
   <script>window.ASSIST_API_BASE = '/client/assist';</script>
-  <script src="/static/js/modules/assist.js?v=1"></script>
+  <script src="/static/js/bundles/client-bundle.js?v=1"></script>
   <script>
     function clientBackFromChat() {
       var layout = document.getElementById('clientLayout');
@@ -115,7 +106,16 @@
     function openClientProducts() {
       var bizId = window.businessId || (typeof currentBusinessId !== 'undefined' ? currentBusinessId : null);
       if (bizId) {
-        htmx.ajax('GET', '/client/businesses/' + bizId + '/products-page', {target: '#chat-area', swap: 'innerHTML'});
+        var chatArea = document.getElementById('chat-area');
+        fetch('/client/businesses/' + bizId + '/products-page', { headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+          .then(function(r) { return r.text(); })
+          .then(function(html) {
+            if (chatArea) chatArea.innerHTML = html;
+            htmx.process(chatArea);
+          })
+          .catch(function() {
+            if (chatArea) chatArea.innerHTML = '<div class="flex-1 flex items-center justify-center py-12 text-center"><div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4"><i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div><p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p></div>';
+          });
       } else {
         document.getElementById('chat-area').innerHTML =
           '<div class="flex-1 flex items-center justify-center empty-state">' +
@@ -131,7 +131,16 @@
     function openClientServices() {
       var bizId = window.businessId || (typeof currentBusinessId !== 'undefined' ? currentBusinessId : null);
       if (bizId) {
-        htmx.ajax('GET', '/client/businesses/' + bizId + '/services-page', {target: '#chat-area', swap: 'innerHTML'});
+        var chatArea = document.getElementById('chat-area');
+        fetch('/client/businesses/' + bizId + '/services-page', { headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
+          .then(function(r) { return r.text(); })
+          .then(function(html) {
+            if (chatArea) chatArea.innerHTML = html;
+            htmx.process(chatArea);
+          })
+          .catch(function() {
+            if (chatArea) chatArea.innerHTML = '<div class="flex-1 flex items-center justify-center py-12 text-center"><div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4"><i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div><p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p></div>';
+          });
       } else {
         document.getElementById('chat-area').innerHTML =
           '<div class="flex-1 flex items-center justify-center empty-state">' +
@@ -152,7 +161,7 @@
         history.replaceState({}, '', '/client');
       }
       updateTimeAgo();
-      setInterval(updateTimeAgo, 30000);
+      setInterval(updateTimeAgo, 60000);
     });
 
     function updateTimeAgo() {
@@ -176,7 +185,7 @@
 
     function switchToChats(bizId) {
       setClientActiveTab(document.querySelector('.client-tab[data-tab="chats"]'));
-      htmx.ajax('GET', '/client/businesses/' + bizId + '/messages', {target: '#chat-area', swap: 'innerHTML'});
+      if (typeof loadBusiness === 'function') loadBusiness(bizId);
     }
 
     function filterBusinesses() {
@@ -184,7 +193,11 @@
       document.querySelectorAll('.business-item').forEach(function(el) {
         var name = el.getAttribute('data-business-name')?.toLowerCase() || '';
         var type = el.getAttribute('data-business-type')?.toLowerCase() || '';
-        el.style.display = (!q || name.includes(q) || type.includes(q)) ? '' : 'none';
+        var match = !q || name.includes(q) || type.includes(q);
+        el.style.display = match ? '' : 'none';
+        if (match && el.hasAttribute('data-sidebar-hidden')) {
+          el.removeAttribute('data-sidebar-hidden');
+        }
       });
     }
 
@@ -216,6 +229,13 @@
         this.classList.add('hidden');
       });
     });
+
+    function scrollMessagesToBottom() {
+      var container = document.getElementById('messages-container');
+      if (container) {
+        setTimeout(function() { container.scrollTop = container.scrollHeight; }, 50);
+      }
+    }
   </script>
 </body>
 </html>

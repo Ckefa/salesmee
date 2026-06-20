@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
 
@@ -40,7 +39,7 @@ func SendBusinessVerification(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 
 	var business models.Business
-	if err := db.DB.First(&business, businessID).Error; err != nil {
+	if err := dbc(c).First(&business, businessID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -71,7 +70,7 @@ func SendBusinessVerification(c *gin.Context) {
 	rand.Read(b)
 	token := hex.EncodeToString(b)
 
-	db.DB.Model(&business).Update("verification_token", token)
+	dbc(c).Model(&business).Update("verification_token", token)
 
 	verifyLink := services.GetBaseURL(c) + "/business/verify?token=" + token
 
@@ -89,7 +88,7 @@ func SendBusinessVerification(c *gin.Context) {
 func CheckVerificationStatus(c *gin.Context) {
 	businessID := c.GetUint("business_id")
 	var verified bool
-	if err := db.DB.Model(&models.Business{}).Select("email_verified").Where("id = ?", businessID).Scan(&verified).Error; err != nil {
+	if err := dbc(c).Model(&models.Business{}).Select("email_verified").Where("id = ?", businessID).Scan(&verified).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
 		return
 	}
@@ -107,7 +106,7 @@ func VerifyBusinessEmail(c *gin.Context) {
 	}
 
 	var business models.Business
-	if err := db.DB.Where("verification_token = ?", token).First(&business).Error; err != nil {
+	if err := dbc(c).Where("verification_token = ?", token).First(&business).Error; err != nil {
 		c.HTML(http.StatusOK, "verify_email.html", gin.H{
 			"Title": "Verify Email - SalesMee",
 			"Error": "Invalid or expired verification link.",
@@ -115,7 +114,7 @@ func VerifyBusinessEmail(c *gin.Context) {
 		return
 	}
 
-	db.DB.Model(&business).Updates(map[string]interface{}{
+	dbc(c).Model(&business).Updates(map[string]interface{}{
 		"email_verified":    true,
 		"verification_token": "",
 	})

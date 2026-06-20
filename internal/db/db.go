@@ -3,12 +3,15 @@ package db
 import (
 	"fmt"
 	"log"
+	"os"
+	"time"
 
 	"salesmee/internal/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -19,10 +22,24 @@ func Connect() {
 	dbPath := config.C.DBPath
 	dbHost := config.C.DBHost
 
+	gormConfig := &gorm.Config{
+		PrepareStmt:           true,
+		SkipDefaultTransaction: true,
+		QueryFields:           true,
+		Logger: logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags),
+			logger.Config{
+				SlowThreshold: 200 * time.Millisecond,
+				LogLevel:      logger.Warn,
+				Colorful:      false,
+			},
+		),
+	}
+
 	// Use SQLite for development if PostgreSQL is not available
 	if env == "dev" && dbPath != "" {
 		log.Println("Using development sqlite Database")
-		DB, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+		DB, err = gorm.Open(sqlite.Open(dbPath), gormConfig)
 	} else if dbHost != "" {
 		log.Println("Using PostgreSQL database")
 
@@ -33,7 +50,7 @@ func Connect() {
 			config.C.DBName,
 			config.C.DBPort,
 		)
-		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		DB, err = gorm.Open(postgres.Open(dsn), gormConfig)
 	} else {
 		log.Fatal("Missing Database configuration: DB_PATH | DB_HOST")
 	}
@@ -42,5 +59,18 @@ func Connect() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	log.Println("Database connected successfully")
+	// Configure connection pool
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get underlying sql.DB: %v", err)
+	}
+
+	sqlDB.SetMaxOpenConns(config.C.DBMaxOpenConns)
+	sqlDB.SetMaxIdleConns(config.C.DBMaxIdleConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(config.C.DBMaxLifetime) * time.Minute)
+	sqlDB.SetConnMaxIdleTime(time.Duration(config.C.DBMaxIdleTime) * time.Minute)
+
+	log.Printf("Database connected successfully (pool: %d/%d, lifetime: %dm, idle: %dm)",
+		config.C.DBMaxOpenConns, config.C.DBMaxIdleConns,
+		config.C.DBMaxLifetime, config.C.DBMaxIdleTime)
 }

@@ -9,8 +9,8 @@
 <button class="insights-toggle flex items-center gap-1 text-[11px] sm:text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors duration-200"
   onclick="toggleInsightsDrawer({{.Insight.ConversationID}})"
   title="View customer insights">
-  <i class="fas fa-star {{$tierColor}} text-[10px]"></i>
+  {{heroicon "star" "{{$tierColor}}" "text-[10px]"}}
   <span class="capitalize {{$tierColor}}">{{.Insight.Tier}}</span>
-  <i class="fas fa-chevron-down text-[8px] text-[var(--color-text-muted)]"></i>
+  {{heroicon "chevron-down" "text-[8px]" "text-[var(--color-text-muted)]"}}
 </button>
 {{end}}

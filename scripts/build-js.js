@@ -8,6 +8,7 @@ const VENDOR_DIR = path.resolve(JS_DIR, 'vendor');
 
 const bundles = {
   'business-bundle': [
+    'core/icons.js',
     'modules/shared.js',
     'modules/ws.js',
     'modules/chat_common.js',
@@ -21,6 +22,7 @@ const bundles = {
     'modules/onboarding.js',
   ],
   'client-bundle': [
+    'core/icons.js',
     'modules/shared.js',
     'modules/ws.js',
     'modules/chat_common.js',

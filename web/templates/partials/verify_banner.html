@@ -2,15 +2,15 @@
 {{if not .Business.EmailVerified}}
 <div id="verifyBanner" class="bg-amber-100 dark:bg-amber-900/40 border-b border-amber-300 dark:border-amber-700 px-4 lg:px-6 py-3 flex items-center justify-between gap-3">
   <div class="flex items-center gap-3 text-sm">
-    <i class="fas fa-shield-halved text-amber-600 dark:text-amber-400 shrink-0 text-base"></i>
+    {{heroicon "shield-check" "text-amber-600" "dark:text-amber-400" "shrink-0" "text-base"}}
     <span class="text-amber-900 dark:text-amber-100 font-medium">Verify your email to unlock full account security and all platform features.</span>
   </div>
   <div class="flex items-center gap-2 shrink-0">
     <button onclick="resendVerification(event)" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition-all shadow-sm active:scale-95">
-      <i class="fas fa-envelope mr-1.5"></i>Resend Email
+      {{heroicon "envelope" "mr-1.5"}}Resend Email
     </button>
     <button onclick="dismissVerifyBanner()" class="text-amber-500 hover:text-amber-700 dark:text-amber-300 dark:hover:text-amber-100 transition-colors text-lg leading-none">
-      <i class="fas fa-times"></i>
+      {{heroicon "x-mark"}}
     </button>
   </div>
 </div>
@@ -22,7 +22,7 @@
     var btn = e && e.target ? e.target.closest('button') : null;
     if (!btn) return;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Sending';
+    btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1"}}Sending';
 
     // Start countdown immediately — 60s from now
     startCooldown(btn, 60);
@@ -42,7 +42,7 @@
         if (d.message) {
           showNotification(d.message || 'Email sent!', 'success');
           // keep the running countdown, just update button text
-          if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend';
+          if (btn) btn.innerHTML = '{{heroicon "envelope" "mr-1"}}Resend';
           // if server sent a smaller cooldown, restart with that instead
           if (d.cooldown && d.cooldown < 60) {
             if (countdownCancel) countdownCancel();
@@ -50,12 +50,12 @@
           }
         } else {
           showNotification(d.error || 'Failed to send', 'error');
-          if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend';
+          if (btn) btn.innerHTML = '{{heroicon "envelope" "mr-1"}}Resend';
         }
       })
       .catch(function() {
         showNotification('Failed to send verification email. Check your connection.', 'error');
-        if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend';
+        if (btn) btn.innerHTML = '{{heroicon "envelope" "mr-1"}}Resend';
       });
   }
 
@@ -102,7 +102,7 @@
         container.classList.add('hidden');
         container.innerHTML = '';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-envelope mr-1"></i>Resend Verification Email';
+        btn.innerHTML = '{{heroicon "envelope" "mr-1"}}Resend Verification Email';
         if (countdownCancel === arguments.callee) countdownCancel = null;
       }
     }
@@ -141,7 +141,7 @@
       } else {
         if (pill.parentNode) pill.parentNode.removeChild(pill);
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-envelope mr-1.5"></i>Resend Email';
+        btn.innerHTML = '{{heroicon "envelope" "mr-1.5"}}Resend Email';
         if (countdownCancel === arguments.callee) countdownCancel = null;
       }
     }

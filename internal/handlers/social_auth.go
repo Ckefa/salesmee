@@ -53,7 +53,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("google_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Invalid state parameter. Please try again.",
 		}))
 		return
@@ -63,7 +63,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "No authorization code provided.",
 		}))
 		return
@@ -72,7 +72,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	user, err := getBusinessGoogleAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Failed to authenticate with Google.",
 		}))
 		return
@@ -103,7 +103,7 @@ func HandleBusinessGoogleCallback(c *gin.Context) {
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Failed to generate token.",
 		}))
 		return
@@ -125,7 +125,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("facebook_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Invalid state parameter. Please try again.",
 		}))
 		return
@@ -135,7 +135,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(http.StatusBadRequest, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "No authorization code provided.",
 		}))
 		return
@@ -144,7 +144,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	user, err := getBusinessFacebookAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Failed to authenticate with Facebook.",
 		}))
 		return
@@ -175,7 +175,7 @@ func HandleBusinessFacebookCallback(c *gin.Context) {
 	token, err := services.GenerateToken(business.ID, business.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Failed to generate token.",
 		}))
 		return

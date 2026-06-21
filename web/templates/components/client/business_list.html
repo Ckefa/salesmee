@@ -2,7 +2,7 @@
 <aside class="wa-sidebar" id="clientSidebar">
   <div class="wa-sidebar-header">
     {{if .Businesses}}
-    <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+    <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder">{{heroicon "building-storefront"}}</div>
     <div class="wa-sidebar-header-info">
       <h2 class="wa-sidebar-business-name">{{.Title}}</h2>
       <span class="wa-sidebar-status">{{len .Businesses}} business{{if ne (len .Businesses) 1}}es{{end}}</span>
@@ -10,13 +10,13 @@
     {{end}}
     <div class="wa-sidebar-header-actions">
       <a href="/client/discover" class="wa-sidebar-icon-btn" title="Discover businesses">
-        <i class="fas fa-compass"></i>
+        {{heroicon "compass"}}
       </a>
     </div>
   </div>
 
   <div class="wa-search-container">
-    <i class="fas fa-search wa-search-icon"></i>
+    {{heroicon "magnifying-glass" "wa-search-icon"}}
     <input type="text" id="businessSearch" placeholder="Search businesses..." oninput="filterBusinesses()" class="wa-search-input">
   </div>
 
@@ -27,7 +27,7 @@
         {{if .Logo}}
         <img src="/static/{{.Logo}}" alt="{{.Name}}" class="wa-chat-avatar" loading="lazy">
         {{else}}
-        <div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+        <div class="wa-chat-avatar wa-sidebar-avatar-placeholder">{{heroicon "building-storefront"}}</div>
         {{end}}
         <div class="wa-online-dot"></div>
       </div>
@@ -48,11 +48,11 @@
       <div class="flex items-center gap-0.5 ml-auto shrink-0">
         <button onclick="event.stopPropagation(); togglePinBusiness({{.ID}})"
           class="pin-btn wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-amber-500" title="Pin to top">
-          <i class="fas fa-star text-[10px]"></i>
+          {{heroicon "star" "text-[10px]"}}
         </button>
         <button onclick="event.stopPropagation(); disconnectBusiness({{.ID}})"
           class="wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-[var(--color-error)]" title="Remove business">
-          <i class="fas fa-trash-alt text-[10px]"></i>
+          {{heroicon "trash" "text-[10px]"}}
         </button>
       </div>
     </div>
@@ -60,12 +60,12 @@
     <div class="wa-empty-chat-list">
       <div class="flex flex-col items-center justify-center py-12 px-6 text-center">
         <div class="w-16 h-16 rounded-2xl bg-[var(--color-primary-light)] flex items-center justify-center mb-4">
-          <i class="fas fa-store text-[var(--color-primary)] text-2xl"></i>
+          {{heroicon "building-storefront" "text-[var(--color-primary)]" "text-2xl"}}
         </div>
         <h3 class="text-base font-semibold text-[var(--color-text)] mb-1">No businesses connected yet</h3>
         <p class="text-sm text-[var(--color-text-muted)] mb-5">Discover and connect with businesses to start chatting, ordering, and booking services.</p>
         <a href="/client/discover" class="btn btn-primary btn-sm">
-          <i class="fas fa-compass"></i>
+        {{heroicon "compass"}}
           Find Businesses
         </a>
       </div>
@@ -76,16 +76,16 @@
 <!-- Right-click Context Menu -->
 <div id="bizCtxMenu" class="wa-ctx-menu hidden">
   <button class="wa-ctx-item" data-action="mark-read" onclick="bizCtxMarkRead()">
-    <i class="fas fa-check-circle"></i>
+    {{heroicon "check-circle"}}
     <span>Mark as read</span>
   </button>
   <button class="wa-ctx-item" data-action="toggle-pin" onclick="bizCtxTogglePin()">
-    <i class="fas fa-star"></i>
+    {{heroicon "star"}}
     <span>Pin to top</span>
   </button>
   <div class="wa-ctx-divider"></div>
   <button class="wa-ctx-item wa-ctx-danger" data-action="remove" onclick="bizCtxRemove()">
-    <i class="fas fa-trash-alt"></i>
+    {{heroicon "trash"}}
     <span>Remove business</span>
   </button>
 </div>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   {{template "landing_head" .}}
-  <title>How It Works — SalesMee Guide</title>
+  <title>How SalesMee Works — Guide for Businesses & Clients</title>
   <style>
     .guide-step { transition: all var(--transition-base); }
     .guide-step:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
@@ -20,8 +20,8 @@
     .faq-q:hover { color: var(--color-primary); }
     .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; opacity: 0; }
     .faq-a.open { max-height: 300px; opacity: 1; }
-    .faq-q .fa-chevron-down { transition: transform var(--transition-base); }
-    .faq-q.open .fa-chevron-down { transform: rotate(180deg); }
+    .faq-q .heroicon-chevron-down { transition: transform var(--transition-base); }
+    .faq-q.open .heroicon-chevron-down { transform: rotate(180deg); }
     .badge-guide { display: inline-block; padding: 0.15rem 0.7rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .glow-card { position: relative; overflow: hidden; }
     .glow-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(13,148,136,0.06), transparent 60%); pointer-events: none; }
@@ -88,7 +88,7 @@
           <!-- Business -->
           <div class="flex flex-col items-center gap-2 text-center">
             <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] flex items-center justify-center shadow-lg hub-pulse">
-              <i class="fas fa-store text-white text-xl sm:text-2xl"></i>
+              {{heroicon "building-storefront" "text-white" "text-xl" "sm:text-2xl"}}
             </div>
             <span class="text-xs font-semibold text-[var(--color-text)]">Your Business</span>
           </div>
@@ -103,7 +103,7 @@
           <!-- SalesMee Hub -->
           <div class="flex flex-col items-center gap-2 text-center">
             <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-secondary)] to-[var(--color-primary)] flex items-center justify-center shadow-lg hub-pulse" style="animation-delay:0.5s;">
-              <i class="fas fa-comment-dots text-white text-xl sm:text-2xl"></i>
+              {{heroicon "chat-bubble-left-ellipsis" "text-white" "text-xl" "sm:text-2xl"}}
             </div>
             <span class="text-xs font-semibold text-[var(--color-primary)]">SalesMee</span>
           </div>
@@ -118,17 +118,17 @@
           <!-- Client -->
           <div class="flex flex-col items-center gap-2 text-center">
             <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-warning)] flex items-center justify-center shadow-lg hub-pulse" style="animation-delay:1s;">
-              <i class="fas fa-user text-white text-xl sm:text-2xl"></i>
+              {{heroicon "user" "text-white" "text-xl" "sm:text-2xl"}}
             </div>
             <span class="text-xs font-semibold text-[var(--color-text)]">Your Clients</span>
           </div>
         </div>
         <!-- Flow labels -->
         <div class="flex justify-center gap-4 sm:gap-8 mt-4 text-[0.6rem] text-[var(--color-text-muted)]">
-          <span><i class="fas fa-shopping-cart text-[var(--color-accent)]"></i> Orders</span>
-          <span><i class="fas fa-calendar text-[var(--color-secondary)]"></i> Bookings</span>
-          <span><i class="fas fa-comment text-[var(--color-primary)]"></i> Chat</span>
-          <span><i class="fas fa-credit-card text-[var(--color-success)]"></i> Payments</span>
+          <span>{{heroicon "shopping-cart" "text-[var(--color-accent)]"}} Orders</span>
+          <span>{{heroicon "calendar" "text-[var(--color-secondary)]"}} Bookings</span>
+          <span>{{heroicon "chat-bubble-left-ellipsis" "text-[var(--color-primary)]"}} Chat</span>
+          <span>{{heroicon "credit-card" "text-[var(--color-success)]"}} Payments</span>
         </div>
       </div>
     </div>
@@ -143,10 +143,10 @@
       </p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <button onclick="switchTab('business'); document.getElementById('business-guide').scrollIntoView({behavior:'smooth'})" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold transition-all shadow-lg shadow-[var(--color-primary)]/25 cursor-pointer">
-          <i class="fas fa-store"></i> For Businesses
+          {{heroicon "building-storefront"}} For Businesses
         </button>
         <button onclick="switchTab('client'); document.getElementById('client-guide').scrollIntoView({behavior:'smooth'})" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-surface)]/10 hover:bg-[var(--color-surface)]/20 text-[var(--color-text)] text-sm font-semibold transition-all border border-[var(--color-border)] cursor-pointer">
-          <i class="fas fa-user"></i> For Clients
+          {{heroicon "user"}} For Clients
         </button>
       </div>
     </div>
@@ -157,13 +157,13 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-2 text-sm">
       <span class="text-[var(--color-text-muted)] font-medium mr-1 text-xs uppercase tracking-wider">Jump to:</span>
       <button onclick="switchTab('business')" class="guide-tab px-4 py-1.5 rounded-lg text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-secondary)] active" id="tab-business">
-        <i class="fas fa-store mr-1.5 text-[var(--color-primary)]"></i>Business Guide
+        {{heroicon "building-storefront" "mr-1.5" "text-[var(--color-primary)]"}}Business Guide
       </button>
       <button onclick="switchTab('client')" class="guide-tab px-4 py-1.5 rounded-lg text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-secondary)]" id="tab-client">
-        <i class="fas fa-user mr-1.5 text-[var(--color-info)]"></i>Client Guide
+        {{heroicon "user" "mr-1.5" "text-[var(--color-info)]"}}Client Guide
       </button>
       <div class="ml-auto relative flex items-center gap-2">
-        <i class="fas fa-search text-[var(--color-text-muted)] text-xs absolute left-3 pointer-events-none"></i>
+        {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]" "text-xs" "absolute" "left-3" "pointer-events-none"}}
         <input type="text" id="guideSearch" placeholder="Search guide..." class="pl-8 pr-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-xs text-[var(--color-text)] w-40 sm:w-56 focus:outline-none focus:border-[var(--color-primary)] transition-colors" oninput="filterGuide(this.value)">
       </div>
     </div>
@@ -175,7 +175,7 @@
       <!-- Section Header -->
       <div class="text-center mb-12">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[var(--color-primary)]/20">
-          <i class="fas fa-store text-white text-2xl"></i>
+          {{heroicon "building-storefront" "text-white" "text-2xl"}}
         </div>
         <h2 class="text-3xl font-extrabold text-[var(--color-text)]">Business Guide</h2>
         <p class="mt-2 text-[var(--color-text-secondary)] max-w-xl mx-auto">Everything you need to set up, manage, and grow your business on SalesMee.</p>
@@ -184,21 +184,21 @@
       <!-- Persona Stories -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-12 no-print">
         <div class="persona-card bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex items-start gap-3">
-          <div class="persona-avatar bg-[var(--color-primary-light)] text-[var(--color-primary)]"><i class="fas fa-scissors"></i></div>
+          <div class="persona-avatar bg-[var(--color-primary-light)] text-[var(--color-primary)]">{{heroicon "scissors"}}</div>
           <div>
             <span class="text-xs font-semibold text-[var(--color-text)]">Sarah <span class="text-[var(--color-text-muted)] font-normal">— Salon</span></span>
             <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">Uses bookings for appointments, walk-in counter for retail sales, chat for reminders.</p>
           </div>
         </div>
         <div class="persona-card bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex items-start gap-3">
-          <div class="persona-avatar bg-[var(--color-accent-light)] text-[var(--color-accent)]"><i class="fas fa-wrench"></i></div>
+          <div class="persona-avatar bg-[var(--color-accent-light)] text-[var(--color-accent)]">{{heroicon "wrench"}}</div>
           <div>
             <span class="text-xs font-semibold text-[var(--color-text)]">James <span class="text-[var(--color-text-muted)] font-normal">— Handyman</span></span>
             <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">Uses orders for quoting, chat for before/after photos, bookings for site visits.</p>
           </div>
         </div>
         <div class="persona-card bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex items-start gap-3">
-          <div class="persona-avatar bg-[var(--color-secondary-light)] text-[var(--color-secondary)]"><i class="fas fa-utensils"></i></div>
+          <div class="persona-avatar bg-[var(--color-secondary-light)] text-[var(--color-secondary)]">{{heroicon "fire"}}</div>
           <div>
             <span class="text-xs font-semibold text-[var(--color-text)]">Mama Linda <span class="text-[var(--color-text-muted)] font-normal">— Caterer</span></span>
             <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">Uses products for menu items, orders for catering, share profile for wedding inquiries.</p>
@@ -219,27 +219,27 @@
             </div>
             <div class="space-y-1.5" id="checklistItems">
               <label class="checklist-item flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)] cursor-pointer" data-step="0">
-                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors"><i class="fas fa-check"></i></span>
+                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors">{{heroicon "check"}}</span>
                 <span class="checklist-label text-xs text-[var(--color-text-secondary)]">Create account</span>
               </label>
               <label class="checklist-item flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)] cursor-pointer" data-step="1">
-                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors"><i class="fas fa-check"></i></span>
+                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors">{{heroicon "check"}}</span>
                 <span class="checklist-label text-xs text-[var(--color-text-secondary)]">Add products/services</span>
               </label>
               <label class="checklist-item flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)] cursor-pointer" data-step="2">
-                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors"><i class="fas fa-check"></i></span>
+                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors">{{heroicon "check"}}</span>
                 <span class="checklist-label text-xs text-[var(--color-text-secondary)]">Customize your profile</span>
               </label>
               <label class="checklist-item flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)] cursor-pointer" data-step="3">
-                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors"><i class="fas fa-check"></i></span>
+                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors">{{heroicon "check"}}</span>
                 <span class="checklist-label text-xs text-[var(--color-text-secondary)]">Connect with a client</span>
               </label>
               <label class="checklist-item flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)] cursor-pointer" data-step="4">
-                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors"><i class="fas fa-check"></i></span>
+                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors">{{heroicon "check"}}</span>
                 <span class="checklist-label text-xs text-[var(--color-text-secondary)]">Place a test order</span>
               </label>
               <label class="checklist-item flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)] cursor-pointer" data-step="5">
-                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors"><i class="fas fa-check"></i></span>
+                <span class="checklist-check w-4 h-4 rounded border-2 border-[var(--color-border)] flex items-center justify-center text-[0.5rem] shrink-0 transition-colors">{{heroicon "check"}}</span>
                 <span class="checklist-label text-xs text-[var(--color-text-secondary)]">Go live — share your profile</span>
               </label>
             </div>
@@ -247,20 +247,20 @@
           <!-- Sidebar Nav -->
           <div class="lg:sticky lg:top-[22rem] mt-4 space-y-1 bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm">
             <span class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider ml-2 mb-2 block">On this page</span>
-            <a href="#biz-setup" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-rocket text-[var(--color-primary)] w-4"></i> Getting Started</a>
-            <a href="#biz-products" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-box text-[var(--color-primary)] w-4"></i> Products & Services</a>
-            <a href="#biz-orders" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-shopping-cart text-[var(--color-primary)] w-4"></i> Orders</a>
-            <a href="#biz-bookings" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-calendar text-[var(--color-primary)] w-4"></i> Bookings</a>
-            <a href="#biz-payments" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-credit-card text-[var(--color-primary)] w-4"></i> Payments</a>
-            <a href="#biz-walkin" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-store-alt text-[var(--color-primary)] w-4"></i> Walk-in Counter</a>
-            <a href="#biz-chat" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-comments text-[var(--color-primary)] w-4"></i> Client Communication</a>
-            <a href="#biz-sharing" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-share-alt text-[var(--color-primary)] w-4"></i> Sharing & Growth</a>
-            <a href="#biz-analytics" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-chart-line text-[var(--color-primary)] w-4"></i> Analytics</a>
-            <a href="#biz-subscription" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-crown text-[var(--color-primary)] w-4"></i> Subscription</a>
-            <a href="#biz-notifications" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-bell text-[var(--color-primary)] w-4"></i> Notifications</a>
-            <a href="#biz-privacy" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-shield text-[var(--color-primary)] w-4"></i> Data & Privacy</a>
-            <a href="#biz-troubleshoot" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-wrench text-[var(--color-primary)] w-4"></i> Troubleshooting</a>
-            <a href="#biz-tips" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]"><i class="fas fa-lightbulb text-[var(--color-primary)] w-4"></i> Pro Tips</a>
+            <a href="#biz-setup" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "rocket-launch" "text-[var(--color-primary)]" "w-4"}} Getting Started</a>
+            <a href="#biz-products" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "cube" "text-[var(--color-primary)]" "w-4"}} Products & Services</a>
+            <a href="#biz-orders" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "shopping-cart" "text-[var(--color-primary)]" "w-4"}} Orders</a>
+            <a href="#biz-bookings" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "calendar" "text-[var(--color-primary)]" "w-4"}} Bookings</a>
+            <a href="#biz-payments" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "credit-card" "text-[var(--color-primary)]" "w-4"}} Payments</a>
+            <a href="#biz-walkin" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "building-storefront" "text-[var(--color-primary)]" "w-4"}} Walk-in Counter</a>
+            <a href="#biz-chat" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "chat-bubble-left-right" "text-[var(--color-primary)]" "w-4"}} Client Communication</a>
+            <a href="#biz-sharing" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "share" "text-[var(--color-primary)]" "w-4"}} Sharing & Growth</a>
+            <a href="#biz-analytics" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "presentation-chart-line" "text-[var(--color-primary)]" "w-4"}} Analytics</a>
+            <a href="#biz-subscription" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "crown" "text-[var(--color-primary)]" "w-4"}} Subscription</a>
+            <a href="#biz-notifications" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "bell" "text-[var(--color-primary)]" "w-4"}} Notifications</a>
+            <a href="#biz-privacy" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "shield-check" "text-[var(--color-primary)]" "w-4"}} Data & Privacy</a>
+            <a href="#biz-troubleshoot" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "wrench" "text-[var(--color-primary)]" "w-4"}} Troubleshooting</a>
+            <a href="#biz-tips" class="section-link flex items-center gap-2 text-sm text-[var(--color-text-secondary)] py-1.5 px-2 rounded-lg hover:bg-[var(--color-surface-secondary)]">{{heroicon "light-bulb" "text-[var(--color-primary)]" "w-4"}} Pro Tips</a>
           </div>
         </div>
 
@@ -274,7 +274,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Getting Started</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 3 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 3 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Set up your business in minutes</p>
               </div>
@@ -282,14 +282,14 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card" data-section-title="Create Account">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-primary-light)]/50 text-[var(--color-primary)] mb-4"><i class="fas fa-user-plus"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-primary-light)]/50 text-[var(--color-primary)] mb-4">{{heroicon "user-plus"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Create Your Account</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Sign up with your email or Google account. Choose your business type, add your business name, logo, and contact details. Your public profile is generated automatically and is ready to share immediately.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card" data-section-title="Customize Profile">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-primary-light)]/50 text-[var(--color-primary)] mb-4"><i class="fas fa-palette"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-primary-light)]/50 text-[var(--color-primary)] mb-4">{{heroicon "paint-brush"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Customize Your Profile</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Add a cover image, write a compelling description, set your business hours, and configure your address. Your public profile at <code class="text-[var(--color-primary)] bg-[var(--color-primary-light)] px-1 rounded text-xs">/b/your-slug</code> goes live instantly.</p>
               </div>
@@ -297,7 +297,7 @@
 
             <div class="tip-box mt-4 rounded-xl p-4">
               <div class="flex gap-3">
-                <i class="fas fa-lightbulb text-[var(--color-primary)] mt-0.5"></i>
+                {{heroicon "light-bulb" "text-[var(--color-primary)]" "mt-0.5"}}
                 <div>
                   <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Pro Tip</span>
                   <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">Use a high-quality logo and write a clear business description. Businesses with complete profiles get <strong>3x more client engagement</strong>. Add your slug to your Instagram bio and email signature.</p>
@@ -307,7 +307,7 @@
 
             <!-- Next Up -->
             <div class="flex justify-end pt-4 no-print">
-              <a href="#biz-products" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Products & Services <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-products" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Products & Services {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -318,7 +318,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Products & Services</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 4 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 4 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">List what you offer — with inventory, categories, and images</p>
               </div>
@@ -326,16 +326,16 @@
 
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card mb-4">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-info-light)] to-[var(--color-info-light)]/50 text-[var(--color-info)]"><i class="fas fa-cube"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-info-light)] to-[var(--color-info-light)]/50 text-[var(--color-info)]">{{heroicon "cube"}}</div>
                 <div>
-                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
+                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block">{{heroicon "bolt"}} Quick Start</span>
                   <h4 class="font-semibold text-[var(--color-text)] mb-2">Adding Products or Services</h4>
                   <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Navigate to your dashboard and open <strong>Products</strong> or <strong>Services</strong>. Add a name, description, price, and optional image. You can organize items into categories and set availability windows for services.</p>
                   <ul class="mt-3 space-y-1.5 text-sm text-[var(--color-text-secondary)]">
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Set fixed or range pricing</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Toggle availability on/off individually</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Group items by category for easy browsing</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Services support duration and buffer time between bookings</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Set fixed or range pricing</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Toggle availability on/off individually</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Group items by category for easy browsing</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Services support duration and buffer time between bookings</li>
                   </ul>
                 </div>
               </div>
@@ -343,24 +343,24 @@
 
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-info-light)] to-[var(--color-info-light)]/50 text-[var(--color-info)]"><i class="fas fa-images"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-info-light)] to-[var(--color-info-light)]/50 text-[var(--color-info)]">{{heroicon "photo"}}</div>
                 <div>
-                  <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-2 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
+                  <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-2 inline-block">{{heroicon "book-open"}} Deep Dive</span>
                   <h4 class="font-semibold text-[var(--color-text)] mb-2">Product Images & Gallery</h4>
                   <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Each product can have multiple images. Upload product photos to showcase different angles, variants, or packaging. Images are displayed as a gallery on the product card and in the client-facing view. Supported formats include JPG, PNG, and WebP.</p>
                   <ul class="mt-3 space-y-1.5 text-sm text-[var(--color-text-secondary)]">
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Upload up to 10 images per product</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Auto-generated thumbnails for fast loading</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Reorder images by drag-and-drop</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> Delete and replace individual images anytime</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Upload up to 10 images per product</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Auto-generated thumbnails for fast loading</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Reorder images by drag-and-drop</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} Delete and replace individual images anytime</li>
                   </ul>
                 </div>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-setup" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Getting Started</a>
-              <a href="#biz-orders" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Orders <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-setup" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Getting Started</a>
+              <a href="#biz-orders" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Orders {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -371,7 +371,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Managing Orders</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 6 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 6 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Receive, track, fulfill, and print receipts</p>
               </div>
@@ -379,7 +379,7 @@
 
             <!-- 4-Step Lifecycle Viz -->
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm mb-4">
-              <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
+              <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
               <h4 class="font-semibold text-[var(--color-text)] mb-4">4-Step Order Lifecycle</h4>
               <div class="grid grid-cols-4 gap-2 sm:gap-4">
                 <div class="text-center p-3 rounded-xl" style="background:var(--color-warning-light);">
@@ -404,35 +404,35 @@
                 </div>
               </div>
               <div class="flex items-center gap-1 mt-3 text-[0.65rem] text-[var(--color-text-muted)] justify-center">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full" style="background:var(--color-error-light);color:var(--color-error);"><i class="fas fa-ban text-[0.5rem]"></i> Cancelled</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full" style="background:var(--color-error-light);color:var(--color-error);">{{heroicon "ban" "text-[0.5rem]"}} Cancelled</span>
                 <span class="text-[var(--color-text-muted)] mx-1">·</span>
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full" style="background:var(--color-surface-tertiary);color:var(--color-text-secondary);"><i class="fas fa-pen text-[0.5rem]"></i> Draft (orders only)</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full" style="background:var(--color-surface-tertiary);color:var(--color-text-secondary);">{{heroicon "pencil" "text-[0.5rem]"}} Draft (orders only)</span>
               </div>
               <p class="text-xs text-[var(--color-text-secondary)] mt-3 leading-relaxed">Only the next logical step is clickable in the action dropdown. This color system is used consistently across the dashboard table, stat icons, chat cards, and step buttons.</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-search"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "magnifying-glass"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Search & Filter Orders</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">The orders table has a search bar with field-specific filtering (Order #, Customer Name, Email, or All Fields) plus a status dropdown. A live results counter shows "X of Y orders" and a clear button appears when filters are active.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-print"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "printer"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Receipt Printing</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Completed orders show a receipt icon in the table. Click it to open a print-optimized receipt page with your business logo, customer info, itemized table, totals, and payment summary — then print or save as PDF directly from the browser.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-ellipsis"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "ellipsis-horizontal"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Action Dropdown</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Each order row has a <strong>⋮</strong> (three-dot) dropdown that shows all 4 step buttons plus Cancel. Steps follow the lifecycle order — only the next logical step is clickable; others are dimmed with <code class="text-xs">opacity-40 cursor-default</code>. Quick actions without leaving the table view.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-sync"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "arrow-path"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Status Transitions</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Move orders through the lifecycle: <strong>Send</strong> (draft→pending), <strong>Confirm</strong> (business confirms), <strong>Mark Paid</strong> (quick full payment), <strong>Fulfill</strong> (marks as fulfilled/completed). Each action is a dedicated button with loading state and success toast.</p>
               </div>
@@ -440,7 +440,7 @@
 
             <div class="tip-box-warning mt-4 rounded-xl p-4">
               <div class="flex gap-3">
-                <i class="fas fa-crown text-[var(--color-warning)] mt-0.5"></i>
+                {{heroicon "crown" "text-[var(--color-warning)]" "mt-0.5"}}
                 <div>
                   <span class="text-sm font-semibold" style="color:var(--color-warning);">Power User</span>
                   <p class="text-sm mt-0.5" style="color:var(--color-warning);opacity:0.9;">Use the keyboard shortcut <kbd class="px-1.5 py-0.5 rounded text-xs font-mono" style="background:var(--color-surface-secondary);border:1px solid var(--color-border);">O</kbd> on the dashboard to jump directly to your Orders page. The action dropdown is the fastest way to update status — you can move an order from pending to fulfilled in under 5 seconds.</p>
@@ -449,8 +449,8 @@
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-products" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Products & Services</a>
-              <a href="#biz-bookings" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Bookings <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-products" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Products & Services</a>
+              <a href="#biz-bookings" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Bookings {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -461,7 +461,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Bookings & Appointments</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 4 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 4 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Accept, manage, and print receipts for bookings</p>
               </div>
@@ -469,9 +469,9 @@
 
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card mb-4">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)]"><i class="fas fa-calendar-check"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)]">{{heroicon "calendar-check"}}</div>
                 <div>
-                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
+                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block">{{heroicon "bolt"}} Quick Start</span>
                   <h4 class="font-semibold text-[var(--color-text)] mb-2">Same 4-Step Color Lifecycle</h4>
                   <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Bookings use the identical color system as orders: <strong>Pending (yellow)</strong> → <strong>Confirmed (blue)</strong> → <strong>Paid (purple)</strong> → <strong>Completed (green)</strong>. The dashboard features a search/filter bar, action dropdowns, and a receipt column for completed bookings — exactly like the orders table.</p>
                 </div>
@@ -480,34 +480,34 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4"><i class="fas fa-print"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4">{{heroicon "printer"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Booking Receipts</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Completed bookings show a receipt icon in the table. Opens a print-friendly receipt with business details, customer info, service items, scheduled date/time, payments, and totals. Print or save as PDF.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4"><i class="fas fa-users"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4">{{heroicon "users"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Client Self-Booking</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Clients can book your services directly from your public profile at <code class="text-[var(--color-secondary)] bg-[var(--color-secondary-light)] px-1 rounded text-xs">/b/your-slug</code>. Each service shows its duration and price. Bookings sync to your dashboard instantly with no manual entry needed.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4"><i class="fas fa-clock"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4">{{heroicon "clock"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Duration & Buffer Time</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Each service can have its own duration (e.g., "60 min" for a massage). Buffer time adds padding between appointments — useful if you need setup/cleanup time. The system automatically prevents overlapping bookings based on these settings.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4"><i class="fas fa-calendar-week"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4">{{heroicon "calendar-days"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Availability Windows</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Set your business hours and availability per day of the week. Clients can only book within your defined windows. You can also block off specific dates for holidays or personal days.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-orders" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Orders</a>
-              <a href="#biz-payments" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Payments <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-orders" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Orders</a>
+              <a href="#biz-payments" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Payments {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -518,7 +518,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Payments</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 5 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 5 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Accept payments, reconcile, and manage the money flow</p>
               </div>
@@ -526,15 +526,15 @@
 
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card mb-4">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)]"><i class="fas fa-shield-halved"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)]">{{heroicon "shield-check"}}</div>
                 <div>
-                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
+                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block">{{heroicon "bolt"}} Quick Start</span>
                   <h4 class="font-semibold text-[var(--color-text)] mb-2">How Payments Work</h4>
                   <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">SalesMee processes payments through <strong>Paddle</strong>, our Merchant of Record. Paddle handles all payment processing, tax collection, and compliance — you never handle card details directly. Your clients pay through Paddle's secure checkout overlay, and funds are settled to your account.</p>
                   <ul class="mt-3 space-y-1.5 text-sm text-[var(--color-text-secondary)]">
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> <strong>Card payments</strong> — processed through Paddle's PCI-compliant checkout</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> <strong>Cash payments</strong> — recorded via Mark as Paid for walk-in counter sales</li>
-                    <li><i class="fas fa-check-circle text-[var(--color-success)] w-5"></i> <strong>Bank transfers & mobile money</strong> — recorded manually with payment reference</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} <strong>Card payments</strong> — processed through Paddle's PCI-compliant checkout</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} <strong>Cash payments</strong> — recorded via Mark as Paid for walk-in counter sales</li>
+                    <li>{{heroicon "check-circle" "text-[var(--color-success)]" "w-5"}} <strong>Bank transfers & mobile money</strong> — recorded manually with payment reference</li>
                   </ul>
                 </div>
               </div>
@@ -542,34 +542,34 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-check-double"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "check"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Quick Mark as Paid</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">In the order or booking action dropdown, click <strong>Mark Paid</strong> to instantly record a completed cash payment. This creates a payment record with <code class="text-xs">method: cash, status: completed</code> and updates the Paid step. No forms or extra clicks needed.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-receipt"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "receipt-percent"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Payments Ledger</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">The <strong>Payments</strong> page in your sidebar shows all payment records across orders and bookings. Filter by method, status, or date range. Each row shows the amount, method, reference, and which order/booking it belongs to.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-hand-holding-dollar"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "banknotes"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Confirming Payments</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">When clients pay via bank transfer or mobile money, the payment shows as <strong>pending</strong>. From the Payments page, you can confirm individual payments or use <strong>Confirm All</strong> to approve all pending payments for an order/booking at once. Rejected payments are marked as failed.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-link"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "link"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Linking Payments</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Payments are stored in a polymorphic model — each payment belongs to either an <strong>Order</strong> or a <strong>Booking</strong>. The Payments page shows the parent type and link so you can navigate directly to the order or booking to see full context.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-bookings" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Bookings</a>
-              <a href="#biz-walkin" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Walk-in Counter <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-bookings" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Bookings</a>
+              <a href="#biz-walkin" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Walk-in Counter {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -580,7 +580,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Walk-in Counter</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 5 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 5 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Handle in-person sales with the 3-step quick wizards</p>
               </div>
@@ -588,9 +588,9 @@
 
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card mb-4">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)]"><i class="fas fa-store-alt"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)]">{{heroicon "building-storefront"}}</div>
                 <div>
-                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
+                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block">{{heroicon "bolt"}} Quick Start</span>
                   <h4 class="font-semibold text-[var(--color-text)] mb-2">Two Action Cards on Dashboard</h4>
                   <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">The dashboard overview shows two walk-in action cards between the stat grid and recent items: <strong>Counter Order</strong> (warning/yellow themed) and <strong>Walk-in Booking</strong> (secondary/purple themed). Click either to open the 3-step wizard.</p>
                 </div>
@@ -599,26 +599,26 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-shopping-bag"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "shopping-bag"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Counter Order Wizard</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed"><strong>Step 1 (Browse):</strong> Searchable product picker with quantity. Type to filter products in real-time.<br><strong>Step 2 (Details):</strong> Enter customer name, email, phone, delivery address, and optional notes.<br><strong>Step 3 (Confirm):</strong> Review summary, check <strong>Mark Completed</strong> to auto-fulfill, then click Create Order.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4"><i class="fas fa-calendar-plus"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-secondary-light)] to-[var(--color-secondary-light)]/50 text-[var(--color-secondary)] mb-4">{{heroicon "calendar-plus"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Walk-in Booking Wizard</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed"><strong>Step 1 (Choose):</strong> Searchable service picker.<br><strong>Step 2 (Schedule):</strong> Pick date, time, and enter customer details.<br><strong>Step 3 (Confirm):</strong> Review summary, check <strong>Mark Completed</strong> to auto-complete, then Create Booking.<br>Step colors use the secondary (purple) scheme.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-check-circle"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "check-circle"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">The Mark Completed Checkbox</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">When checked, the backend automatically: sets status to <code class="text-xs">fulfilled</code> (orders) or <code class="text-xs">completed</code> (bookings), sets <code class="text-xs">PaidAmount = TotalAmount</code>, and creates a completed cash payment record with reference "Walk-in counter payment." Perfect for one-click in-person transactions.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4"><i class="fas fa-user-plus"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-warning-light)] to-[var(--color-warning-light)]/50 text-[var(--color-warning)] mb-4">{{heroicon "user-plus"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Auto Client Creation</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">If the customer isn't already in your system, entering their name, email, or phone in the wizard automatically creates a new client record. They'll appear in your client list and can receive receipts and chat messages. No pre-registration needed.</p>
               </div>
@@ -626,7 +626,7 @@
 
             <div class="tip-box mt-4 rounded-xl p-4">
               <div class="flex gap-3">
-                <i class="fas fa-lightbulb text-[var(--color-primary)] mt-0.5"></i>
+                {{heroicon "light-bulb" "text-[var(--color-primary)]" "mt-0.5"}}
                 <div>
                   <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Use Case — Sarah's Salon</span>
                   <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">"A walk-in client wants to buy shampoo from my retail shelf. I open Counter Order, search 'shampoo', add quantity, enter their name and phone, check Mark Completed, and done — receipt prints in 20 seconds."</p>
@@ -635,8 +635,8 @@
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-payments" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Payments</a>
-              <a href="#biz-chat" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Client Communication <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-payments" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Payments</a>
+              <a href="#biz-chat" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Client Communication {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -647,7 +647,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Client Communication</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 4 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 4 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Real-time chat with your clients — plus conversation goals</p>
               </div>
@@ -655,34 +655,34 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-comment-dots"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "chat-bubble-left-ellipsis"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Live Chat</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Each client connection opens a dedicated chat channel. Messages deliver instantly — no refresh needed. Send order confirmations, booking details, answer questions, and share updates in real-time. Chat history is always available for reference.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-share-alt"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "share"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Share Your Widget</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Generate an embeddable chat widget from your dashboard. Add it to your website so clients can reach you directly. The widget shows your business name, status (online/away), and opens a chat instantly. One line of code, no configuration needed.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-bullseye"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "target"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Conversation Goals</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Set a goal for each client conversation — e.g., "Send quote", "Schedule consultation", "Follow up on order". Goals appear in the chat header so you always know the next action. Mark goals as complete from the chat. Track progress per client from the dashboard.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4"><i class="fas fa-bolt"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-success-light)] to-[var(--color-success-light)]/50 text-[var(--color-success)] mb-4">{{heroicon "bolt"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Quick Actions in Chat</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">From any chat, you can: create a <strong>Quick Order</strong>, create a <strong>Quick Booking</strong>, or <strong>Request Payment</strong> — all without leaving the conversation. These actions use the same 3-step wizards and are pre-linked to the client you're chatting with.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-walkin" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Walk-in Counter</a>
-              <a href="#biz-sharing" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Sharing & Growth <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-walkin" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Walk-in Counter</a>
+              <a href="#biz-sharing" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Sharing & Growth {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -693,7 +693,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Sharing & Growth</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 3 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 3 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Get discovered — share your profile everywhere</p>
               </div>
@@ -701,26 +701,26 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-qrcode"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "qr-code"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">QR Code</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Your Share page generates a scannable QR code for your public profile. Print it on business cards, posters, or display it at your counter. Clients scan with their phone camera and connect instantly — no typing needed.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-globe"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "globe-alt"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Public Profile</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Your profile at <code class="text-xs text-[var(--color-primary)] bg-[var(--color-primary-light)] px-1 rounded">/b/your-slug</code> is a mini-website. Clients can view your products/services, check business hours, and connect with one click. Share the link on Instagram, Facebook, Google Business Profile, or add it to your email signature.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-code"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "code-bracket"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Embeddable Chat Widget</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Add a <code class="text-xs">&lt;script&gt;</code> snippet to your website to embed the SalesMee chat widget. It appears as a floating chat bubble on your site. Visitors click to connect and chat with you directly — no account needed on their end.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-share-nodes"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "share"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Client Self-Connect</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">When a client visits your public profile and clicks <strong>Connect</strong>, they enter their name and phone/email, receive a one-time code via SMS, and are connected to you — all in under 30 seconds. No app download, no password to remember.</p>
               </div>
@@ -728,7 +728,7 @@
 
             <div class="tip-box mt-4 rounded-xl p-4">
               <div class="flex gap-3">
-                <i class="fas fa-lightbulb text-[var(--color-primary)] mt-0.5"></i>
+                {{heroicon "light-bulb" "text-[var(--color-primary)]" "mt-0.5"}}
                 <div>
                   <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Growth Tip</span>
                   <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">Add your SalesMee profile link to your <strong>Google Business Profile</strong>, Instagram bio, WhatsApp status, and email signature. Every click is a potential new client connection. The QR code on your counter lets walk-ins connect while they wait.</p>
@@ -737,8 +737,8 @@
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-chat" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Client Communication</a>
-              <a href="#biz-analytics" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Analytics <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-chat" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Client Communication</a>
+              <a href="#biz-analytics" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Analytics {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -749,7 +749,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Analytics & Insights</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 3 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 3 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Track your business performance with data</p>
               </div>
@@ -757,9 +757,9 @@
 
             <div class="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-info-light)] to-[var(--color-info-light)]/50 text-[var(--color-info)]"><i class="fas fa-chart-bar"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-info-light)] to-[var(--color-info-light)]/50 text-[var(--color-info)]">{{heroicon "chart-bar"}}</div>
                 <div>
-                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
+                  <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-2 inline-block">{{heroicon "bolt"}} Quick Start</span>
                   <h4 class="font-semibold text-[var(--color-text)] mb-2">Dashboard Analytics</h4>
                   <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Your analytics dashboard gives you a bird's-eye view of your business. Monitor total orders, revenue, booking rates, and client growth. Use these insights to identify your most popular products, busiest hours, and highest-value clients.</p>
                   <div class="mt-3 grid grid-cols-3 gap-3">
@@ -781,8 +781,8 @@
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-sharing" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Sharing & Growth</a>
-              <a href="#biz-subscription" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Subscription <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-sharing" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Sharing & Growth</a>
+              <a href="#biz-subscription" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Subscription {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -793,7 +793,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Subscription & Billing</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 4 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 4 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Plans, pricing, and billing management</p>
               </div>
@@ -801,34 +801,34 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-layer-group"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "squares-2x2"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Plan Tiers</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed"><strong>Silver</strong> (free): 10 clients, 10 products, 10 services, basic features. <strong>Gold</strong> ($8/mo): 50 clients, 200 products, analytics, orders & bookings. <strong>Diamond</strong> ($15/mo): Unlimited everything, analytics, media sharing, priority support. Yearly plans save ~20%.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-credit-card"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "credit-card"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">How Billing Works</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Subscriptions are billed through <strong>Paddle</strong>, our Merchant of Record. Choose monthly or annual billing at checkout. Paddle handles payment collection, tax calculation, invoicing, and receipts. You can manage your billing details and view history in the Billing Portal.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-arrow-up"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "arrow-up"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Upgrading & Downgrading</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Go to the <strong>Plans</strong> page to switch plans mid-cycle. Upgrades take effect immediately — you're charged the prorated difference. Downgrades take effect at the end of your current billing period. You can switch between monthly and annual billing anytime.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-ban"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "ban"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Cancelling Your Subscription</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Cancel from the Subscription page. Your subscription is cancelled at both the provider level (Paddle stops billing) and in our system. You retain access until the end of your billing period. After that, your plan reverts to Silver (free tier). Your data is never deleted.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-analytics" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Analytics</a>
-              <a href="#biz-notifications" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Notifications <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-analytics" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Analytics</a>
+              <a href="#biz-notifications" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Notifications {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -839,7 +839,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Notifications</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 2 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 2 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Never miss a client request</p>
               </div>
@@ -847,22 +847,22 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-bell"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "bell"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">What Gets Notified</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">You receive notifications for: new orders, booking requests, payment received, new client connections, and chat messages. The sidebar shows count badges for pending orders and bookings so you always know what needs attention.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4"><i class="fas fa-globe"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent-light)]/50 text-[var(--color-accent)] mb-4">{{heroicon "globe-alt"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Delivery Methods</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed"><strong>Browser push:</strong> Get desktop notifications when you're logged in. <strong>Unread badges:</strong> Colored count badges on sidebar icons. <strong>Email:</strong> Critical alerts (new orders, payment failures) sent to your business email.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-subscription" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Subscription</a>
-              <a href="#biz-privacy" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Data & Privacy <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-subscription" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Subscription</a>
+              <a href="#biz-privacy" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Data & Privacy {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -873,7 +873,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Data & Privacy</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 3 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 3 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Your data, your control</p>
               </div>
@@ -881,34 +881,34 @@
 
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4"><i class="fas fa-download"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4">{{heroicon "arrow-down-tray"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Data Export</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">You can export your business data — orders, bookings, client list, and transaction history — for accounting or record-keeping. Contact support for data export requests. Your data is yours and portable.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block"><i class="fas fa-bolt"></i> Quick Start</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4"><i class="fas fa-shield"></i></div>
+                <span class="badge-level bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-3 inline-block">{{heroicon "bolt"}} Quick Start</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4">{{heroicon "shield-check"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Client Data Handling</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Client information (name, email, phone) is only shared with businesses the client explicitly connects to. You can view connected clients in your client list. When a client disconnects, their data is retained for record-keeping but they no longer appear in active views.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4"><i class="fas fa-gavel"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4">{{heroicon "scale"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">GDPR & CCPA Compliance</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">We comply with data protection regulations including GDPR (EU) and CCPA (California). Clients have the right to access, correct, delete, and export their personal data. As a business, you should ensure you have proper consent to store client data through our platform.</p>
               </div>
               <div class="guide-step bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm glow-card">
-                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block"><i class="fas fa-book-open"></i> Deep Dive</span>
-                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4"><i class="fas fa-key"></i></div>
+                <span class="badge-level bg-[var(--color-info-light)] text-[var(--color-info)] mb-3 inline-block">{{heroicon "book-open"}} Deep Dive</span>
+                <div class="guide-card-icon bg-gradient-to-br from-[var(--color-error-light)] to-[var(--color-error-light)]/50 text-[var(--color-error)] mb-4">{{heroicon "key"}}</div>
                 <h4 class="font-semibold text-[var(--color-text)] mb-2">Security Best Practices</h4>
                 <p class="text-sm text-[var(--color-text-secondary)] leading-relaxed">Use a strong, unique password. Enable two-factor authentication if available. Never share your login credentials. Log out from shared devices. Report suspicious activity to support immediately. We encrypt all data in transit (TLS) and at rest.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-notifications" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Notifications</a>
-              <a href="#biz-troubleshoot" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Troubleshooting <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-notifications" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Notifications</a>
+              <a href="#biz-troubleshoot" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Troubleshooting {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
@@ -919,7 +919,7 @@
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Troubleshooting</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 3 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 3 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Quick fixes for common issues</p>
               </div>
@@ -974,19 +974,19 @@
             </div>
 
             <div class="flex justify-between pt-4 no-print">
-              <a href="#biz-privacy" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Data & Privacy</a>
-              <a href="#biz-tips" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Pro Tips <i class="fas fa-arrow-right text-xs"></i></a>
+              <a href="#biz-privacy" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Data & Privacy</a>
+              <a href="#biz-tips" class="text-sm text-[var(--color-primary)] font-medium hover:underline inline-flex items-center gap-1">Next: Pro Tips {{heroicon "arrow-right" "text-xs"}}</a>
             </div>
           </div>
 
           <!-- ═══════════ 14. PRO TIPS ═══════════ -->
           <div id="biz-tips" class="scroll-mt-24 guide-section" data-section-title="Pro Tips">
             <div class="flex items-center gap-4 mb-6">
-              <div class="step-number bg-[var(--color-accent-light)]" style="color:var(--color-accent);"><i class="fas fa-star text-xs"></i></div>
+              <div class="step-number bg-[var(--color-accent-light)]" style="color:var(--color-accent);">{{heroicon "star" "text-xs"}}</div>
               <div>
                 <div class="flex items-center gap-3">
                   <h3 class="text-2xl font-bold text-[var(--color-text)]">Pro Tips</h3>
-                  <span class="reading-time"><i class="far fa-clock"></i> 3 min</span>
+                  <span class="reading-time">{{heroicon "clock"}} 3 min</span>
                 </div>
                 <p class="text-sm text-[var(--color-text-secondary)]">Take your business to the next level</p>
               </div>
@@ -995,7 +995,7 @@
             <div class="space-y-3">
               <div class="tip-box rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-store text-[var(--color-primary)] mt-0.5"></i>
+                  {{heroicon "building-storefront" "text-[var(--color-primary)]" "mt-0.5"}}
                   <div>
                     <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Walk-in Counter Flow</span>
                     <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">Use the <strong>Counter Order</strong> and <strong>Walk-in Booking</strong> cards on the dashboard overview for in-person customers. The 3-step wizards let you search products/services, enter customer details, and mark as paid + completed in one click — perfect for retail, reception, and pop-up scenarios.</p>
@@ -1004,7 +1004,7 @@
               </div>
               <div class="tip-box rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-print text-[var(--color-primary)] mt-0.5"></i>
+                  {{heroicon "printer" "text-[var(--color-primary)]" "mt-0.5"}}
                   <div>
                     <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Print or Save Receipts</span>
                     <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">Completed orders and bookings have a receipt icon in the table. Click it to open a print-friendly receipt — then print a paper copy or save as PDF. Each receipt includes business info, itemized details, totals, and payment records.</p>
@@ -1013,7 +1013,7 @@
               </div>
               <div class="tip-box rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-keyboard text-[var(--color-primary)] mt-0.5"></i>
+                  {{heroicon "keyboard" "text-[var(--color-primary)]" "mt-0.5"}}
                   <div>
                     <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Keyboard Shortcuts</span>
                     <p class="text-sm text-[var(--color-primary-dark)] mt-0.5"><kbd class="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-surface-secondary)] border border-[var(--color-border)]">D</kbd> Dashboard · <kbd class="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-surface-secondary)] border border-[var(--color-border)]">O</kbd> Orders · <kbd class="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-surface-secondary)] border border-[var(--color-border)]">B</kbd> Bookings · <kbd class="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-surface-secondary)] border border-[var(--color-border)]">P</kbd> Payments · <kbd class="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-surface-secondary)] border border-[var(--color-border)]">C</kbd> Clients</p>
@@ -1022,7 +1022,7 @@
               </div>
               <div class="tip-box rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-share-nodes text-[var(--color-primary)] mt-0.5"></i>
+                  {{heroicon "share" "text-[var(--color-primary)]" "mt-0.5"}}
                   <div>
                     <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Share Your Profile Everywhere</span>
                     <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">Your public profile at <code class="font-mono text-xs">/b/your-slug</code> is a mini-website. Share it on social media (Instagram, Facebook, LinkedIn), add it to your email signature, link it from your Google Business Profile, or print the QR code on your business card.</p>
@@ -1031,7 +1031,7 @@
               </div>
               <div class="tip-box rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-bell text-[var(--color-primary)] mt-0.5"></i>
+                  {{heroicon "bell" "text-[var(--color-primary)]" "mt-0.5"}}
                   <div>
                     <span class="text-sm font-semibold text-[var(--color-primary-dark)]">Stay Notified</span>
                     <p class="text-sm text-[var(--color-primary-dark)] mt-0.5">Enable browser notifications to get instant desktop alerts when new orders or bookings come in. Combined with the sidebar count badges, you'll never miss a client request — even if you're in another tab.</p>
@@ -1040,7 +1040,7 @@
               </div>
               <div class="tip-box-warning rounded-xl p-4">
                 <div class="flex gap-3">
-                  <i class="fas fa-crown" style="color:var(--color-warning);margin-top:0.125rem;"></i>
+                  {{heroicon "crown" "text-[var(--color-warning)]" "mt-0.5"}}
                   <div>
                     <span class="text-sm font-semibold" style="color:var(--color-warning);">Upgrade for More</span>
                     <p class="text-sm mt-0.5" style="color:var(--color-warning);opacity:0.9;">Premium plans unlock unlimited products, advanced analytics, media sharing, priority support, and custom branding. Gold ($8/mo) and Diamond ($15/mo) — yearly plans save ~20%. <a href="/business/subscription/plans" class="underline font-medium">View Plans</a></p>
@@ -1050,7 +1050,7 @@
             </div>
 
             <div class="flex pt-4 no-print">
-              <a href="#biz-troubleshoot" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Previous: Troubleshooting</a>
+              <a href="#biz-troubleshoot" class="text-sm text-[var(--color-text-muted)] hover:underline inline-flex items-center gap-1">{{heroicon "arrow-left" "text-xs"}} Previous: Troubleshooting</a>
             </div>
           </div>
 
@@ -1065,7 +1065,7 @@
       <!-- Section Header -->
       <div class="text-center mb-12">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-500/20">
-          <i class="fas fa-user text-white text-2xl"></i>
+          {{heroicon "user" "text-white" "text-2xl"}}
         </div>
         <h2 class="text-3xl font-extrabold text-slate-900">Client Guide</h2>
         <p class="mt-2 text-slate-500 max-w-xl mx-auto">Learn how to connect with businesses, place orders, book services, and chat in real-time.</p>
@@ -1076,12 +1076,12 @@
         <div class="lg:w-64 flex-shrink-0">
           <div class="lg:sticky lg:top-24 space-y-1 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-2 mb-2 block">On this page</span>
-            <a href="#client-discover" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-compass text-cyan-500 w-5"></i> Discover Business</a>
-            <a href="#client-connect" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-link text-cyan-500 w-5"></i> Connecting</a>
-            <a href="#client-orders" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-shopping-bag text-cyan-500 w-5"></i> Placing Orders</a>
-            <a href="#client-bookings" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-calendar-day text-cyan-500 w-5"></i> Booking Services</a>
-            <a href="#client-chat" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-message text-cyan-500 w-5"></i> Live Chat</a>
-            <a href="#client-account" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50"><i class="fas fa-user-gear text-cyan-500 w-5"></i> Your Account</a>
+            <a href="#client-discover" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50">{{heroicon "compass" "text-cyan-500" "w-5"}} Discover Business</a>
+            <a href="#client-connect" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50">{{heroicon "link" "text-cyan-500" "w-5"}} Connecting</a>
+            <a href="#client-orders" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50">{{heroicon "shopping-bag" "text-cyan-500" "w-5"}} Placing Orders</a>
+            <a href="#client-bookings" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50">{{heroicon "calendar-days" "text-cyan-500" "w-5"}} Booking Services</a>
+            <a href="#client-chat" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50">{{heroicon "chat-bubble-left-right" "text-cyan-500" "w-5"}} Live Chat</a>
+            <a href="#client-account" class="section-link block text-sm text-slate-600 py-1.5 px-2 rounded-lg hover:bg-slate-50">{{heroicon "user-circle" "text-cyan-500" "w-5"}} Your Account</a>
           </div>
         </div>
 
@@ -1099,29 +1099,29 @@
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-qrcode"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4">{{heroicon "qr-code"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Scan a QR Code</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Businesses generate QR codes for their public profile from the Share page. You'll find them on business cards, posters at the counter, flyers, or product packaging. Scan with your phone camera — it opens the business profile instantly. No typing needed.</p>
               </div>
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-link"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4">{{heroicon "link"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Direct Profile Link</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Each business has a unique public profile at <code class="text-cyan-600 bg-cyan-50 px-1 rounded text-xs">/b/slug</code>. Businesses share their link on social media (Instagram, Facebook, LinkedIn), in email signatures, on Google Business Profiles, and on their website. Click the link to view their products, services, and connect.</p>
               </div>
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-comment-dots"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4">{{heroicon "chat-bubble-left-ellipsis"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Chat Widget on Websites</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Businesses can embed a SalesMee chat widget on their website. Look for a chat bubble icon — click it to open the widget, enter your details, and you're connected. You can browse products and book services right from the widget without leaving the site.</p>
               </div>
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-share-nodes"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4">{{heroicon "share"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Word of Mouth & Referrals</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">A friend or family member who already uses SalesMee can share a business profile link with you. Open the link on your phone, tap <strong>Connect</strong>, verify with a one-time code, and you're in. No app download, no account creation needed upfront.</p>
               </div>
             </div>
             <div class="tip-box mt-4 rounded-xl p-4">
               <div class="flex gap-3">
-                <i class="fas fa-mobile-screen text-teal-500 mt-0.5"></i>
+                {{heroicon "device-phone-mobile" "text-teal-500" "mt-0.5"}}
                 <div>
                   <span class="text-sm font-semibold text-teal-800">No App Required</span>
                   <p class="text-sm text-teal-700 mt-0.5">Everything works in your mobile browser. Whether you scan a QR code, click a link, or use the chat widget — you're always one tap away from connecting. There's nothing to download.</p>
@@ -1141,19 +1141,19 @@
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-qrcode"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4">{{heroicon "qr-code"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Via Business Profile</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Visit any business's public profile at <code class="text-cyan-600 bg-cyan-50 px-1 rounded text-xs">/b/slug</code> and click <strong>Connect</strong>. Enter your name and phone number or email, verify with a one-time code, and you're connected.</p>
               </div>
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4"><i class="fas fa-globe"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-cyan-100 to-cyan-50 text-cyan-600 mb-4">{{heroicon "globe-alt"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Via Widget</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Businesses can embed a chat widget on their website. Click the chat icon, enter your details, and you'll be connected instantly. No app download required.</p>
               </div>
             </div>
             <div class="tip-box mt-4 rounded-xl p-4">
               <div class="flex gap-3">
-                <i class="fas fa-shield-halved text-teal-500 mt-0.5"></i>
+                {{heroicon "shield-check" "text-teal-500" "mt-0.5"}}
                 <div>
                   <span class="text-sm font-semibold text-teal-800">Privacy First</span>
                   <p class="text-sm text-teal-700 mt-0.5">Your contact information is only shared with businesses you explicitly connect to. You control who can reach you.</p>
@@ -1173,14 +1173,14 @@
             </div>
             <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600"><i class="fas fa-cart-plus"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600">{{heroicon "shopping-cart"}}</div>
                 <div>
                   <h4 class="font-semibold text-slate-900 mb-2">How to Order</h4>
                   <p class="text-sm text-slate-600 leading-relaxed">Once connected to a business, browse their products and services from their profile. Select what you need and submit your order. The business gets notified instantly and will confirm or update the status. You'll receive real-time updates through the chat.</p>
                   <div class="mt-4 flex flex-wrap gap-2">
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-bolt"></i> Instant notification</span>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-sync"></i> Real-time status</span>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-comment"></i> Chat updates</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">{{heroicon "bolt"}} Instant notification</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">{{heroicon "arrow-path"}} Real-time status</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">{{heroicon "chat-bubble-left-ellipsis"}} Chat updates</span>
                   </div>
                 </div>
               </div>
@@ -1198,12 +1198,12 @@
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-hand-pointer"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4">{{heroicon "hand-pointing"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Book from Profile</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Visit the business profile, browse their services, pick a date and time, and confirm. The booking appears instantly on both your and the business's calendar.</p>
               </div>
               <div class="guide-step bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card">
-                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4"><i class="fas fa-clock"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-violet-100 to-violet-50 text-violet-600 mb-4">{{heroicon "clock"}}</div>
                 <h4 class="font-semibold text-slate-900 mb-2">Duration & Availability</h4>
                 <p class="text-sm text-slate-600 leading-relaxed">Each service shows its duration so you know how much time to set aside. Businesses define their availability, so you'll only see bookable slots that work for both of you.</p>
               </div>
@@ -1221,14 +1221,14 @@
             </div>
             <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm glow-card mb-4">
               <div class="flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600"><i class="fas fa-comments"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600">{{heroicon "chat-bubble-left-right"}}</div>
                 <div>
                   <h4 class="font-semibold text-slate-900 mb-2">Chat Features</h4>
                   <p class="text-sm text-slate-600 leading-relaxed">Every connection opens a dedicated chat channel. Messages arrive instantly — no page refresh needed. Use chat to ask questions about products, confirm booking details, or get support. Your conversation history is always available.</p>
                   <div class="mt-3 flex flex-wrap gap-2">
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-bolt"></i> Real-time delivery</span>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-clock"></i> Chat history</span>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium"><i class="fas fa-bell"></i> Push notifications</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">{{heroicon "bolt"}} Real-time delivery</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">{{heroicon "clock"}} Chat history</span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">{{heroicon "bell"}} Push notifications</span>
                   </div>
                 </div>
               </div>
@@ -1246,21 +1246,21 @@
             </div>
             <div class="space-y-3">
               <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm glow-card flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;"><i class="fas fa-pen"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;">{{heroicon "pencil"}}</div>
                 <div>
                   <h4 class="font-semibold text-slate-900 text-sm">Edit Your Profile</h4>
                   <p class="text-sm text-slate-600">Update your name, email, or phone number from the client portal. Businesses you're connected to will see your updated info automatically.</p>
                 </div>
               </div>
               <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm glow-card flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;"><i class="fas fa-eye-slash"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;">{{heroicon "eye-slash"}}</div>
                 <div>
                   <h4 class="font-semibold text-slate-900 text-sm">Manage Connections</h4>
                   <p class="text-sm text-slate-600">View all businesses you're connected to and disconnect at any time. Disconnecting removes the business's access to your information.</p>
                 </div>
               </div>
               <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm glow-card flex items-start gap-4">
-                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;"><i class="fas fa-trash-can"></i></div>
+                <div class="guide-card-icon bg-gradient-to-br from-slate-100 to-slate-50 text-slate-600" style="width:44px;height:44px;font-size:1rem;">{{heroicon "trash"}}</div>
                 <div>
                   <h4 class="font-semibold text-slate-900 text-sm">Delete Your Data</h4>
                   <p class="text-sm text-slate-600">Request account deletion at any time via the <a href="/user-deletion" class="text-cyan-600 underline">User Deletion</a> page. Your data will be permanently removed within 30 days.</p>
@@ -1285,35 +1285,35 @@
         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
           <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
             <span class="font-semibold text-slate-900 text-sm">Is there a mobile app?</span>
-            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+            {{heroicon "chevron-down" "text-slate-400" "text-xs"}}
           </div>
           <div class="faq-a text-sm text-slate-600 leading-relaxed">SalesMee is fully responsive and works great on mobile browsers. A native mobile app is on our roadmap — stay tuned!</div>
         </div>
         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
           <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
             <span class="font-semibold text-slate-900 text-sm">Can I connect with multiple businesses?</span>
-            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+            {{heroicon "chevron-down" "text-slate-400" "text-xs"}}
           </div>
           <div class="faq-a text-sm text-slate-600 leading-relaxed">Absolutely. As a client, you can connect to as many businesses as you'd like. Each connection has its own chat channel and order history.</div>
         </div>
         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
           <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
             <span class="font-semibold text-slate-900 text-sm">How much does SalesMee cost?</span>
-            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+            {{heroicon "chevron-down" "text-slate-400" "text-xs"}}
           </div>
           <div class="faq-a text-sm text-slate-600 leading-relaxed">SalesMee offers a free tier for businesses with essential features. Premium plans unlock advanced analytics, unlimited products, custom branding, and priority support. Check the <a href="/#pricing" class="text-teal-600 underline">Pricing section</a> for details.</div>
         </div>
         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
           <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
             <span class="font-semibold text-slate-900 text-sm">Is my data secure?</span>
-            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+            {{heroicon "chevron-down" "text-slate-400" "text-xs"}}
           </div>
           <div class="faq-a text-sm text-slate-600 leading-relaxed">Yes. We use industry-standard encryption for data in transit and at rest. Your personal information is never shared without your explicit consent. See our <a href="/privacy" class="text-teal-600 underline">Privacy Policy</a> for full details.</div>
         </div>
         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
           <div onclick="toggleFAQ(this)" class="faq-q flex items-center justify-between select-none">
             <span class="font-semibold text-slate-900 text-sm">Can I cancel or modify an order?</span>
-            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+            {{heroicon "chevron-down" "text-slate-400" "text-xs"}}
           </div>
           <div class="faq-a text-sm text-slate-600 leading-relaxed">Yes. Contact the business through the chat to request changes or cancellation. Businesses can update order status from their dashboard.</div>
         </div>
@@ -1328,10 +1328,10 @@
       <p class="mt-3 text-lg text-teal-100 max-w-lg mx-auto">Join thousands of businesses and clients already using SalesMee.</p>
       <div class="mt-8 flex flex-wrap justify-center gap-4">
         <a href="/business/register" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-teal-700 font-semibold shadow-lg hover:shadow-xl transition-all">
-          <i class="fas fa-rocket"></i> Start Free Trial
+          {{heroicon "rocket-launch"}} Start Free Trial
         </a>
         <a href="/" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 text-white font-semibold border border-white/30 hover:bg-white/20 transition-all">
-          <i class="fas fa-arrow-left"></i> Back to Home
+          {{heroicon "arrow-left"}} Back to Home
         </a>
       </div>
     </div>
@@ -1342,13 +1342,13 @@
   <!-- Mobile bottom nav -->
   <div class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-2 flex justify-around items-center md:hidden shadow-2xl">
     <button onclick="switchTab('business'); document.getElementById('business-guide').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium cursor-pointer">
-      <i class="fas fa-store text-base"></i><span>Business</span>
+      {{heroicon "building-storefront" "text-base"}}<span>Business</span>
     </button>
     <button onclick="switchTab('client'); document.getElementById('client-guide').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-slate-500 text-xs font-medium cursor-pointer">
-      <i class="fas fa-user text-base"></i><span>Client</span>
+      {{heroicon "user" "text-base"}}<span>Client</span>
     </button>
     <a href="/business/register" class="flex flex-col items-center gap-0.5 text-teal-600 text-xs font-medium">
-      <i class="fas fa-rocket text-base"></i><span>Get Started</span>
+      {{heroicon "rocket-launch" "text-base"}}<span>Get Started</span>
     </a>
   </div>
 

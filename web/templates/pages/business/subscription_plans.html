@@ -29,7 +29,7 @@
       data-price-yearly="{{$plan.PriceYearly}}">
       {{if eq $i 1}}
       <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-yellow-700 text-white text-xs font-semibold shadow-lg z-10 flex items-center gap-1">
-        <i class="fas fa-fire text-[10px]"></i> Most Popular
+        {{heroicon "bolt" "text-[10px]"}} Most Popular
       </div>
       {{end}}
 
@@ -37,7 +37,7 @@
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br
           {{if eq $i 0}}from-slate-400 to-gray-500{{else if eq $i 1}}from-amber-600 to-yellow-700{{else}}from-indigo-500 to-violet-600{{end}}
           flex items-center justify-center mb-4 shadow-md">
-          <i class="fas {{if eq $i 0}}fa-gem{{else if eq $i 1}}fa-rocket{{else}}fa-crown{{end}} text-lg text-white"></i>
+          {{heroicon "sparkles" "text-lg" "text-white"}}
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">{{.Name}}</h3>
         <p class="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1">{{.Description}}</p>
@@ -60,36 +60,36 @@
 
         <ul class="mt-6 space-y-3">
           {{if eq .MaxConversations 0}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited conversations</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited conversations</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxConversations}} conversations</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{.MaxConversations}} conversations</li>
           {{end}}
           {{if eq .MaxProducts 0}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited products</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited products</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxProducts}} products</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{.MaxProducts}} products</li>
           {{end}}
           {{if eq .MaxServices 0}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited services</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited services</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxServices}} services</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{.MaxServices}} services</li>
           {{end}}
           {{if eq .MaxClients 0}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited clients</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited clients</li>
           {{else}}
-          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{.MaxClients}} clients</li>
+          <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{.MaxClients}} clients</li>
           {{end}}
-          {{if .HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
-          {{if .HasAnalytics}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
-          {{if .HasMediaSharing}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media & file sharing</li>{{end}}
-          {{if .HasPrioritySupport}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
+          {{if .HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Orders & bookings</li>{{end}}
+          {{if .HasAnalytics}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Analytics</li>{{end}}
+          {{if .HasMediaSharing}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Media & file sharing</li>{{end}}
+          {{if .HasPrioritySupport}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Priority support</li>{{end}}
         </ul>
       </div>
 
       <div class="mt-auto pt-6">
         {{if $isCurrent}}
         <div class="w-full py-2.5 rounded-xl text-center text-xs sm:text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
-          <i class="fas fa-check mr-1.5"></i>Current Plan
+          {{heroicon "check" "mr-1.5"}}Current Plan
         </div>
         {{else if eq .PriceMonthly 0.0}}
         <button onclick="switchPlan('{{.Code}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-xs sm:text-sm">

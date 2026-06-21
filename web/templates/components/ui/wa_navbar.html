@@ -2,60 +2,60 @@
 <nav class="wa-navbar" id="waNavbar">
   <div class="wa-navbar-top">
     <a href="/business/dashboard" class="wa-nav-item" data-nav="dashboard" title="Dashboard">
-      <i class="fas fa-chart-line"></i>
+      {{heroicon "presentation-chart-line"}}
     </a>
     <a href="/business/orders" class="wa-nav-item" data-nav="orders" title="Orders">
-      <i class="fas fa-shopping-cart"></i>
+      {{heroicon "shopping-cart"}}
       <span id="waOrdersBadge" class="wa-nav-badge"{{if not (gt .PendingOrderCount 0)}} style="display:none"{{end}}>{{.PendingOrderCount}}</span>
     </a>
     <a href="/business/bookings" class="wa-nav-item" data-nav="bookings" title="Bookings">
-      <i class="fas fa-calendar-check"></i>
+      {{heroicon "calendar-check"}}
       <span id="waBookingsBadge" class="wa-nav-badge"{{if not (gt .PendingBookingCount 0)}} style="display:none"{{end}}>{{.PendingBookingCount}}</span>
     </a>
     <button onclick="toggleNotifications()" class="wa-nav-item" data-nav="notifications" title="Notifications">
-      <i class="fas fa-bell"></i>
+      {{heroicon "bell"}}
       <span id="waNotifBadge" class="wa-nav-badge"{{if not (gt .UnreadNotifCount 0)}} style="display:none"{{end}}>{{.UnreadNotifCount}}</span>
     </button>
     <a href="/business/payments" class="wa-nav-item" data-nav="payments" title="Payments">
-      <i class="fas fa-credit-card"></i>
+      {{heroicon "credit-card"}}
     </a>
   </div>
   <div class="wa-navbar-divider"></div>
   <div class="wa-navbar-bottom">
     <button class="theme-toggle wa-nav-item" title="Toggle theme">
-      <i class="fas fa-moon"></i>
+      {{heroicon "moon"}}
     </button>
     {{if .AssistEnabled}}
     <button onclick="toggleAssist()" class="wa-nav-item" title="salesmee Assist">
-      <i class="fas fa-wand-magic-sparkles"></i>
+      {{heroicon "sparkles"}}
     </button>
     {{end}}
     <button onclick="showNewClientModal()" class="wa-nav-item" title="New Customer">
-      <i class="fas fa-user-plus"></i>
+      {{heroicon "user-plus"}}
     </button>
     <button onclick="waToggleNavMenu()" class="wa-nav-item" title="Menu" id="navMenuBtn">
-      <i class="fas fa-ellipsis-h"></i>
+      {{heroicon "ellipsis-horizontal"}}
     </button>
     <a href="/business/subscription" class="wa-nav-item" title="Subscription" id="navSubscriptionBadge">
-      <i class="fas fa-crown"></i>
+      {{heroicon "crown"}}
     </a>
     <button onclick="showBusinessProfile()" class="wa-nav-item wa-nav-avatar" title="Business Profile">
       {{if .Business.Logo}}
       <img src="/static/{{.Business.Logo}}" class="wa-nav-avatar-img" loading="lazy" width="32" height="32">
       {{else}}
-      <div class="wa-nav-avatar-placeholder"><i class="fas fa-store"></i></div>
+      <div class="wa-nav-avatar-placeholder">{{heroicon "building-storefront"}}</div>
       {{end}}
     </button>
   </div>
 </nav>
 <div id="navMenuDropdown" class="hidden fixed left-[68px] bottom-16 z-50 w-56 card shadow-xl overflow-hidden py-1">
   <a href="/business/share" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-    <i class="fas fa-share-alt w-5 text-center text-[var(--color-text-muted)]"></i>
+    {{heroicon "share" "w-5" "text-center" "text-[var(--color-text-muted)]"}}
     <span>Share Business</span>
   </a>
   <a href="/business/logout" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-    <i class="fas fa-sign-out-alt w-5 text-center"></i>
-    <span>Logout</span>
+      {{heroicon "arrow-right-on-rectangle" "w-5" "text-center"}}
+      <span>Logout</span>
   </a>
 </div>
 

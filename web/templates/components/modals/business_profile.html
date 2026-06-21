@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between mb-2">
       <h3 class="text-lg font-medium text-[var(--color-text)]">Business Profile</h3>
       <button onclick="hideBusinessProfile()" class="btn btn-ghost btn-icon btn-icon-sm">
-        <i class="fas fa-times"></i>
+        {{heroicon "x-mark"}}
       </button>
     </div>
 
@@ -32,12 +32,12 @@
               {{if .Business.Logo}}
               <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-full h-full object-cover" loading="lazy">
               {{else}}
-              <i class="fas fa-store text-[var(--color-primary)] text-2xl"></i>
+              {{heroicon "building-storefront" "text-[var(--color-primary)]" "text-2xl"}}
               {{end}}
             </div>
             <button type="button" onclick="document.getElementById('profileLogoInput').click()"
               class="absolute -bottom-1 -right-1 bg-[var(--color-surface)] rounded-full p-1.5 shadow-md border border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)]">
-              <i class="fas fa-camera text-[var(--color-text-secondary)] text-sm"></i>
+              {{heroicon "camera" "text-[var(--color-text-secondary)]" "text-sm"}}
             </button>
             <input type="file" id="profileLogoInput" name="logo" accept="image/*" class="hidden">
           </div>
@@ -102,7 +102,7 @@
     <div id="step2Content" class="hidden">
       <div class="text-center py-4">
         <div class="w-16 h-16 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-envelope text-[var(--color-primary)] text-2xl"></i>
+          {{heroicon "envelope" "text-[var(--color-primary)]" "text-2xl"}}
         </div>
         <p class="text-[var(--color-text)] font-medium mb-1">Check your email</p>
         <p class="text-sm text-[var(--color-text-muted)] mb-1">We sent a 6-digit verification code to</p>

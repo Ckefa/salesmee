@@ -10,10 +10,10 @@
     <div class="flex justify-between items-center h-16">
       <div class="flex items-center gap-3">
         <a href="/business" class="btn btn-ghost btn-icon" title="Back to Chats">
-          <i class="fas fa-arrow-left"></i>
+          {{heroicon "arrow-left"}}
         </a>
         <button onclick="toggleDashboardSidebar()" class="sidebar-mobile-toggle btn btn-icon btn-ghost lg:hidden">
-          <i class="fas fa-bars text-lg"></i>
+          {{heroicon "bars-3" "text-lg"}}
         </button>
         <h1 class="text-lg sm:text-xl font-semibold text-[var(--color-text)]">{{$title}}</h1>
       </div>
@@ -22,59 +22,59 @@
           <button
             class="theme-toggle p-2 rounded-lg hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             title="Toggle theme">
-            <i class="fas fa-sun theme-sun"></i>
-            <i class="fas fa-moon theme-moon hidden"></i>
+            {{heroicon "sun" "theme-sun"}}
+            {{heroicon "moon" "theme-moon" "hidden"}}
           </button>
           <div hx-get="/business/subscription/badge" hx-trigger="load" hx-target="this" hx-swap="innerHTML" class="flex items-center"></div>
           <a href="/business" class="btn btn-ghost btn-icon" title="Chats with Clients">
-            <i class="fas fa-comments"></i>
+            {{heroicon "chat-bubble-left-ellipsis"}}
           </a>
           <button onclick="showBusinessProfile()" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
             {{if .Business.Logo}}
             <img src="/static/{{.Business.Logo}}" alt="Logo" class="w-8 h-8 rounded-full object-cover" loading="lazy" width="32" height="32">
             {{else}}
             <div class="w-8 h-8 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-              <i class="fas fa-store text-[var(--color-primary)] text-sm"></i>
+              {{heroicon "building-storefront" "text-[var(--color-primary)]" "text-sm"}}
             </div>
             {{end}}
             <span class="text-sm font-medium text-[var(--color-text)] hidden sm:block">{{.Business.Name}}</span>
           </button>
           <a href="/business/logout" class="btn btn-ghost btn-icon hover:text-rose-500" title="Logout">
-            <i class="fas fa-sign-out-alt"></i>
+            {{heroicon "arrow-right-on-rectangle"}}
           </a>
         </div>
         <div class="relative lg:hidden">
           <button onclick="toggleHeaderMenu(this)" class="btn btn-icon btn-ghost">
-            <i class="fas fa-ellipsis-v text-lg"></i>
+            {{heroicon "ellipsis-vertical" "text-lg"}}
           </button>
           <div id="headerMenu"
             class="hidden absolute right-0 mt-2 w-56 card shadow-lg z-50 overflow-hidden py-1 animate-fade-in-down">
             <a href="/business"
               class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-              <i class="fas fa-comments w-5 text-center"></i>
+              {{heroicon "chat-bubble-left-ellipsis" "w-5" "text-center"}}
               <span>Chats</span>
             </a>
             <button onclick="SalesMeeTheme.toggle()"
               class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-              <i class="fas fa-adjust w-5 text-center"></i>
+              {{heroicon "adjustments-horizontal" "w-5" "text-center"}}
               <span>Toggle Theme</span>
             </button>
             <button onclick="showBusinessProfile()"
               class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-              <i class="fas fa-store w-5 text-center"></i>
+              {{heroicon "building-storefront" "w-5" "text-center"}}
               <span>Business Profile</span>
             </button>
             {{if .AssistEnabled}}
             <button onclick="toggleAssist()"
               class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-              <i class="fas fa-wand-magic-sparkles w-5 text-center text-[var(--color-primary)]"></i>
+              {{heroicon "sparkles" "w-5" "text-center" "text-[var(--color-primary)]"}}
               <span>salesmee Assist</span>
             </button>
             {{end}}
             <div class="border-t border-[var(--color-border-light)] my-1"></div>
             <a href="/business/logout"
               class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-              <i class="fas fa-sign-out-alt w-5 text-center"></i>
+              {{heroicon "arrow-right-on-rectangle" "w-5" "text-center"}}
               <span>Logout</span>
             </a>
           </div>

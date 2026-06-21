@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -25,7 +24,7 @@
     <div class="card p-8 w-full max-w-lg relative z-10 shadow-lg">
       <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/25 mb-3">
-          <i class="fab fa-google text-white text-xl"></i>
+          {{heroicon "globe-alt" "text-white" "text-xl"}}
         </div>
         <h1 class="text-2xl font-bold text-[var(--color-text)]">Almost there!</h1>
         <p class="text-[var(--color-text-secondary)] mt-1 text-sm">Choose your business type to complete setup</p>
@@ -36,19 +35,19 @@
         <img src="{{.AvatarURL}}" alt="" class="w-10 h-10 rounded-full" loading="lazy" width="40" height="40">
         {{else}}
         <div class="w-10 h-10 rounded-full" style="background: var(--color-surface-tertiary); display:flex; align-items:center; justify-content:center;">
-          <i class="fas fa-user text-sm" style="color: var(--color-text-muted);"></i>
+          {{heroicon "user" "text-sm" "text-[var(--color-text-muted)]"}}
         </div>
         {{end}}
         <div class="min-w-0 flex-1">
           <p class="font-medium text-sm text-[var(--color-text)] truncate">{{.Name}}</p>
           <p class="text-xs" style="color: var(--color-text-muted);">{{.Email}}</p>
         </div>
-        <i class="fab fa-google text-sm text-teal-500"></i>
+        {{heroicon "globe-alt" "text-sm" "text-teal-500"}}
       </div>
 
       {{if .Error}}
       <div class="bg-[var(--color-error-light)] text-[var(--color-error)] px-4 py-3 rounded-xl mb-4 flex items-center gap-2 text-sm border" style="border-color: color-mix(in srgb, var(--color-error) 20%, transparent);">
-        <i class="fas fa-exclamation-circle"></i>
+        {{heroicon "exclamation-circle"}}
         {{.Error}}
       </div>
       {{end}}
@@ -58,87 +57,87 @@
         <p class="text-sm text-[var(--color-text-muted)] mb-4 text-center">What type of business do you run?</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="typeGrid">
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="automotive" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-car text-orange-600 dark:text-orange-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "truck" "text-orange-600" "dark:text-orange-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Automotive</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="beauty" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-sparkles text-pink-600 dark:text-pink-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "sparkles" "text-pink-600" "dark:text-pink-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Beauty</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="childcare" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-child text-pink-600 dark:text-pink-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "heart" "text-pink-600" "dark:text-pink-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Childcare</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="cleaning" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-spray-can-sparkles text-cyan-600 dark:text-cyan-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "sparkles" "text-cyan-600" "dark:text-cyan-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Cleaning</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="consulting" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-handshake text-sky-600 dark:text-sky-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "hand-raised" "text-sky-600" "dark:text-sky-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Consulting</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="dental" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-tooth text-blue-600 dark:text-blue-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "shield-check" "text-blue-600" "dark:text-blue-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Dental</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="education" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-graduation-cap text-indigo-600 dark:text-indigo-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "academic-cap" "text-indigo-600" "dark:text-indigo-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Education</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="farming" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-tractor text-green-600 dark:text-green-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "sun" "text-green-600" "dark:text-green-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Farming</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="fitness" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-dumbbell text-green-600 dark:text-green-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "bolt" "text-green-600" "dark:text-green-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Fitness</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="home_services" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-wrench text-yellow-600 dark:text-yellow-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "wrench" "text-yellow-600" "dark:text-yellow-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Home Services</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="legal" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-gavel text-purple-600 dark:text-purple-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "scale" "text-purple-600" "dark:text-purple-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Legal</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="medical" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-heart-pulse text-red-600 dark:text-red-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "heart" "text-red-600" "dark:text-red-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Medical</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="photography" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-camera text-violet-600 dark:text-violet-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "camera" "text-violet-600" "dark:text-violet-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Photography</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="real_estate" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-building text-amber-600 dark:text-amber-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "building-office" "text-amber-600" "dark:text-amber-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Real Estate</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="restaurant" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-utensils text-orange-600 dark:text-orange-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "cake" "text-orange-600" "dark:text-orange-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Restaurant & Food</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="retail" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-bag-shopping text-teal-600 dark:text-teal-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "shopping-bag" "text-teal-600" "dark:text-teal-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Retail & Shopping</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="salon" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-cut text-teal-600 dark:text-teal-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "scissors" "text-teal-600" "dark:text-teal-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Salon</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="spa" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-spa text-violet-600 dark:text-violet-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "sparkles" "text-violet-600" "dark:text-violet-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Spa</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="technology" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-microchip text-slate-600 dark:text-slate-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "cpu-chip" "text-slate-600" "dark:text-slate-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Technology / IT</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="veterinary" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-1.5"><i class="fas fa-paw text-emerald-600 dark:text-emerald-400"></i></div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-1.5">{{heroicon "heart" "text-emerald-600" "dark:text-emerald-400"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Veterinary</span>
           </div>
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="other" style="border-color: var(--color-border);">
-            <div class="w-10 h-10 rounded-xl" style="background: var(--color-surface-tertiary); width:2.5rem;height:2.5rem;border-radius:0.75rem;display:flex;align-items:center;justify-content:center;margin:0 auto 0.375rem"><i class="fas fa-ellipsis" style="color: var(--color-text-muted);"></i></div>
+            <div class="w-10 h-10 rounded-xl" style="background: var(--color-surface-tertiary); width:2.5rem;height:2.5rem;border-radius:0.75rem;display:flex;align-items:center;justify-content:center;margin:0 auto 0.375rem">{{heroicon "ellipsis-horizontal" "text-[var(--color-text-muted)]"}}</div>
             <span class="text-xs font-medium text-[var(--color-text)]">Other</span>
           </div>
         </div>
@@ -146,7 +145,7 @@
         <p class="text-xs text-[var(--color-error)] mt-2 hidden text-center" id="typeError">Please select a business type</p>
         <div class="mt-5">
           <button type="submit" class="btn btn-primary w-full">
-            Complete Setup <i class="fas fa-arrow-right text-xs"></i>
+            Complete Setup {{heroicon "arrow-right" "text-xs"}}
           </button>
         </div>
       </form>

@@ -14,7 +14,7 @@
         </div>
         <button onclick="showAddServiceModal()"
           class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
-          <i class="fas fa-plus"></i>
+          {{heroicon "plus" ""}}
           <span>Add Service</span>
         </button>
       </div>
@@ -24,7 +24,7 @@
         <div class="flex-1 min-w-0">
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i class="fas fa-search text-[var(--color-text-muted)]"></i>
+              {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]"}}
             </div>
             <input type="text" id="searchInput" placeholder="Search services..." class="input pl-10">
           </div>
@@ -56,13 +56,13 @@
             <div class="img-skeleton w-full h-48">
               <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover" loading="lazy">
               <div class="img-fallback img-fallback-hidden absolute inset-0 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
-                <i class="fas fa-concierge-bell text-[var(--color-primary)] text-4xl"></i>
+                {{heroicon "bell" "text-[var(--color-primary)] text-4xl"}}
               </div>
             </div>
             {{else}}
             <div
               class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
-              <i class="fas fa-concierge-bell text-[var(--color-primary)] text-4xl"></i>
+              {{heroicon "bell" "text-[var(--color-primary)] text-4xl"}}
             </div>
             {{end}}
             {{if not .IsActive}}
@@ -72,7 +72,7 @@
             {{end}}
             {{if .IsNegotiable}}
             <div class="absolute top-2 left-2 bg-[var(--color-success)] text-white px-2 py-1 rounded text-xs">
-              <i class="fas fa-handshake mr-1"></i>Negotiable
+              {{heroicon "hand-raised" "mr-1"}}Negotiable
             </div>
             {{end}}
           </div>
@@ -101,22 +101,22 @@
             <div class="mt-4 flex space-x-2">
               <button onclick="editService(this.closest('[data-service-id]').dataset.serviceId)"
                 class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                <i class="fas fa-edit sm:mr-1"></i> <span class="hidden sm:inline">Edit</span>
+                {{heroicon "pencil" "sm:mr-1"}} <span class="hidden sm:inline">Edit</span>
               </button>
               <button onclick="deleteService(this.closest('[data-service-id]').dataset.serviceId)"
                 class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                <i class="fas fa-trash sm:mr-1"></i> <span class="hidden sm:inline">Delete</span>
+                {{heroicon "trash" "sm:mr-1"}} <span class="hidden sm:inline">Delete</span>
               </button>
             </div>
           </div>
         </div>
         {{else}}
         <div class="col-span-full text-center py-12">
-          <i class="fas fa-concierge-bell text-[var(--color-text-muted)] text-5xl mb-4"></i>
+          {{heroicon "bell" "text-[var(--color-text-muted)] text-5xl mb-4"}}
           <p class="text-sm text-[var(--color-text-secondary)]">No services found</p>
           <button onclick="showAddServiceModal()"
             class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
-            <i class="fas fa-plus mr-2"></i>Add your first service
+            {{heroicon "plus" "mr-2"}}Add your first service
           </button>
         </div>
         {{end}}
@@ -131,13 +131,13 @@
           <a href="?page={{$prev}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                   {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}" {{if eq .Page 1.0}}onclick="return false" {{end}}>
-            <i class="fas fa-chevron-left"></i>
+            {{heroicon "chevron-left" ""}}
           </a>
           <a href="?page={{$next}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                   {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}" {{if ge .Page .TotalPages}}onclick="return false"
             {{end}}>
-            <i class="fas fa-chevron-right"></i>
+            {{heroicon "chevron-right" ""}}
           </a>
         </div>
       </div>
@@ -512,4 +512,3 @@
   </script>
 </div>
 {{end}}
-

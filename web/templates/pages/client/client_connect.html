@@ -8,7 +8,6 @@
   {{template "pwa_head" .}}
   <title>{{.Title}}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   {{template "analytics_script" .}}
 </head>
@@ -20,7 +19,7 @@
         {{if .Business.Logo}}
         <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="120" height="120">
         {{else}}
-        <i class="fas fa-store text-teal-500 text-2xl"></i>
+        {{heroicon "building-storefront" "text-teal-500" "text-2xl"}}
         {{end}}
       </div>
       <h1 class="text-xl font-bold text-gray-900">{{.Business.Name}}</h1>
@@ -31,7 +30,7 @@
 
     {{if .Error}}
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-      <i class="fas fa-exclamation-circle mr-2"></i>
+      {{heroicon "exclamation-circle" "mr-2"}}
       {{.Error}}
     </div>
     {{end}}
@@ -53,7 +52,7 @@
     <div class="mb-5">
       <a href="/client/auth/facebook?redirect=/api/connect/{{.Business.Slug}}"
         class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-200 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 bg-white">
-        <i class="fab fa-facebook text-blue-600 text-xl"></i>
+        {{heroicon "share" "text-blue-600" "text-xl"}}
         <span class="text-gray-700">Sign in with Facebook</span>
       </a>
     </div>
@@ -74,7 +73,7 @@
         <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i class="fas fa-envelope text-gray-400"></i>
+            {{heroicon "envelope" "text-gray-400"}}
           </div>
           <input type="email" id="email" name="email" required
             class="input pl-10"
@@ -84,14 +83,14 @@
 
       <button type="submit"
         class="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-2.5 px-4 rounded-xl hover:from-teal-600 hover:to-cyan-700 transition-all font-medium shadow-lg shadow-teal-500/25">
-        <i class="fas fa-paper-plane mr-2 text-sm"></i>
+        {{heroicon "paper-airplane" "mr-2" "text-sm"}}
         Send OTP
       </button>
     </form>
 
     <div class="text-center mt-6">
       <a href="/b/{{.Business.Slug}}" class="text-sm text-teal-600 hover:text-teal-700">
-        <i class="fas fa-arrow-left mr-1"></i> Back to profile
+        {{heroicon "arrow-left" "mr-1"}} Back to profile
       </a>
     </div>
   </div>

@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "landing_head" .}}
@@ -20,11 +19,11 @@
     <p class="text-slate-500 mb-8 leading-relaxed">Something went wrong on our end. Please try again later.</p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
       <a href="/" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold shadow-lg hover:shadow-teal-500/30 transition-all">
-        <i class="fas fa-home"></i>
+        {{heroicon "home"}}
         Go Home
       </a>
       <a href="mailto:{{.SupportEmail}}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-700 font-semibold border border-slate-200 hover:bg-slate-50 transition-all">
-        <i class="fas fa-envelope"></i>
+        {{heroicon "envelope"}}
         Contact Support
       </a>
     </div>

@@ -16,27 +16,32 @@
     <div class="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] transition-colors {{if .IsRead}}opacity-60{{end}} group relative" data-notif-id="{{.ID}}">
       {{$iconBg := "var(--color-primary-light)"}}
       {{$iconColor := "var(--color-primary)"}}
+      {{$iconName := "bell"}}
       {{$notifHref := .Link}}
-      {{if eq .Icon "fa-shopping-cart"}}
+      {{if eq .Icon "shopping-cart"}}
         {{$iconBg = "var(--color-warning-light)"}}
         {{$iconColor = "var(--color-warning)"}}
+        {{$iconName = "shopping-cart"}}
         {{$notifHref = "/business/orders"}}
-      {{else if eq .Icon "fa-calendar-check"}}
+      {{else if eq .Icon "calendar-days"}}
         {{$iconBg = "var(--color-info-light)"}}
         {{$iconColor = "var(--color-info)"}}
+        {{$iconName = "calendar-check"}}
         {{$notifHref = "/business/bookings"}}
-      {{else if eq .Icon "fa-credit-card"}}
+      {{else if eq .Icon "credit-card"}}
         {{$iconBg = "var(--color-secondary-light)"}}
         {{$iconColor = "var(--color-secondary)"}}
+        {{$iconName = "credit-card"}}
         {{$notifHref = "/business/payments"}}
-      {{else if eq .Icon "fa-clock"}}
+      {{else if eq .Icon "clock"}}
         {{$iconBg = "var(--color-info-light)"}}
         {{$iconColor = "var(--color-info)"}}
+        {{$iconName = "clock"}}
         {{$notifHref = "/business/bookings"}}
       {{end}}
       {{if $notifHref}}<a href="{{$notifHref}}" onclick="markNotifRead({{.ID}})" class="flex-1 min-w-0 flex items-start gap-3">{{else}}<div class="flex-1 min-w-0 flex items-start gap-3" onclick="markNotifRead({{.ID}})">{{end}}
         <div class="w-8 h-8 rounded-full bg-[{{$iconBg}}] flex items-center justify-center shrink-0">
-          <i class="fas {{.Icon}} text-[{{$iconColor}}] text-xs"></i>
+          <span class="text-[{{$iconColor}}]">{{heroicon $iconName "text-xs"}}</span>
         </div>
         <div class="min-w-0">
           <p class="text-xs sm:text-sm text-[var(--color-text)] font-medium truncate">{{.Title}}</p>
@@ -45,14 +50,14 @@
         </div>
       {{if $notifHref}}</a>{{else}}</div>{{end}}
       <button onclick="event.stopPropagation(); deleteNotification({{.ID}}, this)" title="Delete" class="absolute right-2 top-3 opacity-60 hover:opacity-100 p-1 rounded text-xs text-[var(--color-error)] bg-transparent focus:bg-[var(--color-surface-tertiary)]">
-        <i class="fas fa-trash"></i>
+        {{heroicon "trash"}}
       </button>
 
     </div>
     {{end}}
   {{else}}
     <div class="px-4 py-8 text-center">
-      <i class="fas fa-bell text-2xl text-[var(--color-text-muted)] mb-2"></i>
+      {{heroicon "bell" "text-2xl" "text-[var(--color-text-muted)]" "mb-2"}}
       <p class="text-xs text-[var(--color-text-muted)]">No notifications yet</p>
     </div>
   {{end}}
@@ -60,10 +65,10 @@
 <!-- Notification Context Menu -->
 <div id="notifCtxMenu" class="fixed z-50 bg-[var(--color-surface)] rounded-lg shadow-lg border border-[var(--color-border)] min-w-[140px] p-1 hidden">
   <button class="w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-surface-secondary)] text-sm text-left" id="notifMarkReadBtn">
-    <i class="fas fa-check text-xs text-[var(--color-success)]"></i> Mark as read
+    {{heroicon "check" "text-xs" "text-[var(--color-success)]"}} Mark as read
   </button>
   <button class="w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-surface-secondary)] text-sm text-left" id="notifDeleteBtn">
-    <i class="fas fa-trash text-xs text-[var(--color-error)]"></i> Delete
+    {{heroicon "trash" "text-xs" "text-[var(--color-error)]"}} Delete
   </button>
 </div>
 {{end}}

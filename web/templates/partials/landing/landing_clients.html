@@ -8,8 +8,8 @@
           <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xl">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center space-x-3">
               <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white font-bold">S</div>
-              <div class="flex-1"><p class="text-sm font-semibold text-slate-900">Sarah's Design Studio</p><p class="text-xs text-green-500"><i class="fas fa-circle mr-1 text-[8px]"></i>Online</p></div>
-              <div class="flex space-x-2"><i class="fas fa-phone text-slate-400 text-sm"></i><i class="fas fa-ellipsis-v text-slate-400 text-sm"></i></div>
+              <div class="flex-1"><p class="text-sm font-semibold text-slate-900">Sarah's Design Studio</p><p class="text-xs text-green-500">{{heroicon "circle" "mr-1" "text-[8px]"}}Online</p></div>
+              <div class="flex space-x-2">{{heroicon "phone" "text-slate-400" "text-sm"}}{{heroicon "ellipsis-vertical" "text-slate-400" "text-sm"}}</div>
             </div>
             <div class="p-5 space-y-4">
               <div class="flex items-start space-x-3">
@@ -21,7 +21,7 @@
                 <div class="flex-1 flex flex-col items-end"><div class="bg-teal-500 rounded-2xl rounded-tr-none px-4 py-2.5 max-w-xs"><p class="text-sm text-white">Perfect, thank you! Can I also schedule a consultation for next week?</p></div><span class="text-xs text-slate-400 mt-1 block">10:36 AM</span></div>
               </div>
               <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                <div class="flex items-center justify-between mb-2"><div class="flex items-center space-x-2"><i class="fas fa-calendar text-purple-500 text-sm"></i><span class="text-sm font-semibold text-slate-900">Quick Booking</span></div><i class="fas fa-chevron-right text-slate-400 text-xs"></i></div>
+                <div class="flex items-center justify-between mb-2"><div class="flex items-center space-x-2">{{heroicon "calendar" "text-purple-500" "text-sm"}}<span class="text-sm font-semibold text-slate-900">Quick Booking</span></div>{{heroicon "chevron-right" "text-slate-400" "text-xs"}}</div>
                 <p class="text-xs text-slate-500">Select a service and time — no need to call</p>
               </div>
             </div>
@@ -31,7 +31,7 @@
 
       <div class="order-1 lg:order-2 reveal">
         <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-sm font-medium mb-4">
-          <i class="fas fa-user mr-2 text-xs"></i>
+          {{heroicon "user" "mr-2" "text-xs"}}
           For Clients
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-slate-900">Order, book, and chat — all in <span class="gradient-text">one place</span></h2>
@@ -39,26 +39,26 @@
 
         <div class="mt-10 space-y-5">
           <div class="flex items-start space-x-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0"><i class="fas fa-key text-amber-600"></i></div>
-            <div><h4 class="font-semibold text-slate-900">Secure OTP Login</h4><p class="text-sm text-slate-500 mt-1">Access your account with a one-time password sent to your email — no passwords to remember.</p></div>
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">{{heroicon "key" "text-amber-600"}}</div>
+            <div><h3 class="font-semibold text-slate-900 text-base">Secure OTP Login</h3><p class="text-sm text-slate-500 mt-1">Access your account with a one-time password sent to your email — no passwords to remember.</p></div>
           </div>
           <div class="flex items-start space-x-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0"><i class="fas fa-message text-amber-600"></i></div>
-            <div><h4 class="font-semibold text-slate-900">Direct Business Chat</h4><p class="text-sm text-slate-500 mt-1">Message businesses directly, place orders, and book services — all within the chat interface.</p></div>
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">{{heroicon "chat-bubble-left-right" "text-amber-600"}}</div>
+            <div><h3 class="font-semibold text-slate-900 text-base">Direct Business Chat</h3><p class="text-sm text-slate-500 mt-1">Message businesses directly, place orders, and book services — all within the chat interface.</p></div>
           </div>
           <div class="flex items-start space-x-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0"><i class="fas fa-pen text-amber-600"></i></div>
-            <div><h4 class="font-semibold text-slate-900">Self-Service Management</h4><p class="text-sm text-slate-500 mt-1">Edit order quantities, reschedule bookings, or cancel services — all without contacting support.</p></div>
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">{{heroicon "pencil" "text-amber-600"}}</div>
+            <div><h3 class="font-semibold text-slate-900 text-base">Self-Service Management</h3><p class="text-sm text-slate-500 mt-1">Edit order quantities, reschedule bookings, or cancel services — all without contacting support.</p></div>
           </div>
           <div class="flex items-start space-x-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0"><i class="fas fa-bell text-amber-600"></i></div>
-            <div><h4 class="font-semibold text-slate-900">Real-Time Updates</h4><p class="text-sm text-slate-500 mt-1">Get instant notifications on order status changes, booking confirmations, and business replies.</p></div>
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">{{heroicon "bell" "text-amber-600"}}</div>
+            <div><h3 class="font-semibold text-slate-900 text-base">Real-Time Updates</h3><p class="text-sm text-slate-500 mt-1">Get instant notifications on order status changes, booking confirmations, and business replies.</p></div>
           </div>
         </div>
 
         <a href="/client/login" class="mt-10 inline-flex items-center px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:from-amber-600 hover:to-orange-600 transition-all text-base">
           Access Client Portal
-          <i class="fas fa-arrow-right ml-2 text-sm"></i>
+          {{heroicon "arrow-right" "ml-2" "text-sm"}}
         </a>
       </div>
     </div>

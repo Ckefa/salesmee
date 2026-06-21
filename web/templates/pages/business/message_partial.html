@@ -17,9 +17,9 @@
       <img src="/static/{{.Message.MediaURL}}" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .Message.MediaType "document"}}
       <div class="wa-media-doc">
-        <i class="fas fa-file-alt wa-media-doc-icon"></i>
+        {{heroicon "document-text" "wa-media-doc-icon"}}
         <a href="/static/{{.Message.MediaURL}}" target="_blank" class="wa-media-doc-link">{{if .Message.Content}}{{.Message.Content}}{{else}}Document{{end}}</a>
-        <i class="fas fa-external-link-alt wa-media-doc-ext"></i>
+        {{heroicon "arrow-top-right-on-square" "wa-media-doc-ext"}}
       </div>
       {{else if eq .Message.MediaType "audio"}}
       <div class="wa-media-audio">
@@ -40,19 +40,19 @@
     <button data-message-id="{{.Message.ID}}"
       class="enhanced-action-btn text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
       title="Create Detailed Action">
-      <i class="fas fa-plus mr-1"></i>Action
+      {{heroicon "plus" "mr-1"}}Action
     </button>
     <button data-message-id="{{.Message.ID}}" data-action-type="task"
       class="quick-action-btn text-xs text-blue-600 hover:text-blue-800 ml-1" title="Quick Task">
-      <i class="fas fa-tasks"></i>
+      {{heroicon "list-bullet"}}
     </button>
     <button data-message-id="{{.Message.ID}}" data-action-type="reminder"
       class="quick-action-btn text-xs text-yellow-600 hover:text-yellow-800 ml-1" title="Quick Reminder">
-      <i class="fas fa-bell"></i>
+      {{heroicon "bell"}}
     </button>
     <button data-message-id="{{.Message.ID}}" data-action-type="booking"
       class="quick-action-btn text-xs text-green-600 hover:text-green-800 ml-1" title="Quick Booking">
-      <i class="fas fa-calendar"></i>
+      {{heroicon "calendar"}}
     </button>
   </div>
   {{end}}

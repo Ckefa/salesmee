@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{.Title}}</title>
   <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Log in to your SalesMee business dashboard to manage products, orders, bookings, clients, and team members from one place.">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -22,12 +22,13 @@
     <div class="card p-8 w-full max-w-md relative z-10 shadow-lg">
       <div class="text-center mb-8">
         <div class="bg-white rounded-xl p-1.5 inline-block mx-auto mb-4"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-10 sm:h-12"></div>
-        <p class="text-[var(--color-text-secondary)] mt-1 text-sm">Sign in to your business dashboard</p>
+        <h1 class="text-[var(--color-text-secondary)] mt-1 text-sm">Sign in to your business dashboard</h1>
+        <p class="text-[var(--color-text-muted)] text-xs mt-1.5">Manage orders, bookings, clients, and payments — all in one place.</p>
       </div>
 
       {{if .Error}}
       <div class="bg-[var(--color-error-light)] text-[var(--color-error)] px-4 py-3 rounded-xl mb-4 flex items-center gap-2 text-sm border" style="border-color: color-mix(in srgb, var(--color-error) 20%, transparent);">
-        <i class="fas fa-exclamation-circle"></i>
+        {{heroicon "exclamation-circle"}}
         {{.Error}}
       </div>
       {{end}}
@@ -50,7 +51,7 @@
         <a href="/business/auth/facebook"
           class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
           style="border-color: var(--color-border); color: var(--color-text); background: var(--color-surface);">
-          <i class="fab fa-facebook text-blue-600 text-xl"></i>
+          {{heroicon "share" "text-blue-600" "text-xl"}}
           Sign in with Facebook
         </a>
       </div>
@@ -70,7 +71,7 @@
         <div>
           <label for="email" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Email</label>
           <div class="relative input-with-icon">
-            <i class="fas fa-envelope input-icon"></i>
+            {{heroicon "envelope" "input-icon"}}
             <input type="email" id="email" name="email" required
               class="input"
               placeholder="you@example.com">
@@ -81,12 +82,12 @@
         <div>
           <label for="password" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Password</label>
           <div class="relative input-with-icon">
-            <i class="fas fa-lock input-icon"></i>
+            {{heroicon "lock-closed" "input-icon"}}
             <input type="password" id="password" name="password" required minlength="6"
               class="input"
               placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
             <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors">
-              <i class="fas fa-eye" id="pwIcon"></i>
+              <span id="pwIcon">{{heroicon "eye"}}</span>
             </button>
           </div>
           <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="pwError">Password must be at least 6 characters</p>
@@ -106,14 +107,14 @@
         <button type="submit" id="loginBtn"
           class="btn btn-primary w-full">
           <span id="btnText">Sign In</span>
-          <i class="fas fa-arrow-right text-xs" id="btnIcon"></i>
-          <i class="fas fa-spinner fa-spin hidden" id="btnSpinner"></i>
+          <span id="btnIcon">{{heroicon "arrow-right" "text-xs"}}</span>
+          <span id="btnSpinner" class="hidden">{{heroicon "arrow-path" "animate-spin"}}</span>
         </button>
       </form>
 
       {{if .IsDev}}
       <div class="mt-4 p-3 rounded-xl text-xs flex items-start gap-2" style="background: color-mix(in srgb, var(--color-warning) 8%, transparent); color: var(--color-warning); border: 1px solid; border-color: color-mix(in srgb, var(--color-warning) 20%, transparent);">
-        <i class="fas fa-flask mt-0.5"></i>
+        {{heroicon "beaker" "mt-0.5"}}
         <div><span class="font-medium">Demo:</span> demo@salesmee.com / password</div>
       </div>
       {{end}}
@@ -131,8 +132,8 @@
     function togglePassword() {
       var pw = document.getElementById('password');
       var icon = document.getElementById('pwIcon');
-      if (pw.type === 'password') { pw.type = 'text'; icon.className = 'fas fa-eye-slash'; }
-      else { pw.type = 'password'; icon.className = 'fas fa-eye'; }
+      if (pw.type === 'password') { pw.type = 'text'; icon.innerHTML = '{{heroicon "eye-slash"}}'; }
+      else { pw.type = 'password'; icon.innerHTML = '{{heroicon "eye"}}'; }
     }
 
     document.getElementById('loginForm').addEventListener('submit', function(e) {

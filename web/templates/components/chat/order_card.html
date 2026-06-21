@@ -26,7 +26,7 @@
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-2 min-w-0">
           <div class="w-8 h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center shadow-sm flex-shrink-0">
-            <i class="fas fa-shopping-cart {{if $isDraft}}text-[var(--color-text-muted)]{{else if $isCancelled}}text-[var(--color-error)]{{else if $isFulfilled}}text-[var(--color-success)]{{else if or $isConfirmed $isClientConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-warning)]{{end}}"></i>
+            {{heroicon "shopping-cart" "{{if $isDraft}}text-[var(--color-text-muted)]{{else if $isCancelled}}text-[var(--color-error)]{{else if $isFulfilled}}text-[var(--color-success)]{{else if or $isConfirmed $isClientConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-warning)]{{end}}"}}
           </div>
           <div class="min-w-0">
             <h4 class="font-semibold text-xs sm:text-sm text-[var(--color-text)] truncate">
@@ -52,7 +52,7 @@
           {{end}}
           {{if or $isDraft $isPending}}
           <button onclick="openBusinessEditOrderPicker({{$order.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Order">
-            <i class="fas fa-edit"></i>
+            {{heroicon "pencil-square"}}
           </button>
           {{end}}
         </div>
@@ -96,7 +96,7 @@
       <!-- Notes -->
       {{if $order.notes}}
       <div class="mb-3 bg-[var(--color-surface)]/60 rounded-lg p-2 text-[10px] sm:text-xs text-[var(--color-text-secondary)] italic">
-        <i class="far fa-sticky-note mr-1"></i>{{$order.notes}}
+        {{heroicon "document-text" "mr-1"}}{{$order.notes}}
       </div>
       {{end}}
 
@@ -107,7 +107,7 @@
             {{if eq $s1 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s1 "active"}}bg-[var(--color-warning)] text-white shadow-[0_0_0_3px_rgba(245,158,11,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s1 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}1{{end}}
+            {{if eq $s1 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}1{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s1 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s1 "active"}}text-[var(--color-warning)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Create</span>
         </div>
@@ -117,7 +117,7 @@
             {{if eq $s2 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s2 "active"}}bg-[var(--color-info)] text-white shadow-[0_0_0_3px_rgba(14,165,233,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s2 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}2{{end}}
+            {{if eq $s2 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}2{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s2 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s2 "active"}}text-[var(--color-info)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Confirm</span>
         </div>
@@ -127,7 +127,7 @@
             {{if eq $s3 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s3 "active"}}bg-[var(--color-secondary)] text-white shadow-[0_0_0_3px_rgba(139,92,246,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s3 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}3{{end}}
+            {{if eq $s3 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}3{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s3 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s3 "active"}}text-[var(--color-secondary)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Paid</span>
         </div>
@@ -137,7 +137,7 @@
             {{if eq $s4 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s4 "active"}}bg-[var(--color-success)] text-white shadow-[0_0_0_3px_rgba(16,185,129,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s4 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}4{{end}}
+            {{if eq $s4 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}4{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s4 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s4 "active"}}text-[var(--color-success)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Complete</span>
         </div>
@@ -146,7 +146,7 @@
       <!-- Step Content -->
       {{if $isCancelled}}
       <div class="w-full text-center py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-xs sm:text-sm font-medium">
-        <i class="fas fa-ban mr-1"></i>Order cancelled
+        {{heroicon "ban" "mr-1"}}Order cancelled
       </div>
 
       {{else if eq $s1 "active"}}
@@ -154,32 +154,32 @@
         <div class="flex gap-2">
           <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-medium transition"
             onclick="cancelDraftOrder({{$order.id}})">
-            <i class="fas fa-trash-alt mr-1"></i>Discard
+            {{heroicon "trash" "mr-1"}}Discard
           </button>
           <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-info)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
             onclick="sendOrderToClient({{$order.id}})">
-            Send to Client <i class="fas fa-arrow-right ml-1"></i>
+            Send to Client {{heroicon "arrow-right" "ml-1"}}
           </button>
         </div>
         {{else if eq $actionRequired "business"}}
         <div class="flex gap-2">
           <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
             onclick="rejectOrder({{$order.id}})">
-            <i class="fas fa-times mr-1"></i>Reject
+            {{heroicon "x-mark" "mr-1"}}Reject
           </button>
           <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
             onclick="confirmOrderBusiness({{$order.id}})">
-            <i class="fas fa-check mr-1"></i>Confirm Items
+            {{heroicon "check" "mr-1"}}Confirm Items
           </button>
         </div>
         {{else if eq $actionRequired "client"}}
         <div class="flex gap-2">
           <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
             onclick="rejectOrder({{$order.id}})">
-            <i class="fas fa-times mr-1"></i>Cancel
+            {{heroicon "x-mark" "mr-1"}}Cancel
           </button>
           <div class="flex-[2] py-2 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs sm:text-sm font-medium text-center">
-            <i class="fas fa-clock mr-1"></i>Waiting Approval
+            {{heroicon "clock" "mr-1"}}Waiting Approval
           </div>
         </div>
         {{end}}
@@ -197,11 +197,11 @@
       <div class="flex gap-2">
         <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
           onclick="rejectOrder({{$order.id}})">
-          <i class="fas fa-times mr-1"></i>Reject
+          {{heroicon "x-mark" "mr-1"}}Reject
         </button>
         <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="confirmOrderBusiness({{$order.id}})">
-          <i class="fas fa-check mr-1"></i>Confirm
+          {{heroicon "check" "mr-1"}}Confirm
         </button>
       </div>
 
@@ -225,17 +225,17 @@
               {{if .Reference}}
               <span class="text-[var(--color-text-muted)] truncate max-w-[80px] hidden sm:inline">{{.Reference}}</span>
               {{end}}
-              <button class="px-2 py-0.5 rounded bg-[var(--color-success)] text-white hover:opacity-90 text-[10px] font-medium flex-shrink-0" onclick="confirmOrderPayment({{$order.id}}, {{.ID}})"><i class="fas fa-check mr-0.5"></i>Confirm</button>
-              <button class="px-2 py-0.5 rounded border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-[10px] font-medium flex-shrink-0" onclick="rejectOrderPayment({{$order.id}}, {{.ID}})" title="Reject"><i class="fas fa-times"></i></button>
+              <button class="px-2 py-0.5 rounded bg-[var(--color-success)] text-white hover:opacity-90 text-[10px] font-medium flex-shrink-0" onclick="confirmOrderPayment({{$order.id}}, {{.ID}})">{{heroicon "check" "mr-0.5"}}Confirm</button>
+              <button class="px-2 py-0.5 rounded border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-[10px] font-medium flex-shrink-0" onclick="rejectOrderPayment({{$order.id}}, {{.ID}})" title="Reject">{{heroicon "x-mark"}}</button>
             </div>
             {{end}}
             {{end}}
           <button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm"
             onclick="confirmAllOrderPayments({{$order.id}})">
-            <i class="fas fa-check-double mr-1"></i>Confirm All
+            {{heroicon "check-double" "mr-1"}}Confirm All
           </button>
           {{else}}
-          <div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>
+          <div class="text-[10px] font-medium text-[var(--color-text-muted)]">{{heroicon "clock" "mr-0.5"}}No pending payment claims</div>
           {{end}}
         </div>
       </div>
@@ -243,22 +243,22 @@
       {{else if eq $s4 "active"}}
       <div class="space-y-3">
         <div class="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-success)] bg-[var(--color-success-light)] rounded-lg px-3 py-2">
-          <i class="fas fa-check-circle"></i> Fully Paid
+          {{heroicon "check-circle"}} Fully Paid
         </div>
         <button class="w-full py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="fulfillOrder({{$order.id}})">
-          <i class="fas fa-check-double mr-1"></i>Process Order
+          {{heroicon "check-double" "mr-1"}}Process Order
         </button>
       </div>
 
       {{else if $isFulfilled}}
       <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
-        <i class="fas fa-check-double mr-1"></i>Order completed
+        {{heroicon "check-double" "mr-1"}}Order completed
       </div>
       {{if $order.has_review}}
       <div class="w-full mt-2 py-1.5 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs font-medium text-center flex items-center justify-center gap-0.5">
         {{range $i := seq 1 5}}
-        {{if le $i $order.review_rating}}<i class="fas fa-star"></i>{{else}}<i class="far fa-star"></i>{{end}}
+        {{if le $i $order.review_rating}}{{heroicon "star"}}{{else}}{{heroicon "star"}}{{end}}
         {{end}}
         <span class="ml-1.5 text-[var(--color-text-secondary)]">Reviewed</span>
       </div>
@@ -269,7 +269,7 @@
       {{if $order.payments}}
       <div class="mb-2 pt-2 border-t border-[var(--color-border-light)]">
         <p class="text-[10px] font-semibold text-[var(--color-text-secondary)] mb-1.5">
-          <i class="fas fa-receipt mr-0.5"></i>Payments
+          {{heroicon "receipt-percent" "mr-0.5"}}Payments
         </p>
         <div class="space-y-1">
           {{range $order.payments}}

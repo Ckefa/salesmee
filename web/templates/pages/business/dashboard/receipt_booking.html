@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Receipt {{.Booking.BookingNumber}} - {{.Business.Name}}</title>
   {{template "pwa_head" .}}
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -180,7 +179,7 @@
 
     <!-- Print Button -->
     <div class="no-print" style="padding:0 48px 32px;">
-      <button onclick="window.print()"><i class="fas fa-print mr-2"></i>Print / Save PDF</button>
+      <button onclick="window.print()">{{heroicon "printer" "mr-2"}}Print / Save PDF</button>
       <button onclick="window.close()" style="background:transparent;color:#6b7280;border:1px solid #d1d5db;margin-left:8px;">Close</button>
     </div>
   </div>

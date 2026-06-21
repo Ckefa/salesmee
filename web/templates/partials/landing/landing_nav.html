@@ -17,25 +17,25 @@
         <div class="relative group hidden sm:block">
           <button class="text-sm font-medium text-slate-600 hover:text-teal-600 transition-colors px-4 py-2 flex items-center gap-1.5">
             Login
-            <i class="fas fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
+            {{heroicon "chevron-down" "text-[10px]" "transition-transform" "group-hover:rotate-180"}}
           </button>
           <div class="absolute right-0 mt-1 w-44 rounded-xl bg-white shadow-xl border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-1 group-hover:translate-y-0 z-50">
             <a href="/client/login" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:text-teal-600 hover:bg-teal-50 rounded-t-xl transition-colors">
-              <div class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center"><i class="fas fa-user text-amber-600 text-xs"></i></div>
+              <div class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">{{heroicon "user" "text-amber-600" "text-xs"}}</div>
               <div><span class="font-medium">Client Portal</span><p class="text-[10px] text-slate-400">OTP-based access</p></div>
             </a>
             <div class="border-t border-slate-100 mx-3"></div>
             <a href="/business/login" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:text-teal-600 hover:bg-teal-50 rounded-b-xl transition-colors">
-              <div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center"><i class="fas fa-store text-teal-600 text-xs"></i></div>
+              <div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center">{{heroicon "building-storefront" "text-teal-600" "text-xs"}}</div>
               <div><span class="font-medium">Business Login</span><p class="text-[10px] text-slate-400">Dashboard & tools</p></div>
             </a>
           </div>
         </div>
         <a href="/business/register" class="hidden sm:inline-flex items-center px-5 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm font-semibold shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:from-teal-600 hover:to-cyan-700 transition-all">
-          <i class="fas fa-rocket mr-2 text-xs"></i>Get Started
+          {{heroicon "rocket-launch" "mr-2" "text-xs"}}Get Started
         </a>
         <button id="hamburger" class="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Menu">
-          <i class="fas fa-bars text-lg"></i>
+          {{heroicon "bars-3" "text-lg"}}
         </button>
       </div>
     </div>
@@ -45,8 +45,8 @@
 <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 w-72 sm:w-80 h-full bg-white shadow-2xl z-[60] backdrop-blur-xl bg-white/95 border-l border-slate-200 overflow-y-auto">
   <div class="flex items-center justify-between p-4 border-b border-slate-100">
     <span class="font-semibold text-slate-900">Menu</span>
-    <button id="closeMenu" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
-      <i class="fas fa-times"></i>
+    <button id="closeMenu" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors" aria-label="Close menu">
+      {{heroicon "x-mark"}}
     </button>
   </div>
   <div class="p-4 space-y-1">
@@ -59,13 +59,13 @@
   </div>
   <div class="p-4 border-t border-slate-100 space-y-2">
     <a href="/client/login" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors">
-      <i class="fas fa-user text-amber-500"></i> Client Portal
+      {{heroicon "user" "text-amber-500"}} Client Portal
     </a>
     <a href="/business/login" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-teal-50 hover:text-teal-600 transition-colors">
-      <i class="fas fa-store text-teal-500"></i> Business Login
+      {{heroicon "building-storefront" "text-teal-500"}} Business Login
     </a>
     <a href="/business/register" class="flex items-center justify-center gap-2 mt-3 px-4 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm font-semibold shadow-lg transition-all">
-      <i class="fas fa-rocket text-xs"></i> Get Started Free
+      {{heroicon "rocket-launch" "text-xs"}} Get Started Free
     </a>
   </div>
 </div>

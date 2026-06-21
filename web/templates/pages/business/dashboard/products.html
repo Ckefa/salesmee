@@ -14,7 +14,7 @@
         </div>
         <button onclick="showAddProductModal()"
           class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
-          <i class="fas fa-plus"></i>
+          {{heroicon "plus" ""}}
           <span>Add Product</span>
         </button>
       </div>
@@ -23,7 +23,7 @@
         <div class="flex-1 min-w-0">
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i class="fas fa-search text-[var(--color-text-muted)]"></i>
+              {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]"}}
             </div>
             <input type="text" id="searchInput" placeholder="Search products..." class="input pl-10">
           </div>
@@ -55,23 +55,23 @@
             <div class="img-skeleton w-full h-48">
               <img id="productImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-48 object-cover" loading="lazy">
               <div class="img-fallback img-fallback-hidden absolute inset-0 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
-                <i class="fas fa-box text-[var(--color-primary)] text-4xl"></i>
+                {{heroicon "cube" "text-[var(--color-primary)] text-4xl"}}
               </div>
             </div>
             {{else}}
             <div id="productImg-{{.ID}}"
               class="w-full h-48 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface-tertiary)] flex items-center justify-center">
-              <i class="fas fa-box text-[var(--color-primary)] text-4xl"></i>
+              {{heroicon "cube" "text-[var(--color-primary)] text-4xl"}}
             </div>
             {{end}}
             <div
               class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <i class="fas fa-camera text-white text-2xl"></i>
+              {{heroicon "camera" "text-white text-2xl"}}
             </div>
             {{$imgCount := len .Images}}
             {{if gt $imgCount 1}}
             <div class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-              {{$imgCount}}
+              {{heroicon "photo" ""}}{{$imgCount}}
             </div>
             {{end}}
             <input type="file" id="fileInput-{{.ID}}" accept="image/*" class="hidden"
@@ -103,27 +103,27 @@
               {{if or .ImageURL (gt (len .Images) 0)}}
               <button onclick="previewProductImage({{.ID}}, '{{.Name}}')"
                 class="flex-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                <i class="fas fa-eye sm:mr-1"></i> <span class="hidden sm:inline">Preview</span>
+                {{heroicon "eye" "sm:mr-1"}} <span class="hidden sm:inline">Preview</span>
               </button>
               {{end}}
               <button onclick="editProduct(this.closest('[data-product-id]').dataset.productId)"
                 class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                <i class="fas fa-edit sm:mr-1"></i> <span class="hidden sm:inline">Edit</span>
+                {{heroicon "pencil" "sm:mr-1"}} <span class="hidden sm:inline">Edit</span>
               </button>
               <button onclick="deleteProduct(this.closest('[data-product-id]').dataset.productId)"
                 class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                <i class="fas fa-trash sm:mr-1"></i> <span class="hidden sm:inline">Delete</span>
+                {{heroicon "trash" "sm:mr-1"}} <span class="hidden sm:inline">Delete</span>
               </button>
             </div>
           </div>
         </div>
         {{else}}
         <div class="col-span-full text-center py-12">
-          <i class="fas fa-box text-[var(--color-text-muted)] text-5xl mb-4"></i>
+          {{heroicon "cube" "text-[var(--color-text-muted)] text-5xl mb-4"}}
           <p class="text-sm text-[var(--color-text-secondary)]">No products found</p>
           <button onclick="showAddProductModal()"
             class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
-            <i class="fas fa-plus mr-2"></i>Add your first product
+            {{heroicon "plus" "mr-2"}}Add your first product
           </button>
         </div>
         {{end}}
@@ -138,13 +138,13 @@
           <a href="?page={{$prev}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                       {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}" {{if eq .Page 1.0}}onclick="return false" {{end}}>
-            <i class="fas fa-chevron-left"></i>
+            {{heroicon "chevron-left" ""}}
           </a>
           <a href="?page={{$next}}{{if $.QueryLocationID}}&location_id={{$.QueryLocationID}}{{end}}"
             class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                       {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}" {{if ge .Page .TotalPages}}onclick="return false"
             {{end}}>
-            <i class="fas fa-chevron-right"></i>
+            {{heroicon "chevron-right" ""}}
           </a>
         </div>
       </div>
@@ -177,7 +177,7 @@
               <input type="text" id="productSKU" class="input w-full pr-10">
               <button type="button" onclick="generateSKU()" title="Generate SKU"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)]">
-                <i class="fas fa-rotate"></i>
+                {{heroicon "arrow-path" ""}}
               </button>
             </div>
           </div>
@@ -219,19 +219,19 @@
       <div class="flex items-center justify-between mb-3 sm:mb-4">
         <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]" id="galleryTitle">Product Images</h3>
         <button onclick="hideImagePreview()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-          <i class="fas fa-times"></i>
+          {{heroicon "x-mark" ""}}
         </button>
       </div>
       <!-- Main Image -->
       <div class="relative bg-black/5 rounded-lg flex items-center justify-center h-[250px] md:h-[400px]">
             <button id="galleryPrevBtn" onclick="galleryPrev()"
               class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
-              <i class="fas fa-chevron-left"></i>
+              {{heroicon "chevron-left" ""}}
             </button>
             <img id="galleryMainImage" src="" alt="" class="max-w-full max-h-full object-contain p-4">
             <button id="galleryNextBtn" onclick="galleryNext()"
               class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
-              <i class="fas fa-chevron-right"></i>
+              {{heroicon "chevron-right" ""}}
             </button>
           </div>
 
@@ -435,7 +435,7 @@
 
         const uploadThumb = document.createElement('div');
         uploadThumb.className = 'flex-shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-[var(--color-border)] flex items-center justify-center cursor-pointer hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] text-[var(--color-text-muted)] transition-all duration-200';
-        uploadThumb.innerHTML = '<i class="fas fa-plus"></i>';
+        uploadThumb.innerHTML = '{{heroicon "plus" ""}}';
         uploadThumb.onclick = function () {document.getElementById('galleryFileInput').click();};
         container.appendChild(uploadThumb);
       }
@@ -642,4 +642,3 @@
     </script>
 </div>
   {{end}}
-

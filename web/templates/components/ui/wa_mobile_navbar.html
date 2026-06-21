@@ -7,24 +7,24 @@
   </a>
   <div class="wa-mobile-nav-items">
     <a href="/business/dashboard" class="wa-mobile-nav-item" data-nav="dashboard" title="Dashboard">
-      <i class="fas fa-chart-line"></i>
+      {{heroicon "presentation-chart-line"}}
     </a>
     {{if .AssistEnabled}}
     <button onclick="toggleAssist()" class="wa-mobile-nav-item" title="salesmee Assist">
-      <i class="fas fa-wand-magic-sparkles"></i>
+      {{heroicon "sparkles"}}
     </button>
     {{end}}
     <button onclick="toggleNotifications()" class="wa-mobile-nav-item" data-nav="notifications-mobile" title="Notifications">
-      <i class="fas fa-bell"></i>
+      {{heroicon "bell"}}
     </button>
     <a href="/business/share" class="wa-mobile-nav-item" title="Share">
-      <i class="fas fa-share-alt"></i>
+      {{heroicon "share"}}
     </a>
     <button class="theme-toggle wa-mobile-nav-item" title="Toggle theme">
-      <i class="fas fa-moon"></i>
+      {{heroicon "moon"}}
     </button>
     <a href="/business/logout" class="wa-mobile-nav-item" title="Logout">
-      <i class="fas fa-sign-out-alt"></i>
+      {{heroicon "arrow-right-on-rectangle"}}
     </a>
   </div>
 </nav>

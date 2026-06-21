@@ -6,7 +6,7 @@
     <div class="p-3 sm:p-5 border-b border-[var(--color-border)] flex items-center justify-between bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] rounded-t-2xl text-white flex-shrink-0">
       <div class="flex items-center gap-2 sm:gap-3 min-w-0">
         <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-          <i class="fas fa-box-open text-sm sm:text-lg"></i>
+          {{heroicon "cube" "text-sm" "sm:text-lg"}}
         </div>
         <div class="min-w-0">
           <h3 class="text-base sm:text-lg font-bold flex items-center gap-2">
@@ -16,7 +16,7 @@
         </div>
       </div>
       <button onclick="hideProductPicker()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition hover:scale-110 active:scale-95 flex-shrink-0">
-        <i class="fas fa-times text-xs sm:text-sm"></i>
+        {{heroicon "x-mark" "text-xs" "sm:text-sm"}}
       </button>
     </div>
 
@@ -43,12 +43,12 @@
       <!-- Search -->
       <div class="p-3 sm:p-4 border-b border-[var(--color-border-light)] flex-shrink-0">
         <div class="relative">
-          <i class="fas fa-search absolute left-3 top-2.5 sm:top-3 text-[var(--color-text-muted)] text-sm sm:text-base"></i>
+          {{heroicon "magnifying-glass" "absolute" "left-3" "top-2.5" "sm:top-3" "text-[var(--color-text-muted)]" "text-sm" "sm:text-base"}}
           <input type="text" id="pickerSearch" placeholder="Search by name or SKU..."
             class="input pl-9 sm:pl-10 text-sm"
             oninput="filterPickerProducts()">
           <button onclick="document.getElementById('pickerSearch').value='';filterPickerProducts()" class="absolute right-3 top-2.5 sm:top-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hidden" id="pickerSearchClear">
-            <i class="fas fa-times-circle"></i>
+            {{heroicon "x-circle"}}
           </button>
         </div>
       </div>
@@ -58,7 +58,7 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0">
             <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-shopping-cart text-[var(--color-primary)] text-[10px] sm:text-xs"></i>
+              {{heroicon "shopping-cart" "text-[var(--color-primary)]" "text-[10px]" "sm:text-xs"}}
             </div>
             <span class="text-xs sm:text-sm text-[var(--color-success)] font-medium truncate">
               <span id="pickerNoticeCount">0</span> item<span id="pickerNoticePlural">s</span> selected
@@ -66,7 +66,7 @@
             <span class="text-[10px] sm:text-xs text-[var(--color-success)] font-semibold flex-shrink-0 hide-mobile">— $<span id="pickerNoticeTotal">0.00</span></span>
           </div>
           <button onclick="pickerGoToStep(2)" class="text-[10px] sm:text-xs font-bold text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] bg-[var(--color-primary-light)] hover:brightness-90 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition flex-shrink-0 ml-2">
-            Review <i class="fas fa-arrow-right ml-0.5"></i>
+            Review {{heroicon "arrow-right" "ml-0.5"}}
           </button>
         </div>
       </div>
@@ -74,7 +74,7 @@
       <!-- Product Grid -->
       <div class="flex-1 overflow-y-auto p-3 sm:p-4" id="pickerProductsGrid">
         <div class="text-center py-10 sm:py-16 text-[var(--color-text-muted)]">
-          <i class="fas fa-spinner fa-spin text-2xl sm:text-3xl mb-2 sm:mb-3"></i>
+          {{heroicon "arrow-path" "animate-spin" "text-2xl" "sm:text-3xl" "mb-2" "sm:mb-3"}}
           <p class="text-xs sm:text-sm">Loading products...</p>
         </div>
       </div>
@@ -84,7 +84,7 @@
         <div class="flex items-center gap-2 sm:gap-3">
           <div class="relative flex-shrink-0 hide-mobile">
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[var(--color-primary-light)] flex items-center justify-center">
-              <i class="fas fa-shopping-cart text-[var(--color-primary)] text-xs sm:text-sm"></i>
+              {{heroicon "shopping-cart" "text-[var(--color-primary)]" "text-xs" "sm:text-sm"}}
             </div>
             <span id="pickerCartBadge" class="absolute -top-1.5 -right-1.5 bg-[var(--color-warning)] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm hidden">0</span>
           </div>
@@ -96,7 +96,7 @@
           </div>
           <button id="pickerReviewBtn" onclick="pickerGoToStep(2)"
             class="flex-shrink-0 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg hover:brightness-110 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-            Review <i class="fas fa-arrow-right ml-1"></i>
+            Review {{heroicon "arrow-right" "ml-1"}}
           </button>
         </div>
       </div>
@@ -107,14 +107,14 @@
       <div class="flex-1 overflow-y-auto p-3 sm:p-5">
         <button onclick="pickerGoToStep(1)" class="text-xs sm:text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] flex items-center gap-1.5 mb-3 sm:mb-5 group">
           <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--color-primary-light)] group-hover:brightness-90 flex items-center justify-center transition">
-            <i class="fas fa-arrow-left text-[10px] sm:text-xs"></i>
+            {{heroicon "arrow-left" "text-[10px]" "sm:text-xs"}}
           </span>
           <span class="font-medium">Continue Browsing</span>
         </button>
 
         <div class="flex items-center justify-between mb-3 sm:mb-4">
           <h4 class="text-sm sm:text-base font-bold text-[var(--color-text)] flex items-center gap-1 sm:gap-2">
-            <i class="fas fa-clipboard-list text-[var(--color-primary)] text-xs sm:text-sm"></i>
+            {{heroicon "clipboard-document-list" "text-[var(--color-primary)]" "text-xs" "sm:text-sm"}}
             Review Your Order
           </h4>
           <span id="pickerReviewCount" class="text-[10px] sm:text-xs bg-[var(--color-primary-light)] text-[var(--color-primary)] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium"></span>
@@ -123,7 +123,7 @@
         <!-- Cart Items List -->
         <div id="pickerCartItems" class="space-y-2 sm:space-y-3">
           <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
-            <i class="fas fa-shopping-cart text-3xl sm:text-4xl mb-2 sm:mb-3"></i>
+            {{heroicon "shopping-cart" "text-3xl" "sm:text-4xl" "mb-2" "sm:mb-3"}}
             <p class="text-xs sm:text-sm">Your cart is empty</p>
           </div>
         </div>
@@ -143,11 +143,11 @@
       <div class="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
         <div class="flex gap-2 sm:gap-3">
           <button onclick="pickerGoToStep(1)" class="flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-semibold transition active:scale-[0.98]">
-            <i class="fas fa-arrow-left mr-1"></i> Add More Items
+            {{heroicon "arrow-left" "mr-1"}} Add More Items
           </button>
           <button id="pickerToDetailsBtn" onclick="pickerGoToStep(3)" disabled
             class="flex-[2] py-2 sm:py-3 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] text-white text-xs sm:text-sm font-bold shadow-lg hover:brightness-110 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-            Continue <i class="fas fa-arrow-right ml-1"></i>
+            Continue {{heroicon "arrow-right" "ml-1"}}
           </button>
         </div>
       </div>
@@ -158,7 +158,7 @@
       <div class="flex-1 overflow-y-auto p-3 sm:p-5">
         <button onclick="pickerGoToStep(2)" class="text-xs sm:text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] flex items-center gap-1.5 mb-3 sm:mb-5 group">
           <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--color-primary-light)] group-hover:brightness-90 flex items-center justify-center transition">
-            <i class="fas fa-arrow-left text-[10px] sm:text-xs"></i>
+            {{heroicon "arrow-left" "text-[10px]" "sm:text-xs"}}
           </span>
           <span class="font-medium">Back to Review</span>
         </button>
@@ -167,7 +167,7 @@
         <div id="pickerCheckoutSummary" class="bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-primary)]/30 p-3 sm:p-4 mb-4 sm:mb-6">
           <div class="flex items-center justify-between mb-2 sm:mb-3">
             <h5 class="text-xs sm:text-sm font-bold text-[var(--color-text)] flex items-center gap-1 sm:gap-1.5">
-              <i class="fas fa-receipt text-[var(--color-primary)] text-[10px] sm:text-xs"></i> Order Summary
+              {{heroicon "receipt-percent" "text-[var(--color-primary)]" "text-[10px]" "sm:text-xs"}} Order Summary
             </h5>
             <span class="text-[10px] sm:text-xs text-[var(--color-text-muted)]" id="pickerCheckoutCount">0 items</span>
           </div>
@@ -185,7 +185,7 @@
           <!-- Delivery Address -->
           <div>
             <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
-              <i class="fas fa-location-dot text-[var(--color-primary)] mr-1"></i> Delivery Address <span class="text-[var(--color-error)]">*</span>
+              {{heroicon "map-pin" "text-[var(--color-primary)]" "mr-1"}} Delivery Address <span class="text-[var(--color-error)]">*</span>
             </label>
             <input type="text" id="pickerDeliveryAddress" placeholder="e.g. 123 Main St, City, State"
               class="input text-sm"
@@ -196,7 +196,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
-                <i class="fas fa-calendar-day text-[var(--color-primary)] mr-1"></i> Delivery Date
+                {{heroicon "calendar-days" "text-[var(--color-primary)]" "mr-1"}} Delivery Date
               </label>
               <div class="relative">
                 <input type="text" id="pickerDeliveryDateDisplay" placeholder="dd/mm/yy"
@@ -210,7 +210,7 @@
             </div>
             <div>
               <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
-                <i class="fas fa-clock text-[var(--color-primary)] mr-1"></i> Time Slot
+                {{heroicon "clock" "text-[var(--color-primary)]" "mr-1"}} Time Slot
               </label>
               <select id="pickerDeliveryTimeSlot"
                 class="input text-sm">
@@ -225,7 +225,7 @@
           <!-- Contact Phone -->
           <div>
             <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
-              <i class="fas fa-phone text-[var(--color-primary)] mr-1"></i> Contact Phone <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
+              {{heroicon "phone" "text-[var(--color-primary)]" "mr-1"}} Contact Phone <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
             </label>
             <input type="tel" id="pickerContactPhone" placeholder="e.g. +1 (555) 123-4567"
               class="input text-sm">
@@ -234,7 +234,7 @@
           <!-- Notes -->
           <div>
             <label class="block text-xs sm:text-sm font-semibold text-[var(--color-text)] mb-1 sm:mb-1.5">
-              <i class="fas fa-pen text-[var(--color-primary)] mr-1"></i> Additional Notes <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
+              {{heroicon "pencil" "text-[var(--color-primary)]" "mr-1"}} Additional Notes <span class="text-[var(--color-text-muted)] font-normal">(optional)</span>
             </label>
             <textarea id="pickerNotes" rows="2" placeholder="Special instructions, gate codes, landmarks..."
               class="input resize-none text-sm"></textarea>
@@ -246,15 +246,15 @@
       <div class="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-surface)] rounded-b-2xl flex-shrink-0">
         <div class="flex gap-2 sm:gap-3">
           <button onclick="pickerGoToStep(2)" class="flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-secondary)] text-xs sm:text-sm font-semibold transition active:scale-[0.98]">
-            <i class="fas fa-arrow-left mr-1"></i> Back
+            {{heroicon "arrow-left" "mr-1"}} Back
           </button>
           <button id="pickerSubmitOrderBtn" onclick="submitProductOrder()"
             class="flex-[2] py-2 sm:py-3 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] text-white text-xs sm:text-sm font-bold shadow-lg hover:brightness-110 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
-            <i class="fas fa-paper-plane mr-1"></i> <span id="pickerSubmitBtnText">Create Order</span>
+            {{heroicon "paper-airplane" "mr-1"}} <span id="pickerSubmitBtnText">Create Order</span>
           </button>
         </div>
         <p class="text-[10px] text-[var(--color-text-muted)] text-center mt-1.5 sm:mt-2">
-          <i class="fas fa-info-circle mr-0.5"></i>
+          {{heroicon "information-circle" "mr-0.5"}}
           <span id="pickerSubmitHint">The order will be sent as a draft to the client</span>
         </p>
       </div>

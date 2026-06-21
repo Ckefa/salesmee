@@ -451,7 +451,7 @@ func sendBookingNotif(db *gorm.DB, hub *ws.Hub, booking models.Booking, status s
 	notifier.CreateInAppNotif(db, booking.BusinessID, &client.ID,
 		fmt.Sprintf("Booking %s", statusLabel),
 		fmt.Sprintf("Booking %s is now %s", booking.BookingNumber, statusLabel),
-		"fa-calendar-check",
+		"calendar-days",
 		"/business/bookings")
 	if hub != nil {
 		broadcastBizPendingCounts(db, hub, booking.BusinessID)

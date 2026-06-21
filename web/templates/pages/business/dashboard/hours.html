@@ -37,7 +37,7 @@
           <div id="weeklyHours" class="space-y-2"></div>
           <div class="mt-4 flex justify-end">
             <button onclick="saveWeeklyHours()" class="btn btn-primary btn-sm">
-              <i class="fas fa-save mr-1"></i> Save Weekly Hours
+              {{heroicon "document-arrow-down" "mr-1"}} Save Weekly Hours
             </button>
           </div>
         </div>
@@ -77,7 +77,7 @@
           </div>
           <div class="mt-4 flex justify-end">
             <button onclick="saveBufferSettings()" class="btn btn-primary btn-sm">
-              <i class="fas fa-save mr-1"></i> Save Settings
+              {{heroicon "document-arrow-down" "mr-1"}} Save Settings
             </button>
           </div>
         </div>
@@ -87,13 +87,13 @@
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-base font-semibold text-[var(--color-text)]">Special Hours & Closures</h2>
             <button onclick="addSpecialEntry()" class="btn btn-ghost btn-sm">
-              <i class="fas fa-plus mr-1"></i> Add Entry
+              {{heroicon "plus" "mr-1"}} Add Entry
             </button>
           </div>
           <div id="specialHoursList" class="space-y-2"></div>
           <div class="mt-4 flex justify-end">
             <button onclick="saveSpecialHours()" class="btn btn-primary btn-sm">
-              <i class="fas fa-save mr-1"></i> Save Special Hours
+              {{heroicon "document-arrow-down" "mr-1"}} Save Special Hours
             </button>
           </div>
         </div>
@@ -140,7 +140,7 @@ function renderWeeklyHours() {
           '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
           '<input type="time" value="' + formatTime(slot.close) + '" class="input close-time w-28 text-sm">' +
           '<button type="button" onclick="this.closest(\'.time-range\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
-          '<i class="fas fa-times"></i></button></div>';
+          '{{heroicon "x-mark" ""}}</button></div>';
       });
     }
 
@@ -151,8 +151,8 @@ function renderWeeklyHours() {
       '<div class="w-24 shrink-0 pt-1.5"><span class="text-sm font-medium text-[var(--color-text)]">' + day.label + '</span></div>' +
       '<div class="flex-1 space-y-2" id="ranges-' + day.key + '">' + rangesHtml + '</div>' +
       '<div class="shrink-0 flex gap-1 pt-1">' +
-      '<button type="button" onclick="addTimeRange(\'' + day.key + '\')" class="btn btn-ghost btn-sm text-xs"><i class="fas fa-plus"></i></button>' +
-      '<button type="button" onclick="toggleDayClosed(\'' + day.key + '\')" class="btn btn-ghost btn-sm text-xs" title="Toggle closed"><i class="fas fa-ban"></i></button></div>';
+      '<button type="button" onclick="addTimeRange(\'' + day.key + '\')" class="btn btn-ghost btn-sm text-xs">{{heroicon "plus" ""}}</button>' +
+      '<button type="button" onclick="toggleDayClosed(\'' + day.key + '\')" class="btn btn-ghost btn-sm text-xs" title="Toggle closed">{{heroicon "ban" ""}}</button></div>';
     container.appendChild(row);
   });
 }
@@ -167,7 +167,7 @@ function addTimeRange(day) {
     '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
     '<input type="time" value="17:00" class="input close-time w-28 text-sm">' +
     '<button type="button" onclick="this.closest(\'.time-range\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
-    '<i class="fas fa-times"></i></button>';
+    '{{heroicon "x-mark" ""}}</button>';
   container.appendChild(div);
 }
 
@@ -248,7 +248,7 @@ function renderSpecialHours() {
       '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
       '<input type="time" value="' + (entry.close || '') + '" class="input special-close w-24 text-sm" placeholder="Close"></div>' +
       '<button type="button" onclick="this.closest(\'.special-entry\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
-      '<i class="fas fa-times"></i></button>';
+      '{{heroicon "x-mark" ""}}</button>';
     list.appendChild(div);
   });
 }
@@ -267,7 +267,7 @@ function addSpecialEntry() {
     '<span class="text-xs text-[var(--color-text-muted)]">to</span>' +
     '<input type="time" class="input special-close w-24 text-sm" placeholder="Close"></div>' +
     '<button type="button" onclick="this.closest(\'.special-entry\').remove()" class="btn btn-icon btn-ghost btn-icon-sm text-[var(--color-error)]">' +
-    '<i class="fas fa-times"></i></button>';
+    '{{heroicon "x-mark" ""}}</button>';
   list.appendChild(div);
 }
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   {{template "landing_head" .}}
+  <title>{{.Title}}</title>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased font-sans">
 
@@ -21,7 +22,7 @@
   <!-- Floating CTA for mobile -->
   <div id="floatingCTA" class="floating-cta fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-2xl px-4 py-3 md:hidden">
     <a href="/business/register" class="flex items-center justify-center w-full px-5 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm font-semibold shadow-lg">
-      <i class="fas fa-rocket mr-2 text-xs"></i>Start Free Trial
+      {{heroicon "rocket-launch" "mr-2" "text-xs"}}Start Free Trial
     </a>
   </div>
 

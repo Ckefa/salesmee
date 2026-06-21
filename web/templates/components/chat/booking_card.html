@@ -24,7 +24,7 @@
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-2 min-w-0">
           <div class="w-8 h-8 rounded-full bg-[var(--color-surface)] flex items-center justify-center shadow-sm flex-shrink-0">
-            <i class="fas fa-calendar-check {{if $isCancelled}}text-[var(--color-error)]{{else if $isCompleted}}text-[var(--color-success)]{{else if $isConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-warning)]{{end}}"></i>
+            {{heroicon "calendar-check" "{{if $isCancelled}}text-[var(--color-error)]{{else if $isCompleted}}text-[var(--color-success)]{{else if $isConfirmed}}text-[var(--color-info)]{{else}}text-[var(--color-warning)]{{end}}"}}
           </div>
           <div class="min-w-0">
             <h4 class="font-semibold text-xs sm:text-sm text-[var(--color-text)] truncate">
@@ -46,7 +46,7 @@
           {{end}}
           {{if $isPending}}
           <button onclick="openBusinessEditBookingPicker({{$booking.id}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-xs p-1" title="Edit Booking">
-            <i class="fas fa-edit"></i>
+            {{heroicon "pencil-square"}}
           </button>
           {{end}}
         </div>
@@ -58,18 +58,18 @@
         <p class="font-medium">{{$booking.service_name}}</p>
         {{end}}
         <p class="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
-          <i class="fas fa-clock text-xs"></i>
+          {{heroicon "clock" "text-xs"}}
           <span>{{$booking.scheduled_date.Format "Mon, Jan 2 at 3:04 PM"}}</span>
         </p>
         {{if $booking.duration}}
         <p class="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
-          <i class="fas fa-hourglass-half text-xs"></i>
+          {{heroicon "clock" "text-xs"}}
           <span>{{$booking.duration}} min</span>
         </p>
         {{end}}
         {{if $booking.total_amount}}
         <p class="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
-          <i class="fas fa-tag text-xs"></i>
+          {{heroicon "tag" "text-xs"}}
           <span>{{$sym}}{{printf "%.2f" $booking.total_amount}}</span>
         </p>
         {{end}}
@@ -84,7 +84,7 @@
       <!-- Notes -->
       {{if $booking.notes}}
       <div class="mb-3 bg-[var(--color-surface)]/60 rounded-lg p-2 text-[10px] sm:text-xs text-[var(--color-text-secondary)] italic">
-        <i class="far fa-sticky-note mr-1"></i>{{$booking.notes}}
+        {{heroicon "document-text" "mr-1"}}{{$booking.notes}}
       </div>
       {{end}}
 
@@ -95,7 +95,7 @@
             {{if eq $s1 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s1 "active"}}bg-[var(--color-warning)] text-white shadow-[0_0_0_3px_rgba(245,158,11,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s1 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}1{{end}}
+            {{if eq $s1 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}1{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s1 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s1 "active"}}text-[var(--color-warning)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Book</span>
         </div>
@@ -105,7 +105,7 @@
             {{if eq $s2 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s2 "active"}}bg-[var(--color-info)] text-white shadow-[0_0_0_3px_rgba(14,165,233,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s2 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}2{{end}}
+            {{if eq $s2 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}2{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s2 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s2 "active"}}text-[var(--color-info)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Confirm</span>
         </div>
@@ -115,7 +115,7 @@
             {{if eq $s3 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s3 "active"}}bg-[var(--color-secondary)] text-white shadow-[0_0_0_3px_rgba(139,92,246,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s3 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}3{{end}}
+            {{if eq $s3 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}3{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s3 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s3 "active"}}text-[var(--color-secondary)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Pay</span>
         </div>
@@ -125,7 +125,7 @@
             {{if eq $s4 "completed"}}bg-[var(--color-success)] text-white
             {{else if eq $s4 "active"}}bg-[var(--color-success)] text-white shadow-[0_0_0_3px_rgba(16,185,129,0.3)]
             {{else}}bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]{{end}}">
-            {{if eq $s4 "completed"}}<i class="fas fa-check text-[9px]"></i>{{else}}4{{end}}
+            {{if eq $s4 "completed"}}{{heroicon "check" "text-[9px]"}}{{else}}4{{end}}
           </div>
           <span class="text-[10px] mt-1 {{if eq $s4 "completed"}}text-[var(--color-success)] font-semibold{{else if eq $s4 "active"}}text-[var(--color-success)] font-semibold{{else}}text-[var(--color-text-muted)]{{end}}">Complete</span>
         </div>
@@ -134,23 +134,23 @@
       <!-- Step Content -->
       {{if $isCancelled}}
       <div class="w-full text-center py-2 bg-[var(--color-error-light)] rounded-lg text-[var(--color-error)] text-xs sm:text-sm font-medium">
-        <i class="fas fa-ban mr-1"></i>Booking cancelled
+        {{heroicon "ban" "mr-1"}}Booking cancelled
       </div>
 
       {{else if $isPending}}
       <div class="flex gap-2">
         <button class="flex-1 py-2 px-3 rounded-lg border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-xs sm:text-sm font-medium transition"
           onclick="updateBookingStatusFromCard({{$booking.id}}, 'cancelled')">
-          <i class="fas fa-times mr-1"></i>Cancel
+          {{heroicon "x-mark" "mr-1"}}Cancel
         </button>
         {{if eq $booking.sender "client"}}
         <button class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-info)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="updateBookingStatusFromCard({{$booking.id}}, 'client_confirmed')">
-          <i class="fas fa-check mr-1"></i>Confirm Booking
+          {{heroicon "check" "mr-1"}}Confirm Booking
         </button>
         {{else}}
         <div class="flex-1 py-2 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs sm:text-sm font-medium text-center">
-          <i class="fas fa-clock mr-1"></i>Waiting for client
+          {{heroicon "clock" "mr-1"}}Waiting for client
         </div>
         {{end}}
       </div>
@@ -176,39 +176,39 @@
             {{if .Reference}}
             <span class="text-[var(--color-text-muted)] truncate max-w-[80px] hidden sm:inline">{{.Reference}}</span>
             {{end}}
-            <button class="px-2 py-0.5 rounded bg-[var(--color-success)] text-white hover:opacity-90 text-[10px] font-medium flex-shrink-0" onclick="confirmBookingPayment({{$booking.id}}, {{.ID}})"><i class="fas fa-check mr-0.5"></i>Confirm</button>
-            <button class="px-2 py-0.5 rounded border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-[10px] font-medium flex-shrink-0" onclick="rejectBookingPayment({{$booking.id}}, {{.ID}})" title="Reject"><i class="fas fa-times"></i></button>
+            <button class="px-2 py-0.5 rounded bg-[var(--color-success)] text-white hover:opacity-90 text-[10px] font-medium flex-shrink-0" onclick="confirmBookingPayment({{$booking.id}}, {{.ID}})">{{heroicon "check" "mr-0.5"}}Confirm</button>
+            <button class="px-2 py-0.5 rounded border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-[10px] font-medium flex-shrink-0" onclick="rejectBookingPayment({{$booking.id}}, {{.ID}})" title="Reject">{{heroicon "x-mark"}}</button>
           </div>
           {{end}}
           {{end}}
         <button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm"
           onclick="confirmAllBookingPayments({{$booking.id}})">
-          <i class="fas fa-check-double mr-1"></i>Confirm All
+          {{heroicon "check-double" "mr-1"}}Confirm All
         </button>
         {{else}}
-        <div class="text-[10px] font-medium text-[var(--color-text-muted)]"><i class="fas fa-clock mr-0.5"></i>No pending payment claims</div>
+        <div class="text-[10px] font-medium text-[var(--color-text-muted)]">{{heroicon "clock" "mr-0.5"}}No pending payment claims</div>
         {{end}}
       </div>
 
       {{else if eq $s4 "active"}}
       <div class="space-y-3">
         <div class="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-success)] bg-[var(--color-success-light)] rounded-lg px-3 py-2">
-          <i class="fas fa-check-circle"></i> Fully Paid
+          {{heroicon "check-circle"}} Fully Paid
         </div>
         <button class="w-full py-2 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs sm:text-sm font-medium transition shadow-sm"
           onclick="updateBookingStatusFromCard({{$booking.id}}, 'completed')">
-          <i class="fas fa-check-double mr-1"></i>Complete Service
+          {{heroicon "check-double" "mr-1"}}Complete Service
         </button>
       </div>
 
       {{else if $isCompleted}}
       <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
-        <i class="fas fa-check-double mr-1"></i>Service completed
+        {{heroicon "check-double" "mr-1"}}Service completed
       </div>
       {{if $booking.has_review}}
       <div class="w-full mt-2 py-1.5 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs font-medium text-center flex items-center justify-center gap-0.5">
         {{range $i := seq 1 5}}
-        {{if le $i $booking.review_rating}}<i class="fas fa-star"></i>{{else}}<i class="far fa-star"></i>{{end}}
+        {{if le $i $booking.review_rating}}{{heroicon "star"}}{{else}}{{heroicon "star"}}{{end}}
         {{end}}
         <span class="ml-1.5 text-[var(--color-text-secondary)]">Reviewed</span>
       </div>
@@ -218,7 +218,7 @@
       {{if $booking.payments}}
       <div class="mb-2 pt-2 border-t border-[var(--color-border-light)]">
         <p class="text-[10px] font-semibold text-[var(--color-text-secondary)] mb-1.5">
-          <i class="fas fa-receipt mr-0.5"></i>Payments
+          {{heroicon "receipt-percent" "mr-0.5"}}Payments
         </p>
         <div class="space-y-1">
           {{range $booking.payments}}

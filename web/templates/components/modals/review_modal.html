@@ -3,7 +3,7 @@
   <div class="bg-[var(--color-surface)] rounded-2xl shadow-xl border border-[var(--color-border)] p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-bold text-[var(--color-text)]">Rate Your Experience</h3>
-      <button onclick="closeReviewModal()" class="btn btn-icon btn-ghost btn-icon-sm"><i class="fas fa-times"></i></button>
+      <button onclick="closeReviewModal()" class="btn btn-icon btn-ghost btn-icon-sm">{{heroicon "x-mark"}}</button>
     </div>
     <form id="reviewForm" method="POST" onsubmit="return submitReview(event)">
       <input type="hidden" name="business_id" id="reviewBusinessId">
@@ -11,12 +11,13 @@
       <input type="hidden" name="booking_id" id="reviewBookingId">
 
       <div class="text-center mb-4">
+        <style>.star.selected { color: var(--color-warning); }</style>
         <div class="flex items-center justify-center gap-1 text-3xl" id="starRating">
-          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="1" onclick="setRating(1)"></i>
-          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="2" onclick="setRating(2)"></i>
-          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="3" onclick="setRating(3)"></i>
-          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="4" onclick="setRating(4)"></i>
-          <i class="far fa-star cursor-pointer hover:text-[var(--color-warning)] star" data-value="5" onclick="setRating(5)"></i>
+          <span class="star cursor-pointer hover:text-[var(--color-warning)]" data-value="1" onclick="setRating(1)">{{heroicon "star"}}</span>
+          <span class="star cursor-pointer hover:text-[var(--color-warning)]" data-value="2" onclick="setRating(2)">{{heroicon "star"}}</span>
+          <span class="star cursor-pointer hover:text-[var(--color-warning)]" data-value="3" onclick="setRating(3)">{{heroicon "star"}}</span>
+          <span class="star cursor-pointer hover:text-[var(--color-warning)]" data-value="4" onclick="setRating(4)">{{heroicon "star"}}</span>
+          <span class="star cursor-pointer hover:text-[var(--color-warning)]" data-value="5" onclick="setRating(5)">{{heroicon "star"}}</span>
         </div>
         <input type="hidden" name="rating" id="ratingValue" value="0">
         <p id="ratingLabel" class="text-sm text-[var(--color-text-muted)] mt-2">Select a rating</p>
@@ -43,11 +44,7 @@
     document.getElementById('ratingValue').value = val;
     var stars = document.querySelectorAll('#starRating .star');
     stars.forEach(function(s, i) {
-      if (i < val) {
-        s.className = 'fas fa-star text-[var(--color-warning)] cursor-pointer star text-3xl';
-      } else {
-        s.className = 'far fa-star cursor-pointer hover:text-[var(--color-warning)] star text-3xl';
-      }
+      s.classList.toggle('selected', i < val);
     });
     var labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
     document.getElementById('ratingLabel').textContent = labels[val] || 'Select a rating';
@@ -61,7 +58,7 @@
     document.getElementById('reviewBookingId').value = bookingId || '';
     document.getElementById('ratingLabel').textContent = 'Select a rating';
     var stars = document.querySelectorAll('#starRating .star');
-    stars.forEach(function(s) { s.className = 'far fa-star cursor-pointer hover:text-[var(--color-warning)] star text-3xl'; });
+    stars.forEach(function(s) { s.classList.remove('selected'); });
     document.getElementById('reviewModal').classList.remove('hidden');
   }
 

@@ -84,7 +84,7 @@ function pickerGoToStep(step) {
     const isActive = idx <= step;
     if (indEl) {
       indEl.className = `step-indicator w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${isActive ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]'}`;
-      if (isActive && idx < step) indEl.innerHTML = '<i class="fas fa-check text-[10px]"></i>';
+      if (isActive && idx < step) indEl.innerHTML = heroicon("check", "text-[10px]");
       else indEl.textContent = String(idx);
     }
     if (labelEl) {
@@ -187,7 +187,7 @@ function pickerUpdateCartBar() {
 async function loadPickerProducts() {
   const grid = document.getElementById('pickerProductsGrid');
   if (!grid) return;
-  grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-spinner fa-spin text-3xl mb-3"></i><p class="text-sm">Loading products...</p></div>';
+  grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><span class="spinner text-3xl mb-3" style="display:inline-block;width:1em;height:1em;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle"></span><p class="text-sm">Loading products...</p></div>';
 
   try {
     let url;
@@ -203,7 +203,7 @@ async function loadPickerProducts() {
                   resp.status === 403 ? 'Access denied.' :
                   resp.status === 404 ? 'Conversation not found.' :
                   `Server error (${resp.status})`;
-      grid.innerHTML = `<div class="text-center py-12 text-[var(--color-warning)]"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>${msg}</p></div>`;
+      grid.innerHTML = `<div class="text-center py-12 text-[var(--color-warning)]">${heroicon("exclamation-triangle", "text-3xl", "mb-3")}<p>${msg}</p></div>`;
       return;
     }
 
@@ -226,7 +226,7 @@ async function loadPickerProducts() {
     }
   } catch (e) {
     console.error('Picker: Failed to load products:', e);
-    grid.innerHTML = '<div class="text-center py-12 text-[var(--color-error)]"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Failed to load products</p></div>';
+    grid.innerHTML = '<div class="text-center py-12 text-[var(--color-error)]">' + heroicon("exclamation-triangle", "text-3xl", "mb-3") + '<p>Failed to load products</p></div>';
   }
 }
 
@@ -241,7 +241,7 @@ function pickerRenderProducts() {
   if (clearBtn) clearBtn.classList.toggle('hidden', !search);
 
   if (!pickerProducts || pickerProducts.length === 0) {
-    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-box-open text-5xl mb-3"></i><p class="text-sm font-medium">No products available</p><p class="text-xs mt-1">Add products from the Business dashboard</p></div>';
+    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]">' + heroicon("cube", "text-5xl", "mb-3") + '<p class="text-sm font-medium">No products available</p><p class="text-xs mt-1">Add products from the Business dashboard</p></div>';
     return;
   }
 
@@ -252,7 +252,7 @@ function pickerRenderProducts() {
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]"><i class="fas fa-search text-4xl mb-3"></i><p class="text-sm">No products match your search</p></div>';
+    grid.innerHTML = '<div class="text-center py-16 text-[var(--color-text-muted)]">' + heroicon("magnifying-glass", "text-4xl", "mb-3") + '<p class="text-sm">No products match your search</p></div>';
     return;
   }
 
@@ -287,7 +287,7 @@ function pickerRenderProducts() {
           <!-- Image -->
           <div class="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] relative">
             ${imgUrl ? `<img src="${escapeHtml(imgUrl)}" class="w-full h-full object-cover">` :
-              `<div class="w-full h-full flex items-center justify-center text-2xl text-[var(--color-text-muted)]"><i class="fas fa-box"></i></div>`}
+              `<div class="w-full h-full flex items-center justify-center text-2xl text-[var(--color-text-muted)]">${heroicon("cube")}</div>`}
             ${outOfStock ? `<div class="absolute inset-0 bg-[var(--color-surface)]/60 flex items-center justify-center"><span class="text-[var(--color-error)] text-[10px] font-bold bg-[var(--color-error-light)] px-1.5 py-0.5 rounded">UNAVAILABLE</span></div>` : ''}
             ${inCart && !outOfStock ? `<div class="absolute top-1 right-1 bg-[var(--color-primary)] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">${cartQty}</div>` : ''}
           </div>
@@ -315,12 +315,12 @@ function pickerRenderProducts() {
           ${outOfStock ? `
           <div class="w-full py-2 rounded-lg bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)] text-xs font-medium text-center cursor-not-allowed">Unavailable</div>` : inCart ? `
           <div class="flex items-center gap-1">
-            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty - 1})" class="flex-1 py-2 rounded-lg border border-[var(--color-primary-light)] text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] text-xs font-semibold transition active:scale-95"><i class="fas fa-minus"></i></button>
+            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty - 1})" class="flex-1 py-2 rounded-lg border border-[var(--color-primary-light)] text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] text-xs font-semibold transition active:scale-95">${heroicon("minus")}</button>
             <span class="w-10 text-center text-sm font-bold text-[var(--color-primary-dark)]">${cartQty}</span>
-            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty + 1})" class="flex-1 py-2 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] text-xs font-semibold transition active:scale-95" ${cartQty >= stock ? 'disabled' : ''}><i class="fas fa-plus"></i></button>
+            <button onclick="pickerQuickUpdate('${prodId}', ${cartQty + 1})" class="flex-1 py-2 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] text-xs font-semibold transition active:scale-95" ${cartQty >= stock ? 'disabled' : ''}>${heroicon("plus")}</button>
           </div>` : `
           <button onclick="pickerAddToCartFromGrid(${prodId})" class="w-full py-2 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white hover:opacity-90 text-xs font-semibold transition active:scale-[0.98] shadow-sm">
-            <i class="fas fa-plus mr-1"></i> Add to Order
+            ${heroicon("plus", "mr-1")} Add to Order
           </button>`}
         </div>
       </div>`;
@@ -378,7 +378,7 @@ function pickerRenderCart() {
   if (totalEl) totalEl.textContent = pickerGetCartTotal().toFixed(2);
 
   if (pickerCart.length === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-[var(--color-text-muted)]"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p class="text-sm">Your cart is empty</p><p class="text-xs mt-1">Go back and add some products</p></div>';
+    container.innerHTML = '<div class="text-center py-12 text-[var(--color-text-muted)]">' + heroicon("shopping-cart", "text-4xl", "mb-3") + '<p class="text-sm">Your cart is empty</p><p class="text-xs mt-1">Go back and add some products</p></div>';
     if (summary) summary.classList.add('hidden');
     if (toDetailsBtn) toDetailsBtn.disabled = true;
     if (subtotalItems) subtotalItems.textContent = '0';
@@ -396,7 +396,7 @@ function pickerRenderCart() {
     html += `
       <div class="flex flex-wrap items-center gap-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border-light)] rounded-xl hover:border-[var(--color-border)] transition cart-item" data-cart-item-id="${item.product.id}">
         <div class="w-10 sm:w-14 h-10 sm:h-14 rounded-lg flex-shrink-0 overflow-hidden bg-[var(--color-surface-secondary)] border border-[var(--color-border-light)] flex items-center justify-center text-xl text-[var(--color-text-muted)]">
-          ${item.product.imgUrl ? `<img src="${escapeHtml(item.product.imgUrl)}" class="w-full h-full object-cover">` : '<i class="fas fa-box"></i>'}
+          ${item.product.imgUrl ? `<img src="${escapeHtml(item.product.imgUrl)}" class="w-full h-full object-cover">` : heroicon("cube")}
         </div>
         <div class="flex-1 min-w-0">
           <p class="font-semibold text-sm text-[var(--color-text)] truncate">${escapeHtml(item.product.name)}</p>
@@ -407,16 +407,16 @@ function pickerRenderCart() {
         <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
           <div class="flex items-center border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-surface)]">
             <button onclick="pickerCartDecrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-primary)] text-xs transition ${item.quantity <= 1 ? 'text-[var(--color-error)] hover:text-[var(--color-error)]' : ''}">
-              <i class="fas fa-${item.quantity <= 1 ? 'trash-alt' : 'minus'}"></i>
+              ${item.quantity <= 1 ? heroicon("trash") : heroicon("minus")}
             </button>
             <span class="w-8 h-8 flex items-center justify-center text-sm font-bold text-[var(--color-text)] border-x border-[var(--color-border)] bg-[var(--color-surface-secondary)]">${item.quantity}</span>
             <button onclick="pickerCartIncrement(${item.product.id})" class="w-8 h-8 flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-primary)] text-xs transition" ${item.quantity >= item.product.stock ? 'disabled style="opacity:30;cursor:not-allowed"' : ''}>
-              <i class="fas fa-plus"></i>
+              ${heroicon("plus")}
             </button>
           </div>
           <span class="text-sm font-bold text-[var(--color-text)] w-16 text-right">$${lineTotal.toFixed(2)}</span>
           <button onclick="pickerRemoveFromCart(${item.product.id})" class="text-[var(--color-text-muted)] hover:text-[var(--color-error)] text-xs p-1 transition" title="Remove">
-            <i class="fas fa-times"></i>
+            ${heroicon("x-mark")}
           </button>
         </div>
       </div>`;
@@ -599,13 +599,13 @@ async function submitProductOrder() {
     if (isNaN(parsedDate.getTime())) {
       showNotification('Please enter a valid date', 'error');
       var sb = document.getElementById('pickerSubmitOrderBtn');
-      if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> ' + (pickerEditMode ? 'Update Order' : (pickerMode === 'client' ? 'Place Order' : 'Create Order')); }
+      if (sb) { sb.disabled = false; sb.innerHTML = heroicon("paper-airplane", "mr-1") + ' ' + (pickerEditMode ? 'Update Order' : (pickerMode === 'client' ? 'Place Order' : 'Create Order')); }
       return;
     }
     if (!isTodayOrFuture(parsedDate)) {
       showNotification('Delivery date must be today or a future date', 'error');
       var sb = document.getElementById('pickerSubmitOrderBtn');
-      if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> ' + (pickerEditMode ? 'Update Order' : (pickerMode === 'client' ? 'Place Order' : 'Create Order')); }
+      if (sb) { sb.disabled = false; sb.innerHTML = heroicon("paper-airplane", "mr-1") + ' ' + (pickerEditMode ? 'Update Order' : (pickerMode === 'client' ? 'Place Order' : 'Create Order')); }
       return;
     }
   }
@@ -613,7 +613,7 @@ async function submitProductOrder() {
   const submitBtn = document.getElementById('pickerSubmitOrderBtn');
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Creating...';
+    submitBtn.innerHTML = '<span class="spinner mr-1" style="display:inline-block;width:1em;height:1em;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle"></span> Creating...';
   }
 
   const items = pickerCart.map(item => ({
@@ -747,7 +747,7 @@ async function submitProductOrder() {
     submitBtn.disabled = false;
     const btnLabel = pickerEditMode ? 'Update Order' :
       (pickerMode === 'client' ? 'Place Order' : 'Create Order');
-    submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> ' + btnLabel;
+    submitBtn.innerHTML = heroicon("paper-airplane", "mr-1") + ' ' + btnLabel;
   }
 }
 

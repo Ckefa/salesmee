@@ -3,7 +3,7 @@
 <div id="assistBackdrop" class="assist-backdrop hidden" onclick="closeAssist()"></div>
 
 <div id="assistButton" onclick="toggleAssist()" class="assist-btn" title="salesmee Assist">
-  <i class="fas fa-wand-magic-sparkles"></i>
+  {{heroicon "sparkles"}}
   <span class="assist-btn-glow"></span>
   <span class="assist-btn-sparkle assist-btn-sparkle-1">✦</span>
   <span class="assist-btn-sparkle assist-btn-sparkle-2">✦</span>
@@ -16,7 +16,7 @@
     <span class="assist-header-star assist-header-star-3">✦</span>
     <div class="assist-header-content">
       <div class="assist-header-icon">
-        <i class="fas fa-wand-magic-sparkles text-xs"></i>
+        {{heroicon "sparkles" "text-xs"}}
       </div>
       <div>
         <p class="text-sm font-semibold assist-header-title">salesmee Assist</p>
@@ -24,13 +24,13 @@
       </div>
     </div>
     <button onclick="closeAssist()" class="assist-close" title="Close">
-      <i class="fas fa-times text-xs"></i>
+      {{heroicon "x-mark" "text-xs"}}
     </button>
   </div>
 
   <div id="assistMessages" class="assist-messages">
     <div class="assist-empty">
-      <i class="fas fa-wand-magic-sparkles text-2xl mb-2 assist-empty-icon"></i>
+      {{heroicon "sparkles" "text-2xl" "mb-2" "assist-empty-icon"}}
       <p class="text-sm font-medium assist-empty-text">How can I help you?</p>
       <p class="text-xs assist-empty-hint">Ask me to draft replies, suggest products, or help with SalesMee.</p>
     </div>
@@ -42,7 +42,7 @@
   <div class="assist-input-area">
     <input id="assistInput" type="text" class="assist-input" placeholder="Ask me anything..." onkeydown="onAssistKeydown(event)" autocomplete="off">
     <button onclick="var i=document.getElementById('assistInput');if(i)sendAssistMessage(i.value)" class="assist-send" title="Send">
-      <i class="fas fa-paper-plane text-xs"></i>
+      {{heroicon "paper-airplane" "text-xs"}}
     </button>
   </div>
 </div>

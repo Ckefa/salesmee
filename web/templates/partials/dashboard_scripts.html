@@ -13,7 +13,7 @@
     var selectedName = selectedNameEl ? selectedNameEl.textContent : '';
     container.innerHTML = filtered.length ? filtered.map(function(p) {
       var isSelected = String(p.id) === selectedId;
-      return '<div data-id="' + p.id + '" data-name="' + (p.name || '').replace(/'/g, '&#39;') + '" onclick="selectOrderProduct(this)" class="px-3 py-2.5 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + '<span class="flex-1 truncate">' + (p.name || '') + '</span>' + (p.price ? '<span class="text-xs font-semibold text-[var(--color-text-muted)]">$' + Number(p.price).toFixed(2) + '</span>' : '') + '</div>';
+      return '<div data-id="' + p.id + '" data-name="' + (p.name || '').replace(/'/g, '&#39;') + '" onclick="selectOrderProduct(this)" class="px-3 py-2.5 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '{{heroicon "check-circle" "text-xs"}}' : '{{heroicon "circle" "text-xs" "text-[var(--color-surface-tertiary)]"}}') + '<span class="flex-1 truncate">' + (p.name || '') + '</span>' + (p.price ? '<span class="text-xs font-semibold text-[var(--color-text-muted)]">$' + Number(p.price).toFixed(2) + '</span>' : '') + '</div>';
     }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No products found</div>';
     countEl.textContent = filtered.length + ' of ' + orderProductsList.length + ' products';
   }
@@ -34,7 +34,7 @@
     container.innerHTML = filtered.length ? filtered.map(function(s) {
       var isSelected = String(s.id) === selectedId;
       var priceStr = s.min_price ? '$' + Number(s.min_price).toFixed(2) + (s.max_price && s.max_price !== s.min_price ? ' - $' + Number(s.max_price).toFixed(2) : '') : '';
-      return '<div data-id="' + s.id + '" data-name="' + (s.name || '').replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2.5 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + '<span class="flex-1 truncate">' + (s.name || '') + '</span>' + (priceStr ? '<span class="text-xs font-semibold text-[var(--color-text-muted)]">' + priceStr + '</span>' : '') + '</div>';
+      return '<div data-id="' + s.id + '" data-name="' + (s.name || '').replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2.5 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '{{heroicon "check-circle" "text-xs"}}' : '{{heroicon "circle" "text-xs" "text-[var(--color-surface-tertiary)]"}}') + '<span class="flex-1 truncate">' + (s.name || '') + '</span>' + (priceStr ? '<span class="text-xs font-semibold text-[var(--color-text-muted)]">' + priceStr + '</span>' : '') + '</div>';
     }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No services found</div>';
     countEl.textContent = filtered.length + ' of ' + bookingServicesList.length + ' services';
   }
@@ -117,7 +117,7 @@
       var lbl = document.getElementById('ordStep' + i + 'Label');
       var active = i <= step;
       ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-warning)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
-      ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+      ind.innerHTML = (active && i < step) ? '{{heroicon "check" "text-[10px]"}}' : String(i);
       if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-muted)]');
     }
     document.getElementById('ordStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-border)]');
@@ -163,7 +163,7 @@
       var lbl = document.getElementById('bkgStep' + i + 'Label');
       var active = i <= step;
       ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
-      ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+      ind.innerHTML = (active && i < step) ? '{{heroicon "check" "text-[10px]"}}' : String(i);
       if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-secondary)]' : 'text-[var(--color-text-muted)]');
     }
     document.getElementById('bkgStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]');

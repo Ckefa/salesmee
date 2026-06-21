@@ -8,7 +8,6 @@
   {{template "pwa_head" .}}
   <title>{{.Title}}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   {{template "analytics_script" .}}
   <style>
@@ -27,13 +26,13 @@
     </div>
 
     <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
-      <i class="fas fa-info-circle mr-2"></i>
+      {{heroicon "information-circle" "mr-2"}}
       We've sent a 6-digit code to <strong>{{.Email}}</strong>
     </div>
 
     {{if .Error}}
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-      <i class="fas fa-exclamation-circle mr-2"></i>
+      {{heroicon "exclamation-circle" "mr-2"}}
       {{.Error}}
     </div>
     {{end}}
@@ -46,13 +45,13 @@
         <label for="otp" class="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i class="fas fa-key text-gray-400"></i>
+            {{heroicon "key" "text-gray-400"}}
           </div>
           <input type="text" id="otp" name="otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code"
             class="input pl-10 text-center text-lg tracking-widest"
             placeholder="000000">
           <div class="absolute inset-y-0 right-0 pr-3 flex items-center hidden" id="otpSpinner">
-            <i class="fas fa-spinner fa-spin text-teal-600"></i>
+            {{heroicon "arrow-path" "animate-spin" "text-teal-600"}}
           </div>
         </div>
         <p class="text-xs text-gray-500 mt-1" id="otpHelp">Enter the 6-digit code sent to your email</p>
@@ -61,7 +60,7 @@
       <button type="submit" id="verifyBtn"
         class="w-full bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all duration-200 font-medium">
         <span id="verifyBtnText">Verify & Sign In</span>
-        <i class="fas fa-spinner fa-spin hidden" id="verifySpinner"></i>
+        <span id="verifySpinner" class="hidden">{{heroicon "arrow-path" "animate-spin"}}</span>
       </button>
     </form>
 
@@ -70,14 +69,14 @@
       <p class="text-sm text-gray-500" id="resendContainer">
         <span id="resendTimer">Resend code in <span id="resendCountdown">0:30</span></span>
         <button onclick="resendCode()" id="resendBtn" class="hidden text-teal-600 hover:text-teal-700 font-medium">
-          <i class="fas fa-redo mr-1"></i>Resend code
+          {{heroicon "arrow-path" "mr-1"}}Resend code
         </button>
       </p>
     </div>
 
     <div class="text-center mt-4">
       <a href="/client/login" class="text-teal-600 hover:text-teal-700 font-medium text-sm">
-        <i class="fas fa-arrow-left mr-1"></i>Back to login
+        {{heroicon "arrow-left" "mr-1"}}Back to login
       </a>
     </div>
   </div>
@@ -134,7 +133,7 @@
     function resendCode() {
       var btn = document.getElementById('resendBtn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
+      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1"}} Sending...';
       var formData = new FormData();
       formData.append('email', document.querySelector('input[name="email"]').value);
       fetch('/client/send-otp', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: formData })
@@ -147,13 +146,13 @@
           } else {
             showOtpToast(data.error || 'Failed to resend code', 'error');
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-redo mr-1"></i>Resend code';
+            btn.innerHTML = '{{heroicon "arrow-path" "mr-1"}}Resend code';
           }
         })
         .catch(function() {
           showOtpToast('Failed to resend code', 'error');
           btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-redo mr-1"></i>Resend code';
+          btn.innerHTML = '{{heroicon "arrow-path" "mr-1"}}Resend code';
         });
     }
 
@@ -170,7 +169,7 @@
           document.getElementById('resendCountdown').parentElement.classList.add('hidden');
           document.getElementById('resendBtn').classList.remove('hidden');
           document.getElementById('resendBtn').disabled = false;
-          document.getElementById('resendBtn').innerHTML = '<i class="fas fa-redo mr-1"></i>Resend code';
+          document.getElementById('resendBtn').innerHTML = '{{heroicon "arrow-path" "mr-1"}}Resend code';
         } else {
           var m = Math.floor(resendSeconds / 60);
           var s = resendSeconds % 60;
@@ -187,7 +186,7 @@
       var toast = document.createElement('div');
       toast.id = 'otpToast';
       toast.className = 'fixed top-4 right-4 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-xl z-50 flex items-center gap-2.5 text-sm font-medium';
-      toast.innerHTML = '<i class="fas fa-check-circle text-green-400"></i> ' + msg;
+      toast.innerHTML = '{{heroicon "check-circle" "text-green-400"}} ' + msg;
       document.body.appendChild(toast);
       setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(function() { toast.remove(); }, 300); }, 3000);
     }

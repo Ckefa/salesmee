@@ -15,13 +15,13 @@
   </div>
 
   {{if $plan}}
-  {{$iconClass := "fa-gem"}}
+  {{  $iconClass := "sparkles"}}
   {{$gradient := "from-slate-400 to-gray-500"}}
   {{if eq $plan.Code "gold"}}
-    {{$iconClass = "fa-rocket"}}
+    {{    $iconClass = "rocket-launch"}}
     {{$gradient = "from-amber-600 to-yellow-700"}}
   {{else if eq $plan.Code "diamond"}}
-    {{$iconClass = "fa-crown"}}
+    {{    $iconClass = "trophy"}}
     {{$gradient = "from-indigo-500 to-violet-600"}}
   {{end}}
 
@@ -30,7 +30,7 @@
     <div class="bg-gradient-to-r {{$gradient}} px-4 sm:px-6 py-4 sm:py-6 text-white">
       <div class="flex items-center gap-3 sm:gap-4">
         <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-          <i class="fas {{$iconClass}} text-lg sm:text-xl"></i>
+          {{heroicon "sparkles" "text-lg" "sm:text-xl"}}
         </div>
         <div>
           <h3 class="text-lg sm:text-xl font-bold">{{$plan.Name}}</h3>
@@ -46,22 +46,22 @@
     </div>
     <div class="px-4 sm:px-6 py-3 sm:py-4">
       <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
-        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>
+        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}
           {{if eq $plan.MaxClients 0}}Unlimited clients{{else}}{{$plan.MaxClients}} clients{{end}}
         </li>
-        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>
+        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}
           {{if eq $plan.MaxProducts 0}}Unlimited products{{else}}{{$plan.MaxProducts}} products{{end}}
         </li>
-        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>
+        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}
           {{if eq $plan.MaxServices 0}}Unlimited services{{else}}{{$plan.MaxServices}} services{{end}}
         </li>
-        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>
+        <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}
           {{if eq $plan.MaxConversations 0}}Unlimited conversations{{else}}{{$plan.MaxConversations}} conversations{{end}}
         </li>
-        {{if $plan.HasAnalytics}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
-        {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media sharing</li>{{end}}
-        {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
-        {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
+        {{if $plan.HasAnalytics}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Analytics</li>{{end}}
+        {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Media sharing</li>{{end}}
+        {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Priority support</li>{{end}}
+        {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Orders & bookings</li>{{end}}
       </ul>
     </div>
   </div>
@@ -76,7 +76,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 sm:gap-4">
           <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md shrink-0">
-            <i class="fas fa-credit-card text-white text-lg"></i>
+            {{heroicon "credit-card" "text-white" "text-lg"}}
           </div>
           <div>
             <h4 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Credit / Debit Card</h4>
@@ -89,7 +89,7 @@
           <input type="hidden" name="interval" value="{{$interval}}">
           <input type="hidden" name="provider" value="stripe">
           <button type="submit" class="btn btn-primary btn-sm text-xs sm:text-sm">
-            Pay with Card <i class="fas fa-arrow-right ml-1"></i>
+            Pay with Card {{heroicon "arrow-right" "ml-1"}}
           </button>
         </form>
       </div>
@@ -102,7 +102,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 sm:gap-4">
           <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md shrink-0">
-            <i class="fas fa-bolt text-white text-lg"></i>
+            {{heroicon "bolt" "text-white" "text-lg"}}
           </div>
           <div>
             <h4 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Polar</h4>
@@ -115,7 +115,7 @@
           <input type="hidden" name="interval" value="{{$interval}}">
           <input type="hidden" name="provider" value="polar">
           <button type="submit" class="btn btn-sm text-xs sm:text-sm text-white" style="background:linear-gradient(135deg,#06b6d4,#0891b2);border:none;">
-            <i class="fas fa-bolt mr-1"></i> Pay with Polar
+            {{heroicon "bolt" "mr-1"}} Pay with Polar
           </button>
         </form>
       </div>
@@ -128,7 +128,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 sm:gap-4">
           <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-md shrink-0">
-            <i class="fas fa-water text-white text-lg"></i>
+            {{heroicon "banknotes" "text-white" "text-lg"}}
           </div>
           <div>
             <h4 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Paddle</h4>
@@ -136,7 +136,7 @@
           </div>
         </div>
         <button type="button" onclick="initiatePaddleCheckout()" class="btn btn-sm text-xs sm:text-sm text-white" style="background:linear-gradient(135deg,#6b47fb,#3b1de6);border:none;">
-          <i class="fas fa-lock mr-1"></i> Pay with Paddle
+          {{heroicon "lock-closed" "mr-1"}} Pay with Paddle
         </button>
       </div>
     </div>
@@ -145,7 +145,7 @@
 
   <!-- Security notice -->
   <div class="text-center text-xs text-[var(--color-text-muted)]">
-    <i class="fas fa-lock mr-1"></i> Your payment info is processed securely. We never store your card details.
+    {{heroicon "lock-closed" "mr-1"}} Your payment info is processed securely. We never store your card details.
   </div>
 
   <!-- Legal & Support Links -->

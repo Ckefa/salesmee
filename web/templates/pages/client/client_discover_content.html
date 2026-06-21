@@ -3,11 +3,11 @@
   <div class="bg-[var(--color-surface)] border-b border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
     <div class="flex items-center space-x-2 sm:space-x-3">
       <button hx-get="/client" hx-target="#chat-area" hx-swap="innerHTML" hx-push-url="false" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] flex items-center space-x-1 hide-mobile">
-        <i class="fas fa-arrow-left text-base sm:text-lg"></i>
+        {{heroicon "arrow-left" "text-base" "sm:text-lg"}}
         <span class="text-sm">Chats</span>
       </button>
       <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center">
-        <i class="fas fa-compass text-[var(--color-primary)] text-sm sm:text-base"></i>
+        {{heroicon "compass" "text-[var(--color-primary)]" "text-sm" "sm:text-base"}}
       </div>
       <div>
         <h2 class="font-semibold text-sm sm:text-base text-[var(--color-text)]">Discover</h2>
@@ -20,7 +20,7 @@
   <div class="p-3 sm:p-4 border-b border-[var(--color-border)] flex-shrink-0">
     <div class="relative">
       <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-        <i class="fas fa-search text-[var(--color-text-muted)] text-sm sm:text-base"></i>
+        {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]" "text-sm" "sm:text-base"}}
       </div>
       <input type="text" id="discoverSearchInput" placeholder="Search businesses by name, type, or slug..."
         class="input pl-9 sm:pl-12 text-sm">
@@ -51,7 +51,7 @@
           {{if .Logo}}
           <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-full h-full object-cover" loading="lazy" width="56" height="56">
           {{else}}
-          <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>
+          {{heroicon "building-storefront" "text-[var(--color-primary)]" "text-sm" "sm:text-xl"}}
           {{end}}
         </div>
         <div class="min-w-0">
@@ -62,12 +62,12 @@
       </div>
       <button onclick="connectToDiscoverBusiness({{.ID}})"
         class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
-        <i class="fas fa-plus mr-1"></i> Connect
+        {{heroicon "plus" "mr-1"}} Connect
       </button>
     </div>
     {{else}}
     <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
-      <i class="fas fa-store text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+      {{heroicon "building-storefront" "text-4xl" "sm:text-5xl" "mb-3" "sm:mb-4"}}
       <p class="text-base sm:text-lg">No businesses available</p>
       <p class="text-xs sm:text-sm mt-1">Check back later for new businesses to connect with</p>
     </div>
@@ -94,7 +94,7 @@
           if (businesses.length === 0) {
           container.innerHTML = `
             <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
-              <i class="fas fa-search text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+              {{heroicon "magnifying-glass" "text-4xl" "sm:text-5xl" "mb-3" "sm:mb-4"}}
               <p class="text-base sm:text-lg">No businesses found</p>
               <p class="text-xs sm:text-sm mt-1">Try a different search term</p>
             </div>`;
@@ -104,7 +104,7 @@
           <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between hover:shadow-md transition-shadow mb-2 sm:mb-3 gap-2 sm:gap-3">
             <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
               <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
-                ${b.logo ? '<img src="/static/' + b.logo + '" alt="' + b.name + '" class="w-full h-full object-cover" loading="lazy">' : '<i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>'}
+                ${b.logo ? '<img src="/static/' + b.logo + '" alt="' + b.name + '" class="w-full h-full object-cover" loading="lazy">' : '{{heroicon "building-storefront" "text-[var(--color-primary)]" "text-sm" "sm:text-xl"}}'}
               </div>
               <div class="min-w-0">
                 <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">${b.name}</h3>
@@ -114,7 +114,7 @@
             </div>
             <button onclick="connectToDiscoverBusiness(${b.id})"
               class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
-              <i class="fas fa-plus mr-1"></i> Connect
+              {{heroicon "plus" "mr-1"}} Connect
             </button>
           </div>
         `).join('');
@@ -125,26 +125,26 @@
   function connectToDiscoverBusiness(businessId) {
     const btn = event.target.closest('.connect-btn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Connecting...';
+    btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1"}} Connecting...';
 
     fetch('/client/connect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          btn.innerHTML = '<i class="fas fa-check mr-1"></i> Connected!';
+          btn.innerHTML = '{{heroicon "check" "mr-1"}} Connected!';
           btn.classList.remove('bg-[var(--color-primary)]', 'hover:opacity-90');
           btn.classList.add('bg-[var(--color-success)]');
           setTimeout(() => {
             window.location.href = '/client?business_id=' + businessId;
           }, 800);
         } else {
-          btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Connect';
+          btn.innerHTML = '{{heroicon "plus" "mr-1"}} Connect';
           btn.disabled = false;
           showNotification(data.error || 'Failed to connect', 'error');
         }
       })
       .catch(() => {
-        btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Connect';
+        btn.innerHTML = '{{heroicon "plus" "mr-1"}} Connect';
         btn.disabled = false;
         showNotification('Failed to connect', 'error');
       });

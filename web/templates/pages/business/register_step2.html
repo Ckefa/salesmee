@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -44,7 +43,7 @@
 
       {{if .Error}}
       <div class="bg-[var(--color-error-light)] text-[var(--color-error)] px-4 py-3 rounded-xl mb-4 flex items-center gap-2 text-sm border" style="border-color: color-mix(in srgb, var(--color-error) 20%, transparent);">
-        <i class="fas fa-exclamation-circle"></i>
+        {{heroicon "exclamation-circle"}}
         {{.Error}}
       </div>
       {{end}}
@@ -60,7 +59,7 @@
           {{range .BusinessTypes}}
           <div class="card p-3 text-center cursor-pointer hover:shadow-md transition-all type-card" data-value="{{.Value}}" style="border-color: var(--color-border);">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-1.5" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent);">
-              <i class="fas {{.Icon}} text-[var(--color-primary)]"></i>
+              {{heroicon .Icon "text-[var(--color-primary)]"}}
             </div>
             <span class="text-xs font-medium text-[var(--color-text)]">{{.Label}}</span>
           </div>
@@ -74,7 +73,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label for="country" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
-                <i class="fas fa-globe w-4 text-center mr-1"></i>Country
+                {{heroicon "globe-alt" "w-4" "text-center" "mr-1"}}Country
               </label>
               <select id="country" name="country"
                 class="input text-sm">
@@ -85,7 +84,7 @@
             </div>
             <div>
               <label for="currency" class="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
-                <i class="fas fa-money-bill-wave w-4 text-center mr-1"></i>Currency
+                {{heroicon "banknotes" "w-4" "text-center" "mr-1"}}Currency
               </label>
               <select id="currency" name="currency"
                 class="input text-sm">
@@ -99,10 +98,10 @@
 
         <div class="mt-5 flex justify-between">
           <a href="/business/register" class="btn btn-secondary">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{heroicon "arrow-left" "text-xs"}} Back
           </a>
           <button type="submit" class="btn btn-primary">
-            Next Step <i class="fas fa-arrow-right text-xs"></i>
+            Next Step {{heroicon "arrow-right" "text-xs"}}
           </button>
         </div>
       </form>

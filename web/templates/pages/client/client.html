@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/vendor/htmx.min.js?v=1"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
@@ -27,18 +26,18 @@
       </a>
       <div class="wa-mobile-nav-items">
         <a href="/client/discover" class="wa-mobile-nav-item" title="Discover">
-          <i class="fas fa-compass"></i>
+          {{heroicon "compass"}}
         </a>
         <button class="theme-toggle wa-mobile-nav-item" title="Toggle theme">
-          <i class="fas fa-moon"></i>
+          {{heroicon "moon"}}
         </button>
         {{if .AssistEnabled}}
         <button onclick="toggleAssist()" class="wa-mobile-nav-item" title="Assist">
-          <i class="fas fa-wand-magic-sparkles"></i>
+          {{heroicon "sparkles"}}
         </button>
         {{end}}
         <a href="/client/logout" class="wa-mobile-nav-item" title="Logout">
-          <i class="fas fa-sign-out-alt"></i>
+          {{heroicon "arrow-right-on-rectangle"}}
         </a>
       </div>
     </nav>
@@ -47,21 +46,21 @@
     <nav class="wa-navbar" id="waNavbar">
       <div class="wa-navbar-top">
         <a href="/client/discover" class="wa-nav-item" title="Discover">
-          <i class="fas fa-compass"></i>
+          {{heroicon "compass"}}
         </a>
       </div>
       <div class="wa-navbar-divider"></div>
       <div class="wa-navbar-bottom">
         <button class="theme-toggle wa-nav-item" title="Toggle theme">
-          <i class="fas fa-moon"></i>
+          {{heroicon "moon"}}
         </button>
         {{if .AssistEnabled}}
         <button onclick="toggleAssist()" class="wa-nav-item" title="Assist">
-          <i class="fas fa-wand-magic-sparkles"></i>
+          {{heroicon "sparkles"}}
         </button>
         {{end}}
         <a href="/client/logout" class="wa-nav-item" title="Logout">
-          <i class="fas fa-sign-out-alt"></i>
+          {{heroicon "arrow-right-on-rectangle"}}
         </a>
       </div>
     </nav>
@@ -115,16 +114,16 @@
             htmx.process(chatArea);
           })
           .catch(function() {
-            if (chatArea) chatArea.innerHTML = '<div class="flex-1 flex items-center justify-center py-12 text-center"><div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4"><i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div><p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p></div>';
+            if (chatArea) chatArea.innerHTML = '<div class="flex-1 flex items-center justify-center py-12 text-center"><div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">{{heroicon "exclamation-circle" "text-[var(--color-error)]" "text-2xl"}}</div><p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p></div>';
           });
       } else {
         document.getElementById('chat-area').innerHTML =
           '<div class="flex-1 flex items-center justify-center empty-state">' +
-          '<div class="empty-state-icon empty-state-icon-primary"><i class="fas fa-box"></i></div>' +
+          '<div class="empty-state-icon empty-state-icon-primary">{{heroicon "cube"}}</div>' +
           '<h3 class="empty-state-title">Select a conversation</h3>' +
           '<p class="empty-state-text">Choose a business from your chats to browse their products.</p>' +
           '<div class="empty-state-cta">' +
-          '<a href="/client" class="btn btn-primary btn-sm"><i class="fas fa-comments"></i> Go to Chats</a>' +
+          '<a href="/client" class="btn btn-primary btn-sm">{{heroicon "chat-bubble-left-right"}} Go to Chats</a>' +
           '</div></div>';
       }
     }
@@ -140,16 +139,16 @@
             htmx.process(chatArea);
           })
           .catch(function() {
-            if (chatArea) chatArea.innerHTML = '<div class="flex-1 flex items-center justify-center py-12 text-center"><div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4"><i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div><p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p></div>';
+            if (chatArea) chatArea.innerHTML = '<div class="flex-1 flex items-center justify-center py-12 text-center"><div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">{{heroicon "exclamation-circle" "text-[var(--color-error)]" "text-2xl"}}</div><p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p></div>';
           });
       } else {
         document.getElementById('chat-area').innerHTML =
           '<div class="flex-1 flex items-center justify-center empty-state">' +
-          '<div class="empty-state-icon empty-state-icon-primary"><i class="fas fa-concierge-bell"></i></div>' +
+          '<div class="empty-state-icon empty-state-icon-primary">{{heroicon "bell"}}</div>' +
           '<h3 class="empty-state-title">Select a conversation</h3>' +
           '<p class="empty-state-text">Choose a business from your chats to browse their services.</p>' +
           '<div class="empty-state-cta">' +
-          '<a href="/client" class="btn btn-primary btn-sm"><i class="fas fa-comments"></i> Go to Chats</a>' +
+          '<a href="/client" class="btn btn-primary btn-sm">{{heroicon "chat-bubble-left-right"}} Go to Chats</a>' +
           '</div></div>';
       }
     }
@@ -217,8 +216,8 @@
       pins.forEach(function(id) {
         var item = document.querySelector('.business-item[data-business-id="' + id + '"]');
         if (item) {
-          var star = item.querySelector('.pin-btn i');
-          if (star) star.className = 'fas fa-star text-amber-500';
+          var star = item.querySelector('.pin-btn svg');
+          if (star) star.classList.add('text-amber-500');
         }
       });
       if (typeof sortBusinessList === 'function') {

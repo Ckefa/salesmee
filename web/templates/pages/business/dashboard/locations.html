@@ -11,7 +11,7 @@
           <p class="text-sm text-[var(--color-text-secondary)] mt-1">Manage your business locations and branches</p>
         </div>
         <button onclick="showCreateLocationModal()" class="btn btn-primary btn-sm">
-          <i class="fas fa-plus mr-1"></i> Add Location
+          {{heroicon "plus" "mr-1"}} Add Location
         </button>
       </div>
 
@@ -26,24 +26,24 @@
               </div>
               {{if .Address}}<p class="text-sm text-[var(--color-text-secondary)] mt-1">{{.Address}}</p>{{end}}
               <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[var(--color-text-muted)]">
-                {{if .Phone}}<span><i class="fas fa-phone mr-1"></i>{{.Phone}}</span>{{end}}
-                {{if .Email}}<span><i class="fas fa-envelope mr-1"></i>{{.Email}}</span>{{end}}
-                <span><i class="fas fa-globe mr-1"></i>{{.TimeZone}}</span>
+                {{if .Phone}}<span>{{heroicon "phone" "mr-1"}}{{.Phone}}</span>{{end}}
+                {{if .Email}}<span>{{heroicon "envelope" "mr-1"}}{{.Email}}</span>{{end}}
+                <span>{{heroicon "globe-alt" "mr-1"}}{{.TimeZone}}</span>
               </div>
             </div>
             <div class="flex gap-2 shrink-0">
               <button onclick="editLocation({{.ID}}, '{{.Name}}', '{{.Address}}', '{{.Phone}}', '{{.Email}}', '{{.TimeZone}}', {{.Lat}}, {{.Lng}}, {{.SortOrder}}, {{.IsActive}})" class="btn btn-ghost btn-icon btn-icon-sm">
-                <i class="fas fa-edit"></i>
+                {{heroicon "pencil" ""}}
               </button>
               <button onclick="deleteLocation({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-error)]">
-                <i class="fas fa-trash"></i>
+                {{heroicon "trash" ""}}
               </button>
             </div>
           </div>
         </div>
         {{else}}
         <div class="card p-8 text-center">
-          <i class="fas fa-map-marker-alt text-3xl text-[var(--color-text-muted)] mb-3"></i>
+          {{heroicon "map-pin" "text-3xl text-[var(--color-text-muted)] mb-3"}}
           <p class="text-[var(--color-text-secondary)]">No locations yet. Add your first location to start managing branches.</p>
         </div>
         {{end}}
@@ -115,7 +115,7 @@
       <div class="flex justify-end gap-2 mt-5">
         <button onclick="closeLocationModal()" class="btn btn-ghost btn-sm">Cancel</button>
         <button onclick="saveLocation()" class="btn btn-primary btn-sm">
-          <i class="fas fa-save mr-1"></i> Save
+          {{heroicon "document-arrow-down" "mr-1"}} Save
         </button>
       </div>
     </div>
@@ -213,4 +213,3 @@ function deleteLocation(id) {
 </script>
 </div>
 {{end}}
-

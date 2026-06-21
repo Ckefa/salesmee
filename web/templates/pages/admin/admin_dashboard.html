@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   <script src="/static/js/vendor/htmx.min.js?v=1"></script>
@@ -29,10 +28,10 @@
       </div>
       <div class="flex items-center gap-4">
         <span class="text-slate-400 text-xs hidden sm:inline">{{.AdminEmail}}</span>
-        <a href="/" class="text-slate-500 hover:text-white text-xs transition"><i class="fas fa-external-link-alt mr-1"></i>Site</a>
+        <a href="/" class="text-slate-500 hover:text-white text-xs transition">{{heroicon "arrow-top-right-on-square" "mr-1"}}Site</a>
         <form method="POST" action="/admin/logout" class="inline">
           <input type="hidden" name="_csrf" value="{{.CSRFToken}}">
-          <button class="text-slate-500 hover:text-red-400 text-xs transition"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
+          <button class="text-slate-500 hover:text-red-400 text-xs transition">{{heroicon "arrow-right-on-rectangle" "mr-1"}}Logout</button>
         </form>
       </div>
     </header>
@@ -83,27 +82,27 @@
       <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "dashboard"}}active{{end}}"
         hx-get="/admin" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        <i class="fas fa-chart-simple mr-1.5"></i>Dashboard
+        {{heroicon "chart-bar" "mr-1.5"}}Dashboard
       </button>
       <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "businesses"}}active{{end}}"
         hx-get="/admin/businesses?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        <i class="fas fa-store mr-1.5"></i>Businesses
+        {{heroicon "building-storefront" "mr-1.5"}}Businesses
       </button>
       <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "clients"}}active{{end}}"
         hx-get="/admin/clients?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        <i class="fas fa-users mr-1.5"></i>Clients
+        {{heroicon "users" "mr-1.5"}}Clients
       </button>
       <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "subscriptions"}}active{{end}}"
         hx-get="/admin/subscriptions?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        <i class="fas fa-crown mr-1.5"></i>Subscriptions
+        {{heroicon "crown" "mr-1.5"}}Subscriptions
       </button>
       <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "audit"}}active{{end}}"
         hx-get="/admin/audit?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        <i class="fas fa-history mr-1.5"></i>Audit Log
+        {{heroicon "clock" "mr-1.5"}}Audit Log
       </button>
     </div>
 
@@ -113,13 +112,13 @@
       <div class="p-6 space-y-6">
         <!-- Recent Signups -->
         <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-          <h2 class="text-sm font-semibold text-white mb-3"><i class="fas fa-store mr-2 text-teal-400"></i>Recent Business Signups</h2>
+          <h2 class="text-sm font-semibold text-white mb-3">{{heroicon "building-storefront" "mr-2" "text-teal-400"}}Recent Business Signups</h2>
           {{if .RecentBusinesses}}
           <div class="space-y-2">
             {{range .RecentBusinesses}}
             <div class="flex items-center justify-between py-1.5 border-b border-slate-700/50 last:border-0">
               <div class="flex items-center gap-3">
-                {{if .Logo}}<img src="{{.Logo}}" class="w-7 h-7 rounded-lg object-cover bg-slate-700" loading="lazy">{{else}}<div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 text-xs"><i class="fas fa-store"></i></div>{{end}}
+                {{if .Logo}}<img src="{{.Logo}}" class="w-7 h-7 rounded-lg object-cover bg-slate-700" loading="lazy">{{else}}<div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 text-xs">{{heroicon "building-storefront"}}</div>{{end}}
                 <div>
                   <p class="text-sm font-medium text-white">{{.Name}}</p>
                   <p class="text-xs text-slate-400">{{.Email}}</p>
@@ -136,7 +135,7 @@
 
         <!-- Recent Audit Activity -->
         <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-          <h2 class="text-sm font-semibold text-white mb-3"><i class="fas fa-history mr-2 text-purple-400"></i>Recent Activity</h2>
+          <h2 class="text-sm font-semibold text-white mb-3">{{heroicon "clock" "mr-2" "text-purple-400"}}Recent Activity</h2>
           {{if .RecentLogs}}
           <div class="space-y-2">
             {{range .RecentLogs}}

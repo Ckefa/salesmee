@@ -15,17 +15,17 @@
   {{$status := .Subscription.Status}}
 
   {{$gradient := "from-slate-400 to-gray-500"}}
-  {{$iconClass := "fa-gem"}}
+  {{  $iconClass := "sparkles"}}
   {{$iconBg := "bg-slate-100 dark:bg-slate-800"}}
   {{$iconColor := "text-slate-600 dark:text-slate-300"}}
   {{if eq $color "amber"}}
     {{$gradient = "from-amber-600 to-yellow-700"}}
-    {{$iconClass = "fa-rocket"}}
+    {{    $iconClass = "rocket-launch"}}
     {{$iconBg = "bg-amber-100 dark:bg-amber-900/50"}}
     {{$iconColor = "text-amber-600 dark:text-amber-300"}}
   {{else if eq $color "violet"}}
     {{$gradient = "from-indigo-500 to-violet-600"}}
-    {{$iconClass = "fa-crown"}}
+    {{    $iconClass = "trophy"}}
     {{$iconBg = "bg-indigo-100 dark:bg-indigo-900/50"}}
     {{$iconColor = "text-indigo-600 dark:text-indigo-300"}}
   {{end}}
@@ -36,7 +36,7 @@
       <div class="flex items-start justify-between">
         <div class="flex items-center gap-4">
           <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <i class="fas {{$iconClass}} text-2xl"></i>
+            {{heroicon "sparkles" "text-2xl"}}
           </div>
           <div>
             <div class="flex items-center gap-2.5">
@@ -84,17 +84,17 @@
 
         {{if .IsTrialing}}
         <div class="text-white/80 text-sm">
-          <i class="fas fa-hourglass-half mr-1"></i>
+          {{heroicon "clock" "mr-1"}}
           Trial{{if gt .TrialDaysRemaining 0}} — {{.TrialDaysRemaining}} days remaining{{end}}
         </div>
         {{else if .IsCanceled}}
         <div class="text-rose-200 text-sm">
-          <i class="fas fa-times-circle mr-1"></i>
+          {{heroicon "x-circle" "mr-1"}}
           Canceled — access until {{.Subscription.CurrentPeriodEnd.Format "Jan 2"}}
         </div>
         {{else if gt .DaysRemaining 0}}
         <div class="text-white/80 text-sm">
-          <i class="fas fa-sync-alt mr-1"></i>
+          {{heroicon "arrow-path" "mr-1"}}
           Renews in {{.DaysRemaining}} days
           {{if .Subscription.TrialEndsAt}}<span class="ml-2 text-white/60">· Trial ends {{.Subscription.TrialEndsAt.Format "Jan 2"}}</span>{{end}}
         </div>
@@ -104,10 +104,10 @@
 
     <div class="px-6 py-4 flex flex-wrap gap-3">
       <a href="#plans" class="btn btn-primary btn-sm" onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'})">
-        <i class="fas fa-arrows-rotate"></i> Change Plan
+        {{heroicon "arrow-path"}} Change Plan
       </a>
       <button onclick="openBillingPortal()" class="btn btn-secondary btn-sm">
-        <i class="fas fa-credit-card"></i> Billing Portal
+        {{heroicon "credit-card"}} Billing Portal
       </button>
     </div>
   </div>
@@ -136,15 +136,15 @@
       {{$planPriceY := $plan.PriceYearly}}
       {{$isCurrent := eq $plan.Code $planCode}}
       {{$planGradient := "from-slate-400 to-gray-500"}}
-      {{$planIcon := "fa-gem"}}
+      {{      $planIcon := "sparkles"}}
       {{$planLabel := "silver"}}
       {{if eq $plan.Code "gold"}}
         {{$planGradient = "from-amber-600 to-yellow-700"}}
-        {{$planIcon = "fa-rocket"}}
+        {{        $planIcon = "rocket-launch"}}
         {{$planLabel = "gold"}}
       {{else if eq $plan.Code "diamond"}}
         {{$planGradient = "from-indigo-500 to-violet-600"}}
-        {{$planIcon = "fa-crown"}}
+        {{        $planIcon = "trophy"}}
         {{$planLabel = "diamond"}}
       {{end}}
 
@@ -157,14 +157,14 @@
 
         {{if and (eq $i 1) (not $isCurrent)}}
         <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-yellow-700 text-white text-xs font-semibold shadow-lg z-10 flex items-center gap-1">
-          <i class="fas fa-fire text-[10px]"></i> Most Popular
+          {{heroicon "bolt" "text-[10px]"}} Most Popular
         </div>
         {{end}}
 
         <div>
           <div class="flex items-center justify-between mb-4">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br {{$planGradient}} flex items-center justify-center shadow-md">
-              <i class="fas {{$planIcon}} text-lg text-white"></i>
+              {{heroicon "sparkles" "text-lg" "text-white"}}
             </div>
             {{if $isCurrent}}
             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
@@ -192,36 +192,36 @@
 
           <ul class="mt-5 space-y-2.5">
             {{if or (eq $plan.MaxConversations 0) (lt $plan.MaxConversations 0)}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited conversations</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited conversations</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxConversations}} conversations</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{$plan.MaxConversations}} conversations</li>
             {{end}}
             {{if or (eq $plan.MaxProducts 0) (lt $plan.MaxProducts 0)}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited products</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited products</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxProducts}} products</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{$plan.MaxProducts}} products</li>
             {{end}}
             {{if or (eq $plan.MaxServices 0) (lt $plan.MaxServices 0)}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited services</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited services</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxServices}} services</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{$plan.MaxServices}} services</li>
             {{end}}
             {{if or (eq $plan.MaxClients 0) (lt $plan.MaxClients 0)}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Unlimited clients</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Unlimited clients</li>
             {{else}}
-            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>{{$plan.MaxClients}} clients</li>
+            <li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}{{$plan.MaxClients}} clients</li>
             {{end}}
-            {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Orders & bookings</li>{{end}}
-            {{if $plan.HasAnalytics}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Analytics</li>{{end}}
-            {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Media & file sharing</li>{{end}}
-            {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]"><i class="fas fa-check text-teal-500 text-sm shrink-0"></i>Priority support</li>{{end}}
+            {{if $plan.HasOrdersAndBookings}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Orders & bookings</li>{{end}}
+            {{if $plan.HasAnalytics}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Analytics</li>{{end}}
+            {{if $plan.HasMediaSharing}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Media & file sharing</li>{{end}}
+            {{if $plan.HasPrioritySupport}}<li class="flex items-center gap-2.5 text-xs sm:text-sm text-[var(--color-text-secondary)]">{{heroicon "check" "text-teal-500" "text-sm" "shrink-0"}}Priority support</li>{{end}}
           </ul>
         </div>
 
         <div class="mt-auto pt-5">
           {{if $isCurrent}}
           <div class="w-full py-2.5 rounded-xl text-center text-xs sm:text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
-            <i class="fas fa-check mr-1.5"></i>Current Plan
+            {{heroicon "check" "mr-1.5"}}Current Plan
           </div>
           {{else if eq $planPriceM 0.0}}
           <button onclick="confirmDowngrade('{{$plan.Code}}', '{{$plan.Name}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-xs sm:text-sm">
@@ -311,7 +311,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
     <div class="card p-5">
       <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
-        <i class="fas fa-receipt text-[var(--color-primary)]"></i>
+        {{heroicon "document-text" "text-[var(--color-primary)]"}}
         Billing
       </div>
       {{if .UpcomingInvoice}}
@@ -324,7 +324,7 @@
       </div>
       <div class="mt-3 pt-3 border-t border-[var(--color-border)]">
         <button onclick="openBillingPortal()" class="text-xs font-medium text-[var(--color-primary)] hover:underline">
-          <i class="fas fa-external-link-alt mr-1"></i>Manage billing in {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}}
+          {{heroicon "arrow-top-right-on-square" "mr-1"}}Manage billing in {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}}
         </button>
       </div>
       {{else if not .IsCanceled}}
@@ -334,13 +334,13 @@
 
     <div class="card p-5">
       <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
-        <i class="fas fa-credit-card text-[var(--color-primary)]"></i>
+        {{heroicon "credit-card" "text-[var(--color-primary)]"}}
         Payment Method
       </div>
       {{if .HasPaymentMethod}}
       <div class="flex items-center gap-3">
         <div class="w-10 h-7 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
-          <i class="fas fa-credit-card text-sm"></i>
+          {{heroicon "credit-card" "text-sm"}}
         </div>
         <div>
           <p class="text-sm font-medium text-[var(--color-text)]">Card on file</p>
@@ -350,7 +350,7 @@
       {{else}}
       <div class="flex items-center gap-3">
         <div class="w-10 h-7 rounded bg-[var(--color-surface-tertiary)] flex items-center justify-center text-[var(--color-text-muted)]">
-          <i class="fas fa-credit-card text-sm"></i>
+          {{heroicon "credit-card" "text-sm"}}
         </div>
         <div>
           <p class="text-sm font-medium text-[var(--color-text)]">No payment method</p>
@@ -360,7 +360,7 @@
       {{end}}
       <div class="mt-3 pt-3 border-t border-[var(--color-border)]">
         <button onclick="openBillingPortal()" class="text-xs font-medium text-[var(--color-primary)] hover:underline">
-          <i class="fas fa-external-link-alt mr-1"></i>Manage in {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal
+          {{heroicon "arrow-top-right-on-square" "mr-1"}}Manage in {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal
         </button>
       </div>
     </div>
@@ -369,14 +369,14 @@
   <!-- ═══════════════ INVOICE HISTORY ═══════════════ -->
   <div class="card p-5">
     <div class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
-      <i class="fas fa-file-invoice text-[var(--color-primary)]"></i>
+      {{heroicon "document-text" "text-[var(--color-primary)]"}}
       Invoice History
     </div>
     <p class="text-sm text-[var(--color-text-muted)] mb-4">
       View your complete billing history and download invoices in the {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal.
     </p>
     <button onclick="openBillingPortal()" class="btn btn-secondary btn-sm">
-      <i class="fas fa-external-link-alt"></i> Open {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal
+      {{heroicon "arrow-top-right-on-square"}} Open {{if eq .PaymentProvider "paddle"}}Paddle{{else}}Stripe{{end}} Portal
     </button>
   </div>
 
@@ -385,7 +385,7 @@
   {{if or (eq $planCode "gold") (eq $planCode "diamond")}}
   <div class="pt-4 border-t-2 border-[var(--color-error)]">
     <div class="flex items-center gap-2 text-sm font-semibold text-[var(--color-error)] mb-3">
-      <i class="fas fa-exclamation-triangle"></i>
+      {{heroicon "exclamation-triangle"}}
       Danger Zone
     </div>
     <div class="card p-5 border-[var(--color-error)] border">
@@ -402,7 +402,7 @@
           </p>
         </div>
         <button onclick="openCancelModal()" class="btn btn-danger btn-sm shrink-0">
-          <i class="fas fa-ban"></i> Cancel Subscription
+          {{heroicon "ban"}} Cancel Subscription
         </button>
       </div>
     </div>
@@ -413,7 +413,7 @@
     <div class="modal-content p-6">
       <div class="text-center mb-6">
         <div class="w-14 h-14 rounded-2xl bg-[var(--color-error-light)] flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-exclamation-triangle text-2xl text-[var(--color-error)]"></i>
+          {{heroicon "exclamation-triangle" "text-2xl" "text-[var(--color-error)]"}}
         </div>
         <h3 class="text-lg font-bold text-[var(--color-text)]">Cancel Subscription?</h3>
         <p class="text-sm text-[var(--color-text-muted)] mt-2">
@@ -457,14 +457,14 @@
   <!-- ═══════════════ NO SUBSCRIPTION STATE ═══════════════ -->
   <div class="card p-10 text-center">
     <div class="w-16 h-16 rounded-2xl bg-[var(--color-surface-secondary)] flex items-center justify-center mx-auto mb-4">
-      <i class="fas fa-crown text-2xl text-[var(--color-text-muted)]"></i>
+      {{heroicon "crown" "text-2xl" "text-[var(--color-text-muted)]"}}
     </div>
     <h2 class="text-xl font-semibold text-[var(--color-text)]">No active subscription</h2>
     <p class="text-[var(--color-text-muted)] mt-2 max-w-md mx-auto">
       Choose a plan to unlock premium features like analytics, priority support, and higher usage limits.
     </p>
     <a href="/business/subscription/plans" class="btn btn-primary mt-6">
-      <i class="fas fa-rocket"></i> View Plans
+      {{heroicon "rocket-launch"}} View Plans
     </a>
   </div>
   {{end}}

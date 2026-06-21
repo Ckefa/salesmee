@@ -3,7 +3,7 @@
   <div class="flex items-center gap-2 text-xs text-slate-500 mb-4">
     <button class="hover:text-teal-400 transition flex items-center gap-1"
       hx-get="/admin/businesses?page=1" hx-target="#admin-content">
-      <i class="fas fa-arrow-left"></i> Businesses
+      {{heroicon "arrow-left"}} Businesses
     </button>
     <span>/</span>
     <span class="text-slate-300">{{.Business.Name}}</span>
@@ -17,7 +17,7 @@
         <img src="{{.Business.Logo}}" class="w-16 h-16 rounded-xl object-cover bg-slate-700" alt="" loading="lazy" width="64" height="64">
         {{else}}
         <div class="w-16 h-16 rounded-xl bg-slate-700 flex items-center justify-center text-slate-400 text-2xl">
-          <i class="fas fa-store"></i>
+          {{heroicon "building-storefront"}}
         </div>
         {{end}}
       </div>
@@ -31,7 +31,7 @@
           {{end}}
           {{if .BusinessType}}
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-{{.BusinessType.Color}}-500/20 text-{{.BusinessType.Color}}-400">
-            <i class="fas {{.BusinessType.Icon}}"></i> {{.BusinessType.Label}}
+            {{heroicon "building-storefront"}} {{.BusinessType.Label}}
           </span>
           {{end}}
         </div>
@@ -39,9 +39,9 @@
           <span class="text-teal-400">@{{.Business.Slug}}</span>
           <span class="text-slate-400">{{.Business.Email}}</span>
           {{if .Business.EmailVerified}}
-          <span class="text-emerald-400 text-xs"><i class="fas fa-check-circle"></i> Email verified</span>
+          <span class="text-emerald-400 text-xs">{{heroicon "check-circle"}} Email verified</span>
           {{else}}
-          <span class="text-slate-500 text-xs"><i class="fas fa-times-circle"></i> Email not verified</span>
+          <span class="text-slate-500 text-xs">{{heroicon "x-circle"}} Email not verified</span>
           {{end}}
           <span class="text-slate-500 text-xs">Onboarding: step {{.Business.OnboardingStep}}/5</span>
         </div>
@@ -52,20 +52,20 @@
           hx-post="/admin/businesses/{{.Business.ID}}/suspend" hx-target="#admin-content" hx-swap="innerHTML"
           onsubmit="return confirm('Suspend this business?')">
           <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30"><i class="fas fa-pause mr-1"></i>Suspend</button>
+          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30">{{heroicon "pause" "mr-1"}}Suspend</button>
         </form>
         {{else}}
         <form method="POST" action="/admin/businesses/{{.Business.ID}}/activate" class="inline"
           hx-post="/admin/businesses/{{.Business.ID}}/activate" hx-target="#admin-content" hx-swap="innerHTML">
           <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-          <button class="px-3 py-1.5 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition border border-emerald-500/30"><i class="fas fa-play mr-1"></i>Activate</button>
+          <button class="px-3 py-1.5 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition border border-emerald-500/30">{{heroicon "play" "mr-1"}}Activate</button>
         </form>
         {{end}}
         <form method="POST" action="/admin/businesses/{{.Business.ID}}/delete" class="inline"
           hx-post="/admin/businesses/{{.Business.ID}}/delete" hx-target="#admin-content" hx-swap="innerHTML"
           onsubmit="return confirm('Soft-delete this business? This will suspend it.')">
           <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
+          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30">{{heroicon "trash" "mr-1"}}Delete</button>
         </form>
       </div>
     </div>
@@ -75,7 +75,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-4">
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400"><i class="fas fa-users text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400">{{heroicon "users" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.ClientCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Clients</p>
@@ -84,7 +84,7 @@
     </div>
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400"><i class="fas fa-shopping-cart text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400">{{heroicon "shopping-cart" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.OrderCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Orders</p>
@@ -93,7 +93,7 @@
     </div>
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="fas fa-calendar-check text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400">{{heroicon "calendar-check" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.BookingCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Bookings</p>
@@ -102,7 +102,7 @@
     </div>
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400"><i class="fas fa-box text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400">{{heroicon "cube" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.ProductCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Products</p>
@@ -111,7 +111,7 @@
     </div>
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400"><i class="fas fa-concierge-bell text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400">{{heroicon "sparkles" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.ServiceCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Services</p>
@@ -120,7 +120,7 @@
     </div>
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400"><i class="fas fa-star text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">{{heroicon "star" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.ReviewCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Reviews</p>
@@ -129,7 +129,7 @@
     </div>
     <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400"><i class="fas fa-user-gear text-xs"></i></div>
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">{{heroicon "user-circle" "text-xs"}}</div>
         <div>
           <p class="text-lg font-bold text-white">{{.TeamCount}}</p>
           <p class="text-[10px] text-slate-500 uppercase tracking-wider">Team</p>
@@ -142,7 +142,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
     <!-- Details -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-info-circle mr-2 text-teal-400"></i>Business Details</h3>
+      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "information-circle" "mr-2" "text-teal-400"}}Business Details</h3>
       <div class="space-y-2.5 text-sm">
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Business ID</span>
@@ -182,11 +182,11 @@
         </div>
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Email Verified</span>
-          <span class="text-slate-300">{{if .Business.EmailVerified}}<span class="text-emerald-400"><i class="fas fa-check-circle"></i> Yes</span>{{else}}<span class="text-red-400"><i class="fas fa-times-circle"></i> No</span>{{end}}</span>
+          <span class="text-slate-300">{{if .Business.EmailVerified}}<span class="text-emerald-400">{{heroicon "check-circle"}} Yes</span>{{else}}<span class="text-red-400">{{heroicon "x-circle"}} No</span>{{end}}</span>
         </div>
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Accepting Bookings</span>
-          <span class="text-slate-300">{{if .Business.IsAcceptingBookings}}<span class="text-emerald-400"><i class="fas fa-check"></i> Yes</span>{{else}}<span class="text-red-400"><i class="fas fa-times"></i> No</span>{{end}}</span>
+          <span class="text-slate-300">{{if .Business.IsAcceptingBookings}}<span class="text-emerald-400">{{heroicon "check"}} Yes</span>{{else}}<span class="text-red-400">{{heroicon "x-mark"}} No</span>{{end}}</span>
         </div>
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Onboarding Step</span>
@@ -205,7 +205,7 @@
 
     <!-- Subscription -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-crown mr-2 text-amber-400"></i>Subscription</h3>
+      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "crown" "mr-2" "text-amber-400"}}Subscription</h3>
       {{if .Business.Subscription}}
       <div class="space-y-2.5 text-sm">
         <div class="flex justify-between py-1 border-b border-slate-700/50">
@@ -272,13 +272,13 @@
           <div class="flex justify-between"><span class="text-slate-500">Max Clients</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxClients 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxClients}}{{end}}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Max Products</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxProducts 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxProducts}}{{end}}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Max Services</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxServices 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxServices}}{{end}}</span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Analytics</span><span class="text-slate-300">{{if .Business.Subscription.Plan.HasAnalytics}}<span class="text-emerald-400"><i class="fas fa-check"></i>{{else}}<span class="text-slate-500"><i class="fas fa-times"></i>{{end}}</span></span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Analytics</span><span class="text-slate-300">{{if .Business.Subscription.Plan.HasAnalytics}}<span class="text-emerald-400">{{heroicon "check"}}{{else}}<span class="text-slate-500">{{heroicon "x-mark"}}{{end}}</span></span></div>
         </div>
         {{end}}
       </div>
       {{else}}
       <div class="flex flex-col items-center justify-center py-8 text-slate-500">
-        <i class="fas fa-crown text-3xl mb-2 opacity-30"></i>
+        {{heroicon "crown" "text-3xl" "mb-2" "opacity-30"}}
         <p class="text-sm">No active subscription</p>
       </div>
       {{end}}
@@ -289,7 +289,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
     <!-- Locations -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-location-dot mr-2 text-teal-400"></i>Locations {{if gt (len .Business.Locations) 0}}<span class="text-slate-500 font-normal">({{len .Business.Locations}})</span>{{end}}</h3>
+      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "map-pin" "mr-2" "text-teal-400"}}Locations {{if gt (len .Business.Locations) 0}}<span class="text-slate-500 font-normal">({{len .Business.Locations}})</span>{{end}}</h3>
       {{if .Business.Locations}}
       <div class="space-y-2">
         {{range .Business.Locations}}
@@ -302,16 +302,16 @@
             {{if not .IsActive}}<span class="text-xs text-slate-500">Inactive</span>{{end}}
           </div>
           <div class="flex gap-3 mt-1.5 text-xs text-slate-500">
-            {{if .Phone}}<span><i class="fas fa-phone mr-1"></i>{{.Phone}}</span>{{end}}
-            {{if .Email}}<span><i class="fas fa-envelope mr-1"></i>{{.Email}}</span>{{end}}
-            {{if .TimeZone}}<span><i class="fas fa-clock mr-1"></i>{{.TimeZone}}</span>{{end}}
+            {{if .Phone}}<span>{{heroicon "phone" "mr-1"}}{{.Phone}}</span>{{end}}
+            {{if .Email}}<span>{{heroicon "envelope" "mr-1"}}{{.Email}}</span>{{end}}
+            {{if .TimeZone}}<span>{{heroicon "clock" "mr-1"}}{{.TimeZone}}</span>{{end}}
           </div>
         </div>
         {{end}}
       </div>
       {{else}}
       <div class="flex flex-col items-center justify-center py-6 text-slate-500">
-        <i class="fas fa-location-dot text-2xl mb-1 opacity-30"></i>
+        {{heroicon "map-pin" "text-2xl" "mb-1" "opacity-30"}}
         <p class="text-xs">No locations configured</p>
       </div>
       {{end}}
@@ -319,7 +319,7 @@
 
     <!-- Team Members -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-user-gear mr-2 text-teal-400"></i>Team Members {{if gt (len .Business.TeamMembers) 0}}<span class="text-slate-500 font-normal">({{len .Business.TeamMembers}})</span>{{end}}</h3>
+      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "users" "mr-2" "text-teal-400"}}Team Members {{if gt (len .Business.TeamMembers) 0}}<span class="text-slate-500 font-normal">({{len .Business.TeamMembers}})</span>{{end}}</h3>
       {{if .Business.TeamMembers}}
       <div class="space-y-2">
         {{range .Business.TeamMembers}}
@@ -349,7 +349,7 @@
       </div>
       {{else}}
       <div class="flex flex-col items-center justify-center py-6 text-slate-500">
-        <i class="fas fa-user-gear text-2xl mb-1 opacity-30"></i>
+        {{heroicon "user-circle" "text-2xl" "mb-1" "opacity-30"}}
         <p class="text-xs">No team members</p>
       </div>
       {{end}}
@@ -360,7 +360,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <!-- Recent Orders -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-shopping-cart mr-2 text-orange-400"></i>Recent Orders</h3>
+      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "shopping-cart" "mr-2" "text-orange-400"}}Recent Orders</h3>
       {{if .RecentOrders}}
       <div class="space-y-2">
         {{range .RecentOrders}}
@@ -384,7 +384,7 @@
       </div>
       {{else}}
       <div class="flex flex-col items-center justify-center py-6 text-slate-500">
-        <i class="fas fa-shopping-cart text-2xl mb-1 opacity-30"></i>
+        {{heroicon "shopping-cart" "text-2xl" "mb-1" "opacity-30"}}
         <p class="text-xs">No orders yet</p>
       </div>
       {{end}}
@@ -392,7 +392,7 @@
 
     <!-- Recent Bookings -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3"><i class="fas fa-calendar-check mr-2 text-purple-400"></i>Recent Bookings</h3>
+      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "calendar-check" "mr-2" "text-purple-400"}}Recent Bookings</h3>
       {{if .RecentBookings}}
       <div class="space-y-2">
         {{range .RecentBookings}}
@@ -415,7 +415,7 @@
       </div>
       {{else}}
       <div class="flex flex-col items-center justify-center py-6 text-slate-500">
-        <i class="fas fa-calendar-check text-2xl mb-1 opacity-300"></i>
+        {{heroicon "calendar-check" "text-2xl" "mb-1" "opacity-30"}}
         <p class="text-xs">No bookings yet</p>
       </div>
       {{end}}

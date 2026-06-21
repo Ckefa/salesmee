@@ -3,11 +3,11 @@
 {{$progress := .Progress}}
 <div class="wa-chat-header">
   <button onclick="waBackToChatList()" class="wa-chat-back" title="Back to chats" id="chatBackBtn">
-    <i class="fas fa-arrow-left"></i>
+    {{heroicon "arrow-left"}}
   </button>
   <div class="wa-chat-header-avatar" onclick="showBusinessProfile()">
     <div class="avatar avatar-placeholder avatar-sm">
-      <i class="fas fa-user text-white text-xs"></i>
+      {{heroicon "user" "text-white" "text-xs"}}
     </div>
   </div>
   <div class="wa-chat-header-info">
@@ -21,29 +21,29 @@
   </div>
   <div class="wa-chat-header-actions relative">
     <button onclick="openBusinessProductPicker({{$customer.ID}})" class="wa-chat-icon-btn bg-[var(--color-warning-light)] text-[var(--color-warning)] hover:bg-[var(--color-warning)] hover:text-white" title="Products">
-      <i class="fas fa-shopping-cart"></i>
+      {{heroicon "shopping-cart"}}
     </button>
     <button onclick="openServicePicker({{$customer.ID}})" class="wa-chat-icon-btn bg-[var(--color-secondary-light)] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)] hover:text-white" title="Bookings">
-      <i class="fas fa-calendar-check"></i>
+      {{heroicon "calendar-check"}}
     </button>
     <button onclick="waToggleChatMenu()" class="wa-chat-icon-btn" title="Menu" id="chatMenuBtn">
-      <i class="fas fa-ellipsis-v"></i>
+      {{heroicon "ellipsis-vertical"}}
     </button>
 
     <div id="chatMenuDropdown" class="hidden absolute z-50 w-56 card shadow-xl overflow-hidden py-1" style="top: calc(100% + 0.5rem); right: 0;">
       <button onclick="showBusinessProfile()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-        <i class="fas fa-id-card w-5 text-center text-[var(--color-text-muted)]"></i>
+        {{heroicon "identification" "w-5" "text-center" "text-[var(--color-text-muted)]"}}
         <span>Contact Info</span>
       </button>
       {{if .AssistEnabled}}
       <button onclick="openAssistFromChat()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-        <i class="fas fa-wand-magic-sparkles w-5 text-center text-[var(--color-primary)]"></i>
+        {{heroicon "sparkles" "w-5" "text-center" "text-[var(--color-primary)]"}}
         <span>salesmee Assist</span>
       </button>
       {{end}}
       <div class="border-t border-[var(--color-border-light)] my-1"></div>
       <button onclick="deleteClient('{{$customer.ID}}', '{{$customer.Name}}')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-        <i class="fas fa-trash-alt w-5 text-center"></i>
+        {{heroicon "trash" "w-5" "text-center"}}
         <span>Delete Chat</span>
       </button>
     </div>

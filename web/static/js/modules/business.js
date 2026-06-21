@@ -101,10 +101,10 @@ function buildSkeletonChatContainer(clientId) {
   return '<div class="wa-chat-container" id="waChatContainer">' +
     '<div class="wa-chat-header">' +
       '<button onclick="waBackToChatList()" class="wa-chat-back" title="Back to chats" id="chatBackBtn">' +
-        '<i class="fas fa-arrow-left"></i>' +
+        heroicon("arrow-left") +
       '</button>' +
       '<div class="wa-chat-header-avatar">' +
-        '<div class="avatar avatar-placeholder avatar-sm"><i class="fas fa-user text-white text-xs"></i></div>' +
+        '<div class="avatar avatar-placeholder avatar-sm">' + heroicon("user", "text-white", "text-xs") + '</div>' +
       '</div>' +
       '<div class="wa-chat-header-info">' +
         '<h2 class="wa-chat-header-name">' + escapeHtml(name) + '</h2>' +
@@ -175,11 +175,11 @@ function loadClient(clientId) {
     if (mc && mc.querySelector('.skeleton')) {
       mc.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-center flex-1">' +
         '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
-        '<i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div>' +
+        heroicon("exclamation-triangle", "text-[var(--color-error)]", "text-2xl") + '</div>' +
         '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
         '<p class="text-xs text-[var(--color-text-muted)] mb-4">Timed out. Please try again.</p>' +
         '<button onclick="loadClient(' + clientId + ')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
-        '<i class="fas fa-refresh mr-1"></i> Retry</button></div>';
+        heroicon("arrow-path", "mr-1") + ' Retry</button></div>';
     }
   }, 20000);
 
@@ -229,11 +229,11 @@ function loadClient(clientId) {
       if (mc) {
         mc.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-center flex-1">' +
           '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
-          '<i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div>' +
+          heroicon("exclamation-triangle", "text-[var(--color-error)]", "text-2xl") + '</div>' +
           '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
           '<p class="text-xs text-[var(--color-text-muted)] mb-4">Something went wrong.</p>' +
           '<button onclick="loadClient(' + clientId + ')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
-          '<i class="fas fa-refresh mr-1"></i> Retry</button></div>';
+          heroicon("arrow-path", "mr-1") + ' Retry</button></div>';
       }
       showNotification('Failed to load conversation', 'error');
     });
@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (dd && dd.value) saveConversationProgress(id, dd.value);
     }
     var item = e.target.closest('.wa-chat-item');
-    if (item && !e.target.closest('.conversation-progress-dropdown') && !e.target.closest('.save-progress-btn') && !e.target.closest('.fa-trash-alt')) {
+    if (item && !e.target.closest('.conversation-progress-dropdown') && !e.target.closest('.save-progress-btn') && !e.target.closest('.wa-chat-icon-btn')) {
       loadClient(item.getAttribute('data-client-id'));
     }
   });
@@ -568,10 +568,9 @@ function saveConversationProgress(clientId, stage) {
 function toggleMediaTray() {
   var tray = document.getElementById('media-tray');
   var icon = document.getElementById('media-icon');
-  if (tray) {
+  if (tray && icon) {
     tray.classList.toggle('hidden');
-    icon.classList.toggle('fa-plus');
-    icon.classList.toggle('fa-times');
+    icon.innerHTML = tray.classList.contains('hidden') ? heroicon("plus") : heroicon("x-mark");
   }
 }
 
@@ -582,7 +581,7 @@ function triggerMediaUpload(type) {
   if (tray && !tray.classList.contains('hidden')) {
     tray.classList.add('hidden');
     var icon = document.getElementById('media-icon');
-    icon.classList.replace('fa-times', 'fa-plus');
+    if (icon) icon.innerHTML = heroicon("plus");
   }
 }
 
@@ -607,7 +606,7 @@ document.addEventListener('click', function(e) {
     tray.classList.add('hidden');
     var icon = document.getElementById('media-icon');
     if (icon) {
-      icon.classList.replace('fa-times', 'fa-plus');
+      icon.innerHTML = heroicon("plus");
     }
   }
 });
@@ -660,10 +659,11 @@ function sortClientList() {
   items.forEach(function(el) { list.appendChild(el); });
   parent.insertBefore(list, sibling);
   items.forEach(function(el) {
-    var star = el.querySelector('.pin-btn i');
+    var star = el.querySelector('.pin-btn svg');
     if (star) {
       var id = parseInt(el.getAttribute('data-client-id'));
-      star.className = pins.indexOf(id) > -1 ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
+      var cls = pins.indexOf(id) > -1 ? 'text-amber-500' : 'text-[var(--color-text-muted)]';
+      star.outerHTML = heroicon("star", "text-[10px]", cls);
     }
   });
   initSidebarVirtualScroll();

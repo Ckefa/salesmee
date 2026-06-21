@@ -7,7 +7,7 @@
     <div class="flex items-start justify-between border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-4 py-3 shadow-sm">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-secondary)] flex items-center justify-center">
-          <i class="fas fa-circle text-[10px] text-[var(--color-text-muted)]"></i>
+          {{heroicon "circle" "text-[10px]" "text-[var(--color-text-muted)]"}}
         </div>
         <div>
           <div class="text-base font-semibold text-[var(--color-text)] capitalize">{{$insight.Tier}} Tier</div>
@@ -15,7 +15,7 @@
         </div>
       </div>
       <button onclick="toggleInsightsDrawer({{$insight.ConversationID}})" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-tertiary)] transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] -mr-1 -mt-1">
-        <i class="fas fa-times text-xs"></i>
+        {{heroicon "x-mark" "text-xs"}}
       </button>
     </div>
 
@@ -58,13 +58,13 @@
       {{/* Behavior */}}
       <div class="border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] px-3.5 py-3">
         <div class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Behavior</div>
-        {{$trendIcon := "fa-minus"}}{{$trendTitle := ""}}{{$trendDesc := "Minimal recent activity"}}
-        {{if eq $insight.BehaviorTrend "high_value"}}{{$trendIcon = "fa-arrow-up"}}{{$trendTitle = "High Value"}}{{$trendDesc = "Frequent high-spend purchases"}}
-        {{else if eq $insight.BehaviorTrend "active"}}{{$trendIcon = "fa-minus"}}{{$trendTitle = "Active"}}{{$trendDesc = "Regular engagement"}}
+        {{$trendName := "minus"}}{{$trendTitle := ""}}{{$trendDesc := "Minimal recent activity"}}
+        {{if eq $insight.BehaviorTrend "high_value"}}{{$trendName = "arrow-up"}}{{$trendTitle = "High Value"}}{{$trendDesc = "Frequent high-spend purchases"}}
+        {{else if eq $insight.BehaviorTrend "active"}}{{$trendName = "minus"}}{{$trendTitle = "Active"}}{{$trendDesc = "Regular engagement"}}
         {{end}}
         <div class="flex items-center gap-2 mb-1.5">
           <span class="flex items-center justify-center w-7 h-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-secondary)]">
-            <i class="fas {{$trendIcon}} text-xs text-[var(--color-text)]"></i>
+            {{heroicon "{{$trendName}}" "text-xs" "text-[var(--color-text)]"}}
           </span>
           <span class="text-sm font-semibold text-[var(--color-text)] capitalize">{{$trendTitle}}</span>
         </div>

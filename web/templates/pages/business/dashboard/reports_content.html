@@ -10,8 +10,8 @@
       <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
     </div>
     <div class="flex gap-2">
-      <button onclick="printReport()" class="btn btn-ghost btn-sm"><i class="fas fa-print mr-1"></i>Print</button>
-      <button onclick="exportRevenueCSV()" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export CSV</button>
+      <button onclick="printReport()" class="btn btn-ghost btn-sm">{{heroicon "printer" "mr-1"}}Print</button>
+      <button onclick="exportRevenueCSV()" class="btn btn-ghost btn-sm">{{heroicon "arrow-down-tray" "mr-1"}}Export CSV</button>
     </div>
   </div>
 
@@ -70,13 +70,13 @@
           class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
             {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
           {{if eq .Page 1.0}}disabled{{end}}>
-          <i class="fas fa-chevron-left"></i>
+          {{heroicon "chevron-left" ""}}
         </button>
         <button onclick="loadReportPage('revenue', {{$next}})"
           class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
             {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
           {{if ge .Page .TotalPages}}disabled{{end}}>
-          <i class="fas fa-chevron-right"></i>
+          {{heroicon "chevron-right" ""}}
         </button>
       </div>
     </div>
@@ -92,8 +92,8 @@
       <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
     </div>
     <div class="flex gap-2">
-      <a href="/business/reports/export/orders.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Orders CSV</a>
-      <a href="/business/reports/export/bookings.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Bookings CSV</a>
+      <a href="/business/reports/export/orders.csv" class="btn btn-ghost btn-sm">{{heroicon "arrow-down-tray" "mr-1"}}Export Orders CSV</a>
+      <a href="/business/reports/export/bookings.csv" class="btn btn-ghost btn-sm">{{heroicon "arrow-down-tray" "mr-1"}}Export Bookings CSV</a>
     </div>
   </div>
 
@@ -151,13 +151,13 @@
           class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
             {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
           {{if eq .Page 1.0}}disabled{{end}}>
-          <i class="fas fa-chevron-left"></i>
+          {{heroicon "chevron-left" ""}}
         </button>
         <button onclick="loadReportPage('sales', {{$next}})"
           class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
             {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
           {{if ge .Page .TotalPages}}disabled{{end}}>
-          <i class="fas fa-chevron-right"></i>
+          {{heroicon "chevron-right" ""}}
         </button>
       </div>
     </div>
@@ -173,7 +173,7 @@
       <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
     </div>
     <div class="flex gap-2">
-      <a href="/business/reports/export/clients.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export CSV</a>
+      <a href="/business/reports/export/clients.csv" class="btn btn-ghost btn-sm">{{heroicon "arrow-down-tray" "mr-1"}}Export CSV</a>
     </div>
   </div>
 
@@ -246,8 +246,8 @@
       <p class="text-sm text-[var(--color-text-secondary)]">{{.RangeLabel}} · {{.StartDate}} to {{.EndDate}}</p>
     </div>
     <div class="flex gap-2">
-      <a href="/business/reports/export/orders.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Orders CSV</a>
-      <a href="/business/reports/export/payments.csv" class="btn btn-ghost btn-sm"><i class="fas fa-download mr-1"></i>Export Payments CSV</a>
+      <a href="/business/reports/export/orders.csv" class="btn btn-ghost btn-sm">{{heroicon "arrow-down-tray" "mr-1"}}Export Orders CSV</a>
+      <a href="/business/reports/export/payments.csv" class="btn btn-ghost btn-sm">{{heroicon "arrow-down-tray" "mr-1"}}Export Payments CSV</a>
     </div>
   </div>
 

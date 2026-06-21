@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -44,7 +43,7 @@
 
       {{if .Error}}
       <div class="bg-[var(--color-error-light)] text-[var(--color-error)] px-4 py-3 rounded-xl mb-4 flex items-center gap-2 text-sm border" style="border-color: color-mix(in srgb, var(--color-error) 20%, transparent);">
-        <i class="fas fa-exclamation-circle"></i>
+        {{heroicon "exclamation-circle"}}
         {{.Error}}
       </div>
       {{end}}
@@ -60,12 +59,12 @@
           <div>
             <label for="password" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Password</label>
             <div class="relative input-with-icon">
-              <i class="fas fa-lock input-icon"></i>
+              {{heroicon "lock-closed" "input-icon"}}
               <input type="password" id="password" name="password" required minlength="6"
                 class="input"
                 placeholder="Create a strong password" oninput="checkStrength(); onRegPwInput()">
               <button type="button" onclick="toggleRegPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors">
-                <i class="fas fa-eye" id="regPwIcon"></i>
+                <span id="regPwIcon">{{heroicon "eye"}}</span>
               </button>
             </div>
             <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="regPwError">Password must be at least 6 characters</p>
@@ -79,21 +78,21 @@
           <div>
             <label for="confirm_password" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Confirm Password</label>
             <div class="relative input-with-icon">
-              <i class="fas fa-check-circle input-icon"></i>
+              {{heroicon "check-circle" "input-icon"}}
               <input type="password" id="confirm_password" required class="input" placeholder="Repeat your password" oninput="checkMatch()">
             </div>
             <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="matchError">Passwords do not match</p>
-            <p class="text-xs text-emerald-500 mt-1 hidden" id="matchSuccess"><i class="fas fa-check mr-0.5"></i>Passwords match</p>
+            <p class="text-xs text-emerald-500 mt-1 hidden" id="matchSuccess">{{heroicon "check" "mr-0.5"}}Passwords match</p>
           </div>
         </div>
         <div class="mt-5 flex justify-between">
           <a href="/business/register/step2?token={{.Token}}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left text-xs"></i> Back
+            {{heroicon "arrow-left" "text-xs"}} Back
           </a>
           <button type="submit" id="registerBtn" class="btn btn-primary">
             <span id="regBtnText">Create Account</span>
-            <i class="fas fa-arrow-right text-xs" id="regBtnIcon"></i>
-            <i class="fas fa-spinner fa-spin hidden" id="regBtnSpinner"></i>
+            <span id="regBtnIcon">{{heroicon "arrow-right" "text-xs"}}</span>
+            <span id="regBtnSpinner" class="hidden">{{heroicon "arrow-path" "animate-spin"}}</span>
           </button>
         </div>
       </form>
@@ -113,7 +112,7 @@
       var pw = document.getElementById('password');
       var icon = document.getElementById('regPwIcon');
       pw.type = pw.type === 'password' ? 'text' : 'password';
-      icon.className = pw.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+      icon.innerHTML = pw.type === 'password' ? '{{heroicon "eye"}}' : '{{heroicon "eye-slash"}}';
     }
 
     function checkStrength() {

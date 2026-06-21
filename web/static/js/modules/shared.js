@@ -82,7 +82,7 @@
         '<div class="toast-message">' + escapeHtml(message) + '</div>' +
       '</div>' +
       '<button class="toast-close" onclick="removeToast(\'' + id + '\')" aria-label="Close">' +
-        '<i class="fas fa-times text-xs"></i>' +
+        heroicon("x-mark", "text-xs") +
       '</button>' +
       '<div class="toast-progress" style="width:100%"></div>';
 
@@ -450,7 +450,7 @@
       var graceAllowed = options.graceAllowed || false;
       var resource = options.resource || '';
 
-      var upgradeBtn = '<a href="' + upgradeUrl + '" class="inline-flex items-center px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium transition shadow-sm hover:opacity-90"><i class="fas fa-arrow-up mr-1.5 text-xs"></i> Upgrade Plan</a>';
+      var upgradeBtn = '<a href="' + upgradeUrl + '" class="inline-flex items-center px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-medium transition shadow-sm hover:opacity-90">' + heroicon("arrow-up", "mr-1.5", "text-xs") + ' Upgrade Plan</a>';
       var graceBtn = graceAllowed ? '<button class="grace-continue px-4 py-2 rounded-lg border border-[var(--color-warning)] text-[var(--color-warning)] hover:bg-[var(--color-warning-light)] text-sm font-medium transition">Continue Once</button>' : '';
       var closeBtn = '<button class="modal-cancel px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] text-sm font-medium transition">Close</button>';
 
@@ -458,7 +458,7 @@
         '<div class="bg-[var(--color-surface)] rounded-xl shadow-2xl p-5 mx-4 w-full max-w-sm border border-[var(--color-border)] animate-fade-in-down">' +
           '<div class="flex items-center gap-3 mb-3">' +
             '<div class="w-10 h-10 rounded-full bg-[var(--color-warning-light)] flex items-center justify-center shrink-0">' +
-              '<i class="fas fa-crown text-[var(--color-warning)]"></i>' +
+              heroicon("trophy", "text-[var(--color-warning)]") +
             '</div>' +
             '<h3 class="text-base font-semibold text-[var(--color-text)]">' + escapeHtml(title) + '</h3>' +
           '</div>' +

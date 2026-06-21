@@ -8,7 +8,6 @@
   {{template "pwa_head" .}}
   <title>{{.Title}}</title>
   <script src="/static/js/vendor/htmx.min.js?v=1"></script>
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -17,17 +16,17 @@
 <body class="bg-[var(--color-bg)] h-screen overflow-y-auto">
   <header class="sticky top-0 z-10 bg-[var(--color-primary)] text-white p-3 sm:p-4 flex items-center justify-between">
     <div class="flex items-center space-x-2 sm:space-x-4">
-      <i class="fas fa-compass text-lg sm:text-2xl"></i>
+      {{heroicon "compass" "text-lg" "sm:text-2xl"}}
       <h1 class="text-base sm:text-xl font-semibold">Discover Businesses</h1>
     </div>
     <div class="flex items-center space-x-2 sm:space-x-3">
       <span class="text-xs sm:text-sm text-white/80 hide-mobile">{{.Email}}</span>
       <button class="theme-toggle w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-white/20 flex items-center justify-center" title="Toggle theme">
-        <i class="fas fa-sun theme-sun text-white text-sm sm:text-base"></i>
-        <i class="fas fa-moon theme-moon hidden text-white text-sm sm:text-base"></i>
+        {{heroicon "sun" "theme-sun" "text-white" "text-sm" "sm:text-base"}}
+        {{heroicon "moon" "theme-moon" "hidden" "text-white" "text-sm" "sm:text-base"}}
       </button>
       <a href="/client" class="hover:bg-white/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm">
-        <i class="fas fa-arrow-left mr-1"></i> Back
+        {{heroicon "arrow-left" "mr-1"}} Back
       </a>
     </div>
   </header>
@@ -37,7 +36,7 @@
     <div class="mb-4 sm:mb-6">
       <div class="relative">
         <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-          <i class="fas fa-search text-[var(--color-text-muted)] text-sm sm:text-base"></i>
+          {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]" "text-sm" "sm:text-base"}}
         </div>
         <input type="text" id="searchInput" placeholder="Search businesses by name, type, or slug..."
           class="input pl-9 sm:pl-12 text-sm">
@@ -67,23 +66,23 @@
             {{if .Logo}}
             <img src="/static/{{.Logo}}" alt="{{.Name}}" class="w-full h-full object-cover" loading="lazy" width="56" height="56">
             {{else}}
-            <i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>
-            {{end}}
-          </div>
-          <div class="min-w-0">
-            <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">{{.Name}}</h3>
-            <p class="text-xs sm:text-sm text-[var(--color-text-muted)] capitalize truncate">{{.BusinessType}}</p>
-            <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">/b/{{.Slug}}</p>
-          </div>
+            {{heroicon "building-storefront" "text-[var(--color-primary)]" "text-sm" "sm:text-xl"}}
+          {{end}}
         </div>
-        <button onclick="connectToBusiness({{.ID}})"
-          class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
-          <i class="fas fa-plus mr-1"></i> Connect
+        <div class="min-w-0">
+          <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">{{.Name}}</h3>
+          <p class="text-xs sm:text-sm text-[var(--color-text-muted)] capitalize truncate">{{.BusinessType}}</p>
+          <p class="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate">/b/{{.Slug}}</p>
+        </div>
+      </div>
+      <button onclick="connectToBusiness({{.ID}})"
+        class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
+        {{heroicon "plus" "mr-1"}} Connect
         </button>
       </div>
       {{else}}
       <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
-        <i class="fas fa-store text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+        {{heroicon "building-storefront" "text-4xl" "sm:text-5xl" "mb-3" "sm:mb-4"}}
         <p class="text-base sm:text-lg">No businesses available</p>
         <p class="text-xs sm:text-sm mt-1">Check back later for new businesses to connect with</p>
       </div>
@@ -111,7 +110,7 @@
               if (businesses.length === 0) {
               container.innerHTML = `
                 <div class="text-center py-8 sm:py-12 text-[var(--color-text-muted)]">
-                  <i class="fas fa-search text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+                  {{heroicon "magnifying-glass" "text-4xl" "sm:text-5xl" "mb-3" "sm:mb-4"}}
                   <p class="text-base sm:text-lg">No businesses found</p>
                   <p class="text-xs sm:text-sm mt-1">Try a different search term</p>
                 </div>`;
@@ -121,7 +120,7 @@
               <div class="business-card bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 sm:p-4 flex items-center justify-between hover:shadow-md transition-shadow gap-2 sm:gap-3">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
                   <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--color-primary-light)] to-cyan-100 flex items-center justify-center overflow-hidden shrink-0">
-                    ${b.logo ? `<img src="/static/${b.logo}" alt="${b.name}" class="w-full h-full object-cover" loading="lazy">` : `<i class="fas fa-store text-[var(--color-primary)] text-sm sm:text-xl"></i>`}
+                    ${b.logo ? `<img src="/static/${b.logo}" alt="${b.name}" class="w-full h-full object-cover" loading="lazy">` : `{{heroicon "building-storefront" "text-[var(--color-primary)]" "text-sm" "sm:text-xl"}}`}
                   </div>
                   <div class="min-w-0">
                     <h3 class="font-semibold text-sm sm:text-base text-[var(--color-text)] truncate">${b.name}</h3>
@@ -131,7 +130,7 @@
                 </div>
                 <button onclick="connectToBusiness(${b.id})"
                   class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
-                  <i class="fas fa-plus mr-1"></i> Connect
+                  {{heroicon "plus" "mr-1"}} Connect
                 </button>
               </div>
             `).join('');
@@ -142,26 +141,26 @@
     function connectToBusiness(businessId) {
       const btn = event.target.closest('.connect-btn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Connecting...';
+      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1"}} Connecting...';
 
       fetch('/client/connect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            btn.innerHTML = '<i class="fas fa-check mr-1"></i> Connected!';
+            btn.innerHTML = '{{heroicon "check" "mr-1"}} Connected!';
             btn.classList.remove('bg-[var(--color-primary)]', 'hover:opacity-90');
             btn.classList.add('bg-[var(--color-success)]');
             setTimeout(() => {
               window.location.href = '/client?business_id=' + businessId;
             }, 800);
           } else {
-            btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Connect';
+            btn.innerHTML = '{{heroicon "plus" "mr-1"}} Connect';
             btn.disabled = false;
             showNotification(data.error || 'Failed to connect', 'error');
           }
         })
         .catch(() => {
-          btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Connect';
+          btn.innerHTML = '{{heroicon "plus" "mr-1"}} Connect';
           btn.disabled = false;
           showNotification('Failed to connect', 'error');
         });

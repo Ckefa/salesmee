@@ -11,7 +11,7 @@
     		role="row">
     	<div class="wa-chat-avatar-wrapper">
     		<div class="wa-chat-avatar avatar-placeholder">
-    			<i class="fas fa-user text-white"></i>
+    			{{heroicon "user" "text-white"}}
     		</div>
     		<span class="wa-online-dot {{if .IsOnline}}online{{else}}offline{{end}}"></span>
     	</div>
@@ -31,20 +31,20 @@
     	</div>
      	<div class="flex items-center gap-0.5 ml-auto shrink-0">
      		<button onclick="event.stopPropagation(); togglePinClient('{{.ID}}')" class="pin-btn wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-amber-500" title="Pin to top">
-     			<i class="fas fa-star text-[10px]"></i>
+     			{{heroicon "star" "text-[10px]"}}
      		</button>
      		<button onclick="event.stopPropagation(); deleteClient('{{.ID}}')" title="Delete" class="wa-chat-icon-btn text-[var(--color-text-muted)] hover:text-[var(--color-error)]">
-     			<i class="fas fa-trash-alt text-[10px]"></i>
+     			{{heroicon "trash" "text-[10px]"}}
      		</button>
      	</div>
     </div>
   {{else}}
   <div class="wa-empty-chat-list">
-    <div class="wa-empty-chat-list-icon"><i class="fas fa-inbox"></i></div>
+    <div class="wa-empty-chat-list-icon">{{heroicon "inbox-arrow-down"}}</div>
     <h3>No chats yet</h3>
     <p>Share your business link so clients can discover and connect with you.</p>
     <a href="/business/share" class="btn btn-primary btn-sm mt-2">
-      <i class="fas fa-share-alt"></i> Share Your Business
+      {{heroicon "share"}} Share Your Business
     </a>
   </div>
   {{end}}
@@ -53,16 +53,16 @@
 <!-- Right-click Context Menu -->
 <div id="ctxMenu" class="wa-ctx-menu hidden">
   <button class="wa-ctx-item" data-action="mark-read" onclick="waCtxMarkRead()">
-    <i class="fas fa-check-circle"></i>
+    {{heroicon "check-circle"}}
     <span>Mark as read</span>
   </button>
   <button class="wa-ctx-item" data-action="clear-chat" onclick="waCtxClearChat()">
-    <i class="fas fa-eraser"></i>
+    {{heroicon "trash"}}
     <span>Clear chat</span>
   </button>
   <div class="wa-ctx-divider"></div>
   <button class="wa-ctx-item wa-ctx-danger" data-action="delete" onclick="waCtxDeleteChat()">
-    <i class="fas fa-trash-alt"></i>
+    {{heroicon "trash"}}
     <span>Delete chat</span>
   </button>
 </div>

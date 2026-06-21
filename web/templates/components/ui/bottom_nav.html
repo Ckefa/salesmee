@@ -2,11 +2,11 @@
 {{$active := .ActivePage}}
 <nav class="bottom-nav hide-desktop hide-tablet">
   <button onclick="handleChatsNav(); setActiveNav(this)" class="bottom-nav-item {{if eq $active `chat`}}active{{end}}">
-    <i class="fas fa-comments"></i>
+    {{heroicon "chat-bubble-left-ellipsis"}}
     <span>Chats</span>
   </button>
   <a href="/business/dashboard" onclick="setActiveNav(this)" class="bottom-nav-item {{if eq $active `dashboard`}}active{{end}}">
-    <i class="fas fa-chart-line"></i>
+    {{heroicon "presentation-chart-line"}}
     <span>Dashboard</span>
   </a>
 </nav>

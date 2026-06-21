@@ -5,19 +5,19 @@
     <div class="wa-input-inner">
       <div class="relative" id="media-tray-container">
         <button type="button" onclick="toggleMediaTray()" class="wa-input-icon-btn" title="Attach">
-          <i class="fas fa-plus" id="media-icon"></i>
+          <span id="media-icon">{{heroicon "plus"}}</span>
         </button>
         <div id="media-tray" class="hidden wa-media-tray">
           <button type="button" onclick="triggerMediaUpload('image')" class="wa-media-option">
-            <i class="fas fa-image text-blue-500"></i>
+            {{heroicon "photo" "text-blue-500"}}
             <span>Photos & Videos</span>
           </button>
           <button type="button" onclick="triggerMediaUpload('document')" class="wa-media-option">
-            <i class="fas fa-file-alt text-amber-500"></i>
+            {{heroicon "document-text" "text-amber-500"}}
             <span>Document</span>
           </button>
           <button type="button" onclick="triggerMediaUpload('audio')" class="wa-media-option">
-            <i class="fas fa-microphone text-rose-500"></i>
+            {{heroicon "microphone" "text-rose-500"}}
             <span>Voice Note</span>
           </button>
         </div>
@@ -29,7 +29,7 @@
         autocomplete="off">
       <input type="hidden" name="sender" value="business">
       <button type="submit" class="wa-send-btn" title="Send" id="sendBtn">
-        <i class="fas fa-paper-plane"></i>
+        {{heroicon "paper-airplane"}}
       </button>
     </div>
     <input type="file" name="media_image" id="media-input-image" accept="image/*" class="hidden" onchange="handleMediaSelected(this)">

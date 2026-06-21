@@ -44,7 +44,7 @@ func ShowClientLogin(c *gin.Context) {
 		}
 	}
 	c.HTML(http.StatusOK, "client_login.html", middleware.TemplateData(c, gin.H{
-		"Title": "Client Login - SalesMee",
+		"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 	}))
 }
 
@@ -52,7 +52,7 @@ func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Email is required",
 		}))
 		return
@@ -70,7 +70,7 @@ func SendClientOTP(c *gin.Context) {
 		}
 		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-				"Title": "Client Login - SalesMee",
+				"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 				"Error": "Failed to create account",
 			}))
 			return
@@ -80,7 +80,7 @@ func SendClientOTP(c *gin.Context) {
 	_, err = services.SendClientOTP(email)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to send OTP",
 		}))
 		return

@@ -21,7 +21,7 @@
         <div>
           <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Product</label>
           <div class="relative mt-1">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+            {{heroicon "magnifying-glass" "absolute" "left-3" "top-1/2" "-translate-y-1/2" "text-[var(--color-text-muted)]" "text-xs"}}
             <input type="text" id="orderProductSearch" placeholder="Type to search..." class="input pl-10 text-sm">
           </div>
           <div id="orderProductResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
@@ -29,7 +29,7 @@
           </div>
           <div id="orderProductCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
           <div id="orderProductSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
-            <i class="fas fa-check-circle mr-1"></i><span id="orderProductSelectedName"></span>
+            {{heroicon "check-circle" "mr-1"}}<span id="orderProductSelectedName"></span>
           </div>
           <input type="hidden" id="orderProduct" value="">
         </div>
@@ -88,11 +88,11 @@
       <!-- Navigation -->
       <div class="flex justify-between gap-3 pt-4 border-t border-[var(--color-border)]">
         <button type="button" id="ordBackBtn" onclick="ordGoToStep(ordStep - 1)" class="btn btn-secondary hidden">
-          <i class="fas fa-arrow-left mr-1"></i>Back
+          {{heroicon "arrow-left" "mr-1"}}Back
         </button>
         <div class="flex gap-3 ml-auto">
           <button type="button" id="ordCancelBtn" onclick="hideQuickOrderModal()" class="btn btn-secondary">Cancel</button>
-          <button type="button" id="ordNextBtn" class="btn btn-primary" onclick="ordNextStep()">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+          <button type="button" id="ordNextBtn" class="btn btn-primary" onclick="ordNextStep()">Continue {{heroicon "arrow-right" "ml-1"}}</button>
           <button type="submit" id="ordSubmitBtn" class="btn btn-primary hidden">Create Order</button>
         </div>
       </div>

@@ -79,7 +79,7 @@ function sortBusinessList() {
     var star = el.querySelector('.pin-btn i');
     if (star) {
       var id = parseInt(el.getAttribute('data-business-id'));
-      star.className = pins.indexOf(id) > -1 ? 'fas fa-star text-amber-500' : 'fas fa-star text-[var(--color-text-muted)]';
+      star.outerHTML = pins.indexOf(id) > -1 ? heroicon("star", "text-amber-500") : heroicon("star", "text-[var(--color-text-muted)]");
     }
   });
   initClientSidebarVirtualScroll();
@@ -453,12 +453,12 @@ function addOrderMessageToChat(order) {
     <div class="${bgClass} border rounded-lg px-4 py-3" data-message-id="${order.id}" data-order-id="${order.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
-          <i class="fas fa-shopping-cart ${iconColor}"></i>
+          ${heroicon("shopping-cart", iconColor)}
           <span class="font-semibold ${iconColor} text-sm">[${order.id}]</span>
           <span class="text-[var(--color-text)] text-sm">${order.product_name || 'Product'}</span>
         </div>
         <button onclick="openClientEditOrderPicker(${order.id})" class="${iconColor} hover:opacity-80 text-xs" title="Edit Order">
-          <i class="fas fa-edit"></i>
+          ${heroicon("pencil")}
         </button>
       </div>
       <div class="order-details text-sm text-[var(--color-text)]">
@@ -676,8 +676,7 @@ function toggleMediaTray() {
   if (tray) {
     tray.classList.toggle('hidden');
     if (icon) {
-      icon.classList.toggle('fa-paperclip');
-      icon.classList.toggle('fa-times');
+      icon.innerHTML = tray.classList.contains('hidden') ? heroicon("paper-clip") : heroicon("x-mark");
     }
   }
 }
@@ -689,7 +688,7 @@ function triggerMediaUpload(type) {
   if (tray && !tray.classList.contains('hidden')) {
     tray.classList.add('hidden');
     var icon = document.getElementById('media-icon');
-    if (icon) icon.classList.replace('fa-times', 'fa-paperclip');
+    if (icon) icon.innerHTML = heroicon("paper-clip");
   }
 }
 
@@ -714,7 +713,7 @@ document.addEventListener('click', function(e) {
     tray.classList.add('hidden');
     var icon = document.getElementById('media-icon');
     if (icon) {
-      icon.classList.replace('fa-times', 'fa-paperclip');
+      icon.innerHTML = heroicon("paper-clip");
     }
   }
 });

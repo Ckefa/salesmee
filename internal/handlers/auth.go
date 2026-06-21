@@ -59,7 +59,7 @@ func ShowLogin(c *gin.Context) {
 		}
 	}
 	c.HTML(http.StatusOK, "business_login.html", middleware.TemplateData(c, gin.H{
-		"Title": "Login - SalesMee",
+		"Title": "Business Login — Manage Orders, Bookings & Clients",
 	}))
 }
 
@@ -71,7 +71,7 @@ func ShowRegisterStep1(c *gin.Context) {
 		}
 	}
 	c.HTML(http.StatusOK, "register_step1.html", middleware.TemplateData(c, gin.H{
-		"Title": "Register - SalesMee",
+		"Title": "Create Your Business Account — Get Started with SalesMee",
 	}))
 }
 
@@ -97,7 +97,7 @@ func RegisterStep1(c *gin.Context) {
 
 	if name == "" || username == "" || email == "" {
 		c.HTML(http.StatusOK, "register_step1.html", middleware.TemplateData(c, gin.H{
-			"Title": "Register - SalesMee",
+			"Title": "Create Your Business Account — Get Started with SalesMee",
 			"Error": "All fields are required",
 		}))
 		return
@@ -106,7 +106,7 @@ func RegisterStep1(c *gin.Context) {
 	var existing models.Business
 	if dbc(c).Where("email = ?", email).First(&existing).Error == nil {
 		c.HTML(http.StatusOK, "register_step1.html", middleware.TemplateData(c, gin.H{
-			"Title": "Register - SalesMee",
+			"Title": "Create Your Business Account — Get Started with SalesMee",
 			"Error": "Email already exists",
 		}))
 		return
@@ -137,7 +137,7 @@ func ShowRegisterStep2(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "register_step2.html", middleware.TemplateData(c, gin.H{
-		"Title":         "Register - SalesMee",
+		"Title":         "Create Your Business Account — Get Started with SalesMee",
 		"Token":         tok,
 		"Name":          data.Name,
 		"Username":      data.Username,
@@ -167,7 +167,7 @@ func RegisterStep2(c *gin.Context) {
 	businessType := c.PostForm("business_type")
 	if businessType == "" || !validBusinessTypes[businessType] {
 		c.HTML(http.StatusOK, "register_step2.html", middleware.TemplateData(c, gin.H{
-			"Title":         "Register - SalesMee",
+			"Title": "Create Your Business Account — Get Started with SalesMee",
 			"Token":         tok,
 			"Name":          data.Name,
 			"Username":      data.Username,
@@ -216,7 +216,7 @@ func ShowRegisterStep3(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "register_step3.html", middleware.TemplateData(c, gin.H{
-		"Title":        "Register - SalesMee",
+		"Title":        "Create Your Business Account — Get Started with SalesMee",
 		"Token":        tok,
 		"Name":         data.Name,
 		"Username":     data.Username,
@@ -246,7 +246,7 @@ func RegisterStep3(c *gin.Context) {
 
 	if password == "" || len(password) < 6 {
 		c.HTML(http.StatusOK, "register_step3.html", middleware.TemplateData(c, gin.H{
-			"Title":        "Register - SalesMee",
+			"Title":        "Create Your Business Account — Get Started with SalesMee",
 			"Token":        tok,
 			"Name":         data.Name,
 			"Username":     data.Username,
@@ -290,7 +290,7 @@ func RegisterStep3(c *gin.Context) {
 	if err := dbc(c).Create(&user).Error; err != nil {
 		RegStore.Delete(tok)
 		c.HTML(http.StatusOK, "register_step3.html", middleware.TemplateData(c, gin.H{
-			"Title":        "Register - SalesMee",
+			"Title":        "Create Your Business Account — Get Started with SalesMee",
 			"Token":        tok,
 			"Name":         data.Name,
 			"Username":     data.Username,
@@ -353,7 +353,7 @@ func Login(c *gin.Context) {
 	var user models.Business
 	if err := dbc(c).Where("email = ?", email).First(&user).Error; err != nil {
 		c.HTML(http.StatusUnauthorized, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Invalid email or password",
 		}))
 		return
@@ -361,7 +361,7 @@ func Login(c *gin.Context) {
 
 	if user.Password == nil || !services.Check(*user.Password, password) {
 		c.HTML(http.StatusUnauthorized, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Invalid email or password",
 		}))
 		return
@@ -370,7 +370,7 @@ func Login(c *gin.Context) {
 	token, err := services.GenerateToken(user.ID, user.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "business_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Login - SalesMee",
+			"Title": "Business Login — Manage Orders, Bookings & Clients",
 			"Error": "Failed to generate token",
 		}))
 		return

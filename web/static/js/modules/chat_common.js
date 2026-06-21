@@ -33,7 +33,7 @@ function renderOwnMessage(content, tempId, mediaInfo) {
     if (mediaInfo.type === 'image') {
       mediaHtml = '<img src="' + mediaInfo.url + '" alt="Image" class="wa-media-image" style="max-width:200px;max-height:200px;object-fit:cover;border-radius:8px;opacity:0.7;">';
     } else {
-      mediaHtml = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><span class="wa-media-doc-link">' + escapeHtml(mediaInfo.name) + '</span><span class="text-xs text-[var(--color-text-muted)] ml-2">uploading...</span></div>';
+      mediaHtml = '<div class="wa-media-doc">' + heroicon('document-text', 'wa-media-doc-icon') + '<span class="wa-media-doc-link">' + escapeHtml(mediaInfo.name) + '</span><span class="text-xs text-[var(--color-text-muted)] ml-2">uploading...</span></div>';
     }
   }
   var bodyHtml = mediaHtml + (content ? '<span class="msg-txt">' + escapeHtml(content) + '</span>' : '');
@@ -184,7 +184,7 @@ function starsHtml(rating) {
   var html = '';
   var r = rating || 5;
   for (var i = 1; i <= 5; i++) {
-    html += i <= r ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+    html += i <= r ? heroicon('star') : heroicon('star');
   }
   return html;
 }
@@ -206,11 +206,11 @@ function renderMediaMessage(msg) {
   if (msg.media_type === 'image') {
     mediaTag = '<img src="' + url + '" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">';
   } else if (msg.media_type === 'document') {
-    mediaTag = '<div class="wa-media-doc"><i class="fas fa-file-alt wa-media-doc-icon"></i><a href="' + url + '" target="_blank" class="wa-media-doc-link">' + escapeHtml(msg.media_url.split('/').pop()) + '</a><i class="fas fa-external-link-alt wa-media-doc-ext"></i></div>';
+    mediaTag = '<div class="wa-media-doc">' + heroicon('document-text', 'wa-media-doc-icon') + '<a href="' + url + '" target="_blank" class="wa-media-doc-link">' + escapeHtml(msg.media_url.split('/').pop()) + '</a></div>';
   } else if (msg.media_type === 'audio') {
     mediaTag = '<div class="wa-media-audio"><audio controls class="wa-audio-player" preload="metadata"><source src="' + url + '"></audio></div>';
   } else {
-    mediaTag = '<a href="' + url + '" target="_blank" class="wa-media-doc-link"><i class="fas fa-file"></i> ' + escapeHtml(msg.media_url.split('/').pop()) + '</a>';
+    mediaTag = '<a href="' + url + '" target="_blank" class="wa-media-doc-link">' + heroicon('document') + ' ' + escapeHtml(msg.media_url.split('/').pop()) + '</a>';
   }
   var inner = mediaTag + (msg.content ? '<p>' + escapeHtml(msg.content) + '</p>' : '') + '<span class="msg-meta"><span class="msg-time">' + formatTime(msg.created_at) + '</span></span>';
   return '<div class="msg in message-item" data-message-id="' + msg.id + '"><div class="msg-bbl" style="padding:3px;"><svg class="msg-tail" viewBox="0 0 10 15" height="15" width="10" preserveAspectRatio="xMidYMid meet"><path fill="var(--color-bg)" d="M1,3L10,14V1H3C1.5,1,0.5,2,1,3z"></path><path fill="currentColor" d="M1,2L10,13V0H3C1.5,0,0.5,1,1,2z"></path></svg>' + inner + '</div></div>';

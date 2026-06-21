@@ -5,10 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Log in to your SalesMee client portal to manage orders, view bookings, chat with businesses, and track purchases in real time.">
   {{template "pwa_head" .}}
   <title>{{.Title}}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   {{template "analytics_script" .}}
   <style>
@@ -34,19 +34,20 @@
     <div class="flex bg-gray-100 rounded-lg p-1 mb-6">
       <button id="signinTab" onclick="switchTab('signin')"
         class="flex-1 py-2 text-sm font-medium rounded-md transition-all tab-btn active-tab">
-        <i class="fas fa-sign-in-alt mr-1.5"></i>Sign In
+        {{heroicon "arrow-right-on-rectangle" "mr-1.5"}}Sign In
       </button>
       <button id="registerTab" onclick="switchTab('register')"
         class="flex-1 py-2 text-sm font-medium rounded-md transition-all tab-btn">
-        <i class="fas fa-user-plus mr-1.5"></i>Register
+        {{heroicon "user-plus" "mr-1.5"}}Register
       </button>
     </div>
 
-    <h2 id="formHeading" class="text-xl font-semibold text-center mb-6">Sign in to your account</h2>
+    <h1 id="formHeading" class="text-xl font-semibold text-center mb-2">Sign in to your account</h1>
+    <p id="formSubtitle" class="text-sm text-gray-500 text-center mb-6">Track orders, view bookings, and message businesses in real time.</p>
 
     {{if .Error}}
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-      <i class="fas fa-exclamation-circle mr-2"></i>
+      {{heroicon "exclamation-circle" "mr-2"}}
       {{.Error}}
     </div>
     {{end}}
@@ -67,7 +68,7 @@
     <div class="mb-5">
       <a href="/client/auth/facebook"
         class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-200 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 bg-white">
-        <i class="fab fa-facebook text-blue-600 text-xl"></i>
+        {{heroicon "share" "text-blue-600" "text-xl"}}
         <span class="text-gray-700">Sign in with Facebook</span>
       </a>
     </div>
@@ -88,7 +89,7 @@
         <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i class="fas fa-envelope text-gray-400"></i>
+            {{heroicon "envelope" "text-gray-400"}}
           </div>
           <input type="email" id="email" name="email" required
             class="input pl-10"
@@ -107,7 +108,7 @@
 
     <div class="text-center mt-6 space-y-2">
       <p class="text-gray-600 text-sm">
-        <i class="fas fa-store text-gray-400 mr-1"></i>
+        {{heroicon "building-storefront" "text-gray-400" "mr-1"}}
         Are you a business owner?
         <a href="/business/login" class="text-teal-600 hover:text-teal-700 font-medium">Business Login</a>
       </p>
@@ -162,7 +163,7 @@
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       var btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Sending...';
+      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1.5"}} Sending...';
     });
   </script>
   {{template "csrf_script" .}}

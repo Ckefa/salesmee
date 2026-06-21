@@ -7,7 +7,6 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -22,19 +21,19 @@
     <div class="card p-8 w-full max-w-md relative z-10 shadow-lg text-center">
       {{if .Success}}
       <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-check text-emerald-600 text-2xl"></i>
+        {{heroicon "check" "text-emerald-600" "text-2xl"}}
       </div>
       <h1 class="text-2xl font-bold text-[var(--color-text)] mb-2">Email Verified!</h1>
       <p class="text-[var(--color-text-secondary)] text-sm mb-6">{{.Success}}</p>
       <a href="/business/login" class="btn btn-primary inline-flex items-center">
-        <i class="fas fa-arrow-right text-xs mr-2"></i>
+        {{heroicon "arrow-right" "text-xs" "mr-2"}}
         Go to Sign In
       </a>
       {{end}}
 
       {{if .Error}}
       <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+        {{heroicon "exclamation-triangle" "text-red-600" "text-2xl"}}
       </div>
       <h1 class="text-2xl font-bold text-[var(--color-text)] mb-2">Verification Failed</h1>
       <p class="text-[var(--color-text-secondary)] text-sm mb-6">{{.Error}}</p>

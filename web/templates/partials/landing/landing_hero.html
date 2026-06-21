@@ -27,32 +27,32 @@
         </p>
         <div class="mt-8 flex flex-col sm:flex-row gap-4">
           <a href="/business/register" class="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold shadow-xl shadow-teal-500/25 hover:shadow-teal-500/40 hover:from-teal-600 hover:to-cyan-700 transition-all text-base group">
-            <i class="fas fa-store mr-2 text-sm"></i>
+            {{heroicon "building-storefront" "mr-2" "text-sm"}}
             Register Your Business
           </a>
           <a href="/client/login" class="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-white/10 text-white font-semibold border border-white/20 hover:bg-white/20 transition-all text-base">
             Start as a Client
-            <i class="fas fa-arrow-right ml-2 text-sm group-hover:translate-x-1 transition-transform"></i>
+            {{heroicon "arrow-right" "ml-2" "text-sm" "group-hover:translate-x-1" "transition-transform"}}
           </a>
         </div>
         <div class="mt-8 flex flex-wrap gap-3">
           <a href="#features" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-slate-300 text-sm font-medium border border-white/10 hover:bg-white/10 hover:text-white hover:border-teal-500/30 transition-all">
-            <i class="fas fa-layer-group text-teal-400 text-xs"></i> Explore Features
+            {{heroicon "squares-2x2" "text-teal-400" "text-xs"}} Explore Features
           </a>
           <a href="/business/register" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-slate-300 text-sm font-medium border border-white/10 hover:bg-white/10 hover:text-white hover:border-teal-500/30 transition-all">
-            <i class="fas fa-rocket text-teal-400 text-xs"></i> Free Trial
+            {{heroicon "rocket-launch" "text-teal-400" "text-xs"}} Free Trial
           </a>
           <a href="#for-businesses" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-slate-300 text-sm font-medium border border-white/10 hover:bg-white/10 hover:text-white hover:border-teal-500/30 transition-all">
-            <i class="fas fa-chart-line text-teal-400 text-xs"></i> Business Dashboard
+            {{heroicon "presentation-chart-line" "text-teal-400" "text-xs"}} Business Dashboard
           </a>
           <a href="#for-clients" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-slate-300 text-sm font-medium border border-white/10 hover:bg-white/10 hover:text-white hover:border-teal-500/30 transition-all">
-            <i class="fas fa-user text-teal-400 text-xs"></i> Client Portal
+            {{heroicon "user" "text-teal-400" "text-xs"}} Client Portal
           </a>
         </div>
         <div class="mt-6 flex items-center gap-8 text-sm text-slate-400">
-          <div class="flex items-center gap-2"><i class="fas fa-shield-alt text-teal-400"></i><span>No credit card</span></div>
-          <div class="flex items-center gap-2"><i class="fas fa-clock text-teal-400"></i><span>2-minute setup</span></div>
-          <div class="flex items-center gap-2"><i class="fas fa-infinity text-teal-400"></i><span>Free tier available</span></div>
+          <div class="flex items-center gap-2">{{heroicon "shield-check" "text-teal-400"}}<span>No credit card</span></div>
+          <div class="flex items-center gap-2">{{heroicon "clock" "text-teal-400"}}<span>2-minute setup</span></div>
+          <div class="flex items-center gap-2">{{heroicon "arrows-right-left" "text-teal-400"}}<span>Free tier available</span></div>
         </div>
       </div>
 
@@ -101,7 +101,7 @@
                 <div class="flex-1 flex flex-col items-end">
                   <div class="bg-blue-600/80 rounded-2xl rounded-tr-none px-4 py-2.5">
                     <div class="flex items-center mb-1">
-                      <i class="fas fa-shopping-cart text-blue-300 text-xs"></i>
+                      {{heroicon "shopping-cart" "text-blue-300" "text-xs"}}
                       <span class="font-semibold text-white text-sm ml-2">Order #1042</span>
                     </div>
                     <p class="text-sm text-blue-100">Premium Renovation Package</p>
@@ -116,7 +116,7 @@
                 <div class="flex-1 flex flex-col items-end">
                   <div class="bg-gradient-to-br from-purple-600/80 to-pink-600/80 rounded-2xl rounded-tr-none px-4 py-2.5">
                     <div class="flex items-center mb-1">
-                      <i class="fas fa-calendar text-purple-300 text-xs"></i>
+                      {{heroicon "calendar" "text-purple-300" "text-xs"}}
                       <span class="font-semibold text-white text-sm ml-2">Booking #204</span>
                     </div>
                     <p class="text-sm text-purple-100">Site Consultation — 2 hours</p>
@@ -144,28 +144,28 @@
             <div class="px-4 py-3 border-t border-slate-700/50">
               <div class="grid grid-cols-4 gap-2">
                 <button class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-all group cursor-default">
-                  <i class="fas fa-shopping-cart text-teal-400 text-sm group-hover:scale-110 transition-transform"></i>
+                  {{heroicon "shopping-cart" "text-teal-400" "text-sm" "group-hover:scale-110" "transition-transform"}}
                   <span class="text-[10px] text-slate-400 font-medium">Order</span>
                 </button>
                 <button class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 transition-all group cursor-default">
-                  <i class="fas fa-calendar text-purple-400 text-sm group-hover:scale-110 transition-transform"></i>
+                  {{heroicon "calendar" "text-purple-400" "text-sm" "group-hover:scale-110" "transition-transform"}}
                   <span class="text-[10px] text-slate-400 font-medium">Booking</span>
                 </button>
                 <button class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all group cursor-default">
-                  <i class="fas fa-file-invoice text-amber-400 text-sm group-hover:scale-110 transition-transform"></i>
+                  {{heroicon "document-text" "text-amber-400" "text-sm" "group-hover:scale-110" "transition-transform"}}
                   <span class="text-[10px] text-slate-400 font-medium">Quote</span>
                 </button>
                 <button class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all group cursor-default">
-                  <i class="fas fa-credit-card text-emerald-400 text-sm group-hover:scale-110 transition-transform"></i>
+                  {{heroicon "credit-card" "text-emerald-400" "text-sm" "group-hover:scale-110" "transition-transform"}}
                   <span class="text-[10px] text-slate-400 font-medium">Payment</span>
                 </button>
               </div>
               <div class="mt-3 flex items-center space-x-2">
                 <div class="flex-1 bg-slate-700/30 rounded-full px-4 py-2 text-sm text-slate-400">
-                  <i class="far fa-smile mr-2"></i>Type a message...
+                  {{heroicon "face-smile" "mr-2"}}Type a message...
                 </div>
                 <div class="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center shrink-0">
-                  <i class="fas fa-paper-plane text-white text-xs"></i>
+                  {{heroicon "paper-airplane" "text-white" "text-xs"}}
                 </div>
               </div>
             </div>

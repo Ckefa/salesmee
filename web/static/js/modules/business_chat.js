@@ -444,7 +444,7 @@ function toggleInsightsDrawer(conversationId) {
     positionInsightsDrawer();
     drawer.classList.add('open');
     if (!drawer.hasChildNodes() || drawer.innerHTML.trim() === '') {
-      drawer.innerHTML = '<div class="px-3 sm:px-6 py-6 text-center text-[var(--color-text-muted)] text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading insights...</div>';
+      drawer.innerHTML = '<div class="px-3 sm:px-6 py-6 text-center text-[var(--color-text-muted)] text-sm"><span class="spinner mr-2"></span>Loading insights...</div>';
       htmx.ajax('GET', '/business/conversations/' + conversationId + '/insights-panel', {
         target: '#insights-drawer',
         swap: 'innerHTML'

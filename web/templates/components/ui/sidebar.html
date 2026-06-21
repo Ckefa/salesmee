@@ -4,7 +4,7 @@
     {{if .Business.Logo}}
     <img src="/static/{{.Business.Logo}}" class="wa-sidebar-avatar" loading="lazy" width="32" height="32">
     {{else}}
-    <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+    <div class="wa-sidebar-avatar wa-sidebar-avatar-placeholder">{{heroicon "building-storefront"}}</div>
     {{end}}
     <div class="wa-sidebar-header-info">
       <h2 class="wa-sidebar-business-name">{{.Business.Name}}</h2>
@@ -12,32 +12,32 @@
     </div>
     <div class="wa-sidebar-header-actions">
       <button onclick="showNewClientModal()" class="wa-sidebar-icon-btn" title="New Customer">
-        <i class="fas fa-user-plus"></i>
+        {{heroicon "user-plus"}}
       </button>
       <button onclick="waToggleSidebarMenu()" class="wa-sidebar-icon-btn" title="Menu">
-        <i class="fas fa-ellipsis-v"></i>
+        {{heroicon "ellipsis-vertical"}}
       </button>
     </div>
   </div>
 
   <div id="sidebarMenuDropdown" class="hidden absolute top-14 right-2 z-50 w-56 card shadow-xl overflow-hidden py-1">
     <button onclick="showNewClientModal()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-      <i class="fas fa-user-plus w-5 text-center text-[var(--color-text-muted)]"></i>
+      {{heroicon "user-plus" "w-5" "text-center" "text-[var(--color-text-muted)]"}}
       <span>New Customer</span>
     </button>
     <a href="/business/share" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-      <i class="fas fa-share-alt w-5 text-center text-[var(--color-text-muted)]"></i>
+      {{heroicon "share" "w-5" "text-center" "text-[var(--color-text-muted)]"}}
       <span>Share Business</span>
     </a>
     <div class="border-t border-[var(--color-border-light)] my-1"></div>
     <a href="/business/logout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-      <i class="fas fa-sign-out-alt w-5 text-center"></i>
+      {{heroicon "arrow-right-on-rectangle" "w-5" "text-center"}}
       <span>Logout</span>
     </a>
   </div>
 
   <div class="wa-search-container">
-    <i class="fas fa-search wa-search-icon"></i>
+    {{heroicon "magnifying-glass" "wa-search-icon"}}
     <input type="text" id="clientSearch" placeholder="Search or start new chat" oninput="filterClients()" class="wa-search-input">
   </div>
 

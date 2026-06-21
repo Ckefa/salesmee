@@ -123,7 +123,7 @@ func (h *PaymentHandler) ClientSubmitOrderPayment(c *gin.Context) {
 			notifier.CreateInAppNotif(h.db, order.BusinessID, &clientID,
 				"Pending Payment Approval",
 				fmt.Sprintf("%s submitted a payment of %.2f for Order %s", client.Name, request.Amount, order.OrderNumber),
-				"fa-credit-card",
+				"credit-card",
 				"/business/orders")
 			broadcastBizPendingCounts(h.db, h.hub, order.BusinessID)
 		}
@@ -224,7 +224,7 @@ func (h *PaymentHandler) ClientSubmitBookingPayment(c *gin.Context) {
 			notifier.CreateInAppNotif(h.db, booking.BusinessID, &clientID,
 				"Pending Payment Approval",
 				fmt.Sprintf("%s submitted a payment of %.2f for Booking %s", client.Name, request.Amount, booking.BookingNumber),
-				"fa-credit-card",
+				"credit-card",
 				"/business/bookings")
 			broadcastBizPendingCounts(h.db, h.hub, booking.BusinessID)
 		}

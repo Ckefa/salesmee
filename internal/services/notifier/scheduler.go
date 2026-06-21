@@ -101,7 +101,7 @@ func CheckBookingReminders(db *gorm.DB) {
 			CreateInAppNotif(db, b.BusinessID, &b.ClientID,
 				fmt.Sprintf("%s Reminder", label),
 				fmt.Sprintf("%s at %s — %s", serviceName, timeStr, dateStr),
-				"fa-clock",
+				"clock",
 				"/business/bookings")
 		}
 	}
@@ -142,7 +142,7 @@ func CheckPaymentDueReminders(db *gorm.DB) {
 		CreateInAppNotif(db, o.BusinessID, &o.ClientID,
 			"Payment Due",
 			fmt.Sprintf("Order %s — %s due", o.OrderNumber, due),
-			"fa-credit-card",
+			"credit-card",
 			"/business/orders")
 	}
 
@@ -174,7 +174,7 @@ func CheckPaymentDueReminders(db *gorm.DB) {
 		CreateInAppNotif(db, b.BusinessID, &b.ClientID,
 			"Payment Due",
 			fmt.Sprintf("Booking %s — %s due", b.BookingNumber, due),
-			"fa-credit-card",
+			"credit-card",
 			"/business/bookings")
 	}
 }
@@ -223,7 +223,7 @@ func CheckAbandonedCarts(db *gorm.DB) {
 			CreateInAppNotif(db, biz.ID, &o.ClientID,
 				"Abandoned Cart",
 				fmt.Sprintf("Order %s is still pending — remind client", o.OrderNumber),
-				"fa-shopping-cart",
+				"shopping-cart",
 				"/business/orders")
 			}
 		}
@@ -280,7 +280,7 @@ func CheckReEngagement(db *gorm.DB) {
 			CreateInAppNotif(db, biz.ID, &c.ID,
 				"Inactive Client",
 				fmt.Sprintf("%s hasn't visited in %d days", c.Name, inactiveDays),
-				"fa-user-clock",
+				"user",
 				fmt.Sprintf("/business"))
 			}
 		}

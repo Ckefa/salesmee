@@ -11,7 +11,7 @@
     <div class="mb-6 bg-gradient-to-r from-[var(--color-primary-light)] to-[var(--color-info-light)] border border-[var(--color-primary)]/20 rounded-xl p-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0">
-          <i class="fas fa-rocket text-[var(--color-primary)]"></i>
+          {{heroicon "rocket-launch" "text-[var(--color-primary)]"}}
         </div>
         <div>
           <p class="text-sm font-medium text-[var(--color-text)]">Unlock more with Gold</p>
@@ -19,7 +19,7 @@
         </div>
       </div>
       <a href="/business/subscription#plans" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium hover:brightness-110 transition whitespace-nowrap">
-        <i class="fas fa-arrow-up text-xs"></i> Upgrade
+        {{heroicon "arrow-up" "text-xs"}} Upgrade
       </a>
     </div>
     {{end}}
@@ -60,13 +60,13 @@
       <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 hover:shadow-lg transition-shadow">
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0 w-12 h-12 bg-[var(--color-warning-light)] rounded-lg flex items-center justify-center">
-            <i class="fas fa-shopping-bag text-xl text-[var(--color-warning)]"></i>
+            {{heroicon "shopping-bag" "text-xl" "text-[var(--color-warning)]"}}
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-base font-semibold text-[var(--color-text)]">Counter Order</h3>
             <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1">Create an order for a walk-in or phone customer on the spot</p>
             <button onclick="showQuickOrderModal()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-warning)] text-white text-xs font-medium hover:brightness-110 transition">
-              <i class="fas fa-plus-circle text-xs"></i>
+              {{heroicon "plus-circle" "text-xs"}}
               Create Order
             </button>
           </div>
@@ -75,13 +75,13 @@
       <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 hover:shadow-lg transition-shadow">
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0 w-12 h-12 bg-[var(--color-secondary-light)] rounded-lg flex items-center justify-center">
-            <i class="fas fa-calendar-plus text-xl text-[var(--color-secondary)]"></i>
+            {{heroicon "calendar-days" "text-xl" "text-[var(--color-secondary)]"}}
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-base font-semibold text-[var(--color-text)]">Walk-in Booking</h3>
             <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1">Schedule a service for a customer who walked in or called</p>
             <button onclick="showQuickBookingModal()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-secondary)] text-white text-xs font-medium hover:brightness-110 transition">
-              <i class="fas fa-plus-circle text-xs"></i>
+              {{heroicon "plus-circle" "text-xs"}}
               Create Booking
             </button>
           </div>
@@ -170,7 +170,7 @@
     <div class="mt-8 bg-[var(--color-error-light)] border border-[var(--color-error)] rounded-xl p-4">
       <div class="flex">
         <div class="flex-shrink-0">
-          <i class="fas fa-exclamation-triangle text-[var(--color-error)]"></i>
+          {{heroicon "exclamation-triangle" "text-[var(--color-error)]"}}
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-[var(--color-error)]">Low Stock Alert</h3>
@@ -213,7 +213,7 @@ function onLocationFilterChange(el) {
   <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-primary-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-dollar-sign text-[var(--color-primary)] text-sm sm:text-base"></i>
+        {{heroicon "banknotes" "text-[var(--color-primary)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
@@ -226,7 +226,7 @@ function onLocationFilterChange(el) {
     class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-shopping-bag text-[var(--color-info)] text-sm sm:text-base"></i>
+        {{heroicon "shopping-bag" "text-[var(--color-info)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Orders</p>
@@ -239,7 +239,7 @@ function onLocationFilterChange(el) {
     class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm hover:shadow-lg transition-shadow cursor-pointer">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-calendar text-[var(--color-success)] text-sm sm:text-base"></i>
+        {{heroicon "calendar" "text-[var(--color-success)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
@@ -251,7 +251,7 @@ function onLocationFilterChange(el) {
   <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-users text-[var(--color-secondary)] text-sm sm:text-base"></i>
+        {{heroicon "users" "text-[var(--color-secondary)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Active Clients</p>
@@ -263,7 +263,7 @@ function onLocationFilterChange(el) {
   <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-check-circle text-[var(--color-success)] text-sm sm:text-base"></i>
+        {{heroicon "check-circle" "text-[var(--color-success)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
@@ -275,7 +275,7 @@ function onLocationFilterChange(el) {
   <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+        {{heroicon "clock" "text-[var(--color-warning)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
@@ -287,7 +287,7 @@ function onLocationFilterChange(el) {
   <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-thumbs-up text-[var(--color-info)] text-sm sm:text-base"></i>
+        {{heroicon "hand-thumb-up" "text-[var(--color-info)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
@@ -299,7 +299,7 @@ function onLocationFilterChange(el) {
   <div class="stat-card bg-[var(--color-surface)] p-4 sm:p-5 rounded-xl border border-[var(--color-border)] shadow-sm">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2 sm:p-3">
-        <i class="fas fa-times-circle text-[var(--color-error)] text-sm sm:text-base"></i>
+        {{heroicon "x-circle" "text-[var(--color-error)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-3 sm:ml-4">
         <p class="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>

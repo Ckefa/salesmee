@@ -82,7 +82,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("client_google_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Invalid state parameter. Please try again.",
 		}))
 		return
@@ -94,7 +94,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "No authorization code provided.",
 		}))
 		return
@@ -103,7 +103,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	user, err := getClientGoogleAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to authenticate with Google.",
 		}))
 		return
@@ -120,7 +120,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 		}
 		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-				"Title": "Client Login - SalesMee",
+				"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 				"Error": "Failed to create account.",
 			}))
 			return
@@ -133,7 +133,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 			}
 			if err := dbc(c).Save(&client).Error; err != nil {
 				c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-					"Title": "Client Login - SalesMee",
+					"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 					"Error": "Failed to link Google account.",
 				}))
 				return
@@ -147,7 +147,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 		"last_seen_at": &now,
 	}).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to update status.",
 		}))
 		return
@@ -156,7 +156,7 @@ func HandleClientGoogleCallback(c *gin.Context) {
 	token, err := generateClientTokenFromID(client.ID, client.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to generate token.",
 		}))
 		return
@@ -184,7 +184,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	cookieState, err := c.Cookie("client_facebook_oauth_state")
 	if err != nil || state == "" || state != cookieState {
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Invalid state parameter. Please try again.",
 		}))
 		return
@@ -196,7 +196,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "No authorization code provided.",
 		}))
 		return
@@ -205,7 +205,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	user, err := getClientFacebookAdapter().ExchangeCode(code)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to authenticate with Facebook.",
 		}))
 		return
@@ -222,7 +222,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 		}
 		if err := dbc(c).Create(&client).Error; err != nil {
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-				"Title": "Client Login - SalesMee",
+				"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 				"Error": "Failed to create account.",
 			}))
 			return
@@ -235,7 +235,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 			}
 			if err := dbc(c).Save(&client).Error; err != nil {
 				c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-					"Title": "Client Login - SalesMee",
+					"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 					"Error": "Failed to link Facebook account.",
 				}))
 				return
@@ -249,7 +249,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 		"last_seen_at": &now,
 	}).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to update status.",
 		}))
 		return
@@ -258,7 +258,7 @@ func HandleClientFacebookCallback(c *gin.Context) {
 	token, err := generateClientTokenFromID(client.ID, client.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
-			"Title": "Client Login - SalesMee",
+			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to generate token.",
 		}))
 		return

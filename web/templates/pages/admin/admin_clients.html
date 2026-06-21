@@ -1,5 +1,5 @@
 <div class="p-6">
-  <h2 class="text-sm font-semibold text-white mb-4"><i class="fas fa-users mr-2 text-teal-400"></i>Clients</h2>
+  <h2 class="text-sm font-semibold text-white mb-4">{{heroicon "users" "mr-2" "text-teal-400"}}Clients</h2>
 
   <!-- Search Bar -->
   <form id="client-filters">
@@ -57,7 +57,7 @@
           <td class="px-4 py-3 text-right">
             <form method="POST" action="/admin/clients/{{.Client.ID}}/delete" class="inline" onsubmit="return confirm('Delete this client?')">
               <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-              <button class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition"><i class="fas fa-trash-alt"></i></button>
+              <button class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition">{{heroicon "trash"}}</button>
             </form>
           </td>
         </tr>
@@ -77,7 +77,7 @@
       {{$prevDisabled := le .Page 1}}
       <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $prevDisabled}} opacity-30 cursor-default{{end}}"
         {{if not $prevDisabled}}hx-get="/admin/clients?page={{sub (float .Page) 1}}&search={{.Search}}&status={{.StatusFilter}}" hx-target="#admin-content"{{end}}>
-        <i class="fas fa-chevron-left"></i>
+        {{heroicon "chevron-left"}}
       </button>
       {{$page := .Page}}{{$totalPages := .TotalPages}}
       {{range $i := seq 1 $totalPages}}
@@ -93,7 +93,7 @@
       {{$nextDisabled := ge .Page .TotalPages}}
       <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $nextDisabled}} opacity-30 cursor-default{{end}}"
         {{if not $nextDisabled}}hx-get="/admin/clients?page={{add (float .Page) 1}}&search={{.Search}}&status={{.StatusFilter}}" hx-target="#admin-content"{{end}}>
-        <i class="fas fa-chevron-right"></i>
+        {{heroicon "chevron-right"}}
       </button>
     </div>
   </div>

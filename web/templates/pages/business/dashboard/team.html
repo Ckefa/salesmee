@@ -11,7 +11,7 @@
           <p class="text-sm text-[var(--color-text-secondary)] mt-1">Invite and manage team members</p>
         </div>
         <button onclick="showInviteModal()" class="btn btn-primary btn-sm">
-          <i class="fas fa-user-plus mr-1"></i> Invite Member
+          {{heroicon "user-plus" "mr-1"}} Invite Member
         </button>
       </div>
 
@@ -43,21 +43,21 @@
             <div class="flex gap-2 shrink-0">
               {{if .InviteToken}}
               <button onclick="copyInviteLink('{{.InviteToken}}')" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-info)]" title="Copy invite link">
-                <i class="fas fa-link"></i>
+                {{heroicon "link" ""}}
               </button>
               {{end}}
               <button onclick="editMember({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm">
-                <i class="fas fa-edit"></i>
+                {{heroicon "pencil" ""}}
               </button>
               <button onclick="deleteMember({{.ID}})" class="btn btn-ghost btn-icon btn-icon-sm text-[var(--color-error)]">
-                <i class="fas fa-trash"></i>
+                {{heroicon "trash" ""}}
               </button>
             </div>
           </div>
         </div>
         {{else}}
         <div class="card p-8 text-center">
-          <i class="fas fa-users text-3xl text-[var(--color-text-muted)] mb-3"></i>
+          {{heroicon "users" "text-3xl text-[var(--color-text-muted)] mb-3"}}
           <p class="text-[var(--color-text-secondary)]">No team members yet. Invite staff to help manage your business.</p>
         </div>
         {{end}}
@@ -117,7 +117,7 @@
       <div class="flex justify-end gap-2 mt-5">
         <button onclick="closeInviteModal()" class="btn btn-ghost btn-sm">Cancel</button>
         <button onclick="saveMember()" class="btn btn-primary btn-sm">
-          <i class="fas fa-save mr-1"></i> Save
+          {{heroicon "document-arrow-down" "mr-1"}} Save
         </button>
       </div>
     </div>
@@ -231,4 +231,3 @@ function deleteMember(id) {
 </script>
 </div>
 {{end}}
-

@@ -55,7 +55,7 @@
     var container = document.getElementById('assistMessages');
     if (!container) return;
     if (messageHistory.length === 0) {
-      container.innerHTML = '<div class="assist-empty"><i class="fas fa-wand-magic-sparkles text-2xl mb-2" style="color:var(--color-primary)"></i><p class="text-sm font-medium" style="color:var(--color-text-secondary)">How can I help you?</p><p class="text-xs" style="color:var(--color-text-muted)">Ask me to draft replies, suggest products, or help with SalesMee.</p></div>';
+      container.innerHTML = '<div class="assist-empty">' + heroicon("sparkles", "text-2xl", "mb-2", "text-[var(--color-primary)]") + '<p class="text-sm font-medium" style="color:var(--color-text-secondary)">How can I help you?</p><p class="text-xs" style="color:var(--color-text-muted)">Ask me to draft replies, suggest products, or help with SalesMee.</p></div>';
       return;
     }
     var html = '';
@@ -63,7 +63,7 @@
       var msg = messageHistory[i];
       var isUser = msg.role === 'user';
       html += '<div class="assist-msg ' + (isUser ? 'assist-msg-user' : 'assist-msg-bot') + '">' +
-        (isUser ? '' : '<div class="assist-avatar"><i class="fas fa-wand-magic-sparkles text-xs"></i></div>') +
+        (isUser ? '' : '<div class="assist-avatar">' + heroicon("sparkles", "text-xs") + '</div>') +
         '<div class="assist-bubble">' + escapeHtml(msg.content) + '</div>' +
       '</div>';
     }
@@ -90,7 +90,7 @@
     var container = document.getElementById('assistMessages');
     var loadingEl = document.createElement('div');
     loadingEl.className = 'assist-msg assist-msg-bot';
-    loadingEl.innerHTML = '<div class="assist-avatar"><i class="fas fa-wand-magic-sparkles text-xs"></i></div><div class="assist-bubble"><i class="fas fa-spinner fa-spin mr-2"></i>Thinking...</div>';
+    loadingEl.innerHTML = '<div class="assist-avatar">' + heroicon("sparkles", "text-xs") + '</div><div class="assist-bubble"><span class="spinner" style="display:inline-block;width:1em;height:1em;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle"></span>Thinking...</div>';
     container.appendChild(loadingEl);
     container.scrollTop = container.scrollHeight;
 
@@ -140,7 +140,7 @@
         container.classList.remove('hidden');
         container.innerHTML = data.suggestions.map(function(s) {
           return '<button onclick="assistQuickAction(\'' + s.id + '\')" class="assist-chip" data-prompt="' + escapeHtml(s.prompt) + '">' +
-            '<i class="fas fa-' + (s.id === 'draft-reply' ? 'feather' : s.id === 'suggest-product' ? 'wand-magic-sparkles' : s.id === 'help-platform' ? 'sparkles' : 'star') + ' mr-1.5 text-xs"></i>' +
+            (s.id === 'draft-reply' ? heroicon("pencil", "mr-1.5", "text-xs") : s.id === 'suggest-product' ? heroicon("sparkles", "mr-1.5", "text-xs") : s.id === 'help-platform' ? heroicon("sparkles", "mr-1.5", "text-xs") : heroicon("star", "mr-1.5", "text-xs")) +
             escapeHtml(s.label) + '</button>';
         }).join('');
       })

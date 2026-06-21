@@ -42,7 +42,7 @@ var otpTimerInterval = null;
 
     var btn = document.getElementById('step1SubmitBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+    btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-2"}} Processing...';
 
     var fd = new FormData();
     fd.append('name', document.getElementById('profileName')?.value || '');
@@ -129,7 +129,7 @@ function confirmProfileChanges() {
   }
   var btn = document.getElementById('step2SubmitBtn');
   btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Verifying...';
+  btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-2"}} Verifying...';
   var otpErr = document.getElementById('otpError');
   if (otpErr) otpErr.classList.add('hidden');
 

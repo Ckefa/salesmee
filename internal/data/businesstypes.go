@@ -8,15 +8,15 @@ type BusinessType struct {
 }
 
 var BusinessTypes = []BusinessType{
-	{"retail", "Retail & E-commerce", "fa-bag-shopping", "teal"},
-	{"food", "Food & Dining", "fa-utensils", "orange"},
-	{"health", "Health & Medical", "fa-heart-pulse", "red"},
-	{"beauty_wellness", "Beauty & Wellness", "fa-sparkles", "pink"},
-	{"professional", "Professional Services", "fa-briefcase", "sky"},
-	{"home_services", "Home & Repair Services", "fa-wrench", "yellow"},
-	{"automotive", "Automotive", "fa-car", "orange"},
-	{"education", "Education & Childcare", "fa-graduation-cap", "indigo"},
-	{"real_estate", "Real Estate", "fa-building", "amber"},
-	{"agriculture", "Agriculture & Farming", "fa-tractor", "green"},
-	{"other", "Other", "fa-ellipsis", "slate"},
+	{"retail", "Retail & E-commerce", "shopping-bag", "teal"},
+	{"food", "Food & Dining", "fire", "orange"},
+	{"health", "Health & Medical", "heart", "red"},
+	{"beauty_wellness", "Beauty & Wellness", "sparkles", "pink"},
+	{"professional", "Professional Services", "briefcase", "sky"},
+	{"home_services", "Home & Repair Services", "wrench", "yellow"},
+	{"automotive", "Automotive", "truck", "orange"},
+	{"education", "Education & Childcare", "academic-cap", "indigo"},
+	{"real_estate", "Real Estate", "building-office", "amber"},
+	{"agriculture", "Agriculture & Farming", "truck", "green"},
+	{"other", "Other", "ellipsis-horizontal", "slate"},
 }

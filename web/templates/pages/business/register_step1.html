@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{.Title}}</title>
   <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Create your SalesMee business account. Start managing clients, orders, bookings, and payments with an all-in-one chat CRM.">
   {{template "pwa_head" .}}
   <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/core/theme.js?v=1"></script>
   {{template "analytics_script" .}}
@@ -41,7 +41,7 @@
 
       {{if .Error}}
       <div class="bg-[var(--color-error-light)] text-[var(--color-error)] px-4 py-3 rounded-xl mb-4 flex items-center gap-2 text-sm border" style="border-color: color-mix(in srgb, var(--color-error) 20%, transparent);">
-        <i class="fas fa-exclamation-circle"></i>
+        {{heroicon "exclamation-circle"}}
         {{.Error}}
       </div>
       {{end}}
@@ -64,7 +64,7 @@
         <a href="/business/auth/facebook"
           class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
           style="border-color: var(--color-border); color: var(--color-text); background: var(--color-surface);">
-          <i class="fab fa-facebook text-blue-600 text-xl"></i>
+          {{heroicon "share" "text-blue-600" "text-xl"}}
           Sign up with Facebook
         </a>
       </div>
@@ -85,21 +85,21 @@
           <div>
             <label for="name" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Business Name</label>
             <div class="relative input-with-icon">
-              <i class="fas fa-store input-icon"></i>
+              {{heroicon "building-storefront" "input-icon"}}
               <input type="text" id="name" name="name" required class="input" placeholder="Acme Corp" value="{{.Name}}">
             </div>
           </div>
           <div>
             <label for="username" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Owner Username</label>
             <div class="relative input-with-icon">
-              <i class="fas fa-at input-icon"></i>
+              {{heroicon "at-symbol" "input-icon"}}
               <input type="text" id="username" name="username" required class="input" placeholder="johndoe" value="{{.Username}}">
             </div>
           </div>
           <div>
             <label for="email" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Email</label>
             <div class="relative input-with-icon">
-              <i class="fas fa-envelope input-icon"></i>
+              {{heroicon "envelope" "input-icon"}}
               <input type="email" id="email" name="email" required class="input" placeholder="you@example.com" value="{{.Email}}">
             </div>
             <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="regEmailError">Please enter a valid email</p>
@@ -107,7 +107,7 @@
         </div>
         <div class="mt-6 flex justify-end">
           <button type="submit" class="btn btn-primary">
-            Next Step <i class="fas fa-arrow-right text-xs"></i>
+            Next Step {{heroicon "arrow-right" "text-xs"}}
           </button>
         </div>
       </form>

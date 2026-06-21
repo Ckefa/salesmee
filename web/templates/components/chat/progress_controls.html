@@ -65,19 +65,19 @@
     {{if .Insight}}
     <div class="hidden lg:flex items-center gap-3 shrink-0 min-w-0">
       <span class="flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="{{.Insight.TotalOrders}} total order{{if ne .Insight.TotalOrders 1}}s{{end}}">
-        <i class="fas fa-shopping-cart text-[9px] text-[var(--color-primary)]"></i>
+        {{heroicon "shopping-cart" "text-[9px]" "text-[var(--color-primary)]"}}
         <span>{{.Insight.TotalOrders}}</span>
       </span>
       <span class="w-px h-3 bg-[var(--color-border)] opacity-40 shrink-0"></span>
       <span class="flex items-center gap-1 text-[var(--color-text-muted)] whitespace-nowrap tabular-nums" title="{{.Insight.TotalBookings}} total booking{{if ne .Insight.TotalBookings 1}}s{{end}}">
-        <i class="fas fa-calendar-days text-[9px] text-[var(--color-secondary)]"></i>
+        {{heroicon "calendar-days" "text-[9px]" "text-[var(--color-secondary)]"}}
         <span>{{.Insight.TotalBookings}}</span>
       </span>
       {{$pendingTotal := add (float .Insight.PendingOrders) (float .Insight.PendingBookings)}}
       {{if gt $pendingTotal 0.0}}
       <span class="w-px h-3 bg-[var(--color-border)] opacity-40 shrink-0"></span>
       <span class="flex items-center gap-1 text-[var(--color-warning)] whitespace-nowrap tabular-nums font-medium" title="{{printf "%.0f" $pendingTotal}} pending">
-        <i class="fas fa-hourglass-half text-[9px] text-[var(--color-warning)]"></i>
+        {{heroicon "clock" "text-[9px]" "text-[var(--color-warning)]"}}
         <span>{{printf "%.0f" $pendingTotal}}</span>
       </span>
       {{end}}

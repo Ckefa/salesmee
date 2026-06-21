@@ -18,6 +18,7 @@ import (
 	"salesmee/internal/middleware"
 	"salesmee/internal/models"
 	"salesmee/internal/routes"
+	"salesmee/internal/services/icons"
 	"salesmee/internal/services/notifier"
 	"salesmee/internal/ws"
 	"time"
@@ -265,6 +266,7 @@ func main() {
 			}
 			return string(runes[start:end])
 		},
+		"heroicon": icons.Heroicon,
 	}).ParseFiles(files...))
 	r.SetHTMLTemplate(tmpl)
 	business.SetTemplate(tmpl)

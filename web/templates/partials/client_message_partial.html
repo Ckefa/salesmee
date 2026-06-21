@@ -18,9 +18,9 @@
       <img src="/static/{{.MessageObj.MediaURL}}" alt="Image" class="wa-media-image" onclick="window.open(this.src)" loading="lazy">
       {{else if eq .MessageObj.MediaType "document"}}
       <div class="wa-media-doc">
-        <i class="fas fa-file-alt wa-media-doc-icon"></i>
+        {{heroicon "document-text" "wa-media-doc-icon"}}
         <a href="/static/{{.MessageObj.MediaURL}}" target="_blank" class="wa-media-doc-link">{{if .MessageObj.Value}}{{.MessageObj.Value}}{{else}}Document{{end}}</a>
-        <i class="fas fa-external-link-alt wa-media-doc-ext"></i>
+        {{heroicon "arrow-top-right-on-square" "wa-media-doc-ext"}}
       </div>
       {{else if eq .MessageObj.MediaType "audio"}}
       <div class="wa-media-audio">

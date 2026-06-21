@@ -1,5 +1,5 @@
 <div class="p-6">
-  <h2 class="text-sm font-semibold text-white mb-4"><i class="fas fa-store mr-2 text-teal-400"></i>Businesses</h2>
+  <h2 class="text-sm font-semibold text-white mb-4">{{heroicon "building-storefront" "mr-2" "text-teal-400"}}Businesses</h2>
 
   <!-- Search & Filter Bar -->
   <form id="biz-filters">
@@ -50,7 +50,7 @@
               {{if .Logo}}
               <img src="{{.Logo}}" class="w-8 h-8 rounded-lg object-cover bg-slate-700" alt="" loading="lazy">
               {{else}}
-              <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400"><i class="fas fa-store"></i></div>
+              <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400">{{heroicon "building-storefront"}}</div>
               {{end}}
               <div>
                 <p class="text-white font-medium">{{.Name}}</p>
@@ -95,7 +95,7 @@
               {{end}}
               <form method="POST" action="/admin/businesses/{{.ID}}/delete" class="inline" onsubmit="return confirm('Delete this business? This is a soft delete.')" hx-post="/admin/businesses/{{.ID}}/delete" hx-target="#admin-content" hx-swap="innerHTML">
                 <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-                <button class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition"><i class="fas fa-trash-alt"></i></button>
+                <button class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition">{{heroicon "trash"}}</button>
               </form>
             </div>
           </td>
@@ -116,7 +116,7 @@
       {{$prevDisabled := le .Page 1}}
       <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $prevDisabled}} opacity-30 cursor-default{{end}}"
         {{if not $prevDisabled}}hx-get="/admin/businesses?page={{sub (float .Page) 1}}&search={{.Search}}&status={{.StatusFilter}}&plan={{.PlanFilter}}" hx-target="#admin-content"{{end}}>
-        <i class="fas fa-chevron-left"></i>
+        {{heroicon "chevron-left"}}
       </button>
       {{$page := .Page}}{{$totalPages := .TotalPages}}
       {{range $i := seq 1 $totalPages}}
@@ -132,7 +132,7 @@
       {{$nextDisabled := ge .Page .TotalPages}}
       <button class="pagination-btn px-3 py-1.5 rounded-lg text-xs text-slate-400 bg-slate-800 border border-slate-700{{if $nextDisabled}} opacity-30 cursor-default{{end}}"
         {{if not $nextDisabled}}hx-get="/admin/businesses?page={{add (float .Page) 1}}&search={{.Search}}&status={{.StatusFilter}}&plan={{.PlanFilter}}" hx-target="#admin-content"{{end}}>
-        <i class="fas fa-chevron-right"></i>
+        {{heroicon "chevron-right"}}
       </button>
     </div>
   </div>

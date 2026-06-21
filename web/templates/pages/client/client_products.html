@@ -8,12 +8,12 @@
           <div class="img-skeleton w-full h-36 sm:h-48">
             <img id="clientProductImg-{{.ID}}" src="{{.ImageURL}}" alt="{{.Name}}" class="w-full h-36 sm:h-48 object-cover" loading="lazy">
             <div class="img-fallback img-fallback-hidden absolute inset-0 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
-              <i class="fas fa-box text-[var(--color-text-muted)] text-2xl sm:text-3xl"></i>
+              {{heroicon "cube" "text-[var(--color-text-muted)]" "text-2xl" "sm:text-3xl"}}
             </div>
           </div>
           {{else}}
           <div id="clientProductImg-{{.ID}}" class="w-full h-36 sm:h-48 bg-[var(--color-surface-tertiary)] flex items-center justify-center">
-            <i class="fas fa-box text-[var(--color-text-muted)] text-2xl sm:text-3xl"></i>
+            {{heroicon "cube" "text-[var(--color-text-muted)]" "text-2xl" "sm:text-3xl"}}
           </div>
           {{end}}
           {{$imgCount := len .Images}}
@@ -41,19 +41,19 @@
             {{if or .ImageURL (gt (len .Images) 0)}}
             <button onclick="previewClientProduct({{.ID}}, '{{.Name}}')"
               class="flex-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm min-h-[36px] sm:min-h-[44px]">
-              <i class="fas fa-eye mr-1"></i> Preview
+              {{heroicon "eye" "mr-1"}} Preview
             </button>
             {{end}}
             <button onclick="openClientProductPickerWithProduct({{.ID}})"
               class="flex-1 bg-[var(--color-primary)] hover:opacity-90 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm min-h-[36px] sm:min-h-[44px]">
-              <i class="fas fa-shopping-cart mr-1"></i> Place Order
+              {{heroicon "shopping-cart" "mr-1"}} Place Order
             </button>
           </div>
         </div>
       </div>
       {{else}}
       <div class="col-span-full text-center py-8 sm:py-12">
-        <i class="fas fa-box text-[var(--color-text-muted)] text-4xl sm:text-5xl mb-3 sm:mb-4"></i>
+        {{heroicon "cube" "text-[var(--color-text-muted)]" "text-4xl" "sm:text-5xl" "mb-3" "sm:mb-4"}}
         <p class="text-sm sm:text-base text-[var(--color-text-secondary)]">No products available</p>
       </div>
       {{end}}
@@ -67,19 +67,19 @@
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-medium text-[var(--color-text)]" id="clientGalleryTitle">Product Images</h3>
       <button onclick="hideClientGallery()" class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xl">
-        <i class="fas fa-times"></i>
+        {{heroicon "x-mark"}}
       </button>
     </div>
 
     <div class="relative bg-black/5 rounded-lg flex items-center justify-center h-[250px] md:h-[400px]">
       <button id="clientGalleryPrevBtn" onclick="clientGalleryPrev()"
         class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
-        <i class="fas fa-chevron-left"></i>
+        {{heroicon "chevron-left"}}
       </button>
       <img id="clientGalleryMainImage" src="" alt="" class="max-w-full max-h-full object-contain p-4">
       <button id="clientGalleryNextBtn" onclick="clientGalleryNext()"
         class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-opacity z-10">
-        <i class="fas fa-chevron-right"></i>
+        {{heroicon "chevron-right"}}
       </button>
     </div>
 

@@ -90,7 +90,7 @@ func NotifyLimitReached(db *gorm.DB, businessID uint, resourceKey, resourceLabel
 		CreateInAppNotif(db, businessID, nil,
 			"Plan Limit Reached — "+resourceLabel,
 			fmt.Sprintf("You've reached the %s limit on your %s plan (%d of %d). Upgrade to add more.", resourceLabel, planName, current, max),
-			"fa-exclamation-triangle",
+			"exclamation-triangle",
 			"/business/subscription#plans",
 		)
 

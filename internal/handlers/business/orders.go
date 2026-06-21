@@ -1437,7 +1437,7 @@ func sendOrderNotif(db *gorm.DB, hub *ws.Hub, order models.Order, status string)
 	notifier.CreateInAppNotif(db, order.BusinessID, &client.ID,
 		fmt.Sprintf("Order %s", statusLabel),
 		fmt.Sprintf("Order %s is now %s", order.OrderNumber, statusLabel),
-		"fa-shopping-cart",
+		"shopping-cart",
 		"/business/orders")
 	if hub != nil {
 		broadcastBizPendingCounts(db, hub, order.BusinessID)

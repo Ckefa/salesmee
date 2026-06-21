@@ -379,11 +379,11 @@ function showSkeletonError(target) {
     target.innerHTML =
         '<div class="flex flex-col items-center justify-center py-12 text-center" style="min-height:200px">' +
         '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
-        '<i class="fas fa-exclamation-triangle text-[var(--color-error)] text-2xl"></i></div>' +
+        heroicon("exclamation-triangle", "text-[var(--color-error)]", "text-2xl") + '</div>' +
         '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
         '<p class="text-xs text-[var(--color-text-muted)] mb-4">Something went wrong. Please try again.</p>' +
         '<button onclick="retrySkeleton(this)" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
-        '<i class="fas fa-refresh mr-1"></i> Retry</button></div>';
+        heroicon("arrow-path", "mr-1") + ' Retry</button></div>';
 }
 
 function retrySkeleton(btn) {

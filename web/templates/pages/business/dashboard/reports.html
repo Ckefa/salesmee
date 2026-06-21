@@ -20,7 +20,7 @@
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-revenue">
-      <i class="fas fa-chart-line mr-1.5"></i>Revenue
+      {{heroicon "presentation-chart-line" "mr-1.5"}}Revenue
     </button>
     <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
       onclick="switchReportTab(this, 'sales')"
@@ -29,7 +29,7 @@
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-sales">
-      <i class="fas fa-box mr-1.5"></i>Sales by Product
+      {{heroicon "cube" "mr-1.5"}}Sales by Product
     </button>
     <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
       onclick="switchReportTab(this, 'clients')"
@@ -38,7 +38,7 @@
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-clients">
-      <i class="fas fa-users mr-1.5"></i>Clients
+      {{heroicon "users" "mr-1.5"}}Clients
     </button>
     <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
       onclick="switchReportTab(this, 'tax')"
@@ -47,7 +47,7 @@
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-tax">
-      <i class="fas fa-file-invoice-dollar mr-1.5"></i>Tax Summary
+      {{heroicon "document-text" "mr-1.5"}}Tax Summary
     </button>
   </div>
 

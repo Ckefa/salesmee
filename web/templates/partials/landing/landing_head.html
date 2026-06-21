@@ -2,33 +2,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/x-icon" href="/static/images/salesmee.ico">
-<title>SalesMee — CRM Powered by Real-Time Chat</title>
 <meta name="color-scheme" content="light dark">
 {{template "pwa_head" .}}
-<meta name="description" content="SalesMee combines the familiarity of WhatsApp-style messaging with powerful CRM tools — order management, booking, analytics, and client portals — all in one seamless platform.">
-<meta property="og:title" content="SalesMee — CRM Powered by Real-Time Chat">
+<meta name="description" content="SalesMee is the chat CRM for small businesses to manage clients, orders, and bookings through real-time messaging. Turn conversations into sales.">
+<meta property="og:title" content="{{.Title}}">
 <meta property="og:description" content="Turn every conversation into a sale. SalesMee is the all-in-one chat CRM for modern businesses.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{if .AppDomain}}https://{{.AppDomain}}{{else}}https://salesmee.com{{end}}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="SalesMee — CRM Powered by Real-Time Chat">
+<meta name="twitter:title" content="{{.Title}}">
 <meta name="twitter:description" content="Turn every conversation into a sale. SalesMee is the all-in-one chat CRM for modern businesses.">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          brand: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
-        },
-        fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
-      }
-    }
-  }
-</script>
-  <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-<link rel="stylesheet" href="/static/fontawesome/css/all.min.css?v=1">
+<link rel="preload" href="/static/css/dist/styles.css?v=1" as="style">
 <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+<link rel="preload" href="/static/fonts/inter.css?v=1" as="style">
+<link rel="stylesheet" href="/static/fonts/inter.css?v=1">
+
+
+
 <style>
   @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
   @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(13,148,136,0.4) } 70% { box-shadow: 0 0 0 20px rgba(13,148,136,0) } 100% { box-shadow: 0 0 0 0 rgba(13,148,136,0) } }

@@ -1,13 +1,13 @@
 {{define "client_chat_header"}}
 <div class="wa-chat-header">
   <button onclick="clientBackFromChat()" class="wa-chat-back" title="Back">
-    <i class="fas fa-arrow-left"></i>
+    {{heroicon "arrow-left"}}
   </button>
   <div class="wa-chat-header-avatar">
     {{if .Business.Logo}}
     <img src="/static/{{.Business.Logo}}" alt="{{.Business.Name}}" class="wa-chat-avatar" loading="lazy" width="40" height="40">
     {{else}}
-    <div class="wa-chat-avatar wa-sidebar-avatar-placeholder"><i class="fas fa-store"></i></div>
+    <div class="wa-chat-avatar wa-sidebar-avatar-placeholder">{{heroicon "building-storefront"}}</div>
     {{end}}
   </div>
   <div class="wa-chat-header-info">
@@ -20,19 +20,19 @@
   <div class="flex items-center gap-1 ml-auto">
     <button class="client-tab active" data-tab="chats"
       onclick="switchToChats({{.Business.ID}})">
-      <i class="fas fa-comment-dots"></i>
+      {{heroicon "chat-bubble-left-ellipsis"}}
       <span>Chats</span>
     </button>
     <button class="client-tab" data-tab="products"
       hx-get="/client/businesses/{{.Business.ID}}/products-page" hx-target="#chat-content" hx-swap="innerHTML"
       onclick="setClientActiveTab(this)">
-      <i class="fas fa-box"></i>
+      {{heroicon "cube"}}
       <span>Products</span>
     </button>
     <button class="client-tab" data-tab="services"
       hx-get="/client/businesses/{{.Business.ID}}/services-page" hx-target="#chat-content" hx-swap="innerHTML"
       onclick="setClientActiveTab(this)">
-      <i class="fas fa-concierge-bell"></i>
+      {{heroicon "bell"}}
       <span>Services</span>
     </button>
   </div>

@@ -13,7 +13,7 @@
       </div>
       <button onclick="openQuickBookingModal()"
         class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center space-x-2 self-start sm:self-auto text-sm sm:text-base">
-        <i class="fas fa-calendar-plus"></i>
+        {{heroicon "calendar-plus"}}
         <span>Quick Booking</span>
       </button>
     </div>
@@ -31,7 +31,7 @@
       <div class="flex flex-col gap-3 mb-2">
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i class="fas fa-search text-[var(--color-text-muted)] text-xs"></i>
+            {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]" "text-xs"}}
           </div>
           <input type="text" id="bookingSearch" placeholder="Search by booking #, customer, or service..."
             class="input pl-9 text-sm">
@@ -65,7 +65,7 @@
             {{end}}
           </select>
           <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
-            <i class="fas fa-times mr-1"></i>Clear
+            {{heroicon "x-mark" "mr-1"}}Clear
           </button>
         </div>
       </div>
@@ -134,31 +134,31 @@
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
                   <button onclick="toggleDropdown('bookingActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
-                    <i class="fas fa-ellipsis-v text-[var(--color-text-muted)]"></i>
+                    {{heroicon "ellipsis-vertical" "text-[var(--color-text-muted)]"}}
                   </button>
                   <div id="bookingActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
                     <div class="py-1">
                       {{if not $isCancelled}}
                       <span class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold block">Steps</span>
                       <button onclick=";" class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-warning)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                        <i class="fas fa-clock w-4 {{if $isPending}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"></i>Pending
+                        {{heroicon "clock" "w-4" "{{if $isPending}}text-[var(--color-warning)]{{else}}opacity-40{{end}}"}}Pending
                       </button>
                       <button onclick="{{if $isPending}}approveBooking({{.ID}}){{else}};{{end}}"
                         class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if $isPending}}text-[var(--color-info)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                        <i class="fas fa-check-circle w-4 {{if $isPending}}text-[var(--color-info)]{{else}}opacity-40{{end}}"></i>Confirmed
+                        {{heroicon "check-circle" "w-4" "{{if $isPending}}text-[var(--color-info)]{{else}}opacity-40{{end}}"}}Confirmed
                       </button>
                       <button onclick="{{if and $isConfirmed (not $isFullyPaid)}}markBookingAsPaid({{.ID}}){{else}};{{end}}"
                         class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                        <i class="fas fa-credit-card w-4 {{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"></i>Paid
+                        {{heroicon "credit-card" "w-4" "{{if and $isConfirmed (not $isFullyPaid)}}text-[var(--color-secondary)]{{else}}opacity-40{{end}}"}}Paid
                       </button>
                       <button onclick="{{if and $isConfirmed $isFullyPaid}}completeBooking({{.ID}}){{else}};{{end}}"
                         class="w-full text-left px-3 py-2 text-xs font-medium transition flex items-center gap-2 hover:bg-[var(--color-surface-secondary)] {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}text-[var(--color-text-muted)]{{end}}">
-                        <i class="fas fa-check-double w-4 {{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"></i>Completed
+                        {{heroicon "check-double" "w-4" "{{if and $isConfirmed $isFullyPaid}}text-[var(--color-success)]{{else}}opacity-40{{end}}"}}Completed
                       </button>
                       {{if not $isCompleted}}
                       <hr class="border-t border-[var(--color-border)] my-1">
                       <button onclick="cancelBooking({{.ID}})" class="w-full text-left px-3 py-2 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] flex items-center gap-2">
-                        <i class="fas fa-times w-4"></i>Cancel
+                        {{heroicon "x-mark" "w-4"}}Cancel
                       </button>
                       {{end}}
                       {{else}}
@@ -170,7 +170,7 @@
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                   {{if $isCompleted}}
                   <button onclick="window.open('/business/bookings/{{.ID}}/receipt', '_blank')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition text-[var(--color-text-muted)] hover:text-[var(--color-success)]" title="Print Receipt">
-                    <i class="fas fa-receipt"></i>
+                    {{heroicon "receipt-percent"}}
                   </button>
                   {{end}}
                 </td>
@@ -178,17 +178,17 @@
               {{else}}
               <tr>
                 <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
-                  <i class="fas fa-calendar-alt text-[var(--color-text-muted)] text-5xl mb-4 block"></i>
+                  {{heroicon "calendar" "text-[var(--color-text-muted)]" "text-5xl" "mb-4" "block"}}
                   <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
                   <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
-                    <i class="fas fa-plus mr-2"></i>Create your first booking
+                    {{heroicon "plus" "mr-2"}}Create your first booking
                   </button>
                 </td>
               </tr>
               {{end}}
               <tr id="noBookingsMsg" style="display:none">
                 <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
-                  <i class="fas fa-search text-[var(--color-text-muted)] text-4xl mb-4 block"></i>
+                  {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]" "text-4xl" "mb-4" "block"}}
                   <p class="text-sm text-[var(--color-text-secondary)]">No bookings match your search</p>
                 </td>
               </tr>
@@ -208,14 +208,14 @@
                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                       {{if eq .Page 1.0}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
                {{if eq .Page 1.0}}onclick="return false"{{end}}>
-             <i class="fas fa-chevron-left"></i>
+             {{heroicon "chevron-left"}}
            </a>
            <a href="?page={{$next}}{{if $range}}&range={{$range}}{{end}}"
                hx-get="?page={{$next}}{{if $range}}&range={{$range}}{{end}}" hx-target="#bookings-page" hx-swap="outerHTML" hx-indicator="#bookings-page"
              class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border)] transition text-xs
                     {{if ge .Page .TotalPages}}opacity-40 cursor-default{{else}}hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]{{end}}"
              {{if ge .Page .TotalPages}}onclick="return false"{{end}}>
-            <i class="fas fa-chevron-right"></i>
+            {{heroicon "chevron-right"}}
           </a>
         </div>
       </div>
@@ -229,7 +229,7 @@
   <div class="card p-3 sm:p-4">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-warning-light)] rounded-md p-2 sm:p-2.5">
-        <i class="fas fa-clock text-[var(--color-warning)] text-sm sm:text-base"></i>
+        {{heroicon "clock" "text-[var(--color-warning)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-2 sm:ml-3">
         <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Pending</p>
@@ -240,7 +240,7 @@
   <div class="card p-3 sm:p-4">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-info-light)] rounded-md p-2 sm:p-2.5">
-        <i class="fas fa-check-circle text-[var(--color-info)] text-sm sm:text-base"></i>
+        {{heroicon "check-circle" "text-[var(--color-info)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-2 sm:ml-3">
         <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Confirmed</p>
@@ -251,7 +251,7 @@
   <div class="card p-3 sm:p-4">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-success-light)] rounded-md p-2 sm:p-2.5">
-        <i class="fas fa-check-double text-[var(--color-success)] text-sm sm:text-base"></i>
+        {{heroicon "check-double" "text-[var(--color-success)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-2 sm:ml-3">
         <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Completed</p>
@@ -262,7 +262,7 @@
   <div class="card p-3 sm:p-4">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-error-light)] rounded-md p-2 sm:p-2.5">
-        <i class="fas fa-times text-[var(--color-error)] text-sm sm:text-base"></i>
+        {{heroicon "x-mark" "text-[var(--color-error)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-2 sm:ml-3">
         <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Cancelled</p>
@@ -273,7 +273,7 @@
   <div class="card p-3 sm:p-4">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
-        <i class="fas fa-calendar-check text-[var(--color-secondary)] text-sm sm:text-base"></i>
+        {{heroicon "calendar-check" "text-[var(--color-secondary)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-2 sm:ml-3">
         <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Bookings</p>
@@ -284,7 +284,7 @@
   <div class="card p-3 sm:p-4">
     <div class="flex items-center">
       <div class="flex-shrink-0 bg-[var(--color-secondary-light)] rounded-md p-2 sm:p-2.5">
-        <i class="fas fa-dollar-sign text-[var(--color-secondary)] text-sm sm:text-base"></i>
+        {{heroicon "banknotes" "text-[var(--color-secondary)]" "text-sm" "sm:text-base"}}
       </div>
       <div class="ml-2 sm:ml-3">
         <p class="text-[10px] sm:text-sm font-medium text-[var(--color-text-secondary)]">Total Revenue</p>
@@ -319,7 +319,7 @@
             <div>
               <label class="block text-sm font-medium text-[var(--color-text-secondary)]">Search Service</label>
               <div class="relative mt-1">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-xs"></i>
+                {{heroicon "magnifying-glass" "absolute" "left-3" "top-1/2" "-translate-y-1/2" "text-[var(--color-text-muted)]" "text-xs"}}
                 <input type="text" id="bookingServiceSearch" placeholder="Type to search..." class="input pl-10 text-sm">
               </div>
               <div id="bookingServiceResults" class="mt-2 max-h-40 overflow-y-auto border border-[var(--color-border)] rounded-lg p-1 space-y-0.5">
@@ -327,7 +327,7 @@
               </div>
               <div id="bookingServiceCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
               <div id="bookingServiceSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
-                <i class="fas fa-check-circle mr-1"></i><span id="bookingServiceSelectedName"></span>
+                {{heroicon "check-circle" "mr-1"}}<span id="bookingServiceSelectedName"></span>
               </div>
               <input type="hidden" id="bookingService" value="">
             </div>
@@ -386,11 +386,11 @@
           <!-- Navigation -->
           <div class="flex justify-between items-center gap-3 pt-4 border-t border-[var(--color-border)]">
             <button type="button" id="bkgBackBtn" onclick="bkgGoToStep(bkgStep - 1)" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-1.5 rounded text-xs sm:text-sm hidden">
-              <i class="fas fa-arrow-left mr-1"></i>Back
+              {{heroicon "arrow-left" "mr-1"}}Back
             </button>
             <div class="flex gap-3 ml-auto">
               <button type="button" onclick="hideQuickBookingModal()" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">Cancel</button>
-              <button type="button" id="bkgNextBtn" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm" onclick="bkgNextStep()">Continue <i class="fas fa-arrow-right ml-1"></i></button>
+              <button type="button" id="bkgNextBtn" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm" onclick="bkgNextStep()">Continue {{heroicon "arrow-right" "ml-1"}}</button>
               <button type="submit" id="bkgSubmitBtn" class="bg-[var(--color-secondary)] hover:brightness-110 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm hidden">Create Booking</button>
             </div>
           </div>
@@ -419,7 +419,7 @@
         var lbl = document.getElementById('bkgStep' + i + 'Label');
         var active = i <= step;
         ind.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + (active ? 'bg-[var(--color-secondary)] text-white shadow-sm' : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-muted)]');
-        ind.innerHTML = (active && i < step) ? '<i class="fas fa-check text-[10px]"></i>' : String(i);
+        ind.innerHTML = (active && i < step) ? '{{heroicon "check" "text-[10px]"}}' : String(i);
         if (lbl) lbl.className = 'text-xs font-medium transition-colors duration-300 ' + (active ? 'text-[var(--color-secondary)]' : 'text-[var(--color-text-muted)]');
       }
       document.getElementById('bkgStep1to2').className = 'w-8 sm:w-12 h-px mx-2 transition-colors duration-300 ' + (step >= 2 ? 'bg-[var(--color-secondary)]' : 'bg-[var(--color-border)]');
@@ -473,7 +473,7 @@
       const filtered = filter ? bookingServicesList.filter(s => s.name.toLowerCase().includes(filter.toLowerCase())) : bookingServicesList;
       container.innerHTML = filtered.length ? filtered.map(s => {
         const isSelected = String(s.id) === selectedId;
-        return '<div data-id="' + s.id + '" data-name="' + s.name.replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<i class="fas fa-check-circle text-xs"></i>' : '<i class="fas fa-circle text-xs text-[var(--color-surface-tertiary)]"></i>') + s.name + '</div>';
+        return '<div data-id="' + s.id + '" data-name="' + s.name.replace(/'/g, '&#39;') + '" onclick="selectBookingService(this)" class="px-3 py-2 rounded-lg cursor-pointer transition text-sm flex items-center gap-2 ' + (isSelected ? 'bg-[var(--color-secondary-light)] text-[var(--color-secondary)] font-medium' : 'hover:bg-[var(--color-surface-secondary)] text-[var(--color-text)]') + '">' + (isSelected ? '<span class="w-3.5 h-3.5 rounded-full bg-[var(--color-secondary)] flex items-center justify-center text-white text-[8px]">' + heroicon("check", "w-2.5 h-2.5") + '</span>' : '<span class="w-3.5 h-3.5 rounded-full border-2 border-[var(--color-surface-tertiary)]"></span>') + s.name + '</div>';
       }).join('') : '<div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">No services found</div>';
       countEl.textContent = filtered.length + ' of ' + bookingServicesList.length + ' services';
     }

@@ -2,13 +2,13 @@
 {{if .UpgradeRequired}}
 <div id="upgrade-prompt" class="flex flex-col items-center justify-center py-16 px-4">
   <div class="w-16 h-16 rounded-full bg-[var(--color-warning-light)] flex items-center justify-center mb-4">
-    <i class="fas fa-crown text-2xl text-[var(--color-warning)]"></i>
+    {{heroicon "crown" "text-2xl text-[var(--color-warning)]"}}
   </div>
   <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">Upgrade Required</h3>
   <p class="text-sm text-[var(--color-text-secondary)] text-center max-w-sm mb-6">Analytics is not available on your Silver plan. Upgrade to unlock it.</p>
   <div class="flex gap-3">
     <a href="/business/subscription#plans" class="btn btn-primary btn-sm">
-      <i class="fas fa-arrow-up mr-1"></i> View Plans
+      {{heroicon "arrow-up" "mr-1"}} View Plans
     </a>
     <button onclick="history.back()" class="btn btn-ghost btn-sm">Go Back</button>
   </div>
@@ -264,7 +264,7 @@
           .Business.Currency}}{{printf "%.2f" .TotalRevenue}}</p>
       </div>
       <div class="w-10 h-10 rounded-lg bg-[var(--color-success-light)] flex items-center justify-center">
-        <i class="fas fa-dollar-sign text-[var(--color-success)]"></i>
+        {{heroicon "currency-dollar" "text-[var(--color-success)]"}}
       </div>
     </div>
     <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
@@ -280,7 +280,7 @@
         <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{.TotalOrders}}</p>
       </div>
       <div class="w-10 h-10 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center">
-        <i class="fas fa-shopping-cart text-[var(--color-primary)]"></i>
+        {{heroicon "shopping-cart" "text-[var(--color-primary)]"}}
       </div>
     </div>
     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
@@ -296,7 +296,7 @@
         <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{.TotalBookings}}</p>
       </div>
       <div class="w-10 h-10 rounded-lg bg-[var(--color-secondary-light)] flex items-center justify-center">
-        <i class="fas fa-calendar-check text-[var(--color-secondary)]"></i>
+        {{heroicon "calendar-check" "text-[var(--color-secondary)]"}}
       </div>
     </div>
     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-xs text-[var(--color-text-muted)]">
@@ -312,7 +312,7 @@
         <p class="text-xl sm:text-2xl font-bold text-[var(--color-text)] mt-1">{{.ActiveClients}}</p>
       </div>
       <div class="w-10 h-10 rounded-lg bg-[var(--color-warning-light)] flex items-center justify-center">
-        <i class="fas fa-users text-[var(--color-warning)]"></i>
+        {{heroicon "users" "text-[var(--color-warning)]"}}
       </div>
     </div>
     <p class="mt-3 text-[10px] sm:text-xs text-[var(--color-text-muted)]">Businesses with conversations</p>

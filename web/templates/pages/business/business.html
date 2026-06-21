@@ -40,7 +40,7 @@
   <div id="verifyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md card p-8 shadow-2xl text-center" onclick="event.stopPropagation()">
       <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-5">
-        <i class="fas fa-shield-halved text-amber-600 dark:text-amber-400 text-2xl"></i>
+        {{heroicon "shield-check" "text-amber-600" "dark:text-amber-400" "text-2xl"}}
       </div>
       <h2 class="text-xl font-bold text-[var(--color-text)] mb-2">Verify Your Email</h2>
       <p class="text-xs sm:text-sm text-[var(--color-text-secondary)] mb-6 leading-relaxed">
@@ -50,10 +50,10 @@
       <div id="countdownContainer" class="hidden mb-5 flex justify-center"></div>
       <div class="space-y-3">
         <button onclick="resendVerification(event)" class="btn btn-primary w-full">
-          <i class="fas fa-envelope mr-2"></i>Resend Verification Email
+          {{heroicon "envelope" "mr-2"}}Resend Verification Email
         </button>
         <button onclick="checkVerificationStatus(event)" class="btn w-full text-sm text-[var(--color-info)] hover:bg-[var(--color-info)] hover:text-white bg-transparent" style="border:1px solid var(--color-info)">
-          <i class="fas fa-sync-alt mr-2"></i>Check Status
+          {{heroicon "arrow-path" "mr-2"}}Check Status
         </button>
         <button onclick="dismissVerifyModal()" class="btn w-full text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-surface-secondary)]" style="border:1px solid var(--color-border)">
           I'll do this later
@@ -115,7 +115,7 @@
         container.classList.add('hidden');
         container.innerHTML = '';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend Verification Email';
+        btn.innerHTML = '{{heroicon "envelope" "mr-2"}}Resend Verification Email';
         verifyCountdownCancel = null;
       }
       requestAnimationFrame(tick);
@@ -124,7 +124,7 @@
       var btn = e && e.target ? e.target.closest('button') : null;
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending';
+        btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-2"}}Sending';
         startVerificationCooldown(btn, 60);
       }
       fetch('/business/verify/send', { method:'POST', headers:{'X-CSRF-Token':getCookie('csrf_token')}})
@@ -139,7 +139,7 @@
           }
           if (data.message) {
             showNotification(data.message, 'success');
-            if (btn) btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend';
+            if (btn) btn.innerHTML = '{{heroicon "envelope" "mr-2"}}Resend';
             if (btn && data.cooldown && data.cooldown < 60) {
               startVerificationCooldown(btn, data.cooldown);
             }
@@ -148,7 +148,7 @@
             showNotification(data.error || 'Failed to send verification email.', 'error');
             if (btn) {
               btn.disabled = false;
-              btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend Verification Email';
+              btn.innerHTML = '{{heroicon "envelope" "mr-2"}}Resend Verification Email';
             }
           }
         })
@@ -157,13 +157,13 @@
           showNotification('Failed to send verification email. Check your connection.', 'error');
           if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-envelope mr-2"></i>Resend Verification Email';
+            btn.innerHTML = '{{heroicon "envelope" "mr-2"}}Resend Verification Email';
           }
         });
     }
     function checkVerificationStatus(e) {
       var btn = e && e.target ? e.target.closest('button') : null;
-      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Checking'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-2"}}Checking'; }
       fetch('/business/verify/status', {method:'POST', headers:{'X-CSRF-Token':getCookie('csrf_token')}})
         .then(function(r){return r.json()})
         .then(function(data){
@@ -178,7 +178,7 @@
           showNotification('Could not check status. Try again.', 'error');
         })
         .finally(function(){
-          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Check Status'; }
+          if (btn) { btn.disabled = false; btn.innerHTML = '{{heroicon "arrow-path" "mr-2"}}Check Status'; }
         });
     }
   </script>
@@ -188,7 +188,7 @@
   <div id="cmdOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-center pt-[15vh]" onclick="closeCommandPalette(event)">
     <div class="w-full max-w-lg mx-4 card shadow-xl overflow-hidden" onclick="event.stopPropagation()">
       <div class="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]">
-        <i class="fas fa-search text-[var(--color-text-muted)] text-sm"></i>
+        {{heroicon "magnifying-glass" "text-[var(--color-text-muted)]" "text-sm"}}
         <input type="text" id="cmdInput" placeholder="Search clients, pages, or actions..."
           class="flex-1 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none bg-transparent">
         <kbd class="px-1.5 py-0.5 rounded bg-[var(--color-surface-secondary)] text-[10px] font-mono text-[var(--color-text-muted)]">ESC</kbd>
@@ -196,25 +196,25 @@
       <div id="cmdResults" class="max-h-80 overflow-y-auto p-2 space-y-0.5">
         <div class="px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Pages</div>
         <a href="/business/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-          <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center dark:bg-purple-900/30"><i class="fas fa-chart-line text-purple-600 dark:text-purple-400 text-xs"></i></div>
+          <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center dark:bg-purple-900/30">{{heroicon "chart-bar" "text-purple-600" "dark:text-purple-400" "text-xs"}}</div>
           Dashboard
         </a>
         <a href="/business/share" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors">
-          <div class="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center dark:bg-teal-900/30"><i class="fas fa-share-alt text-teal-600 dark:text-teal-400 text-xs"></i></div>
+          <div class="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center dark:bg-teal-900/30">{{heroicon "share" "text-teal-600" "dark:text-teal-400" "text-xs"}}</div>
           Share Business
         </a>
         <div class="px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mt-1">Clients</div>
         <div id="cmdClientResults">
           {{range .Clients}}
           <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors cursor-pointer" onclick="loadClient('{{.ID}}'); closeCommandPalette()" data-client-id="{{.ID}}">
-            <div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center dark:bg-teal-900/30"><i class="fas fa-user text-teal-600 dark:text-teal-400 text-xs"></i></div>
+            <div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center dark:bg-teal-900/30">{{heroicon "user" "text-teal-600" "dark:text-teal-400" "text-xs"}}</div>
             <div><span class="font-medium">{{.Name}}</span><span class="text-[var(--color-text-muted)] ml-2 text-xs">{{.Email}}</span></div>
           </div>
           {{end}}
         </div>
         <div class="px-3 py-1.5 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mt-1">Actions</div>
         <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] transition-colors cursor-pointer" onclick="showNewClientModal(); closeCommandPalette()">
-          <div class="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center dark:bg-teal-900/30"><i class="fas fa-plus text-teal-600 dark:text-teal-400 text-xs"></i></div>
+          <div class="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center dark:bg-teal-900/30">{{heroicon "plus" "text-teal-600" "dark:text-teal-400" "text-xs"}}</div>
           Add New Customer
         </div>
       </div>
@@ -308,7 +308,7 @@ var AUTH_TOKEN = '{{.AuthToken}}';</script>
         container.style.top = '12px';
       }
       container.classList.remove('hidden');
-      dd.innerHTML = '<div class="p-4 text-center text-sm text-[var(--color-text-muted)]"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+      dd.innerHTML = '<div class="p-4 text-center text-sm text-[var(--color-text-muted)]">{{heroicon "arrow-path" "animate-spin" "mr-2"}}Loading...</div>';
       fetch('/business/notifications')
         .then(function(r) { return r.text(); })
         .then(function(html) { dd.innerHTML = html; })

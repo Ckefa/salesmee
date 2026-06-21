@@ -14,8 +14,8 @@
   {{if .Notifications}}
     {{range .Notifications}}
     <div class="flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-secondary)] border-b border-[var(--color-border-light)] transition-colors {{if .IsRead}}opacity-60{{end}} group relative" data-notif-id="{{.ID}}">
-      {{$iconBg := "var(--color-primary-light)"}}
-      {{$iconColor := "var(--color-primary)"}}
+      {{$iconBg := "var(--color-surface-tertiary)"}}
+      {{$iconColor := "var(--color-text-secondary)"}}
       {{$iconName := "bell"}}
       {{$notifHref := .Link}}
       {{if eq .Icon "shopping-cart"}}
@@ -34,14 +34,36 @@
         {{$iconName = "credit-card"}}
         {{$notifHref = "/business/payments"}}
       {{else if eq .Icon "clock"}}
-        {{$iconBg = "var(--color-info-light)"}}
-        {{$iconColor = "var(--color-info)"}}
+        {{$iconBg = "var(--color-orange-light)"}}
+        {{$iconColor = "var(--color-orange)"}}
         {{$iconName = "clock"}}
         {{$notifHref = "/business/bookings"}}
+      {{else if eq .Icon "exclamation-triangle"}}
+        {{$iconBg = "var(--color-error-light)"}}
+        {{$iconColor = "var(--color-error)"}}
+        {{$iconName = "exclamation-triangle"}}
+        {{$notifHref = "/business/subscription#plans"}}
+      {{else if eq .Icon "user"}}
+        {{$iconBg = "var(--color-pink-light)"}}
+        {{$iconColor = "var(--color-pink)"}}
+        {{$iconName = "user"}}
+        {{$notifHref = "/business"}}
+      {{else if eq .Icon "success"}}
+        {{$iconBg = "var(--color-success-light)"}}
+        {{$iconColor = "var(--color-success)"}}
+        {{$iconName = "check-circle"}}
+      {{else if eq .Icon "warning"}}
+        {{$iconBg = "var(--color-amber-light)"}}
+        {{$iconColor = "var(--color-amber)"}}
+        {{$iconName = "exclamation-triangle"}}
+      {{else if eq .Icon "error"}}
+        {{$iconBg = "var(--color-error-light)"}}
+        {{$iconColor = "var(--color-error)"}}
+        {{$iconName = "x-circle"}}
       {{end}}
       {{if $notifHref}}<a href="{{$notifHref}}" onclick="markNotifRead({{.ID}})" class="flex-1 min-w-0 flex items-start gap-3">{{else}}<div class="flex-1 min-w-0 flex items-start gap-3" onclick="markNotifRead({{.ID}})">{{end}}
-        <div class="w-8 h-8 rounded-full bg-[{{$iconBg}}] flex items-center justify-center shrink-0">
-          <span class="text-[{{$iconColor}}]">{{heroicon $iconName "text-xs"}}</span>
+        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background-color: {{$iconBg}}">
+          <span style="color: {{$iconColor}}">{{heroicon $iconName "text-xs"}}</span>
         </div>
         <div class="min-w-0">
           <p class="text-xs sm:text-sm text-[var(--color-text)] font-medium truncate">{{.Title}}</p>

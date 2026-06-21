@@ -1,6 +1,8 @@
 {{define "analytics_script"}}
+{{if not .IsDev}}
 <script>
-if (localStorage.getItem('cookies_accepted') === 'true') {
+var host = location.hostname;
+if (host !== 'localhost' && host !== '127.0.0.1' && localStorage.getItem('cookies_accepted') === 'true') {
   (function() {
     var s = document.createElement('script');
     s.src = 'https://www.googletagmanager.com/gtag/js?id=G-E51BLXZ6ZG';
@@ -13,4 +15,5 @@ if (localStorage.getItem('cookies_accepted') === 'true') {
   })();
 }
 </script>
+{{end}}
 {{end}}

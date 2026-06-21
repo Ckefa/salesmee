@@ -39,9 +39,9 @@
           <span class="text-teal-400">@{{.Business.Slug}}</span>
           <span class="text-slate-400">{{.Business.Email}}</span>
           {{if .Business.EmailVerified}}
-          <span class="text-emerald-400 text-xs">{{heroicon "check-circle"}} Email verified</span>
+          <span class="inline-flex items-center gap-1 text-emerald-400 text-xs">{{heroicon "check-circle"}} Email verified</span>
           {{else}}
-          <span class="text-slate-500 text-xs">{{heroicon "x-circle"}} Email not verified</span>
+          <span class="inline-flex items-center gap-1 text-slate-500 text-xs">{{heroicon "x-circle"}} Email not verified</span>
           {{end}}
           <span class="text-slate-500 text-xs">Onboarding: step {{.Business.OnboardingStep}}/5</span>
         </div>
@@ -52,20 +52,20 @@
           hx-post="/admin/businesses/{{.Business.ID}}/suspend" hx-target="#admin-content" hx-swap="innerHTML"
           onsubmit="return confirm('Suspend this business?')">
           <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30">{{heroicon "pause" "mr-1"}}Suspend</button>
+          <button class="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30">{{heroicon "pause"}}Suspend</button>
         </form>
         {{else}}
         <form method="POST" action="/admin/businesses/{{.Business.ID}}/activate" class="inline"
           hx-post="/admin/businesses/{{.Business.ID}}/activate" hx-target="#admin-content" hx-swap="innerHTML">
           <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-          <button class="px-3 py-1.5 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition border border-emerald-500/30">{{heroicon "play" "mr-1"}}Activate</button>
+          <button class="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition border border-emerald-500/30">{{heroicon "play"}}Activate</button>
         </form>
         {{end}}
         <form method="POST" action="/admin/businesses/{{.Business.ID}}/delete" class="inline"
           hx-post="/admin/businesses/{{.Business.ID}}/delete" hx-target="#admin-content" hx-swap="innerHTML"
           onsubmit="return confirm('Soft-delete this business? This will suspend it.')">
           <input type="hidden" name="_csrf" value="{{$.CSRFToken}}">
-          <button class="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30">{{heroicon "trash" "mr-1"}}Delete</button>
+          <button class="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition border border-red-500/30">{{heroicon "trash"}}Delete</button>
         </form>
       </div>
     </div>
@@ -142,7 +142,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
     <!-- Details -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "information-circle" "mr-2" "text-teal-400"}}Business Details</h3>
+      <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "information-circle" "text-teal-400"}}Business Details</h3>
       <div class="space-y-2.5 text-sm">
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Business ID</span>
@@ -182,11 +182,11 @@
         </div>
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Email Verified</span>
-          <span class="text-slate-300">{{if .Business.EmailVerified}}<span class="text-emerald-400">{{heroicon "check-circle"}} Yes</span>{{else}}<span class="text-red-400">{{heroicon "x-circle"}} No</span>{{end}}</span>
+          <span class="text-slate-300">{{if .Business.EmailVerified}}<span class="inline-flex items-center gap-1 text-emerald-400">{{heroicon "check-circle"}} Yes</span>{{else}}<span class="inline-flex items-center gap-1 text-red-400">{{heroicon "x-circle"}} No</span>{{end}}</span>
         </div>
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Accepting Bookings</span>
-          <span class="text-slate-300">{{if .Business.IsAcceptingBookings}}<span class="text-emerald-400">{{heroicon "check"}} Yes</span>{{else}}<span class="text-red-400">{{heroicon "x-mark"}} No</span>{{end}}</span>
+          <span class="text-slate-300">{{if .Business.IsAcceptingBookings}}<span class="inline-flex items-center gap-1 text-emerald-400">{{heroicon "check"}} Yes</span>{{else}}<span class="inline-flex items-center gap-1 text-red-400">{{heroicon "x-mark"}} No</span>{{end}}</span>
         </div>
         <div class="flex justify-between py-1 border-b border-slate-700/50">
           <span class="text-slate-500">Onboarding Step</span>
@@ -205,7 +205,7 @@
 
     <!-- Subscription -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "crown" "mr-2" "text-amber-400"}}Subscription</h3>
+      <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "crown" "text-amber-400"}}Subscription</h3>
       {{if .Business.Subscription}}
       <div class="space-y-2.5 text-sm">
         <div class="flex justify-between py-1 border-b border-slate-700/50">
@@ -272,7 +272,7 @@
           <div class="flex justify-between"><span class="text-slate-500">Max Clients</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxClients 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxClients}}{{end}}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Max Products</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxProducts 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxProducts}}{{end}}</span></div>
           <div class="flex justify-between"><span class="text-slate-500">Max Services</span><span class="text-slate-300">{{if eq .Business.Subscription.Plan.MaxServices 0}}Unlimited{{else}}{{.Business.Subscription.Plan.MaxServices}}{{end}}</span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Analytics</span><span class="text-slate-300">{{if .Business.Subscription.Plan.HasAnalytics}}<span class="text-emerald-400">{{heroicon "check"}}{{else}}<span class="text-slate-500">{{heroicon "x-mark"}}{{end}}</span></span></div>
+          <div class="flex justify-between items-center"><span class="text-slate-500">Analytics</span><span class="text-slate-300">{{if .Business.Subscription.Plan.HasAnalytics}}<span class="inline-flex items-center gap-1 text-emerald-400">{{heroicon "check"}}{{else}}<span class="inline-flex items-center gap-1 text-slate-500">{{heroicon "x-mark"}}{{end}}</span></span></div>
         </div>
         {{end}}
       </div>
@@ -289,7 +289,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
     <!-- Locations -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "map-pin" "mr-2" "text-teal-400"}}Locations {{if gt (len .Business.Locations) 0}}<span class="text-slate-500 font-normal">({{len .Business.Locations}})</span>{{end}}</h3>
+      <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "map-pin" "text-teal-400"}}Locations {{if gt (len .Business.Locations) 0}}<span class="text-slate-500 font-normal">({{len .Business.Locations}})</span>{{end}}</h3>
       {{if .Business.Locations}}
       <div class="space-y-2">
         {{range .Business.Locations}}
@@ -302,9 +302,9 @@
             {{if not .IsActive}}<span class="text-xs text-slate-500">Inactive</span>{{end}}
           </div>
           <div class="flex gap-3 mt-1.5 text-xs text-slate-500">
-            {{if .Phone}}<span>{{heroicon "phone" "mr-1"}}{{.Phone}}</span>{{end}}
-            {{if .Email}}<span>{{heroicon "envelope" "mr-1"}}{{.Email}}</span>{{end}}
-            {{if .TimeZone}}<span>{{heroicon "clock" "mr-1"}}{{.TimeZone}}</span>{{end}}
+            {{if .Phone}}<span class="inline-flex items-center gap-1">{{heroicon "phone"}}{{.Phone}}</span>{{end}}
+            {{if .Email}}<span class="inline-flex items-center gap-1">{{heroicon "envelope"}}{{.Email}}</span>{{end}}
+            {{if .TimeZone}}<span class="inline-flex items-center gap-1">{{heroicon "clock"}}{{.TimeZone}}</span>{{end}}
           </div>
         </div>
         {{end}}
@@ -319,7 +319,7 @@
 
     <!-- Team Members -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "users" "mr-2" "text-teal-400"}}Team Members {{if gt (len .Business.TeamMembers) 0}}<span class="text-slate-500 font-normal">({{len .Business.TeamMembers}})</span>{{end}}</h3>
+      <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "users" "text-teal-400"}}Team Members {{if gt (len .Business.TeamMembers) 0}}<span class="text-slate-500 font-normal">({{len .Business.TeamMembers}})</span>{{end}}</h3>
       {{if .Business.TeamMembers}}
       <div class="space-y-2">
         {{range .Business.TeamMembers}}
@@ -360,7 +360,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <!-- Recent Orders -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "shopping-cart" "mr-2" "text-orange-400"}}Recent Orders</h3>
+      <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "shopping-cart" "text-orange-400"}}Recent Orders</h3>
       {{if .RecentOrders}}
       <div class="space-y-2">
         {{range .RecentOrders}}
@@ -392,7 +392,7 @@
 
     <!-- Recent Bookings -->
     <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-      <h3 class="text-sm font-semibold text-white mb-3">{{heroicon "calendar-check" "mr-2" "text-purple-400"}}Recent Bookings</h3>
+      <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "calendar-check" "text-purple-400"}}Recent Bookings</h3>
       {{if .RecentBookings}}
       <div class="space-y-2">
         {{range .RecentBookings}}

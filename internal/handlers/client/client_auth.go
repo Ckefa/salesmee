@@ -218,6 +218,7 @@ func ClientDashboard(c *gin.Context) {
 		"ClientID":      clientID,
 		"Businesses":    businesses,
 		"AssistEnabled": assist.IsEnabled(),
+		"IsDev":         config.C.AppEnv == "dev",
 	})
 }
 

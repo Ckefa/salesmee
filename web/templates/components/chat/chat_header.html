@@ -49,24 +49,4 @@
     </div>
   </div>
 </div>
-
-<script>
-function waToggleChatMenu() {
-  var dd = document.getElementById('chatMenuDropdown');
-  dd.classList.toggle('hidden');
-}
-document.addEventListener('click', function(e) {
-  var btn = document.getElementById('chatMenuBtn');
-  var dd = document.getElementById('chatMenuDropdown');
-  if (dd && !dd.classList.contains('hidden') && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
-    dd.classList.add('hidden');
-  }
-});
-
-function openAssistFromChat() {
-  var dd = document.getElementById('chatMenuDropdown');
-  if (dd) dd.classList.add('hidden');
-  if (typeof toggleAssist === 'function') toggleAssist();
-}
-</script>
 {{end}}

@@ -116,10 +116,10 @@
             </div>
           </div>
           <div class="flex gap-2">
-            <a href="/business/products" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl border-2 border-[var(--color-warning)] text-[var(--color-warning)] font-semibold text-sm hover:bg-[var(--color-warning-light)] transition-all text-center">
+            <a href="/business/products" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl border-2 border-[var(--color-warning)] text-[var(--color-warning)] font-semibold text-sm hover:bg-[var(--color-warning-light)] transition-all flex items-center justify-center gap-1">
               {{heroicon "cube" "mr-1"}} Products
             </a>
-            <a href="/business/services" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl border-2 border-[var(--color-secondary)] text-[var(--color-secondary)] font-semibold text-sm hover:bg-[var(--color-secondary-light)] transition-all text-center">
+            <a href="/business/services" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl border-2 border-[var(--color-secondary)] text-[var(--color-secondary)] font-semibold text-sm hover:bg-[var(--color-secondary-light)] transition-all flex items-center justify-center gap-1">
               {{heroicon "sparkles" "mr-1"}} Services
             </a>
           </div>
@@ -169,10 +169,10 @@
             </div>
           </div>
           <div class="flex gap-2">
-            <a href="/business/share" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/25 text-center">
+            <a href="/business/share" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/25 flex items-center justify-center gap-1">
               {{heroicon "qr-code" "mr-1"}} View QR Code
             </a>
-            <a href="/business/share" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-semibold text-sm hover:bg-[var(--color-primary-light)] transition-all text-center">
+            <a href="/business/share" onclick="onboardingNavigate()" class="flex-1 py-2.5 rounded-xl border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-semibold text-sm hover:bg-[var(--color-primary-light)] transition-all flex items-center justify-center gap-1">
               {{heroicon "arrow-top-right-on-square" "mr-1"}} Share Page
             </a>
           </div>
@@ -203,12 +203,12 @@
           </div>
           <div class="flex gap-2">
             {{if gt .ProductCount 0}}
-            <button onclick="onboardingStartOrder()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/25 text-center">
+            <button onclick="onboardingStartOrder()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/25 flex items-center justify-center gap-1">
               {{heroicon "shopping-cart" "mr-1"}} Send an Order
             </button>
             {{end}}
             {{if gt .ServiceCount 0}}
-            <button onclick="onboardingStartBooking()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-info)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-secondary)]/25 text-center">
+            <button onclick="onboardingStartBooking()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-info)] text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-[var(--color-secondary)]/25 flex items-center justify-center gap-1">
               {{heroicon "calendar-check" "mr-1"}} Create a Booking
             </button>
             {{end}}

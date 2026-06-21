@@ -769,3 +769,23 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') hideNotifCtxMenu();
 });
 // === End Notification Context Menu ===
+
+// Chat menu dropdown (header menu button)
+function waToggleChatMenu() {
+  var dd = document.getElementById('chatMenuDropdown');
+  if (dd) dd.classList.toggle('hidden');
+}
+
+function openAssistFromChat() {
+  var dd = document.getElementById('chatMenuDropdown');
+  if (dd) dd.classList.add('hidden');
+  if (typeof toggleAssist === 'function') toggleAssist();
+}
+
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('chatMenuBtn');
+  var dd = document.getElementById('chatMenuDropdown');
+  if (dd && !dd.classList.contains('hidden') && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.add('hidden');
+  }
+});

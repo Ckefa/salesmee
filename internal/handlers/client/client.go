@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"salesmee/internal/config"
 	"salesmee/internal/db"
 	"salesmee/internal/models"
 	"salesmee/internal/ws"
@@ -26,6 +27,7 @@ func ShowDiscover(c *gin.Context) {
 	if c.GetHeader("HX-Request") == "true" {
 		c.HTML(http.StatusOK, "client_discover_content.html", gin.H{
 			"Businesses": businesses,
+			"IsDev":      config.C.AppEnv == "dev",
 		})
 		return
 	}
@@ -35,6 +37,7 @@ func ShowDiscover(c *gin.Context) {
 		"Businesses": businesses,
 		"Email":      c.GetString("client_email"),
 		"Client":     client,
+		"IsDev":      config.C.AppEnv == "dev",
 	})
 }
 

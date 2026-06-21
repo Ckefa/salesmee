@@ -28,10 +28,10 @@
       </div>
       <div class="flex items-center gap-4">
         <span class="text-slate-400 text-xs hidden sm:inline">{{.AdminEmail}}</span>
-        <a href="/" class="text-slate-500 hover:text-white text-xs transition">{{heroicon "arrow-top-right-on-square" "mr-1"}}Site</a>
+        <a href="/" class="inline-flex items-center gap-1 text-slate-500 hover:text-white text-xs transition">{{heroicon "arrow-top-right-on-square"}}Site</a>
         <form method="POST" action="/admin/logout" class="inline">
           <input type="hidden" name="_csrf" value="{{.CSRFToken}}">
-          <button class="text-slate-500 hover:text-red-400 text-xs transition">{{heroicon "arrow-right-on-rectangle" "mr-1"}}Logout</button>
+          <button class="inline-flex items-center gap-1 text-slate-500 hover:text-red-400 text-xs transition">{{heroicon "arrow-right-on-rectangle"}}Logout</button>
         </form>
       </div>
     </header>
@@ -82,27 +82,27 @@
       <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "dashboard"}}active{{end}}"
         hx-get="/admin" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        {{heroicon "chart-bar" "mr-1.5"}}Dashboard
+        {{heroicon "chart-bar"}}Dashboard
       </button>
-      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "businesses"}}active{{end}}"
+      <button class="admin-tab inline-flex items-center gap-1.5 px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "businesses"}}active{{end}}"
         hx-get="/admin/businesses?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        {{heroicon "building-storefront" "mr-1.5"}}Businesses
+        {{heroicon "building-storefront"}}Businesses
       </button>
-      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "clients"}}active{{end}}"
+      <button class="admin-tab inline-flex items-center gap-1.5 px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "clients"}}active{{end}}"
         hx-get="/admin/clients?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        {{heroicon "users" "mr-1.5"}}Clients
+        {{heroicon "users"}}Clients
       </button>
-      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "subscriptions"}}active{{end}}"
+      <button class="admin-tab inline-flex items-center gap-1.5 px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "subscriptions"}}active{{end}}"
         hx-get="/admin/subscriptions?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        {{heroicon "crown" "mr-1.5"}}Subscriptions
+        {{heroicon "crown"}}Subscriptions
       </button>
-      <button class="admin-tab px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "audit"}}active{{end}}"
+      <button class="admin-tab inline-flex items-center gap-1.5 px-4 py-2.5 text-sm text-slate-400 rounded-t-lg font-medium transition whitespace-nowrap {{if eq .ActiveTab "audit"}}active{{end}}"
         hx-get="/admin/audit?page=1" hx-target="#admin-content" hx-push-url="false"
         onclick="document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">
-        {{heroicon "clock" "mr-1.5"}}Audit Log
+        {{heroicon "clock"}}Audit Log
       </button>
     </div>
 
@@ -112,7 +112,7 @@
       <div class="p-6 space-y-6">
         <!-- Recent Signups -->
         <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-          <h2 class="text-sm font-semibold text-white mb-3">{{heroicon "building-storefront" "mr-2" "text-teal-400"}}Recent Business Signups</h2>
+          <h2 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "building-storefront" "text-teal-400"}}Recent Business Signups</h2>
           {{if .RecentBusinesses}}
           <div class="space-y-2">
             {{range .RecentBusinesses}}
@@ -135,7 +135,7 @@
 
         <!-- Recent Audit Activity -->
         <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5">
-          <h2 class="text-sm font-semibold text-white mb-3">{{heroicon "clock" "mr-2" "text-purple-400"}}Recent Activity</h2>
+          <h2 class="inline-flex items-center gap-2 text-sm font-semibold text-white mb-3">{{heroicon "clock" "text-purple-400"}}Recent Activity</h2>
           {{if .RecentLogs}}
           <div class="space-y-2">
             {{range .RecentLogs}}

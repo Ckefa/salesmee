@@ -64,7 +64,7 @@
             <option value="{{.ID}}">{{.Name}}</option>
             {{end}}
           </select>
-          <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
+          <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap inline-flex items-center gap-1">
             {{heroicon "x-mark" "mr-1"}}Clear
           </button>
         </div>
@@ -133,7 +133,7 @@
                 </td>
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-[var(--color-text-muted)]">{{currencySymbol $.Business.Currency}}{{.TotalAmount}}</td>
                 <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
-                  <button onclick="toggleDropdown('bookingActions-{{.ID}}')" class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
+                  <button onclick="toggleDropdown('bookingActions-{{.ID}}')" class="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
                     {{heroicon "ellipsis-vertical" "text-[var(--color-text-muted)]"}}
                   </button>
                   <div id="bookingActions-{{.ID}}" class="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 hidden">
@@ -180,7 +180,7 @@
                 <td colspan="8" class="px-3 sm:px-6 py-12 text-center">
                   {{heroicon "calendar" "text-[var(--color-text-muted)]" "text-5xl" "mb-4" "block"}}
                   <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
-                  <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
+                  <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base inline-flex items-center gap-2">
                     {{heroicon "plus" "mr-2"}}Create your first booking
                   </button>
                 </td>

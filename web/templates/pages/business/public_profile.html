@@ -25,7 +25,7 @@
       </div>
       <h1 class="text-xl font-bold text-gray-900 mb-2">Business Not Found</h1>
       <p class="text-gray-600">{{.Error}}</p>
-      <a href="/" class="mt-6 inline-block text-teal-600 hover:text-teal-700 font-medium">
+      <a href="/" class="mt-6 inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium">
         {{heroicon "arrow-left" "mr-1"}} Go Home
       </a>
     </div>
@@ -38,7 +38,7 @@
         <div class="bg-white rounded-lg p-1"><img src="/static/images/salesmee.svg" alt="SalesMee" class="h-6 sm:h-8"></div>
       </a>
       <div class="flex items-center gap-3">
-        <a href="/client/login" class="text-sm text-gray-600 hover:text-teal-600">
+        <a href="/client/login" class="text-sm text-gray-600 hover:text-teal-600 inline-flex items-center gap-1">
           {{heroicon "user" "mr-1"}} Client Login
         </a>
       </div>
@@ -72,7 +72,7 @@
               </div>
               <p class="text-gray-600 capitalize">{{.Business.BusinessType}}</p>
               {{if gt .TotalClients 0}}
-              <p class="text-xs sm:text-sm text-gray-400 mt-1">
+              <p class="text-xs sm:text-sm text-gray-400 mt-1 inline-flex items-center gap-1">
                 {{heroicon "users" "mr-1"}}{{.TotalClients}} client{{if gt .TotalClients 1}}s{{end}} connected
               </p>
               {{end}}
@@ -191,7 +191,7 @@
                   {{end}}
                 </span>
                 {{if .Duration}}
-                <span class="text-xs text-gray-500">{{heroicon "clock" "mr-0.5"}}{{.Duration}} min</span>
+                <span class="text-xs text-gray-500 inline-flex items-center gap-1">{{heroicon "clock" "mr-0.5"}}{{.Duration}} min</span>
                 {{end}}
               </div>
             </div>
@@ -286,7 +286,7 @@
             <h3 class="font-semibold text-gray-900 mb-1">Connect with {{.Business.Name}}</h3>
             <p class="text-xs text-gray-500 mb-4">Chat, order products, and book services instantly.</p>
             <a href="/api/connect/{{.Business.Slug}}"
-              class="block w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:from-teal-600 hover:to-cyan-700 transition-all">
+              class="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:from-teal-600 hover:to-cyan-700 transition-all">
               {{heroicon "paper-airplane" "mr-1.5"}}Connect & Chat
             </a>
             <div class="mt-4 pt-4 border-t border-gray-100">
@@ -322,7 +322,7 @@ function copyShareLink(btn) {
   <!-- Mobile CTA (sticky bottom) -->
   <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-40">
     <a href="/api/connect/{{.Business.Slug}}"
-      class="block w-full px-4 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold text-xs sm:text-sm text-center shadow-lg hover:from-teal-600 hover:to-cyan-700 transition-all">
+      class="flex items-center justify-center gap-1.5 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold text-xs sm:text-sm shadow-lg hover:from-teal-600 hover:to-cyan-700 transition-all">
       {{heroicon "paper-airplane" "mr-1.5"}}Connect & Chat with {{.Business.Name}}
     </a>
   </div>

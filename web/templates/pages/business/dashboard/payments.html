@@ -24,7 +24,7 @@
         <div class="bg-[var(--color-surface)] rounded-xl card mb-6">
           <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)] flex items-center justify-between flex-wrap gap-2">
             <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">{{heroicon "credit-card" "mr-2"}}Payment Methods</h3>
-            <button onclick="openAddPaymentMethod()" class="text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+            <button onclick="openAddPaymentMethod()" class="text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1">
               {{heroicon "plus" ""}} Add Method
             </button>
           </div>
@@ -78,10 +78,10 @@
                     </label>
                   </td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right">
-                    <button onclick="openEditPaymentMethod({{.ID}})" class="text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-sm p-1" title="Edit">
+                    <button onclick="openEditPaymentMethod({{.ID}})" class="inline-flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-info)] text-sm p-1" title="Edit">
                       {{heroicon "pencil" ""}}
                     </button>
-                    <button onclick="deletePaymentMethod({{.ID}}, '{{.Label}}')" class="text-[var(--color-text-muted)] hover:text-[var(--color-error)] text-sm p-1 ml-1" title="Delete">
+                    <button onclick="deletePaymentMethod({{.ID}}, '{{.Label}}')" class="inline-flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-error)] text-sm p-1 ml-1" title="Delete">
                       {{heroicon "trash" ""}}
                     </button>
                   </td>

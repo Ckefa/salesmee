@@ -209,10 +209,10 @@
               {{if index .Details "account_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Name: {{index .Details "account_name"}}</p>{{end}}
             {{else if eq .MethodType "paypal"}}
               {{if index .Details "email"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Email: {{index .Details "email"}}</p>{{end}}
-              {{if index .Details "link"}}<a href="{{index .Details "link"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">PayPal.Me {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
+              {{if index .Details "link"}}<a href="{{index .Details "link"}}" target="_blank" class="inline-flex items-center gap-0.5 text-[10px] text-[var(--color-info)] hover:underline">PayPal.Me {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
               {{if index .Details "description"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "description"}}</p>{{end}}
             {{else if eq .MethodType "link"}}
-              {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">Click to Pay {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
+              {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="inline-flex items-center gap-0.5 text-[10px] text-[var(--color-info)] hover:underline">Click to Pay {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
               {{if index .Details "description"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "description"}}</p>{{end}}
             {{else if eq .MethodType "crypto"}}
               {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}
@@ -239,7 +239,7 @@
           {{end}}
         </div>
       </div>
-      <div class="w-full text-center py-1.5 sm:py-2 bg-[var(--color-warning-light)] rounded-lg text-[var(--color-warning)] text-xs sm:text-sm font-medium">
+      <div class="w-full py-1.5 sm:py-2 bg-[var(--color-warning-light)] rounded-lg text-[var(--color-warning)] text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1">
         {{heroicon "clock" "mr-1"}}Waiting for business approval
       </div>
 
@@ -272,10 +272,10 @@
               {{if index .Details "account_name"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Name: {{index .Details "account_name"}}</p>{{end}}
             {{else if eq .MethodType "paypal"}}
               {{if index .Details "email"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Email: {{index .Details "email"}}</p>{{end}}
-              {{if index .Details "link"}}<a href="{{index .Details "link"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">PayPal.Me {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
+              {{if index .Details "link"}}<a href="{{index .Details "link"}}" target="_blank" class="inline-flex items-center gap-0.5 text-[10px] text-[var(--color-info)] hover:underline">PayPal.Me {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
               {{if index .Details "description"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "description"}}</p>{{end}}
             {{else if eq .MethodType "link"}}
-              {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="text-[10px] text-[var(--color-info)] hover:underline">Click to Pay {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
+              {{if index .Details "url"}}<a href="{{index .Details "url"}}" target="_blank" class="inline-flex items-center gap-0.5 text-[10px] text-[var(--color-info)] hover:underline">Click to Pay {{heroicon "arrow-top-right-on-square" "ml-0.5"}}</a>{{end}}
               {{if index .Details "description"}}<p class="text-[10px] text-[var(--color-text-muted)] italic">{{index .Details "description"}}</p>{{end}}
             {{else if eq .MethodType "crypto"}}
               {{if index .Details "network"}}<p class="text-[10px] text-[var(--color-text-secondary)]">Network: {{index .Details "network"}}</p>{{end}}

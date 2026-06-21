@@ -225,12 +225,12 @@
               {{if .Reference}}
               <span class="text-[var(--color-text-muted)] truncate max-w-[80px] hidden sm:inline">{{.Reference}}</span>
               {{end}}
-              <button class="px-2 py-0.5 rounded bg-[var(--color-success)] text-white hover:opacity-90 text-[10px] font-medium flex-shrink-0" onclick="confirmOrderPayment({{$order.id}}, {{.ID}})">{{heroicon "check" "mr-0.5"}}Confirm</button>
+              <button class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-[var(--color-success)] text-white hover:opacity-90 text-[10px] font-medium flex-shrink-0" onclick="confirmOrderPayment({{$order.id}}, {{.ID}})">{{heroicon "check" "mr-0.5"}}Confirm</button>
               <button class="px-2 py-0.5 rounded border border-[var(--color-error)]/40 text-[var(--color-error)] hover:bg-[var(--color-error-light)] text-[10px] font-medium flex-shrink-0" onclick="rejectOrderPayment({{$order.id}}, {{.ID}})" title="Reject">{{heroicon "x-mark"}}</button>
             </div>
             {{end}}
             {{end}}
-          <button class="w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm"
+          <button class="inline-flex items-center justify-center gap-1 w-full py-1.5 px-3 rounded-lg bg-[var(--color-success)] text-white hover:opacity-90 text-xs font-medium transition shadow-sm"
             onclick="confirmAllOrderPayments({{$order.id}})">
             {{heroicon "check-double" "mr-1"}}Confirm All
           </button>

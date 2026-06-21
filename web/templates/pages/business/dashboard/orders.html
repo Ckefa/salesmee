@@ -65,7 +65,7 @@
               <option value="{{.ID}}">{{.Name}}</option>
               {{end}}
             </select>
-            <button id="clearOrderFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap">
+            <button id="clearOrderFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap inline-flex items-center gap-1">
               {{heroicon "x-mark" "mr-1"}}Clear
             </button>
           </div>
@@ -172,7 +172,7 @@
                   </td>
                   <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium relative">
                     <button onclick="toggleDropdown('orderActions-{{.ID}}')"
-                      class="p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
+                      class="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-[var(--color-surface-secondary)] transition" title="Actions">
                       {{heroicon "ellipsis-vertical" "text-[var(--color-text-muted)]"}}
                     </button>
                     <div id="orderActions-{{.ID}}"

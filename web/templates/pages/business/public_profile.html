@@ -7,7 +7,8 @@
   <meta name="color-scheme" content="light dark">
   {{template "pwa_head" .}}
   <title>{{.Title}}</title>
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=2" media="print" onload="this.media='all';this.onload=null">
+  <noscript><link rel="stylesheet" href="/static/css/dist/styles.css?v=2"></noscript>
   <style>
     .sticky-cta { position: sticky; top: 1.5rem; }
     .fade-in { animation: fadeIn 0.4s ease-out; }

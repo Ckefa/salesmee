@@ -7,8 +7,12 @@
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Log in to your SalesMee business dashboard to manage products, orders, bookings, clients, and team members from one place.">
   {{template "pwa_head" .}}
-  <link rel="stylesheet" href="/static/fonts/inter.css?v=1">
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <link rel="stylesheet" href="/static/fonts/inter.css?v=2" media="print" onload="this.media='all';this.onload=null">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=2" media="print" onload="this.media='all';this.onload=null">
+  <noscript>
+    <link rel="stylesheet" href="/static/fonts/inter.css?v=2">
+    <link rel="stylesheet" href="/static/css/dist/styles.css?v=2">
+  </noscript>
   <script src="/static/js/core/theme.js?v=1"></script>
 </head>
 <body class="font-sans antialiased">

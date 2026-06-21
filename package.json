@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "css:build": "NODE_ENV=production postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css",
+    "css:build-landing": "NODE_ENV=production postcss ./web/static/css/landing.css -o ./web/static/css/dist/landing.css --config postcss.landing.config.js",
     "css:watch": "postcss ./web/static/css/styles.css -o ./web/static/css/dist/styles.css --watch",
     "js:build": "node scripts/build-js.js",
     "js:watch": "node scripts/build-js.js --watch",
-    "build": "npm run css:build && npm run js:build"
+    "build": "npm run css:build && npm run css:build-landing && npm run js:build"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.18",

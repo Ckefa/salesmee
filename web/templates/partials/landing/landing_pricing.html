@@ -17,7 +17,7 @@
       <div class="flex items-center justify-center gap-3 mt-8 reveal">
         <span class="text-sm font-medium text-slate-700" id="monthlyLabel">Monthly</span>
         <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="pricingToggle" class="toggle-checkbox sr-only" onchange="togglePricing()">
+          <input type="checkbox" id="pricingToggle" class="toggle-checkbox sr-only" onchange="togglePricing()" aria-label="Toggle monthly and yearly billing">
           <div class="toggle-label w-12 h-6 bg-slate-300 rounded-full transition-colors duration-300"></div>
           <div class="toggle-dot absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300"></div>
         </label>

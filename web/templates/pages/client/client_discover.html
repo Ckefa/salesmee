@@ -8,7 +8,8 @@
   {{template "pwa_head" .}}
   <title>{{.Title}}</title>
   <script src="/static/js/vendor/htmx.min.js?v=1"></script>
-  <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
+  <link rel="stylesheet" href="/static/css/dist/styles.css?v=2" media="print" onload="this.media='all';this.onload=null">
+  <noscript><link rel="stylesheet" href="/static/css/dist/styles.css?v=2"></noscript>
   <script src="/static/js/core/theme.js?v=1"></script>
   <script>{{template "analytics_script" .}}</script>
 </head>

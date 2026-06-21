@@ -1,5 +1,5 @@
 const CACHE = 'salesmee-v1';
-const STATIC_CACHE = 'salesmee-static-v3';
+const STATIC_CACHE = 'salesmee-static-v4';
 const OFFLINE_URL = '/static/pwa/offline.html';
 
 const PRECACHE_URLS = [
@@ -10,9 +10,10 @@ const PRECACHE_URLS = [
   '/static/images/salesmee.ico',
   '/static/images/salesmeebrand.png',
   '/static/images/chatbg.svg?v=1',
-  '/static/css/dist/styles.css?v=1',
+  '/static/css/dist/landing.css?v=1',
+  '/static/css/dist/styles.css?v=2',
   '/static/js/core/icons.js?v=1',
-  '/static/fonts/inter.css?v=1',
+  '/static/fonts/inter.css?v=2',
   '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7W0Q5n-wU.woff2',
   '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1pL7W0Q5n-wU.woff2',
   '/static/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2',

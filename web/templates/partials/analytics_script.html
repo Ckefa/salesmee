@@ -1,6 +1,5 @@
 {{define "analytics_script"}}
 {{if not .IsDev}}
-<script>
 var host = location.hostname;
 if (host !== 'localhost' && host !== '127.0.0.1' && localStorage.getItem('cookies_accepted') === 'true') {
   (function() {
@@ -14,6 +13,5 @@ if (host !== 'localhost' && host !== '127.0.0.1' && localStorage.getItem('cookie
     gtag('config', 'G-E51BLXZ6ZG');
   })();
 }
-</script>
 {{end}}
 {{end}}

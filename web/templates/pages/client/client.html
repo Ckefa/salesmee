@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/static/css/dist/styles.css?v=1">
   <script src="/static/js/vendor/htmx.min.js?v=1"></script>
   <script src="/static/js/core/theme.js?v=1"></script>
-  {{template "analytics_script" .}}
+  <script>{{template "analytics_script" .}}</script>
 </head>
 <body class="wa-body">
   <div class="wa-layout" id="clientLayout">
@@ -217,7 +217,9 @@
         var item = document.querySelector('.business-item[data-business-id="' + id + '"]');
         if (item) {
           var star = item.querySelector('.pin-btn svg');
-          if (star) star.classList.add('text-amber-500');
+          var btn = item.querySelector('.pin-btn');
+          if (star) star.classList.add('text-[var(--color-warning)]');
+          if (btn) btn.classList.add('bg-[var(--color-warning-light)]');
         }
       });
       if (typeof sortBusinessList === 'function') {

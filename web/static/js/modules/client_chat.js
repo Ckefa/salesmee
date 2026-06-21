@@ -76,10 +76,17 @@ function sortBusinessList() {
   items.forEach(function(el) { list.appendChild(el); });
   parent.insertBefore(list, sibling);
   items.forEach(function(el) {
-    var star = el.querySelector('.pin-btn i');
-    if (star) {
+    var star = el.querySelector('.pin-btn svg');
+    var btn = el.querySelector('.pin-btn');
+    if (star && btn) {
       var id = parseInt(el.getAttribute('data-business-id'));
-      star.outerHTML = pins.indexOf(id) > -1 ? heroicon("star", "text-amber-500") : heroicon("star", "text-[var(--color-text-muted)]");
+      var isPinned = pins.indexOf(id) > -1;
+      star.outerHTML = isPinned ? heroicon("star", "text-sm", "text-[var(--color-warning)]") : heroicon("star", "text-sm", "text-[var(--color-text-muted)]");
+      if (isPinned) {
+        btn.classList.add('bg-[var(--color-warning-light)]');
+      } else {
+        btn.classList.remove('bg-[var(--color-warning-light)]');
+      }
     }
   });
   initClientSidebarVirtualScroll();

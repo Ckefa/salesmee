@@ -660,10 +660,17 @@ function sortClientList() {
   parent.insertBefore(list, sibling);
   items.forEach(function(el) {
     var star = el.querySelector('.pin-btn svg');
-    if (star) {
+    var btn = el.querySelector('.pin-btn');
+    if (star && btn) {
       var id = parseInt(el.getAttribute('data-client-id'));
-      var cls = pins.indexOf(id) > -1 ? 'text-amber-500' : 'text-[var(--color-text-muted)]';
-      star.outerHTML = heroicon("star", "text-[10px]", cls);
+      var isPinned = pins.indexOf(id) > -1;
+      var cls = isPinned ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-muted)]';
+      star.outerHTML = heroicon("star", "text-sm", cls);
+      if (isPinned) {
+        btn.classList.add('bg-[var(--color-warning-light)]');
+      } else {
+        btn.classList.remove('bg-[var(--color-warning-light)]');
+      }
     }
   });
   initSidebarVirtualScroll();

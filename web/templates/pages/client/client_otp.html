@@ -24,15 +24,15 @@
       <p class="text-gray-600 mt-2">Enter verification code</p>
     </div>
 
-    <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
-      {{heroicon "information-circle" "mr-2"}}
-      We've sent a 6-digit code to <strong>{{.Email}}</strong>
+    <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+      {{heroicon "information-circle" "shrink-0"}}
+      <span>We've sent a 6-digit code to <strong>{{.Email}}</strong></span>
     </div>
 
     {{if .Error}}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-      {{heroicon "exclamation-circle" "mr-2"}}
-      {{.Error}}
+    <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+      {{heroicon "exclamation-circle" "shrink-0"}}
+      <span>{{.Error}}</span>
     </div>
     {{end}}
 
@@ -57,30 +57,50 @@
       </div>
 
       <button type="submit" id="verifyBtn"
-        class="w-full bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all duration-200 font-medium">
+        class="w-full bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all duration-200 font-medium flex items-center justify-center gap-2">
         <span id="verifyBtnText">Verify & Sign In</span>
         <span id="verifySpinner" class="hidden">{{heroicon "arrow-path" "animate-spin"}}</span>
       </button>
     </form>
 
-    <!-- Resend Timer -->
-    <div class="text-center mt-5">
-      <p class="text-sm text-gray-500" id="resendContainer">
-        <span id="resendTimer">Resend code in <span id="resendCountdown">0:30</span></span>
-        <button onclick="resendCode()" id="resendBtn" class="hidden text-teal-600 hover:text-teal-700 font-medium">
-          {{heroicon "arrow-path" "mr-1"}}Resend code
-        </button>
+    <!-- OTP Expiry Countdown (10 min) -->
+    <div class="text-center mt-4">
+      <p class="text-xs text-gray-500">
+        Code expires in <span id="otpTimer" class="font-medium text-gray-700">10:00</span>
       </p>
     </div>
 
-    <div class="text-center mt-4">
-      <a href="/client/login" class="text-teal-600 hover:text-teal-700 font-medium text-sm">
-        {{heroicon "arrow-left" "mr-1"}}Back to login
+    <!-- Resend Countdown (SVG Ring) -->
+    <div class="flex flex-col items-center mt-4" id="resendContainer">
+      <div id="resendCountdownRing" class="flex flex-col items-center gap-1">
+        <svg class="countdown-ring" width="72" height="72" viewBox="0 0 100 100">
+          <circle class="countdown-ring-bg" cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" stroke-width="6"/>
+          <circle class="countdown-ring-fg" id="resendCircle" cx="50" cy="50" r="40" fill="none" stroke="#0d9488" stroke-width="6"
+            stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+        </svg>
+        <span class="text-lg font-bold text-gray-800 -mt-16" id="resendCountdownText">60</span>
+      </div>
+      <button onclick="resendCode()" id="resendBtn"
+        class="hidden mt-2 text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1.5">
+        {{heroicon "arrow-path" "shrink-0"}}Resend code
+      </button>
+    </div>
+
+    <div class="text-center mt-5 pt-4 border-t border-gray-100">
+      <a href="/client/login" class="text-teal-600 hover:text-teal-700 font-medium text-sm flex items-center justify-center gap-1.5">
+        {{heroicon "arrow-left" "shrink-0"}}Back to login
       </a>
     </div>
   </div>
 
   <script>
+    var countdownCircum = 2 * Math.PI * 40;
+    var resendCooldown = null;
+    var otpTimerInterval = null;
+
+    // Start initial resend cooldown (60s)
+    startResendCooldown(60);
+
     // Auto-focus OTP input on load
     document.getElementById('otp').focus();
 
@@ -95,21 +115,6 @@
         document.getElementById('otpForm').requestSubmit();
       }
     });
-
-    // Resend timer (30 seconds)
-    var resendSeconds = 30;
-    var resendInterval = setInterval(function() {
-      resendSeconds--;
-      if (resendSeconds <= 0) {
-        clearInterval(resendInterval);
-        document.getElementById('resendCountdown').parentElement.classList.add('hidden');
-        document.getElementById('resendBtn').classList.remove('hidden');
-      } else {
-        var m = Math.floor(resendSeconds / 60);
-        var s = resendSeconds % 60;
-        document.getElementById('resendCountdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-      }
-    }, 1000);
 
     // Loading state on form submit
     document.getElementById('otpForm').addEventListener('submit', function(e) {
@@ -129,68 +134,124 @@
       document.getElementById('otpHelp').textContent = 'Verifying code...';
     });
 
+    // OTP expiry countdown (10 minutes)
+    function startOtpTimer() {
+      var totalSeconds = 600;
+      if (otpTimerInterval) clearInterval(otpTimerInterval);
+      function tick() {
+        var m = Math.floor(totalSeconds / 60);
+        var s = totalSeconds % 60;
+        document.getElementById('otpTimer').textContent =
+          String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        if (totalSeconds <= 0) {
+          clearInterval(otpTimerInterval);
+          document.getElementById('otpTimer').textContent = 'Expired';
+        }
+        totalSeconds--;
+      }
+      tick();
+      otpTimerInterval = setInterval(tick, 1000);
+    }
+    startOtpTimer();
+
+    // Resend cooldown with SVG ring
+    function startResendCooldown(seconds) {
+      if (resendCooldown) resendCooldown();
+      var ring = document.getElementById('resendCircle');
+      var text = document.getElementById('resendCountdownText');
+      var container = document.getElementById('resendCountdownRing');
+      var btn = document.getElementById('resendBtn');
+      container.classList.remove('hidden');
+      btn.classList.add('hidden');
+      btn.disabled = false;
+      var start = performance.now();
+      var dur = seconds * 1000;
+      var cancelled = false;
+      resendCooldown = function() { cancelled = true; };
+      function tick(now) {
+        if (cancelled) return;
+        var elapsed = now - start;
+        var remaining = Math.max(0, dur - elapsed);
+        var frac = remaining / dur;
+        var secs = Math.ceil(remaining / 1000);
+        ring.setAttribute('stroke-dashoffset', Math.round(countdownCircum * (1 - frac)));
+        text.textContent = secs;
+        if (remaining > 0) {
+          requestAnimationFrame(tick);
+        } else {
+          container.classList.add('hidden');
+          btn.classList.remove('hidden');
+          if (resendCooldown === arguments.callee) resendCooldown = null;
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
     function resendCode() {
       var btn = document.getElementById('resendBtn');
       btn.disabled = true;
-      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1"}} Sending...';
+      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "shrink-0"}} Sending...';
       var formData = new FormData();
       formData.append('email', document.querySelector('input[name="email"]').value);
-      fetch('/client/send-otp', { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') }, body: formData })
-        .then(function(r) { return r.json(); })
+      fetch('/client/send-otp', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': getCookie('csrf_token'),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+        .then(function(r) {
+          if (r.status === 429) return r.json().then(function(d) { d._tooMany = true; return d; });
+          return r.json();
+        })
         .then(function(data) {
-          if (data.redirect) { window.location.href = data.redirect; return; }
+          if (data._tooMany) {
+            if (data.cooldown) {
+              startResendCooldown(data.cooldown);
+            }
+            showOtpToast(data.error || 'Please wait before resending', 'error');
+            return;
+          }
           if (data.success) {
             showOtpToast('Code resent! Check your email.');
-            resetResendTimer();
+            startResendCooldown(data.cooldown || 60);
           } else {
             showOtpToast(data.error || 'Failed to resend code', 'error');
             btn.disabled = false;
-            btn.innerHTML = '{{heroicon "arrow-path" "mr-1"}}Resend code';
+            btn.innerHTML = '{{heroicon "arrow-path" "shrink-0"}}Resend code';
+            btn.classList.remove('hidden');
           }
         })
         .catch(function() {
-          showOtpToast('Failed to resend code', 'error');
+          showOtpToast('Failed to resend code. Check your connection.', 'error');
           btn.disabled = false;
-          btn.innerHTML = '{{heroicon "arrow-path" "mr-1"}}Resend code';
+          btn.innerHTML = '{{heroicon "arrow-path" "shrink-0"}}Resend code';
+          btn.classList.remove('hidden');
         });
     }
-
-    function resetResendTimer() {
-      resendSeconds = 30;
-      document.getElementById('resendBtn').classList.add('hidden');
-      document.getElementById('resendCountdown').parentElement.classList.remove('hidden');
-      document.getElementById('resendCountdown').textContent = '0:30';
-      clearInterval(resendInterval);
-      resendInterval = setInterval(function() {
-        resendSeconds--;
-        if (resendSeconds <= 0) {
-          clearInterval(resendInterval);
-          document.getElementById('resendCountdown').parentElement.classList.add('hidden');
-          document.getElementById('resendBtn').classList.remove('hidden');
-          document.getElementById('resendBtn').disabled = false;
-          document.getElementById('resendBtn').innerHTML = '{{heroicon "arrow-path" "mr-1"}}Resend code';
-        } else {
-          var m = Math.floor(resendSeconds / 60);
-          var s = resendSeconds % 60;
-          document.getElementById('resendCountdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-        }
-      }, 1000);
-    }
-
   </script>
   {{template "csrf_script" .}}
   <script>
-    function showOtpToast(msg) {
+    function showOtpToast(msg, type) {
       var existing = document.getElementById('otpToast');
       if (existing) existing.remove();
       var toast = document.createElement('div');
       toast.id = 'otpToast';
-      toast.className = 'fixed top-4 right-4 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-xl z-50 flex items-center gap-2.5 text-sm font-medium';
-      toast.innerHTML = '{{heroicon "check-circle" "text-green-400"}} ' + msg;
+      var isError = type === 'error';
+      toast.className = 'fixed top-4 right-4 z-50 flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-medium ' +
+        (isError ? 'bg-red-600 text-white' : 'bg-gray-900 text-white');
+      var iconHtml = isError
+        ? '{{heroicon "exclamation-circle" "shrink-0" "text-white"}}'
+        : '{{heroicon "check-circle" "shrink-0" "text-green-400"}}';
+      toast.innerHTML = iconHtml + ' ' + msg;
       document.body.appendChild(toast);
-      setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(function() { toast.remove(); }, 300); }, 3000);
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 3000);
     }
   </script>
 </body>
-
 </html>

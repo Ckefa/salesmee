@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"salesmee/internal/config"
@@ -24,12 +25,38 @@ import (
 
 var wsHub *ws.Hub
 
+var (
+	clientOTPCooldownsMu sync.Mutex
+	clientOTPCooldowns   = make(map[string]time.Time)
+)
+
+func init() {
+	go func() {
+		for {
+			time.Sleep(5 * time.Minute)
+			clientOTPCooldownsMu.Lock()
+			now := time.Now()
+			for email, t := range clientOTPCooldowns {
+				if now.Sub(t) > 5*time.Minute {
+					delete(clientOTPCooldowns, email)
+				}
+			}
+			clientOTPCooldownsMu.Unlock()
+		}
+	}()
+}
+
 func SetWSHub(hub *ws.Hub) {
 	wsHub = hub
 }
 
 func dbc(c *gin.Context) *gorm.DB {
 	return db.DB.WithContext(c.Request.Context())
+}
+
+func isAjax(c *gin.Context) bool {
+	return c.GetHeader("X-Requested-With") == "XMLHttpRequest" ||
+		strings.Contains(c.GetHeader("Accept"), "application/json")
 }
 
 func ShowClientLogin(c *gin.Context) {
@@ -51,12 +78,42 @@ func ShowClientLogin(c *gin.Context) {
 func SendClientOTP(c *gin.Context) {
 	email := c.PostForm("email")
 	if email == "" {
+		if isAjax(c) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+			return
+		}
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Email is required",
 		}))
 		return
 	}
+
+	clientOTPCooldownsMu.Lock()
+	lastSent, exists := clientOTPCooldowns[email]
+	remaining := time.Duration(0)
+	if exists {
+		remaining = 60*time.Second - time.Since(lastSent)
+	}
+	if remaining > 0 {
+		clientOTPCooldownsMu.Unlock()
+		cooldown := int(remaining.Seconds()) + 1
+		if isAjax(c) {
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error":    fmt.Sprintf("Please wait %d seconds before resending", cooldown),
+				"cooldown": cooldown,
+			})
+			return
+		}
+		c.HTML(http.StatusTooManyRequests, "client_otp.html", middleware.TemplateData(c, gin.H{
+			"Title": "Enter OTP - SalesMee",
+			"Email": email,
+			"Error": fmt.Sprintf("Please wait %d seconds before resending", cooldown),
+		}))
+		return
+	}
+	clientOTPCooldowns[email] = time.Now()
+	clientOTPCooldownsMu.Unlock()
 
 	// Try to find existing client by email (any business)
 	var client models.Client
@@ -69,6 +126,10 @@ func SendClientOTP(c *gin.Context) {
 			Status: models.StatusNew,
 		}
 		if err := dbc(c).Create(&client).Error; err != nil {
+			if isAjax(c) {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create account"})
+				return
+			}
 			c.HTML(http.StatusInternalServerError, "client_login.html", middleware.TemplateData(c, gin.H{
 				"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 				"Error": "Failed to create account",
@@ -79,10 +140,22 @@ func SendClientOTP(c *gin.Context) {
 
 	_, err = services.SendClientOTP(email)
 	if err != nil {
+		if isAjax(c) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to send OTP"})
+			return
+		}
 		c.HTML(http.StatusBadRequest, "client_login.html", middleware.TemplateData(c, gin.H{
 			"Title": "Client Portal Login — Access Your SalesMee Dashboard",
 			"Error": "Failed to send OTP",
 		}))
+		return
+	}
+
+	if isAjax(c) {
+		c.JSON(http.StatusOK, gin.H{
+			"success":  true,
+			"cooldown": 60,
+		})
 		return
 	}
 

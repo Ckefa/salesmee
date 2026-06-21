@@ -94,7 +94,7 @@ function showBizCtxMenu(e, bizId, bizName) {
   var pinBtn = menu.querySelector('[data-action="toggle-pin"]');
   if (pinBtn) {
     var isPinned = pins.indexOf(bizId) > -1;
-    pinBtn.innerHTML = (isPinned ? 'heroicon("star")<span>Unpin</span>' : 'heroicon("star")<span>Pin to top</span>');
+    pinBtn.innerHTML = (isPinned ? heroicon("star") + '<span>Unpin</span>' : heroicon("star") + '<span>Pin to top</span>');
   }
   var x = e.clientX, y = e.clientY;
   var w = window.innerWidth, h = window.innerHeight;
@@ -146,9 +146,9 @@ function buildClientSkeletonChatContainer(businessId) {
   var type = el ? el.getAttribute('data-business-type') || '' : '';
   return '<div class="wa-chat-container">' +
     '<div class="wa-chat-header">' +
-      '<button onclick="clientBackFromChat()" class="wa-chat-back" title="Back">heroicon("arrow-left")</button>' +
+      '<button onclick="clientBackFromChat()" class="wa-chat-back" title="Back">' + heroicon("arrow-left") + '</button>' +
       '<div class="wa-chat-header-avatar">' +
-        '<div class="wa-chat-avatar wa-sidebar-avatar-placeholder">heroicon("building-storefront")</div>' +
+        '<div class="wa-chat-avatar wa-sidebar-avatar-placeholder">' + heroicon("building-storefront") + '</div>' +
       '</div>' +
       '<div class="wa-chat-header-info">' +
         '<div class="wa-chat-header-name">' + escapeHtml(name) + '</div>' +
@@ -215,11 +215,11 @@ function loadBusiness(businessId) {
     if (mc && mc.querySelector('.skeleton')) {
       mc.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-center flex-1">' +
         '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
-        'heroicon("exclamation-triangle", "text-[var(--color-error)] text-2xl")</div>' +
+        heroicon("exclamation-triangle", "text-[var(--color-error)]", "text-2xl") + '</div>' +
         '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
         '<p class="text-xs text-[var(--color-text-muted)] mb-4">Timed out. Please try again.</p>' +
         '<button onclick="loadBusiness(' + businessId + ')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
-        'heroicon("arrow-path", "mr-1") Retry</button></div>';
+        heroicon("arrow-path", "mr-1") + ' Retry</button></div>';
     }
   }, 20000);
 
@@ -267,11 +267,11 @@ function loadBusiness(businessId) {
       if (mc) {
         mc.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-center flex-1">' +
           '<div class="w-14 h-14 rounded-full bg-[var(--color-error-light)] flex items-center justify-center mb-4">' +
-          'heroicon("exclamation-triangle", "text-[var(--color-error)] text-2xl")</div>' +
+          heroicon("exclamation-triangle", "text-[var(--color-error)]", "text-2xl") + '</div>' +
           '<p class="text-sm font-medium text-[var(--color-text)] mb-1">Failed to load</p>' +
           '<p class="text-xs text-[var(--color-text-muted)] mb-4">Something went wrong.</p>' +
           '<button onclick="loadBusiness(' + businessId + ')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:opacity-90 transition-colors">' +
-          'heroicon("arrow-path", "mr-1") Retry</button></div>';
+          heroicon("arrow-path", "mr-1") + ' Retry</button></div>';
       }
       showNotification('Failed to load conversation', 'error');
     });

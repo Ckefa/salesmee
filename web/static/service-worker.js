@@ -1,5 +1,5 @@
 const CACHE = 'salesmee-v1';
-const STATIC_CACHE = 'salesmee-static-v2';
+const STATIC_CACHE = 'salesmee-static-v3';
 const OFFLINE_URL = '/static/pwa/offline.html';
 
 const PRECACHE_URLS = [

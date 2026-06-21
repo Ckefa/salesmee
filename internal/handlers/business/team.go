@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
 
@@ -46,6 +47,7 @@ func (h *TeamHandler) GetTeam(c *gin.Context) {
 		"AuthType":      c.GetString("auth_type"),
 		"Role":          c.GetString("role"),
 		"AssistEnabled": assist.IsEnabled(),
+		"IsDev":         config.IsDev(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {

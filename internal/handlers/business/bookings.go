@@ -3,6 +3,7 @@ package business
 import (
 	"fmt"
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -226,6 +227,7 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 			"AuthType":       c.GetString("auth_type"),
 			"Role":           c.GetString("role"),
 			"ActivePage":     "bookings",
+			"IsDev":          config.IsDev(),
 		})
 		return
 	}
@@ -251,6 +253,7 @@ func (h *BookingHandler) GetBookings(c *gin.Context) {
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
 		"ActivePage":     "bookings",
+		"IsDev":          config.IsDev(),
 	})
 }
 

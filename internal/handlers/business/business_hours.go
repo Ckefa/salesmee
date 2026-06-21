@@ -3,6 +3,7 @@ package business
 import (
 	"encoding/json"
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
 
@@ -70,6 +71,7 @@ func (h *HoursHandler) GetBusinessHours(c *gin.Context) {
 		"AuthType":            c.GetString("auth_type"),
 		"Role":                c.GetString("role"),
 		"AssistEnabled":       assist.IsEnabled(),
+		"IsDev":               config.IsDev(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {

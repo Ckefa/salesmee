@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"salesmee/internal/config"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
@@ -82,6 +83,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 			"Role":       c.GetString("role"),
 			"QueryLocationID": locID,
 			"ActivePage": "products",
+			"IsDev":      config.IsDev(),
 		})
 		return
 	}
@@ -101,6 +103,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 		"Role":          c.GetString("role"),
 		"QueryLocationID": locID,
 		"AssistEnabled": assist.IsEnabled(),
+		"IsDev":         config.IsDev(),
 	})
 }
 
@@ -435,13 +438,13 @@ func (h *ProductHandler) ShowClientProductsPage(c *gin.Context) {
 
 	businessID, err := strconv.ParseUint(c.Param("business_id"), 10, 32)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "client.html", gin.H{"error": "Invalid business ID"})
+		c.HTML(http.StatusBadRequest, "client.html", gin.H{"error": "Invalid business ID", "IsDev": config.IsDev()})
 		return
 	}
 
 	var business models.Business
 	if err := h.dbc(c).First(&business, businessID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "client.html", gin.H{"error": "Business not found"})
+		c.HTML(http.StatusNotFound, "client.html", gin.H{"error": "Business not found", "IsDev": config.IsDev()})
 		return
 	}
 

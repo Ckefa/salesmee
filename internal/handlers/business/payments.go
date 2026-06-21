@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"salesmee/internal/config"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
@@ -628,6 +629,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 			"Role":              c.GetString("role"),
 			"ActivePage":        "payments",
 			"QueryLocationID":   locID,
+			"IsDev":             config.IsDev(),
 		})
 		return
 	}
@@ -653,6 +655,7 @@ func (h *PaymentHandler) GetPayments(c *gin.Context) {
 		"Role":              c.GetString("role"),
 		"QueryLocationID":   locID,
 		"AssistEnabled":     assist.IsEnabled(),
+		"IsDev":             config.IsDev(),
 	})
 }
 

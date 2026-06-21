@@ -3,6 +3,7 @@ package business
 import (
 	"fmt"
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services"
@@ -321,6 +322,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 			"AuthType":             c.GetString("auth_type"),
 			"Role":                 c.GetString("role"),
 			"ActivePage":           "orders",
+			"IsDev":                config.IsDev(),
 		})
 		return
 	}
@@ -348,6 +350,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 		"AuthType":             c.GetString("auth_type"),
 		"Role":                 c.GetString("role"),
 		"ActivePage":           "orders",
+		"IsDev":                config.IsDev(),
 	})
 }
 

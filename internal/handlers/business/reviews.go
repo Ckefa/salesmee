@@ -3,6 +3,7 @@ package business
 import (
 	"math"
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
 	"time"
@@ -58,6 +59,7 @@ func (h *ReviewHandler) GetReviews(c *gin.Context) {
 			"Onboarding":     onboardingData(h.db, businessID),
 			"AuthType":       c.GetString("auth_type"),
 			"Role":           c.GetString("role"),
+			"IsDev":          config.IsDev(),
 		})
 		return
 	}
@@ -77,6 +79,7 @@ func (h *ReviewHandler) GetReviews(c *gin.Context) {
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
 		"AssistEnabled":  assist.IsEnabled(),
+		"IsDev":          config.IsDev(),
 	})
 }
 

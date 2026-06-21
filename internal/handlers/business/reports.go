@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
 	"strconv"
@@ -56,6 +57,7 @@ func (h *ReportHandler) GetReportsPage(c *gin.Context) {
 			"Onboarding": onboardingData(h.db, businessID),
 			"AuthType":   c.GetString("auth_type"),
 			"Role":       c.GetString("role"),
+			"IsDev":      config.IsDev(),
 		})
 		return
 	}
@@ -68,6 +70,7 @@ func (h *ReportHandler) GetReportsPage(c *gin.Context) {
 		"AuthType":      c.GetString("auth_type"),
 		"Role":          c.GetString("role"),
 		"AssistEnabled": assist.IsEnabled(),
+		"IsDev":         config.IsDev(),
 	})
 }
 

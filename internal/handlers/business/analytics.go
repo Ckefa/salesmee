@@ -2,6 +2,7 @@ package business
 
 import (
 	"net/http"
+	"salesmee/internal/config"
 	dataPkg "salesmee/internal/data"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
@@ -68,6 +69,7 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 			"Onboarding":          onboardingData(h.db, businessID),
 			"AssistEnabled":      assist.IsEnabled(),
 			"UpgradeRequired":    true,
+			"IsDev":              config.IsDev(),
 		})
 		return
 	}
@@ -100,6 +102,7 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 			"AuthType":          c.GetString("auth_type"),
 			"Role":              c.GetString("role"),
 			"ActivePage":        "analytics",
+			"IsDev":             config.IsDev(),
 		})
 		return
 	}
@@ -129,6 +132,7 @@ func (h *AnalyticsHandler) GetAnalytics(c *gin.Context) {
 		"AuthType":          c.GetString("auth_type"),
 		"Role":              c.GetString("role"),
 		"AssistEnabled":     assist.IsEnabled(),
+		"IsDev":             config.IsDev(),
 	})
 }
 

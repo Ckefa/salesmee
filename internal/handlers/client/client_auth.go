@@ -194,6 +194,7 @@ func ClientDashboard(c *gin.Context) {
 			"Title":         "Client Dashboard - SalesMee",
 			"Error":         "Failed to load businesses",
 			"AssistEnabled": assist.IsEnabled(),
+			"IsDev":         config.C.AppEnv == "dev",
 		})
 		return
 	}

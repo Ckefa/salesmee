@@ -55,6 +55,7 @@ type SubscriptionPageData struct {
 	IsSilverPlan    bool
 	ContentTemplate string
 	AssistEnabled   bool
+	IsDev           bool
 }
 
 type CheckoutPageData struct {
@@ -82,6 +83,7 @@ type CheckoutPageData struct {
 	IsSilverPlan        bool
 	ContentTemplate     string
 	AssistEnabled       bool
+	IsDev               bool
 }
 
 type PlansPageData struct {
@@ -101,6 +103,7 @@ type PlansPageData struct {
 	IsSilverPlan        bool
 	ContentTemplate     string
 	AssistEnabled       bool
+	IsDev               bool
 }
 
 type UpcomingInvoiceInfo struct {
@@ -193,6 +196,7 @@ func (h *SubscriptionHandler) GetSubscriptionPage(c *gin.Context) {
 		Role:           c.GetString("role"),
 		IsSilverPlan:   subscription.IsSilverPlan(businessID),
 		AssistEnabled:  assist.IsEnabled(),
+		IsDev:          config.IsDev(),
 	}
 
 	if business.Subscription != nil {
@@ -288,6 +292,7 @@ func (h *SubscriptionHandler) GetPlansPage(c *gin.Context) {
 		Role:           c.GetString("role"),
 		IsSilverPlan:   subscription.IsSilverPlan(businessID),
 		AssistEnabled:  assist.IsEnabled(),
+		IsDev:          config.IsDev(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -364,6 +369,7 @@ func (h *SubscriptionHandler) GetCheckoutPage(c *gin.Context) {
 		Role:              c.GetString("role"),
 		IsSilverPlan:      subscription.IsSilverPlan(businessID),
 		AssistEnabled:     assist.IsEnabled(),
+		IsDev:             config.IsDev(),
 	}
 
 	c.HTML(http.StatusOK, "checkout.html", data)

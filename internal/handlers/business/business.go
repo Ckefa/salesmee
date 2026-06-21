@@ -86,6 +86,7 @@ type DashboardData struct {
 	AssistEnabled       bool
 	IsSilverPlan        bool
 	ContentTemplate     string
+	IsDev               bool
 }
 
 func (h *BusinessHandler) GetSharePage(c *gin.Context) {
@@ -125,6 +126,7 @@ func (h *BusinessHandler) GetSharePage(c *gin.Context) {
 		"AuthType":       c.GetString("auth_type"),
 		"Role":           c.GetString("role"),
 		"AssistEnabled":  assist.IsEnabled(),
+		"IsDev":          config.IsDev(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {
@@ -275,6 +277,7 @@ func (h *BusinessHandler) GetBizHome(c *gin.Context) {
 		"ProductCount":        bizProductCount,
 		"ServiceCount":        bizServiceCount,
 		"AuthToken":           token,
+		"IsDev":               config.IsDev(),
 	})
 }
 
@@ -353,6 +356,7 @@ func (h *BusinessHandler) GetDashboard(c *gin.Context) {
 	data.Role = c.GetString("role")
 	data.AssistEnabled = assist.IsEnabled()
 	data.IsSilverPlan = subscription.IsSilverPlan(businessID)
+	data.IsDev = config.IsDev()
 	if c.GetHeader("HX-Request") == "true" {
 		c.HTML(http.StatusOK, "dashboard_content", data)
 	} else {

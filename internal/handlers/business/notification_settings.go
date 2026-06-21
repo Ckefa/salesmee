@@ -2,6 +2,7 @@ package business
 
 import (
 	"net/http"
+	"salesmee/internal/config"
 	"salesmee/internal/models"
 	"salesmee/internal/services/assist"
 	"salesmee/internal/services/notifier"
@@ -36,6 +37,7 @@ func (h *NotificationHandler) GetNotificationSettings(c *gin.Context) {
 		"AuthType":             c.GetString("auth_type"),
 		"Role":                 c.GetString("role"),
 		"AssistEnabled":        assist.IsEnabled(),
+		"IsDev":                config.IsDev(),
 	}
 
 	if c.GetHeader("HX-Request") == "true" {

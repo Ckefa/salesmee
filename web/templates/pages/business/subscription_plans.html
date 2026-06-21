@@ -88,8 +88,8 @@
 
       <div class="mt-auto pt-6">
         {{if $isCurrent}}
-        <div class="w-full py-2.5 rounded-xl text-center text-xs sm:text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
-          {{heroicon "check" "mr-1.5"}}Current Plan
+        <div class="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-medium leading-none bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+          {{heroicon "check" "align-middle"}}<span>Current Plan</span>
         </div>
         {{else if eq .PriceMonthly 0.0}}
         <button onclick="switchPlan('{{.Code}}')" class="w-full py-2.5 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-surface-secondary)] transition-all text-xs sm:text-sm">

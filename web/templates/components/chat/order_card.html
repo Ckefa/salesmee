@@ -252,13 +252,13 @@
       </div>
 
       {{else if $isFulfilled}}
-      <div class="w-full text-center py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
-        {{heroicon "check-double" "mr-1"}}Order completed
+      <div class="w-full flex items-center justify-center gap-1.5 py-2 bg-[var(--color-success-light)] rounded-lg text-[var(--color-success)] text-xs sm:text-sm font-medium">
+        <span>Order completed</span>{{heroicon "check-double"}}
       </div>
       {{if $order.has_review}}
       <div class="w-full mt-2 py-1.5 px-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-xs font-medium text-center flex items-center justify-center gap-0.5">
         {{range $i := seq 1 5}}
-        {{if le $i $order.review_rating}}{{heroicon "star"}}{{else}}{{heroicon "star"}}{{end}}
+        {{if le $i $order.review_rating}}{{heroicon "star" "text-[var(--color-warning)]"}}{{else}}{{heroicon "star" "text-[var(--color-text-muted)]"}}{{end}}
         {{end}}
         <span class="ml-1.5 text-[var(--color-text-secondary)]">Reviewed</span>
       </div>

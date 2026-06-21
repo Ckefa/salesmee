@@ -26,9 +26,9 @@
               </div>
               {{if .Address}}<p class="text-sm text-[var(--color-text-secondary)] mt-1">{{.Address}}</p>{{end}}
               <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[var(--color-text-muted)]">
-                {{if .Phone}}<span>{{heroicon "phone" "mr-1"}}{{.Phone}}</span>{{end}}
-                {{if .Email}}<span>{{heroicon "envelope" "mr-1"}}{{.Email}}</span>{{end}}
-                <span>{{heroicon "globe-alt" "mr-1"}}{{.TimeZone}}</span>
+                {{if .Phone}}<span class="inline-flex items-center gap-1">{{heroicon "phone"}}<span>{{.Phone}}</span></span>{{end}}
+                {{if .Email}}<span class="inline-flex items-center gap-1">{{heroicon "envelope"}}<span>{{.Email}}</span></span>{{end}}
+                <span class="inline-flex items-center gap-1">{{heroicon "globe-alt"}}<span>{{.TimeZone}}</span></span>
               </div>
             </div>
             <div class="flex gap-2 shrink-0">

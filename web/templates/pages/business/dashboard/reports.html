@@ -13,41 +13,41 @@
 
   <!-- Tab Navigation -->
   <div class="flex items-center gap-1 bg-[var(--color-surface-secondary)] rounded-xl p-1 mb-6 overflow-x-auto" id="reportTabs">
-    <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap bg-[var(--color-primary)] text-white"
+    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap bg-[var(--color-primary)] text-white"
       onclick="switchReportTab(this, 'revenue')"
       hx-get="/business/reports/revenue?range=this_month"
       hx-target="#reportContent"
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-revenue">
-      {{heroicon "presentation-chart-line" "mr-1.5"}}Revenue
+      {{heroicon "presentation-chart-line"}}<span>Revenue</span>
     </button>
-    <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
       onclick="switchReportTab(this, 'sales')"
       hx-get="/business/reports/sales?range=this_month"
       hx-target="#reportContent"
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-sales">
-      {{heroicon "cube" "mr-1.5"}}Sales by Product
+      {{heroicon "cube"}}<span>Sales by Product</span>
     </button>
-    <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
       onclick="switchReportTab(this, 'clients')"
       hx-get="/business/reports/clients?range=this_month"
       hx-target="#reportContent"
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-clients">
-      {{heroicon "users" "mr-1.5"}}Clients
+      {{heroicon "users"}}<span>Clients</span>
     </button>
-    <button class="px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
+    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)]"
       onclick="switchReportTab(this, 'tax')"
       hx-get="/business/reports/tax?range=this_year"
       hx-target="#reportContent"
       hx-swap="innerHTML"
       hx-indicator="#reportContent"
       id="tab-tax">
-      {{heroicon "document-text" "mr-1.5"}}Tax Summary
+      {{heroicon "document-text"}}<span>Tax Summary</span>
     </button>
   </div>
 

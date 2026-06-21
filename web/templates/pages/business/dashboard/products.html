@@ -102,17 +102,17 @@
             <div class="mt-4 flex space-x-2">
               {{if or .ImageURL (gt (len .Images) 0)}}
               <button onclick="previewProductImage({{.ID}}, '{{.Name}}')"
-                class="flex-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                {{heroicon "eye" "sm:mr-1"}} <span class="hidden sm:inline">Preview</span>
+                class="flex-1 flex items-center justify-center gap-1.5 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
+                {{heroicon "eye"}}<span class="hidden sm:inline">Preview</span>
               </button>
               {{end}}
               <button onclick="editProduct(this.closest('[data-product-id]').dataset.productId)"
-                class="flex-1 bg-[var(--color-info)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                {{heroicon "pencil" "sm:mr-1"}} <span class="hidden sm:inline">Edit</span>
+                class="flex-1 flex items-center justify-center gap-1.5 bg-[var(--color-info)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
+                {{heroicon "pencil"}}<span class="hidden sm:inline">Edit</span>
               </button>
               <button onclick="deleteProduct(this.closest('[data-product-id]').dataset.productId)"
-                class="flex-1 bg-[var(--color-error)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
-                {{heroicon "trash" "sm:mr-1"}} <span class="hidden sm:inline">Delete</span>
+                class="flex-1 flex items-center justify-center gap-1.5 bg-[var(--color-error)] hover:brightness-110 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm">
+                {{heroicon "trash"}}<span class="hidden sm:inline">Delete</span>
               </button>
             </div>
           </div>
@@ -122,8 +122,8 @@
           {{heroicon "cube" "text-[var(--color-text-muted)] text-5xl mb-4"}}
           <p class="text-sm text-[var(--color-text-secondary)]">No products found</p>
           <button onclick="showAddProductModal()"
-            class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
-            {{heroicon "plus" "mr-2"}}Add your first product
+            class="mt-4 inline-flex items-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base">
+            {{heroicon "plus"}}<span>Add your first product</span>
           </button>
         </div>
         {{end}}

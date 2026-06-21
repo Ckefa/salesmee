@@ -40,13 +40,13 @@
           <div class="mt-3 sm:mt-4 flex space-x-2">
             {{if or .ImageURL (gt (len .Images) 0)}}
             <button onclick="previewClientProduct({{.ID}}, '{{.Name}}')"
-              class="flex-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm min-h-[36px] sm:min-h-[44px]">
-              {{heroicon "eye" "mr-1"}} Preview
+              class="flex-1 flex items-center justify-center gap-1.5 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm min-h-[36px] sm:min-h-[44px]">
+              {{heroicon "eye"}}<span>Preview</span>
             </button>
             {{end}}
             <button onclick="openClientProductPickerWithProduct({{.ID}})"
-              class="flex-1 bg-[var(--color-primary)] hover:opacity-90 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm min-h-[36px] sm:min-h-[44px]">
-              {{heroicon "shopping-cart" "mr-1"}} Place Order
+              class="flex-1 flex items-center justify-center gap-1.5 bg-[var(--color-primary)] hover:opacity-90 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm min-h-[36px] sm:min-h-[44px]">
+              {{heroicon "shopping-cart"}}<span>Place Order</span>
             </button>
           </div>
         </div>

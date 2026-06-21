@@ -88,8 +88,8 @@
               <p class="text-sm text-[var(--color-text)]">{{.Reply}}</p>
             </div>
             {{else}}
-            <button onclick="showReplyForm({{.ID}})" class="mt-3 text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">
-              {{heroicon "arrow-uturn-left" "mr-1"}}Reply
+            <button onclick="showReplyForm({{.ID}})" class="mt-3 inline-flex items-center gap-1 text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">
+              {{heroicon "arrow-uturn-left"}}<span>Reply</span>
             </button>
             <div id="reply-form-{{.ID}}" class="hidden mt-3">
               <textarea id="reply-input-{{.ID}}" rows="2" class="input w-full text-sm" placeholder="Write your reply..."></textarea>

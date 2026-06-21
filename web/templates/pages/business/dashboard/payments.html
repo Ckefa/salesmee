@@ -23,7 +23,7 @@
         <!-- Payment Methods Section -->
         <div class="bg-[var(--color-surface)] rounded-xl card mb-6">
           <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-[var(--color-border)] flex items-center justify-between flex-wrap gap-2">
-            <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)]">{{heroicon "credit-card" "mr-2"}}Payment Methods</h3>
+            <h3 class="text-base sm:text-lg font-medium text-[var(--color-text)] flex items-center gap-2">{{heroicon "credit-card"}}Payment Methods</h3>
             <button onclick="openAddPaymentMethod()" class="text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1">
               {{heroicon "plus" ""}} Add Method
             </button>
@@ -93,8 +93,8 @@
                     {{heroicon "credit-card" "text-3xl sm:text-4xl mb-3"}}
                     <p class="text-base sm:text-lg">No payment methods yet</p>
                     <p class="text-xs sm:text-sm mt-2">Add bank accounts, mobile wallets, PayPal, crypto wallets, or custom instructions so clients know how to pay.</p>
-                    <button onclick="openAddPaymentMethod()" class="mt-3 text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded-lg transition">
-                      {{heroicon "plus" "mr-1"}} Add Your First Method
+                    <button onclick="openAddPaymentMethod()" class="mt-3 inline-flex items-center gap-1 text-xs bg-[var(--color-primary)] hover:opacity-90 text-white px-4 py-2 rounded-lg transition">
+                      {{heroicon "plus"}}<span>Add Your First Method</span>
                     </button>
                   </td>
                 </tr>

@@ -65,7 +65,7 @@
             {{end}}
           </select>
           <button id="clearBookingFilters" class="input text-sm px-3 py-2 hidden whitespace-nowrap inline-flex items-center gap-1">
-            {{heroicon "x-mark" "mr-1"}}Clear
+            {{heroicon "x-mark"}}<span>Clear</span>
           </button>
         </div>
       </div>
@@ -181,7 +181,7 @@
                   {{heroicon "calendar" "text-[var(--color-text-muted)]" "text-5xl" "mb-4" "block"}}
                   <p class="text-sm text-[var(--color-text-secondary)]">No bookings found</p>
                   <button onclick="openQuickBookingModal()" class="mt-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base inline-flex items-center gap-2">
-                    {{heroicon "plus" "mr-2"}}Create your first booking
+                    {{heroicon "plus"}}<span>Create your first booking</span>
                   </button>
                 </td>
               </tr>
@@ -326,8 +326,8 @@
                 <div class="px-3 py-4 text-center text-xs text-[var(--color-text-muted)]">Loading services...</div>
               </div>
               <div id="bookingServiceCount" class="mt-1 text-xs text-[var(--color-text-muted)]"></div>
-              <div id="bookingServiceSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden">
-                {{heroicon "check-circle" "mr-1"}}<span id="bookingServiceSelectedName"></span>
+              <div id="bookingServiceSelected" class="mt-1 text-xs font-medium text-[var(--color-success)] hidden inline-flex items-center gap-1">
+                {{heroicon "check-circle"}}<span id="bookingServiceSelectedName"></span>
               </div>
               <input type="hidden" id="bookingService" value="">
             </div>
@@ -385,8 +385,8 @@
 
           <!-- Navigation -->
           <div class="flex justify-between items-center gap-3 pt-4 border-t border-[var(--color-border)]">
-            <button type="button" id="bkgBackBtn" onclick="bkgGoToStep(bkgStep - 1)" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-1.5 rounded text-xs sm:text-sm hidden">
-              {{heroicon "arrow-left" "mr-1"}}Back
+            <button type="button" id="bkgBackBtn" onclick="bkgGoToStep(bkgStep - 1)" class="inline-flex items-center gap-1 bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 py-1.5 rounded text-xs sm:text-sm hidden">
+              {{heroicon "arrow-left"}}<span>Back</span>
             </button>
             <div class="flex gap-3 ml-auto">
               <button type="button" onclick="hideQuickBookingModal()" class="bg-[var(--color-surface-secondary)] hover:brightness-90 text-[var(--color-text)] border border-[var(--color-border)] px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm">Cancel</button>

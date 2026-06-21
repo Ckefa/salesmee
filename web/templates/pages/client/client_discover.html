@@ -26,8 +26,8 @@
         {{heroicon "sun" "theme-sun" "text-white" "text-sm" "sm:text-base"}}
         {{heroicon "moon" "theme-moon" "hidden" "text-white" "text-sm" "sm:text-base"}}
       </button>
-      <a href="/client" class="hover:bg-white/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm">
-        {{heroicon "arrow-left" "mr-1"}} Back
+      <a href="/client" class="inline-flex items-center gap-1.5 hover:bg-white/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm">
+        {{heroicon "arrow-left"}}<span>Back</span>
       </a>
     </div>
   </header>
@@ -77,8 +77,8 @@
         </div>
       </div>
       <button onclick="connectToBusiness({{.ID}})"
-        class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
-        {{heroicon "plus" "mr-1"}} Connect
+        class="connect-btn shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
+        {{heroicon "plus"}}<span>Connect</span>
         </button>
       </div>
       {{else}}
@@ -130,8 +130,8 @@
                   </div>
                 </div>
                 <button onclick="connectToBusiness(${b.id})"
-                  class="connect-btn shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
-                  {{heroicon "plus" "mr-1"}} Connect
+                  class="connect-btn shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[44px]">
+                  {{heroicon "plus"}}<span>Connect</span>
                 </button>
               </div>
             `).join('');
@@ -142,26 +142,26 @@
     function connectToBusiness(businessId) {
       const btn = event.target.closest('.connect-btn');
       btn.disabled = true;
-      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin" "mr-1"}} Connecting...';
+      btn.innerHTML = '{{heroicon "arrow-path" "animate-spin"}}<span>Connecting...</span>';
 
       fetch('/client/connect/' + businessId, { method: 'POST', headers: { 'X-CSRF-Token': getCookie('csrf_token') } })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            btn.innerHTML = '{{heroicon "check" "mr-1"}} Connected!';
+            btn.innerHTML = '{{heroicon "check"}}<span>Connected!</span>';
             btn.classList.remove('bg-[var(--color-primary)]', 'hover:opacity-90');
             btn.classList.add('bg-[var(--color-success)]');
             setTimeout(() => {
               window.location.href = '/client?business_id=' + businessId;
             }, 800);
           } else {
-            btn.innerHTML = '{{heroicon "plus" "mr-1"}} Connect';
+            btn.innerHTML = '{{heroicon "plus"}}<span>Connect</span>';
             btn.disabled = false;
             showNotification(data.error || 'Failed to connect', 'error');
           }
         })
         .catch(() => {
-          btn.innerHTML = '{{heroicon "plus" "mr-1"}} Connect';
+          btn.innerHTML = '{{heroicon "plus"}}<span>Connect</span>';
           btn.disabled = false;
           showNotification('Failed to connect', 'error');
         });

@@ -97,6 +97,7 @@ func main() {
 		&models.Location{},
 		&models.TeamMember{},
 		&models.ProfileChangeRequest{},
+		&models.PaymentMethod{},
 	}
 	for _, m := range migrateModels {
 		if err := db.DB.AutoMigrate(m); err != nil {
